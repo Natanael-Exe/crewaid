@@ -281,10 +281,11 @@ jobs:
             echo "Runtime: imported crewaid-sandbox:$GITHUB_REF_NAME; latest unchanged (not the newest release)." >> "$GITHUB_STEP_SUMMARY"
           fi
 
+  # Deprecated: opt-in only when CLOUDFLARE_SANDBOX_WORKER_NAME is configured.
   cloudflare-sandbox:
     name: update existing Cloudflare sandbox Worker
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') && vars.CLOUDFLARE_SANDBOX_WORKER_NAME != ''
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
