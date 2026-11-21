@@ -178,9 +178,9 @@ function fingerprint() {
     (path) => git(['ls-tree', 'HEAD', '--', path]).toString().split(' ')[0],
   );
 }
-function jsonc(text) {
-  // Wrangler's checked-in JSONC uses only full-line comments.
-  return JSON.parse(text.replace(/^\s*\/\/.*$/gm, ''));
+export function parseJsonc(text) {
+  // Wrangler's checked-in JSONC uses full-line comments and Prettier trailing commas.
+  return JSON.parse(text.replace(/^\s*\/\/.*$/gm, '').replace(/,(\s*[}\]])/g, '$1'));
 }
 function target() {
   return {
@@ -230,7 +230,7 @@ async function main(command) {
       throw new Error('Expected exactly one successful AMD64 sandbox build digest.');
     const sourceImage = `ghcr.io/natanael-exe/crewaid-sandbox@sha256:${digest}`;
     const config = releaseConfig(
-      jsonc(readFileSync(resolve(ROOT, WORKER, 'wrangler.jsonc'), 'utf8')),
+      parseJsonc(readFileSync(resolve(ROOT, WORKER, 'wrangler.jsonc'), 'utf8')),
       plan,
       { ...target(), sourceImage, directory },
     );

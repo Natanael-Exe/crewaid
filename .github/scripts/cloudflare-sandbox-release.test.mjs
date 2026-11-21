@@ -5,6 +5,7 @@ import {
   deploymentFingerprint,
   deploymentPlan,
   FINGERPRINT_VAR,
+  parseJsonc,
   releaseConfig,
   validateTarget,
   verifyDeployment,
@@ -180,7 +181,7 @@ test('generated config retains the selected Worker, namespace classes, workspace
     new URL('../../infra/cloudflare/control-worker/wrangler.jsonc', import.meta.url),
     'utf8',
   );
-  const base = JSON.parse(text.replace(/^\s*\/\/.*$/gm, ''));
+  const base = parseJsonc(text);
   const remote = settings();
   remote.bindings.push({
     name: 'crewaid_workspaces',
