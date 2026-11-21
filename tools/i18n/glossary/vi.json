@@ -1,0 +1,41 @@
+{
+  "address": "bạn (friendly, neutral)",
+  "terms": {
+    "bot": "bot",
+    "crew": "đội",
+    "specialist": "chuyên gia",
+    "routine": "việc định kỳ",
+    "skill": "kỹ năng",
+    "plugin": "plugin",
+    "connection": "kết nối",
+    "tool": "công cụ",
+    "Work": "Work",
+    "task": "nhiệm vụ",
+    "goal": "mục tiêu",
+    "project": "dự án",
+    "deliverable": "kết quả",
+    "template": "mẫu",
+    "computer": "máy tính",
+    "screen": "màn hình",
+    "take control": "điều khiển",
+    "approval": "phê duyệt",
+    "conversation": "cuộc trò chuyện",
+    "composer": "khung soạn tin",
+    "model": "mô hình",
+    "call": "cuộc gọi",
+    "voice message": "tin nhắn thoại",
+    "dictation": "nhập bằng giọng nói",
+    "recording": "ghi màn hình",
+    "memory": "bộ nhớ"
+  },
+  "screens": {
+    "Settings": "Cài đặt",
+    "General": "Chung",
+    "Models": "Mô hình",
+    "Channels": "Kênh",
+    "Plan & usage": "Gói & mức dùng",
+    "Computer": "Máy tính",
+    "Templates": "Mẫu",
+    "Routines": "Việc định kỳ"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "address": "Polite plural 'ku', gender-neutral and respectful",
+  "terms": {
+    "bot": "bot",
+    "crew": "ƙungiya",
+    "specialist": "ƙwararre",
+    "routine": "aiki mai maimaitawa",
+    "skill": "ƙwarewa",
+    "plugin": "ƙari",
+    "connection": "haɗi",
+    "tool": "kayan aiki",
+    "Work": "Aiki",
+    "task": "aiki",
+    "goal": "manufa",
+    "project": "shiri",
+    "deliverable": "fitarwa",
+    "template": "samfuri",
+    "computer": "kwamfuta",
+    "screen": "allo",
+    "take control": "karɓi iko",
+    "approval": "amincewa",
+    "conversation": "hira",
+    "composer": "akwatin saƙo",
+    "model": "model",
+    "call": "kira",
+    "voice message": "saƙon murya",
+    "dictation": "rubutu da murya",
+    "recording": "rikodi",
+    "memory": "tunawa"
+  },
+  "screens": {
+    "Settings": "Saiti",
+    "General": "Gaba ɗaya",
+    "Models": "Model",
+    "Channels": "Tashoshi",
+    "Plan & usage": "Tsari da Amfani",
+    "Computer": "Kwamfuta",
+    "Templates": "Samfura",
+    "Routines": "Ayyukan maimaitawa"
+  }
+}

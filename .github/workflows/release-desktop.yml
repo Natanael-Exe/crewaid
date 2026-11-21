@@ -1,0 +1,153 @@
+name: Release desktop
+
+# Builds both editions (D-152) for macOS (arm64 and x64), Windows (x64) and
+# Linux (x64 .deb), and publishes them to downloads.crewaid.io (D-153).
+#
+# - A `v*` tag publishes. The tag must equal apps/desktop/package.json's version:
+#   bump it, merge, then `git tag v0.3.0 && git push origin v0.3.0`.
+# - A pull request that changes packaging builds everything and publishes
+#   nothing: the installers are kept as workflow artifacts for three days, so a
+#   packaging change is proven on both operating systems before it ships.
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+    paths:
+      - .github/workflows/release-desktop.yml
+      - apps/desktop/electron-builder*.yml
+      - apps/desktop/scripts/package.mjs
+
+permissions:
+  contents: read
+
+# Publishing runs one tag at a time, so two releases never interleave their
+# feeds; the Worker also refuses a feed older than the one it holds (D-153).
+# Pull requests only build, and a newer push cancels the older run.
+concurrency:
+  group: release-desktop-${{ startsWith(github.ref, 'refs/tags/v') && 'publish' || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PUBLISH: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+jobs:
+  version:
+    name: tag matches the app version
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Compare
+        run: |
+          app="v$(node -p "require('./apps/desktop/package.json').version")"
+          if [ "$app" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match apps/desktop/package.json ($app)"
+            exit 1
+          fi
+
+  build:
+    name: ${{ matrix.edition }} · ${{ matrix.platform }}
+    needs: version
+    # `version` is skipped on pull requests; build anyway, but never after a failed check.
+    if: ${{ !cancelled() && needs.version.result != 'failure' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        edition: [cloud, selfhosted]
+        platform: [mac, win, linux]
+        include:
+          - platform: mac
+            os: macos-latest
+          - platform: win
+            os: windows-latest
+          - platform: linux
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    env:
+      # Secrets cannot be tested in a step's `if`; whether one is set can.
+      HAS_APPLE_API_KEY: ${{ secrets.APPLE_API_KEY != '' }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the app and the packages it imports
+        run: pnpm exec turbo run build --filter=@crewaid/desktop...
+
+      # @electron/notarize takes the App Store Connect key as a PATH to the .p8
+      # file, not its contents, so the secret is written to the runner's temp
+      # directory (deleted with the runner) and its path exported.
+      #
+      # Signing material reaches TAG builds only. A pull request runs code the
+      # pull request itself can change — `scripts/package.mjs` is in the paths
+      # above — so a key handed to it is a key any branch can copy out and sign
+      # anything with as Crewaid. Pull requests package ad-hoc signed instead.
+      - name: Notarization key (macOS, when configured)
+        if: matrix.platform == 'mac' && env.HAS_APPLE_API_KEY == 'true' && github.event_name == 'push'
+        env:
+          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY }}
+        run: |
+          key="$RUNNER_TEMP/crewaid-notarize-key.p8"
+          printf '%s' "$APPLE_API_KEY_CONTENT" > "$key"
+          chmod 600 "$key"
+          echo "APPLE_API_KEY=$key" >> "$GITHUB_ENV"
+
+      - name: Package
+        working-directory: apps/desktop
+        env:
+          # The hosted orchestrator, compiled into the cloud build. Required to
+          # publish; a pull request without it packages against a placeholder.
+          CREWAID_ORCHESTRATOR_URL: ${{ (github.event_name == 'push' && secrets.CREWAID_ORCHESTRATOR_URL) || (github.event_name != 'push' && 'https://orchestrator.invalid') || '' }}
+          # Developer ID signing switches on when these exist (D-153); until then
+          # macOS builds are ad-hoc signed and Windows builds unsigned. Mac jobs only:
+          # electron-builder's Windows signer falls back to CSC_LINK when
+          # WIN_CSC_LINK is unset, and would try to sign the .exe with the
+          # Apple certificate. APPLE_API_KEY (a path) comes from the step above.
+          # Tag builds only, for the reason on the notarization step.
+          CSC_LINK: ${{ matrix.platform == 'mac' && github.event_name == 'push' && secrets.MAC_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.platform == 'mac' && github.event_name == 'push' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
+          APPLE_API_KEY_ID: ${{ matrix.platform == 'mac' && github.event_name == 'push' && secrets.APPLE_API_KEY_ID || '' }}
+          APPLE_API_ISSUER: ${{ matrix.platform == 'mac' && github.event_name == 'push' && secrets.APPLE_API_ISSUER || '' }}
+        run: node scripts/package.mjs "${{ matrix.edition }}" "--${{ matrix.platform }}"
+
+      - name: Verify macOS bundle signature
+        if: matrix.platform == 'mac'
+        run: codesign --verify --deep --strict --verbose=2 apps/desktop/release/mac*/*.app
+
+      - name: Keep the installers (pull requests)
+        if: env.PUBLISH != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-${{ matrix.platform }}
+          retention-days: 3
+          path: |
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.zip
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.deb
+            apps/desktop/release/*.blockmap
+            apps/desktop/release/latest*.yml
+
+      - name: Publish to downloads.crewaid.io
+        if: env.PUBLISH == 'true'
+        working-directory: apps/desktop
+        env:
+          DOWNLOADS_UPLOAD_SECRET: ${{ secrets.DOWNLOADS_UPLOAD_SECRET }}
+        # Installers first, update feeds last; large files in parts (scripts/publish.mjs).
+        run: node scripts/publish.mjs "${{ matrix.edition }}"

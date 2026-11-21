@@ -1,0 +1,41 @@
+{
+  "address": "wewe, informal singular",
+  "terms": {
+    "bot": "boti",
+    "crew": "timu",
+    "specialist": "mtaalamu",
+    "routine": "ratiba",
+    "skill": "ujuzi",
+    "plugin": "kiendelezi",
+    "connection": "muunganisho",
+    "tool": "zana",
+    "Work": "Kazi",
+    "task": "jukumu",
+    "goal": "lengo",
+    "project": "mradi",
+    "deliverable": "matokeo",
+    "template": "kiolezo",
+    "computer": "kompyuta",
+    "screen": "skrini",
+    "take control": "chukua udhibiti",
+    "approval": "idhini",
+    "conversation": "mazungumzo",
+    "composer": "sehemu ya kuandika",
+    "model": "modeli",
+    "call": "simu",
+    "voice message": "ujumbe wa sauti",
+    "dictation": "kuandika kwa sauti",
+    "recording": "kurekodi",
+    "memory": "kumbukumbu"
+  },
+  "screens": {
+    "Settings": "Mipangilio",
+    "General": "Jumla",
+    "Models": "Modeli",
+    "Channels": "Chaneli",
+    "Plan & usage": "Mpango na matumizi",
+    "Computer": "Kompyuta",
+    "Templates": "Violezo",
+    "Routines": "Ratiba"
+  }
+}

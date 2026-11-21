@@ -1,0 +1,41 @@
+{
+  "address": "formal vy (second-person plural)",
+  "terms": {
+    "bot": "bot",
+    "crew": "tým",
+    "specialist": "specialista",
+    "routine": "rutina",
+    "skill": "dovednost",
+    "plugin": "plugin",
+    "connection": "propojení",
+    "tool": "nástroj",
+    "Work": "Práce",
+    "task": "úkol",
+    "goal": "cíl",
+    "project": "projekt",
+    "deliverable": "výstup",
+    "template": "šablona",
+    "computer": "počítač",
+    "screen": "obrazovka",
+    "take control": "převzít kontrolu",
+    "approval": "schválení",
+    "conversation": "konverzace",
+    "composer": "pole pro zprávu",
+    "model": "model",
+    "call": "hovor",
+    "voice message": "hlasová zpráva",
+    "dictation": "diktování",
+    "recording": "nahrávání",
+    "memory": "paměť"
+  },
+  "screens": {
+    "Settings": "Nastavení",
+    "General": "Obecné",
+    "Models": "Modely",
+    "Channels": "Kanály",
+    "Plan & usage": "Plán a využití",
+    "Computer": "Počítač",
+    "Templates": "Šablony",
+    "Routines": "Rutiny"
+  }
+}

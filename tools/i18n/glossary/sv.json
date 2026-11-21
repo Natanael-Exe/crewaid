@@ -1,0 +1,41 @@
+{
+  "address": "du (informal)",
+  "terms": {
+    "bot": "bot",
+    "crew": "team",
+    "specialist": "specialist",
+    "routine": "rutin",
+    "skill": "färdighet",
+    "plugin": "tillägg",
+    "connection": "anslutning",
+    "tool": "verktyg",
+    "Work": "Work",
+    "task": "uppgift",
+    "goal": "mål",
+    "project": "projekt",
+    "deliverable": "leverans",
+    "template": "mall",
+    "computer": "dator",
+    "screen": "skärm",
+    "take control": "ta över",
+    "approval": "godkännande",
+    "conversation": "chatt",
+    "composer": "skrivfält",
+    "model": "modell",
+    "call": "samtal",
+    "voice message": "röstmeddelande",
+    "dictation": "diktering",
+    "recording": "inspelning",
+    "memory": "minne"
+  },
+  "screens": {
+    "Settings": "Inställningar",
+    "General": "Allmänt",
+    "Models": "Modeller",
+    "Channels": "Kanaler",
+    "Plan & usage": "Plan och användning",
+    "Computer": "Dator",
+    "Templates": "Mallar",
+    "Routines": "Rutiner"
+  }
+}

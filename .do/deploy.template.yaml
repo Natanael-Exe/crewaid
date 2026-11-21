@@ -1,0 +1,64 @@
+# DigitalOcean App Platform deploy template for self-hosted Crewaid Orchestrator.
+# Managed PaaS hosts do not expose a Docker socket, so bot computers run on
+# Runtime (https://withruntime.com) via SANDBOX_PROVIDER=runtime.
+# For full all-in-one Docker self-hosting on a DigitalOcean Droplet instead,
+# run `npx crewaid-selfhost init` (see infra/selfhost/README.md).
+
+spec:
+  name: crewaid
+  databases:
+    - name: db
+      engine: PG
+      production: false
+  services:
+    - name: orchestrator
+      git:
+        repo_clone_url: https://github.com/Natanael-Exe/crewaid.git
+        branch: main
+      dockerfile_path: infra/dokploy/Dockerfile
+      http_port: 3000
+      instance_count: 1
+      instance_size_slug: basic-xs
+      health_check:
+        http_path: /health
+        initial_delay_seconds: 60
+      envs:
+        - key: NODE_ENV
+          scope: RUN_TIME
+          value: production
+        - key: PORT
+          scope: RUN_TIME
+          value: '3000'
+        - key: CREWAID_EDITION
+          scope: RUN_TIME
+          value: selfhosted
+        - key: SANDBOX_PROVIDER
+          scope: RUN_TIME
+          value: runtime
+        - key: SANDBOX_RUNTIME_IMAGE
+          scope: RUN_TIME
+          value: crewaid-sandbox:latest
+        - key: ARTIFACT_DIR
+          scope: RUN_TIME
+          value: /tmp/crewaid-artifacts
+        - key: DATABASE_URL
+          scope: RUN_TIME
+          value: ${db.DATABASE_URL}
+        - key: BETTER_AUTH_URL
+          scope: RUN_TIME
+          value: ${APP_URL}
+        - key: BETTER_AUTH_SECRET
+          scope: RUN_TIME
+          type: SECRET
+        - key: CREWAID_CREDENTIAL_KEYRING
+          scope: RUN_TIME
+          type: SECRET
+        - key: CREDENTIAL_KEY
+          scope: RUN_TIME
+          type: SECRET
+        - key: RUNTIME_API_KEY
+          scope: RUN_TIME
+          type: SECRET
+        - key: REDIS_URL
+          scope: RUN_TIME
+          type: SECRET

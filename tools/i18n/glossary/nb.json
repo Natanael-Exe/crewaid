@@ -1,0 +1,41 @@
+{
+  "address": "informal du",
+  "terms": {
+    "bot": "bot",
+    "crew": "team",
+    "specialist": "spesialist",
+    "routine": "rutine",
+    "skill": "ferdighet",
+    "plugin": "plugin",
+    "connection": "tilkobling",
+    "tool": "verktøy",
+    "Work": "Work",
+    "task": "oppgave",
+    "goal": "mål",
+    "project": "prosjekt",
+    "deliverable": "leveranse",
+    "template": "mal",
+    "computer": "datamaskin",
+    "screen": "skjerm",
+    "take control": "ta kontroll",
+    "approval": "godkjenning",
+    "conversation": "samtale",
+    "composer": "skrivefelt",
+    "model": "modell",
+    "call": "anrop",
+    "voice message": "talemelding",
+    "dictation": "diktering",
+    "recording": "opptak",
+    "memory": "minne"
+  },
+  "screens": {
+    "Settings": "Innstillinger",
+    "General": "Generelt",
+    "Models": "Modeller",
+    "Channels": "Kanaler",
+    "Plan & usage": "Plan og forbruk",
+    "Computer": "Datamaskin",
+    "Templates": "Maler",
+    "Routines": "Rutiner"
+  }
+}

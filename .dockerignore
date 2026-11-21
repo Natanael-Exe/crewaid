@@ -1,0 +1,23 @@
+# The sandbox-image build context is the REPO ROOT (M3-PK-01): the image ships
+# the skill executor bundled from packages/skill-runtime, and reads the esbuild
+# pin from apps/desktop/package.json. Everything below is local state the build
+# must never read — keeping it out keeps the image build reproducible and the
+# context small.
+.git
+# Dokploy writes production secrets to infra/dokploy/.env in the build context.
+# Never COPY any env file into an image.
+.env*
+**/.env*
+node_modules
+**/node_modules
+.turbo
+**/dist
+**/.turbo
+**/coverage
+**/release
+**/__pycache__
+**/*.pyc
+.artifacts
+*.log
+# A local `next build`, which the image builds afresh.
+**/.next

@@ -1,0 +1,41 @@
+{
+  "address": "Friendly, direct MSA; second-person masculine singular default, no dialect.",
+  "terms": {
+    "bot": "بوت",
+    "crew": "فريق",
+    "specialist": "متخصص",
+    "routine": "روتين",
+    "skill": "مهارة",
+    "plugin": "إضافة",
+    "connection": "اتصال",
+    "tool": "أداة",
+    "Work": "العمل",
+    "task": "مهمة",
+    "goal": "هدف",
+    "project": "مشروع",
+    "deliverable": "مخرج",
+    "template": "قالب",
+    "computer": "كمبيوتر",
+    "screen": "شاشة",
+    "take control": "التحكم",
+    "approval": "موافقة",
+    "conversation": "محادثة",
+    "composer": "مربع الكتابة",
+    "model": "نموذج",
+    "call": "مكالمة",
+    "voice message": "رسالة صوتية",
+    "dictation": "الإملاء",
+    "recording": "تسجيل",
+    "memory": "الذاكرة"
+  },
+  "screens": {
+    "Settings": "الإعدادات",
+    "General": "عام",
+    "Models": "النماذج",
+    "Channels": "القنوات",
+    "Plan & usage": "الخطة والاستخدام",
+    "Computer": "الكمبيوتر",
+    "Templates": "القوالب",
+    "Routines": "الروتينات"
+  }
+}

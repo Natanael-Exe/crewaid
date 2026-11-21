@@ -1,0 +1,36 @@
+// The Cloudflare control plane for Crewaid computers (D-151). See README.md.
+{
+  "name": "crewaid-computers",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-30",
+  "durable_objects": {
+    "bindings": [
+      { "name": "COMPUTER", "class_name": "Computer" },
+      { "name": "REGISTRY", "class_name": "Registry" },
+    ],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Computer", "Registry"] }],
+  "containers": [
+    {
+      "class_name": "Computer",
+      "scheduling_policy": "durable_object",
+      "images": {
+        // Built from the repository's sandbox image by `wrangler deploy`. On a
+        // slow uplink, push it from elsewhere and pin the digest instead:
+        //   "base": { "image": "registry.cloudflare.com/<account>/crewaid-sandbox@sha256:<digest>" }
+        "base": { "dockerfile": "../../sandbox-image/Dockerfile", "build_context": "../../.." },
+      },
+    },
+  ],
+  "r2_buckets": [{ "binding": "WORKSPACES", "bucket_name": "crewaid-workspaces" }],
+  // A save or restore streams the whole workspace through the Worker; the
+  // default 30 s of CPU per request is too little headroom for a large one.
+  "limits": { "cpu_ms": 300000 },
+  "vars": {
+    // Cloudflare needs at least 3 GiB per vCPU; 4 vCPU therefore means 12 GiB.
+    "INSTANCE_VCPU": "4",
+    "INSTANCE_MEMORY_MIB": "12288",
+    "INSTANCE_DISK_MB": "20000",
+  },
+  "observability": { "enabled": true },
+}

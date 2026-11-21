@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# Runtime's start command for this image (D-219); scripts/build-image.mjs in
+# packages/sandbox-runtime names it, and the provider switches a computer only
+# to an image that starts with it.
+#
+# Runtime keeps a sandbox's /workspace when it moves the sandbox to a newer
+# image and discards the rest of its disk, so the home lives in /workspace and
+# is bound over /home/bot before anything reads it. Runtime runs this as the
+# image's `bot`, with sudo, on create and after every switch.
+set -eu
+
+sudo -n /usr/local/bin/crewaid-home-on-workspace --create
+# The start command's working directory was /home/bot before the bind, which
+# still names the directory underneath it.
+cd /home/bot
+exec /usr/local/bin/entrypoint.sh

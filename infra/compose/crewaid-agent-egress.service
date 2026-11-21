@@ -1,0 +1,16 @@
+[Unit]
+Description=Crewaid sandbox bridge egress firewall
+Requires=docker.service
+After=docker.service
+PartOf=docker.service
+Before=crewaid-orchestrator.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/bin/sh -ec '/usr/bin/docker network inspect agent-net >/dev/null 2>&1 || /usr/bin/docker network create --driver bridge agent-net'
+ExecStart=/usr/bin/python3 /opt/crewaid/infra/compose/agent-egress.py
+ExecReload=/usr/bin/python3 /opt/crewaid/infra/compose/agent-egress.py
+
+[Install]
+WantedBy=docker.service

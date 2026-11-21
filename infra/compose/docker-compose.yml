@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: crewaid-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crewaid}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crewaid}
+      POSTGRES_DB: ${POSTGRES_DB:-crewaid}
+    # Loopback only. A bare `5432:5432` publishes on every interface, and on
+    # Linux Docker's own NAT rules take the port before ufw sees the packet —
+    # so a box with a firewall would still serve this database, default
+    # password and all, to the network. Everything that uses it (the
+    # orchestrator, the test suites, `scripts/docker-host-setup.sh`) connects
+    # to localhost.
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-crewaid} -d ${POSTGRES_DB:-crewaid}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - crewaid-internal
+
+  redis:
+    image: redis:7-alpine
+    container_name: crewaid-redis
+    restart: unless-stopped
+    # A password as well as loopback: Redis holds every BullMQ queue, so any
+    # local process that can reach it can schedule work as any user. Read from
+    # the environment rather than written here, because this file is shared.
+    # `$$` leaves the expansion to the container's shell, so the command reads
+    # the value from the container's environment instead of compose baking it
+    # into the command line.
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in infra/compose/.env — openssl rand -hex 24}
+    command: ['sh', '-c', 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+    # Loopback only, for the reason above.
+    ports:
+      - '127.0.0.1:${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      # `redis-cli ping` exits 0 on a NOAUTH refusal too, so the check looks for
+      # the PONG. REDISCLI_AUTH keeps the password out of the process list.
+      test: ['CMD-SHELL', 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - crewaid-internal
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  # Postgres and Redis live here. Bot sandboxes DO NOT (PRD §7.3: bot
+  # containers sit on a dedicated bridge with no route to Postgres or Redis).
+  # The sandbox bridge `agent-net` is created by DockerSandboxProvider in M2
+  # and is deliberately absent from this file.
+  crewaid-internal:
+    name: crewaid-internal
+    driver: bridge

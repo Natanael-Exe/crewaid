@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+coverage
+.turbo
+pnpm-lock.yaml
+*.md
+
+# A byte-for-byte copy of infra/selfhost/compose.yml (a test enforces it):
+# formatting it would make the two differ.
+packages/selfhost-cli/assets/

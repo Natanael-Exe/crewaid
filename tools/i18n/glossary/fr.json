@@ -1,0 +1,41 @@
+{
+  "address": "formal vous, friendly tone",
+  "terms": {
+    "bot": "bot",
+    "crew": "équipe",
+    "specialist": "spécialiste",
+    "routine": "routine",
+    "skill": "compétence",
+    "plugin": "plugin",
+    "connection": "connexion",
+    "tool": "outil",
+    "Work": "Travail",
+    "task": "tâche",
+    "goal": "objectif",
+    "project": "projet",
+    "deliverable": "livrable",
+    "template": "modèle",
+    "computer": "ordinateur",
+    "screen": "écran",
+    "take control": "prendre le contrôle",
+    "approval": "validation",
+    "conversation": "conversation",
+    "composer": "zone de saisie",
+    "model": "modèle d'IA",
+    "call": "appel",
+    "voice message": "message vocal",
+    "dictation": "dictée",
+    "recording": "enregistrement",
+    "memory": "mémoire"
+  },
+  "screens": {
+    "Settings": "Paramètres",
+    "General": "Général",
+    "Models": "Modèles d'IA",
+    "Channels": "Messageries",
+    "Plan & usage": "Abonnement et utilisation",
+    "Computer": "Ordinateur",
+    "Templates": "Modèles",
+    "Routines": "Routines"
+  }
+}

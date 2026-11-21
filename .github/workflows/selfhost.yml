@@ -1,0 +1,222 @@
+name: Self-hosted stack
+
+# D-155: the self-hosted compose file, run as a self-hoster would, on a Linux
+# runner. It proves the orchestrator boots as `selfhosted` behind the egress
+# fence, a password account can be made and reset, and a computer on the
+# sandbox network reaches the internet on 443 and nothing private.
+#
+# The sandbox image is replaced by a tiny stand-in: the stack only needs it to
+# exist (the `networks-ready` service runs it once), and building the real one
+# is Sandbox image's job.
+on:
+  pull_request:
+    paths:
+      - .github/workflows/selfhost.yml
+      - infra/selfhost/**
+      - infra/dokploy/Dockerfile
+      - infra/dokploy/orchestrator-entrypoint.sh
+      - infra/compose/agent-egress.py
+      - apps/orchestrator/src/auth/**
+      - apps/orchestrator/src/cli/**
+      - apps/orchestrator/src/health/**
+      - packages/selfhost-cli/**
+      - packages/sandbox-docker/**
+      - packages/sandbox-supervisor/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selfhost-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: infra/selfhost
+    env:
+      CREWAID_VERSION: 0.0.0-ci
+      COMPOSE: docker compose --env-file .env -f compose.yml
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Load bridge netfilter on the runner
+        run: sudo modprobe br_netfilter
+
+      - name: Build the images
+        working-directory: .
+        run: |
+          docker build -f infra/dokploy/Dockerfile --build-arg CREWAID_VERSION=$CREWAID_VERSION \
+            -t ghcr.io/natanael-exe/crewaid-orchestrator:$CREWAID_VERSION .
+          docker build -f infra/selfhost/egress/Dockerfile -t ghcr.io/natanael-exe/crewaid-egress:$CREWAID_VERSION .
+          docker pull alpine:3.22.2
+          docker tag alpine:3.22.2 ghcr.io/natanael-exe/crewaid-sandbox:$CREWAID_VERSION
+
+      - name: Write .env as the installer would
+        run: |
+          {
+            echo "CREWAID_VERSION=$CREWAID_VERSION"
+            echo "BETTER_AUTH_URL=http://localhost:3000"
+            # On every interface, so the runner's own address answers from outside
+            # the fence and its refusal from inside means something.
+            echo "CREWAID_BIND=0.0.0.0"
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)"
+            echo "REDIS_PASSWORD=$(openssl rand -hex 24)"
+            echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)"
+            echo "CREWAID_CREDENTIAL_KEYRING={\"1\":\"$(openssl rand -hex 32)\"}"
+            echo "CREDENTIAL_KEY=$(openssl rand -hex 32)"
+            echo "SANDBOX_SUPERVISOR_SECRET=$(openssl rand -hex 32)"
+          } > .env
+          chmod 600 .env
+
+      - name: Start the stack
+        run: |
+          # `missing`: Postgres, Redis and the curl image come from Docker Hub; the
+          # three Crewaid images were built above and are used as they are.
+          $COMPOSE up -d --pull missing
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:3000/health > /tmp/health.json; then break; fi
+            sleep 2
+          done
+          cat /tmp/health.json; echo
+
+      - name: The orchestrator is the self-hosted edition, at this version
+        run: |
+          python3 - <<'EOF'
+          import json
+          health = json.load(open('/tmp/health.json'))
+          assert health['edition'] == 'selfhosted', health
+          assert health['version'] == '0.0.0-ci', health
+          assert health['db'] and health['redis'], health
+          # D-200: Docker answers, through the supervisor.
+          assert health['docker'], health
+          print('ok', health['status'])
+          EOF
+
+      - name: Only the supervisor holds the Docker socket, and it refuses an unsigned request
+        run: |
+          mounts() { docker inspect -f '{{range .Mounts}}{{.Source}} {{end}}' "$($COMPOSE ps -q "$1")"; }
+          echo "orchestrator mounts: $(mounts orchestrator)"
+          echo "supervisor mounts: $(mounts sandbox-supervisor)"
+          ! mounts orchestrator | grep -q docker.sock
+          mounts sandbox-supervisor | grep -q docker.sock
+          status=$($COMPOSE exec -T orchestrator node -e "fetch('http://sandbox-supervisor:7300/v1/containers/create',{method:'POST',body:'{}'}).then((r)=>console.log(r.status))")
+          echo "unsigned create -> $status"; [ "$status" = 401 ]
+          code=$(docker run --rm --network crewaid-sandboxes curlimages/curl:8.16.0 \
+            -s -o /dev/null -m 5 -w '%{http_code}' http://sandbox-supervisor:7300/v1/health || true)
+          echo "from a computer's network -> ${code:-unreachable}"; [ "$code" = 000 ] || [ -z "$code" ]
+
+      - name: The fence is installed, and the orchestrator waited for it
+        run: |
+          $COMPOSE logs egress | tee /tmp/egress.log
+          grep -q 'policy installed on crewaid-sbx0 (trusted: 10.231.0.2)' /tmp/egress.log
+          sudo iptables -t mangle -S | grep -E 'CREWAID-(IN-|CTL-)?crewaid-sbx0' | head -5
+
+      - name: A computer reaches https and nothing private
+        run: |
+          gateway=$(docker network inspect bridge -f '{{(index .IPAM.Config 0).Gateway}}')
+          runner_ip=$(hostname -I | awk '{print $1}')
+          probe() {
+            docker run --rm --network crewaid-sandboxes curlimages/curl:8.16.0 \
+              -s -o /dev/null -m 8 -w '%{http_code}' "$1" || true
+          }
+          https=$(probe https://example.com)
+          echo "https://example.com -> $https"; [ "$https" = 200 ]
+          # 10.231.0.2 is the orchestrator itself, on the same bridge: it may
+          # reach a computer, never the other way round.
+          for target in http://169.254.169.254/ "http://$gateway:3000/" "http://$runner_ip:3000/" http://192.168.1.1/ http://10.231.0.2:3000/; do
+            code=$(probe "$target")
+            echo "$target -> ${code:-blocked}"
+            [ "$code" = 000 ] || [ -z "$code" ]
+          done
+          # And from outside the fence the runner's own address does answer,
+          # so the refusals above are the fence and not a dead address.
+          code=$(docker run --rm curlimages/curl:8.16.0 -s -o /dev/null -m 8 -w '%{http_code}' "http://$runner_ip:3000/health" || true)
+          echo "unfenced http://$runner_ip:3000/health -> $code"; [ "$code" = 200 ]
+
+      - name: Sign up with a password, then reset it from the CLI
+        run: |
+          origin=http://localhost:3000
+          body='{"name":"Ada","email":"ada@example.test","password":"first-password-1"}'
+          curl -sf -X POST -H 'content-type: application/json' -H "origin: $origin" \
+            -d "$body" $origin/api/v1/auth/sign-up/email > /dev/null
+          echo 'second-password-2' | $COMPOSE exec -T orchestrator \
+            node apps/orchestrator/dist/cli/reset-password.js ada@example.test
+          old=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -H "origin: $origin" \
+            -d '{"email":"ada@example.test","password":"first-password-1"}' $origin/api/v1/auth/sign-in/email)
+          new=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -H "origin: $origin" \
+            -d '{"email":"ada@example.test","password":"second-password-2"}' $origin/api/v1/auth/sign-in/email)
+          echo "old password -> $old, new password -> $new"
+          [ "$old" = 401 ] && [ "$new" = 200 ]
+
+      - name: Logs on failure
+        if: failure()
+        run: $COMPOSE logs --no-color | tail -200
+
+      - name: Stop
+        if: always()
+        run: $COMPOSE down -v
+
+  # The installer as a self-hoster runs it: install.sh both ways (inside a node
+  # container, then with Node), on a Linux runner as its ordinary user — where
+  # a root-run container's files would otherwise belong to root.
+  installer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CREWAID_VERSION: 0.0.0-ci
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          # The installer has no dependencies and this job runs no pnpm, so
+          # setup-node must not try to cache the repo's package manager.
+          package-manager-cache: false
+
+      - name: Unit tests
+        working-directory: packages/selfhost-cli
+        run: npm test
+
+      - name: Load bridge netfilter on the runner
+        run: sudo modprobe br_netfilter
+
+      - name: Build the images and pack the installer
+        run: |
+          docker build -f infra/dokploy/Dockerfile --build-arg CREWAID_VERSION=$CREWAID_VERSION \
+            -t ghcr.io/natanael-exe/crewaid-orchestrator:$CREWAID_VERSION .
+          docker build -f infra/selfhost/egress/Dockerfile -t ghcr.io/natanael-exe/crewaid-egress:$CREWAID_VERSION .
+          docker pull alpine:3.22.2
+          docker tag alpine:3.22.2 ghcr.io/natanael-exe/crewaid-sandbox:$CREWAID_VERSION
+          (cd packages/selfhost-cli && npm pack --pack-destination "$RUNNER_TEMP")
+          ls "$RUNNER_TEMP"/crewaid-selfhost-*.tgz
+
+      - name: install.sh without Node (the installer runs in a container)
+        run: |
+          dir="$RUNNER_TEMP/crewaid-docker"
+          CREWAID_INSTALLER_RUNTIME=docker CREWAID_INSTALLER_PACKAGE="$(ls "$RUNNER_TEMP"/crewaid-selfhost-*.tgz)" \
+            CREWAID_DIR="$dir" sh packages/selfhost-cli/install.sh --yes --mode local --version $CREWAID_VERSION
+          # The files belong to this user, and .env is private.
+          owner=$(stat -c %U "$dir/.env"); mode=$(stat -c %a "$dir/.env")
+          echo ".env: owner $owner, mode $mode"
+          [ "$owner" = "$(id -un)" ] && [ "$mode" = 600 ]
+          [ "$(stat -c %U "$dir/compose.yml")" = "$(id -un)" ]
+          curl -sf http://localhost:3000/health | tee /dev/stderr | grep -q '"edition":"selfhosted"'
+          # Re-running must refuse, not overwrite the keys.
+          if CREWAID_DIR="$dir" CREWAID_INSTALLER_RUNTIME=docker CREWAID_INSTALLER_PACKAGE="$(ls "$RUNNER_TEMP"/crewaid-selfhost-*.tgz)" \
+            sh packages/selfhost-cli/install.sh --yes --version $CREWAID_VERSION; then
+            echo "a second init overwrote an install"; exit 1
+          fi
+          docker compose --project-directory "$dir" -f "$dir/compose.yml" down -v
+
+      - name: install.sh with Node, then status
+        run: |
+          dir="$RUNNER_TEMP/crewaid-node"
+          CREWAID_INSTALLER_PACKAGE="$(ls "$RUNNER_TEMP"/crewaid-selfhost-*.tgz)" CREWAID_DIR="$dir" \
+            sh packages/selfhost-cli/install.sh --yes --mode local --port 3100 --version $CREWAID_VERSION
+          node packages/selfhost-cli/bin/crewaid-selfhost.mjs status --dir "$dir" | tee /tmp/status.txt
+          grep -q 'Server: ok, version 0.0.0-ci, address http://localhost:3100' /tmp/status.txt
+          docker compose --project-directory "$dir" -f "$dir/compose.yml" down -v

@@ -1,0 +1,41 @@
+{
+  "address": "informal singular 'ти' (friendly, direct)",
+  "terms": {
+    "bot": "бот",
+    "crew": "команда",
+    "specialist": "фахівець",
+    "routine": "рутина",
+    "skill": "навичка",
+    "plugin": "плагін",
+    "connection": "підключення",
+    "tool": "інструмент",
+    "Work": "Робота",
+    "task": "завдання",
+    "goal": "ціль",
+    "project": "проєкт",
+    "deliverable": "результат",
+    "template": "шаблон",
+    "computer": "комп'ютер",
+    "screen": "екран",
+    "take control": "взяти керування",
+    "approval": "підтвердження",
+    "conversation": "розмова",
+    "composer": "поле повідомлення",
+    "model": "модель",
+    "call": "дзвінок",
+    "voice message": "голосове повідомлення",
+    "dictation": "диктування",
+    "recording": "запис",
+    "memory": "пам'ять"
+  },
+  "screens": {
+    "Settings": "Налаштування",
+    "General": "Загальні",
+    "Models": "Моделі",
+    "Channels": "Канали",
+    "Plan & usage": "План і використання",
+    "Computer": "Комп'ютер",
+    "Templates": "Шаблони",
+    "Routines": "Рутини"
+  }
+}

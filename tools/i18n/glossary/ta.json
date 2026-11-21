@@ -1,0 +1,41 @@
+{
+  "address": "polite, friendly; use நீங்கள்",
+  "terms": {
+    "bot": "பாட்",
+    "crew": "குழு",
+    "specialist": "நிபுணர்",
+    "routine": "அட்டவணைப் பணி",
+    "skill": "திறன்",
+    "plugin": "பிளகின்",
+    "connection": "இணைப்பு",
+    "tool": "கருவி",
+    "Work": "வேலை",
+    "task": "பணி",
+    "goal": "இலக்கு",
+    "project": "திட்டம்",
+    "deliverable": "வெளியீடு",
+    "template": "வார்ப்புரு",
+    "computer": "கணினி",
+    "screen": "திரை",
+    "take control": "கட்டுப்பாட்டை எடுங்கள்",
+    "approval": "ஒப்புதல்",
+    "conversation": "உரையாடல்",
+    "composer": "எழுதும் பெட்டி",
+    "model": "மாடல்",
+    "call": "அழைப்பு",
+    "voice message": "குரல் செய்தி",
+    "dictation": "குரல் தட்டச்சு",
+    "recording": "பதிவு",
+    "memory": "நினைவு"
+  },
+  "screens": {
+    "Settings": "அமைப்புகள்",
+    "General": "பொது",
+    "Models": "மாடல்கள்",
+    "Channels": "சேனல்கள்",
+    "Plan & usage": "திட்டம் & பயன்பாடு",
+    "Computer": "கணினி",
+    "Templates": "வார்ப்புருக்கள்",
+    "Routines": "அட்டவணைப் பணிகள்"
+  }
+}

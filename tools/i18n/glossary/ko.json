@@ -1,0 +1,41 @@
+{
+  "address": "friendly polite 해요체, no pronouns",
+  "terms": {
+    "bot": "봇",
+    "crew": "크루",
+    "specialist": "전문가 봇",
+    "routine": "루틴",
+    "skill": "스킬",
+    "plugin": "플러그인",
+    "connection": "연결",
+    "tool": "도구",
+    "Work": "워크",
+    "task": "작업",
+    "goal": "목표",
+    "project": "프로젝트",
+    "deliverable": "결과물",
+    "template": "템플릿",
+    "computer": "컴퓨터",
+    "screen": "화면",
+    "take control": "직접 조작",
+    "approval": "승인",
+    "conversation": "대화",
+    "composer": "입력창",
+    "model": "모델",
+    "call": "통화",
+    "voice message": "음성 메시지",
+    "dictation": "음성 입력",
+    "recording": "녹화",
+    "memory": "기억"
+  },
+  "screens": {
+    "Settings": "설정",
+    "General": "일반",
+    "Models": "모델",
+    "Channels": "채널",
+    "Plan & usage": "요금제 및 사용량",
+    "Computer": "컴퓨터",
+    "Templates": "템플릿",
+    "Routines": "루틴"
+  }
+}

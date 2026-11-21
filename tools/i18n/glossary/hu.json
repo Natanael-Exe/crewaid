@@ -1,0 +1,41 @@
+{
+  "address": "informal singular (te)",
+  "terms": {
+    "bot": "bot",
+    "crew": "csapat",
+    "specialist": "szakértő",
+    "routine": "rutin",
+    "skill": "készség",
+    "plugin": "bővítmény",
+    "connection": "kapcsolat",
+    "tool": "eszköz",
+    "Work": "Munka",
+    "task": "feladat",
+    "goal": "cél",
+    "project": "projekt",
+    "deliverable": "eredmény",
+    "template": "sablon",
+    "computer": "számítógép",
+    "screen": "képernyő",
+    "take control": "irányítás átvétele",
+    "approval": "jóváhagyás",
+    "conversation": "beszélgetés",
+    "composer": "üzenetmező",
+    "model": "modell",
+    "call": "hívás",
+    "voice message": "hangüzenet",
+    "dictation": "diktálás",
+    "recording": "felvétel",
+    "memory": "memória"
+  },
+  "screens": {
+    "Settings": "Beállítások",
+    "General": "Általános",
+    "Models": "Modellek",
+    "Channels": "Csatornák",
+    "Plan & usage": "Csomag és használat",
+    "Computer": "Számítógép",
+    "Templates": "Sablónok",
+    "Routines": "Rutinok"
+  }
+}

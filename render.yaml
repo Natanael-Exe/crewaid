@@ -1,0 +1,55 @@
+# Render Blueprint for self-hosted Crewaid Orchestrator + Postgres + Redis.
+# Managed PaaS hosts do not expose a Docker socket, so bot computers run on
+# Runtime (https://withruntime.com) via SANDBOX_PROVIDER=runtime.
+
+databases:
+  - name: crewaid-db
+    plan: free
+    databaseName: crewaid
+    user: crewaid
+
+services:
+  - type: keyvalue
+    name: crewaid-redis
+    plan: free
+    ipAllowList: []
+
+  - type: web
+    name: crewaid-orchestrator
+    runtime: docker
+    dockerfilePath: ./infra/dokploy/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: '3000'
+      - key: CREWAID_EDITION
+        value: selfhosted
+      - key: SANDBOX_PROVIDER
+        value: runtime
+      - key: SANDBOX_RUNTIME_IMAGE
+        value: crewaid-sandbox:latest
+      - key: ARTIFACT_DIR
+        value: /tmp/crewaid-artifacts
+      - key: DATABASE_URL
+        fromDatabase:
+          name: crewaid-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: crewaid-redis
+          property: connectionString
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: CREWAID_CREDENTIAL_KEYRING
+        sync: false
+      - key: CREDENTIAL_KEY
+        sync: false
+      - key: RUNTIME_API_KEY
+        sync: false

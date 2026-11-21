@@ -1,0 +1,160 @@
+/*
+ * Crewaid's Paper day and night themes, expressed through HeroUI v3 semantic tokens.
+ *
+ * Product-specific roles (message bubbles and faint metadata) extend the
+ * HeroUI vocabulary through Tailwind's theme bridge below. All general UI
+ * colors continue to use HeroUI tokens such as background, surface, muted,
+ * border, field, accent, warning, and danger.
+ */
+@layer base {
+  [data-theme='crewaid'],
+  [data-theme='crewaid-dark'] {
+    color-scheme: light;
+    --radius: 0.875rem;
+    --field-radius: 10px;
+    --field-border-width: 1px;
+    --background: #ffffff;
+    --foreground: #141414;
+    --surface: #ffffff;
+    --surface-foreground: var(--foreground);
+    --surface-secondary: #fafafb;
+    --surface-secondary-foreground: var(--foreground);
+    --surface-tertiary: #f4f4f6;
+    --surface-tertiary-foreground: var(--foreground);
+    --overlay: var(--surface);
+    --overlay-foreground: var(--foreground);
+    --muted: #6e6e73;
+    --default: var(--surface-secondary);
+    --default-foreground: var(--foreground);
+    --app-accent: #000000;
+    --app-accent-foreground: #ffffff;
+    --accent: var(--app-accent);
+    --accent-foreground: var(--app-accent-foreground);
+    --accent-control: var(--accent);
+    --accent-control-foreground: var(--accent-foreground);
+    --accent-soft: color-mix(in srgb, var(--accent) 8%, #ffffff);
+    --accent-soft-foreground: var(--app-accent);
+    --warning: #b5770a;
+    --warning-foreground: var(--foreground);
+    --danger: #c2410c;
+    --danger-foreground: #ffffff;
+    --success: #1f8a4c;
+    --success-foreground: #ffffff;
+    --field-background: #f4f4f6;
+    --field-foreground: var(--foreground);
+    --field-placeholder: var(--foreground-faint);
+    --field-border: var(--border);
+    --segment: var(--surface);
+    --segment-foreground: var(--foreground);
+    --border: #e2e2e6;
+    --separator: #ececee;
+    --focus: var(--accent-soft-foreground);
+    --link: var(--accent-soft-foreground);
+    --background-inverse: var(--foreground);
+    --surface-shadow: none;
+    --field-shadow: none;
+    --foreground-faint: #8e8e93;
+    /* Component styles in B+ override the original B message tokens. */
+    --approval-pending-background: #000000;
+    --message-bot: var(--surface);
+    --message-bot-foreground: var(--foreground);
+    --message-user: rgb(255 255 255 / 58%);
+    --message-user-foreground: var(--room-foreground);
+    --message-user-border: rgb(255 255 255 / 55%);
+    --crewaid-sidebar-background: var(--glass);
+    --crewaid-muted-foreground: var(--muted);
+    --crewaid-card-radius: 14px;
+    --crewaid-message-radius: 18px;
+    --glass: rgb(255 255 255 / 72%);
+    --topbar-surface: #ffffff9e;
+    --crew-hover: #ffffff80;
+    --crew-selected: #ffffff;
+    --nav-selected: #1d1830;
+    --nav-selected-foreground: #ffffff;
+    --room-wallpaper: url('../../assets/room/wallpaper.png');
+    --glass-border: #ffffff66;
+    --glass-blur: 24px;
+    --glass-shadow: 0 8px 30px #1d18300d;
+    --room-foreground: #1d1830;
+    --room-muted: #6b6480;
+    --needs-you: #b8306f;
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-display-room: 'Fraunces', Georgia, serif;
+    --text-caption: 13px;
+    --text-body: 15px;
+    --text-title: 28px;
+    --text-display: 40px;
+    --radius-panel: 24px;
+    --radius-pill: 999px;
+    --motion-fast: 120ms;
+    --motion-enter: 220ms;
+    --motion-exit: 160ms;
+    --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+@theme inline {
+  --color-foreground-faint: var(--foreground-faint);
+  --color-message-bot: var(--message-bot);
+  --color-message-bot-foreground: var(--message-bot-foreground);
+  --color-message-user: var(--message-user);
+  --color-message-user-foreground: var(--message-user-foreground);
+  --color-sidebar-background: var(--crewaid-sidebar-background);
+  /* The shadcn roles Streamdown's transcript markup is written against. */
+  --color-sidebar: var(--surface-secondary);
+  --color-muted-foreground: var(--crewaid-muted-foreground);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-foreground);
+  --radius-card: var(--crewaid-card-radius);
+  --radius-message: var(--crewaid-message-radius);
+}
+
+@theme inline {
+  --color-glass: var(--glass);
+  --color-room-foreground: var(--room-foreground);
+  --color-room-muted: var(--room-muted);
+  --color-needs-you: var(--needs-you);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-foreground: var(--accent-soft-foreground);
+}
+
+@layer base {
+  [data-theme='crewaid-dark'] {
+    color-scheme: dark;
+    --app-accent: #f4f2ff;
+    --app-accent-foreground: #101430;
+    --background: #0b1033;
+    --approval-pending-background: #101430;
+    --foreground: #f4f2ff;
+    --surface: #1e2346;
+    --surface-secondary: #202649;
+    --surface-tertiary: #2a3058;
+    --muted: #a9add1;
+    --foreground-faint: #9298be;
+    --field-background: #1e2346;
+    --border: #ffffff14;
+    --separator: #ffffff14;
+    --glass: rgb(16 20 48 / 62%);
+    --glass-border: #ffffff14;
+    --glass-shadow: 0 10px 40px #00000059;
+    --topbar-surface: rgb(16 20 48 / 62%);
+    --crew-hover: #ffffff0d;
+    --crew-selected: #ffffff14;
+    --nav-selected: #f4f2ff;
+    --nav-selected-foreground: #101430;
+    --room-foreground: #f4f2ff;
+    --room-muted: #a9add1;
+    --message-user: rgb(255 255 255 / 12%);
+    --message-user-border: rgb(255 255 255 / 18%);
+    --needs-you: #f39ccb;
+    --warning: #f2b233;
+    --warning-foreground: #101430;
+    --danger: #ff9d87;
+    --danger-foreground: #1d1830;
+    --success: #74d69a;
+    --success-foreground: #101430;
+    --accent-soft: color-mix(in srgb, var(--accent) 26%, #101430);
+    --accent-soft-foreground: var(--app-accent);
+    --room-wallpaper: url('../../assets/room/wallpaper-night.png');
+  }
+}

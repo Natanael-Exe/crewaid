@@ -1,0 +1,287 @@
+/* Body and gaze groups use `fill-box`, so a transform is relative to
+   the thing being transformed rather than to the 100×100 viewBox. Without it
+   every `scale` also swings the element across the canvas. */
+.crewaid-mascot-body,
+.crewaid-mascot-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* The body: alive at rest, working when working. */
+@keyframes crewaid-mascot-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.025, 0.985);
+  }
+}
+
+/* Squash and stretch, the oldest trick there is: it compresses on the way
+   down and stretches on the way up, which is what makes a bounce read as
+   weight rather than as a sprite sliding up and down. */
+@keyframes crewaid-mascot-bob {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  18% {
+    transform: translateY(-4%) scale(0.97, 1.05);
+  }
+
+  42% {
+    transform: translateY(3%) scale(1.06, 0.94);
+  }
+
+  68% {
+    transform: translateY(-2%) scale(0.98, 1.03);
+  }
+}
+
+/* A lean, and a slow one: thinking is the state where the bot is NOT doing
+   anything to the world, and it should look like weight shifted rather than
+   like work. */
+@keyframes crewaid-mascot-lean {
+  0%,
+  100% {
+    transform: rotate(-2.5deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(2.5deg) scale(1.02, 0.99);
+  }
+}
+
+/* Hello, once. The artwork's arm is part of the body, so the whole mascot
+   waves: a little hop, then a sway from its feet that dies away, the way a
+   wave settles. Rotation stays under ten degrees so the face stays readable. */
+@keyframes crewaid-mascot-wave {
+  0% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+
+  12% {
+    transform: translateY(-6%) rotate(-3deg) scale(0.98, 1.03);
+  }
+
+  22% {
+    transform: translateY(0) rotate(0) scale(1.04, 0.96);
+  }
+
+  34% {
+    transform: rotate(9deg) scale(1);
+  }
+
+  48% {
+    transform: rotate(-7deg);
+  }
+
+  62% {
+    transform: rotate(7deg);
+  }
+
+  76% {
+    transform: rotate(-4deg);
+  }
+
+  88% {
+    transform: rotate(2deg);
+  }
+
+  100% {
+    transform: rotate(0);
+  }
+}
+
+/* A happy blink in the middle of the hello. */
+@keyframes crewaid-mascot-greet-blink {
+  0%,
+  44%,
+  56%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(0.08);
+  }
+}
+
+/* 96% of the cycle open. A blink is 120ms of a 6s loop — long enough to see,
+   short enough that you notice the bot rather than the animation. */
+@keyframes crewaid-mascot-blink {
+  0%,
+  95%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  97% {
+    transform: scaleY(0.08);
+  }
+}
+
+/* The gaze stays within the white inset even on the narrowest contour.
+   Body motion carries the activity at sidebar sizes; larger avatars also
+   show the ring and thought dots. */
+@keyframes crewaid-mascot-scan {
+  0%,
+  100% {
+    transform: translateX(-4px);
+  }
+
+  25% {
+    transform: translateX(4px) translateY(1px);
+  }
+
+  50% {
+    transform: translateX(4px);
+  }
+
+  75% {
+    transform: translateX(-4px) translateY(1px);
+  }
+}
+
+@keyframes crewaid-mascot-ponder {
+  0%,
+  100% {
+    transform: translate(2px, -3px);
+  }
+
+  45% {
+    transform: translate(-2px, -4px);
+  }
+}
+
+/* The work ring: a dashed arc orbiting the mascot while a tool runs. It is
+   the one part that says "busy" without needing a face — which is why it is
+   drawn in the bot's own colour and kept faint, so it belongs to the mascot
+   instead of sitting on top of it like chrome. */
+@keyframes crewaid-mascot-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Thought rising: each dot drifts up and fades, one beat behind the last, so
+   the cluster reads as a train of thought instead of three lights blinking. */
+@keyframes crewaid-mascot-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.6);
+  }
+
+  35% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.85);
+  }
+}
+
+.crewaid-mascot-body {
+  animation: crewaid-mascot-breathe 5.5s ease-in-out infinite;
+  animation-delay: var(--crewaid-mascot-phase, 0s);
+}
+
+.crewaid-mascot-body[data-activity='acting'] {
+  animation: crewaid-mascot-bob 1.15s cubic-bezier(0.36, 0, 0.3, 1) infinite;
+}
+
+.crewaid-mascot-body[data-activity='thinking'] {
+  animation: crewaid-mascot-lean 4.2s ease-in-out infinite;
+}
+
+/* The wave is listed last so it wins while it plays; after it, breathing. */
+.crewaid-mascot-body[data-activity='greeting'] {
+  transform-origin: 50% 100%;
+  animation:
+    crewaid-mascot-breathe 5.5s ease-in-out 2.4s infinite,
+    crewaid-mascot-wave 2s cubic-bezier(0.4, 0, 0.3, 1) 0.3s 1 backwards;
+}
+
+.crewaid-mascot-eyes[data-activity='greeting'] .crewaid-mascot-blink {
+  animation:
+    crewaid-mascot-blink 6s ease-in-out 2.4s infinite,
+    crewaid-mascot-greet-blink 2s ease-in-out 0.3s 1;
+}
+
+.crewaid-mascot-blink {
+  animation: crewaid-mascot-blink 6s ease-in-out infinite;
+  animation-delay: var(--crewaid-mascot-phase, 0s);
+}
+
+.crewaid-mascot-eyes[data-activity='acting'] {
+  animation: crewaid-mascot-scan 2.4s ease-in-out infinite;
+}
+
+.crewaid-mascot-eyes[data-activity='thinking'] {
+  animation: crewaid-mascot-ponder 3.4s ease-in-out infinite;
+}
+
+.crewaid-mascot-ring {
+  transform-origin: 50px 50px;
+  animation: crewaid-mascot-orbit 3.6s linear infinite;
+}
+
+.crewaid-mascot-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: crewaid-mascot-rise 1.9s ease-in-out infinite;
+}
+
+.crewaid-mascot-dot:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.crewaid-mascot-dot:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+/* The state still has to be READABLE without motion, so reduced motion holds
+   the pose each animation plays around — eyes up, thought dots lit, ring
+   present — rather than returning the face to rest, which would erase the
+   signal for the people most likely to be relying on it. */
+@media (prefers-reduced-motion: reduce) {
+  .crewaid-mascot-body,
+  .crewaid-mascot-body[data-activity],
+  .crewaid-mascot-blink,
+  .crewaid-mascot-eyes[data-activity='greeting'] .crewaid-mascot-blink,
+  .crewaid-mascot-ring,
+  .crewaid-mascot-eyes[data-activity='acting'] {
+    animation: none;
+  }
+
+  .crewaid-mascot-eyes[data-activity='thinking'] {
+    animation: none;
+    transform: translate(0, -3px);
+  }
+
+  .crewaid-mascot-dot {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+.crewaid-mascot-blink {
+  transform-box: view-box;
+  transform-origin: var(--mascot-eye-origin, 50px 50px);
+}
+
+[data-reduce-motion='true'] .crewaid-clay-mascot g,
+[data-reduce-motion='true'] .crewaid-clay-mascot circle {
+  animation: none;
+}
+[data-reduce-motion='true'] .crewaid-mascot-eyes[data-activity='thinking'] {
+  transform: translate(0, -3px);
+}
+[data-reduce-motion='true'] .crewaid-mascot-dot {
+  opacity: 0.7;
+}

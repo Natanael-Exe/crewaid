@@ -1,0 +1,51 @@
+name: Sandbox image
+
+on:
+  pull_request:
+    paths:
+      - 'infra/sandbox-image/**'
+      # The image bundles the executor from packages/skill-runtime (M3-PK-01)
+      # and reads the exact esbuild pin from apps/desktop's manifest, so a
+      # change to either changes this image and must be rebuilt here.
+      - 'packages/skill-runtime/**'
+      # The screen gateway (D-223) is bundled from these three.
+      - 'packages/screen-gateway/**'
+      - 'packages/screen-stream/**'
+      - 'packages/shared/**'
+      - 'apps/desktop/package.json'
+      - '.dockerignore'
+      - '.github/workflows/sandbox-image.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'infra/sandbox-image/**'
+      - 'packages/skill-runtime/**'
+      - 'packages/screen-gateway/**'
+      - 'packages/screen-stream/**'
+      - 'packages/shared/**'
+      - 'apps/desktop/package.json'
+      - '.dockerignore'
+      - '.github/workflows/sandbox-image.yml'
+
+concurrency:
+  group: sandbox-image-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: bridge contract · build · network access · supervision
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Test agent-bridge contract
+        run: python3 -m unittest discover -s infra/sandbox-image/agent-bridge/tests -v
+      - name: Build sandbox image
+        # The context is the REPO ROOT: the image bundles the skill executor
+        # from packages/skill-runtime (M3-PK-01). The root .dockerignore keeps
+        # local state (node_modules, dist, .git) out of the build.
+        run: docker build -f infra/sandbox-image/Dockerfile -t crewaid/sandbox:ci .
+      - name: Exercise sandbox under runtime constraints
+        run: python3 infra/sandbox-image/tests/smoke.py crewaid/sandbox:ci
+      - name: Exercise real browser identity handoff
+        run: python3 infra/sandbox-image/tests/identity_handoff.py crewaid/sandbox:ci

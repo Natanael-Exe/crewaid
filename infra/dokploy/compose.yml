@@ -1,0 +1,133 @@
+# Dokploy Compose mode (not Stack). Add the HTTPS domain to the orchestrator
+# service on container port 3000 in Dokploy's Domains tab.
+services:
+  # The one service with the Docker socket (D-200): it starts, stops and
+  # removes computers for the orchestrator and refuses anything else. Reached
+  # only over the internal `supervisor` network, with signed requests.
+  sandbox-supervisor:
+    image: crewaid/orchestrator:${CREWAID_RELEASE_TAG:-dev}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      SANDBOX_SUPERVISOR_SECRET: ${SANDBOX_SUPERVISOR_SECRET:?Set SANDBOX_SUPERVISOR_SECRET — openssl rand -hex 32}
+      SANDBOX_SUPERVISOR_SECRET_PREVIOUS: ${SANDBOX_SUPERVISOR_SECRET_PREVIOUS:-}
+      SANDBOX_SUPERVISOR_HOST: 0.0.0.0
+      SANDBOX_SUPERVISOR_PORT: '7300'
+      SANDBOX_IMAGE: ${SANDBOX_IMAGE:-crewaid/sandbox:dev}
+      SANDBOX_NETWORK: ${SANDBOX_NETWORK:-agent-net}
+      SANDBOX_CPUS: ${SANDBOX_CPUS:-}
+      SANDBOX_MEMORY_MIB: ${SANDBOX_MEMORY_MIB:-}
+      # Computers publish on the crewaid-control gateway, the one interface the
+      # firewall admits sandbox connections from.
+      SANDBOX_PUBLISH_ON: ${SANDBOX_PUBLISH_ON:?Set the crewaid-control gateway IPv4}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        until [ -e /run/crewaid/egress-ready ]; do sleep 2; done
+        exec node packages/sandbox-supervisor/dist/main.js
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:7300/v1/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks:
+      - supervisor
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /run/crewaid:/run/crewaid:ro
+
+  orchestrator:
+    build:
+      context: ../..
+      dockerfile: infra/dokploy/Dockerfile
+    image: crewaid/orchestrator:${CREWAID_RELEASE_TAG:-dev}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set the Neon pooled connection URL}
+      MIGRATION_DATABASE_URL: ${MIGRATION_DATABASE_URL:?Set the Neon direct connection URL}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the public HTTPS origin}
+      # The hosted service (D-152). Fixed rather than read from .env: a stray
+      # `selfhosted` would open password sign-up on a public server.
+      CREWAID_EDITION: cloud
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set a signing secret}
+      CREWAID_CREDENTIAL_KEYRING: ${CREWAID_CREDENTIAL_KEYRING:?Set the provider keyring}
+      # No Docker socket here (D-200): the supervisor holds it.
+      SANDBOX_SUPERVISOR_URL: http://sandbox-supervisor:7300
+      SANDBOX_SUPERVISOR_SECRET: ${SANDBOX_SUPERVISOR_SECRET:?Set SANDBOX_SUPERVISOR_SECRET — openssl rand -hex 32}
+      NODE_ENV: production
+      PORT: '3000'
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD — openssl rand -hex 24}@redis:6379
+      # D-220: files live in R2, never on this host. The server refuses to
+      # start without all four.
+      ARTIFACT_R2_ACCOUNT_ID: ${ARTIFACT_R2_ACCOUNT_ID:?Set the Cloudflare account id that owns the artifact bucket}
+      ARTIFACT_R2_ACCESS_KEY_ID: ${ARTIFACT_R2_ACCESS_KEY_ID:?Set an R2 API token's access key id}
+      ARTIFACT_R2_SECRET_ACCESS_KEY: ${ARTIFACT_R2_SECRET_ACCESS_KEY:?Set an R2 API token's secret access key}
+      ARTIFACT_R2_BUCKET: ${ARTIFACT_R2_BUCKET:?Set the artifact bucket name}
+    # Docker restarts this container on boot before the egress unit has run.
+    # Starting only once the unit's marker exists keeps a routine from waking a
+    # computer with no egress policy; if the unit fails, this never starts.
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        if [ ! -e /run/crewaid/egress-ready ]; then
+          echo 'Waiting for crewaid-agent-egress.service to install the sandbox egress policy' >&2
+          until [ -e /run/crewaid/egress-ready ]; do sleep 2; done
+        fi
+        exec infra/dokploy/orchestrator-entrypoint.sh
+    expose:
+      - '3000'
+    networks:
+      - default
+      - control
+      - supervisor
+    volumes:
+      - /run/crewaid:/run/crewaid:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+      sandbox-supervisor:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # A password as well as a private network: Redis holds every BullMQ queue,
+    # so anything that reaches it can schedule work as any user, and this host
+    # may run other apps that a later network change could connect to it.
+    # `$$` leaves the expansion to the container's shell, so the value is read
+    # from the container's environment rather than baked into the command.
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD — openssl rand -hex 24}
+    command: ['sh', '-c', 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      # `redis-cli ping` exits 0 on a NOAUTH refusal too, so the check looks for
+      # the PONG. REDISCLI_AUTH keeps the password out of the process list.
+      test: ['CMD-SHELL', 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+networks:
+  # The orchestrator and the sandbox supervisor only, with no route out.
+  supervisor:
+    internal: true
+  # Created by the egress unit's Dokploy drop-in; the firewall admits sandbox
+  # connections only from this bridge's interface, so only the orchestrator
+  # joins it.
+  control:
+    name: crewaid-control
+    external: true
+
+volumes:
+  redis-data:

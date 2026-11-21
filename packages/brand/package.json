@@ -1,0 +1,40 @@
+{
+  "name": "@crewaid/brand",
+  "version": "0.0.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
+  "type": "module",
+  "exports": {
+    "./mascot": {
+      "types": "./dist/mascot.d.ts",
+      "default": "./dist/mascot.js"
+    },
+    "./masters/*": "./masters/*",
+    "./clay": {
+      "types": "./dist/ClayMascot.d.ts",
+      "default": "./dist/ClayMascot.js"
+    },
+    "./mascot.css": "./src/mascot.css",
+    "./assets/*": "./assets/*"
+  },
+  "files": [
+    "LICENSE.md",
+    "dist",
+    "masters",
+    "assets",
+    "src/mascot.css"
+  ],
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "react": "19.2.8",
+    "typescript": "5.9.3"
+  },
+  "peerDependencies": {
+    "react": "19.2.8"
+  }
+}

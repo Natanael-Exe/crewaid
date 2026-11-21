@@ -1,0 +1,45 @@
+node_modules/
+dist/
+build/
+out/
+coverage/
+.turbo/
+.wrangler/
+*.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+.artifacts/
+
+__pycache__/
+*.pyc
+
+.DS_Store
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+.idea/
+.vscode/
+!.vscode/extensions.json
+
+# Local AI coding assistant configs, skills, and worktrees.
+.claude/
+.agents/
+.windsurf/
+.commandcode/
+
+# electron-builder output
+release/
+# `pnpm dev`'s per-checkout Electron.app copy (apps/desktop/scripts/dev-electron.mjs)
+.dev/
+
+# iconutil's intermediate: 13 PNGs that only exist to become icon.icns, which IS
+# committed. Regenerate both with `python3 tools/generate-icons.py`.
+apps/desktop/resources/icon.iconset/
+
+# A Redis snapshot, written into whichever directory redis-server was started
+# from. The orchestrator's integration suites point at a real Redis, so a local
+# one run from `apps/orchestrator` leaves this behind between runs.
+dump.rdb

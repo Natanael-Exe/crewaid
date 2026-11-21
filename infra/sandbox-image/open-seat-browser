@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# The dock's Chrome icon (§5), routed through the agent bridge.
+#
+# A bare `google-chrome` from the stock desktop entry cannot work in this
+# container: §5.1 drops every capability and forbids new privileges, so
+# Chrome's own sandbox cannot initialise and the process dies before a window
+# appears — which is what the icon used to do, silently, no matter how many
+# times it was clicked. And a launch that survived would still be the wrong
+# browser: no per-seat --user-data-dir, no CDP relay, invisible to the bot
+# that owns the screen and to anything recording it.
+#
+# The bridge's browser start has all of that and is idempotent, so a second
+# click while one is starting is a no-op and a click after a crash restarts
+# the browser — the icon is also the seat's repair control.
+#
+# This launcher knows its DISPLAY and nothing else, because that is all plank
+# hands a docked application; the bridge maps the display to the seat. On the
+# machine's own display there is no seat (D-060), and the bridge's refusal is
+# the answer.
+set -uo pipefail
+
+display="${DISPLAY:?open-seat-browser needs a DISPLAY to find its seat}"
+
+reply=$(curl -sS --fail-with-body --max-time 90 \
+  -X POST -H 'Content-Type: application/json' \
+  --data "{\"display\":\"${display}\"}" \
+  "http://127.0.0.1:${AGENT_BRIDGE_PORT:-7070}/seats/browser") || {
+  # A refused start must not look like a dead icon — that silent nothing is
+  # the failure this script exists to remove. Plank throws a launcher's
+  # output away, so the seat's own terminal is the one surface guaranteed to
+  # be on this display and readable by the operator watching it.
+  detail="${reply:-the agent bridge did not answer}"
+  printf '[open-seat-browser] could not start a browser on %s: %s\n' \
+    "$display" "$detail" >&2
+  note="/tmp/open-seat-browser.$$.txt"
+  printf 'The browser on %s could not start:\n\n%s\n\nPress Enter to close this window.\n' \
+    "$display" "$detail" > "$note"
+  xfce4-terminal --hold --title="Browser failed to start" \
+    -x bash -c "cat '$note'; read; rm -f '$note'" >/dev/null 2>&1 || true
+  exit 1
+}
+
+printf '[open-seat-browser] browser ready on %s\n' "$display" >&2

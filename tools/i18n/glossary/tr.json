@@ -1,0 +1,41 @@
+{
+  "address": "sen (informal singular)",
+  "terms": {
+    "bot": "bot",
+    "crew": "ekip",
+    "specialist": "uzman",
+    "routine": "rutin",
+    "skill": "beceri",
+    "plugin": "eklenti",
+    "connection": "bağlantı",
+    "tool": "araç",
+    "Work": "İşler",
+    "task": "görev",
+    "goal": "hedef",
+    "project": "proje",
+    "deliverable": "çıktı",
+    "template": "şablon",
+    "computer": "bilgisayar",
+    "screen": "ekran",
+    "take control": "kontrolü al",
+    "approval": "onay",
+    "conversation": "sohbet",
+    "composer": "yazma alanı",
+    "model": "model",
+    "call": "arama",
+    "voice message": "sesli mesaj",
+    "dictation": "sesle yazma",
+    "recording": "kayıt",
+    "memory": "hafıza"
+  },
+  "screens": {
+    "Settings": "Ayarlar",
+    "General": "Genel",
+    "Models": "Modeller",
+    "Channels": "Kanallar",
+    "Plan & usage": "Plan ve kullanım",
+    "Computer": "Bilgisayar",
+    "Templates": "Şablonlar",
+    "Routines": "Rutinler"
+  }
+}

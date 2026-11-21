@@ -1,0 +1,41 @@
+name: Sandbox egress
+
+on:
+  pull_request:
+    paths:
+      - 'infra/compose/**'
+      - 'infra/dokploy/host-uplink-firewall.sh'
+      - 'infra/dokploy/tests/**'
+      - '.github/workflows/sandbox-egress.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'infra/compose/**'
+      - 'infra/dokploy/host-uplink-firewall.sh'
+      - 'infra/dokploy/tests/**'
+      - '.github/workflows/sandbox-egress.yml'
+
+concurrency:
+  group: sandbox-egress-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  firewall:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check policy generation
+        run: python3 -m unittest discover -s infra/compose/tests -v
+      - name: Build isolated network test
+        run: docker build -t crewaid/egress-test -f infra/compose/tests/Dockerfile .
+      # Kernel modules belong to the runner, not the disposable container's
+      # filesystem. Docker Desktop already loads this; Linux runners may not.
+      - name: Load bridge netfilter on the runner
+        run: sudo modprobe br_netfilter
+      - name: Exercise kernel enforcement and control replies
+        run: docker run --rm --privileged crewaid/egress-test
+      - name: Build the uplink firewall test
+        run: docker build -t crewaid/uplink-test -f infra/dokploy/tests/Dockerfile .
+      - name: Exercise the Dokploy host uplink firewall
+        run: docker run --rm --privileged crewaid/uplink-test

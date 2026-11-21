@@ -1,0 +1,23 @@
+export const call = {
+  'call.aBot': 'a bot',
+  'call.hangUp': 'Hang up',
+  'call.call': 'Call {name}',
+  'call.spent': 'This period’s call minutes are used up',
+  'call.left': '{time} left',
+  'call.pro.title': 'Calls are part of Pro',
+  'call.pro.body': 'Talk your work through with {name} out loud. Available on Pro and higher.',
+  'call.pro.action': 'See plans',
+  'call.cloud.title': 'Calls need Crewaid Cloud',
+  'call.cloud.body':
+    'Talk your work through with {name} out loud. Calls run on Crewaid Cloud’s Pro plan, so they aren’t part of a self-hosted server.',
+  'call.cloud.action': 'Learn about Cloud',
+  'call.notNow': 'Not now',
+  'call.dismiss': 'Dismiss',
+  'call.onCall': 'On a call with {name}',
+  'call.hangingUp': 'Hanging up…',
+  'call.calling': 'Calling {name}…',
+  'call.working': '{name} is working on it…',
+  'call.listening': 'Listening…',
+  'call.unmute': 'Unmute',
+  'call.mute': 'Mute',
+} as const;

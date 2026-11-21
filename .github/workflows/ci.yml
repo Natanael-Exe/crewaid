@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  push:
+    # Feature branches are validated by pull_request below. Restricting push
+    # runs to main prevents the same feature SHA from running this full suite
+    # twice (once on push and once when the PR synchronizes).
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Referenced by prisma/schema.prisma at generate time. Not a real connection.
+  DATABASE_URL: postgresql://crewaid:crewaid@localhost:5432/crewaid?schema=public
+
+jobs:
+  verify:
+    name: lint · probes · typecheck · test · migrate
+    runs-on: ubuntu-latest
+    # The complete server and Electron gate exceeds 20 minutes on hosted runners.
+    # Keep the end-to-end, migration and seed checks inside the same bounded job.
+    timeout-minutes: 40
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: crewaid
+          POSTGRES_PASSWORD: crewaid
+          POSTGRES_DB: crewaid
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U crewaid -d crewaid"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # --frozen-lockfile is the M0-07 enforcement point: an unpinned or drifted
+      # dependency fails CI here rather than surfacing as harness churn in M2.
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+        env:
+          DATABASE_URL: postgresql://crewaid:crewaid@localhost:5432/crewaid?schema=public
+
+      - name: Verify exact version pins
+        run: node scripts/check-pins.mjs
+
+      - name: Cloudflare sandbox release selection and binding preservation
+        run: node --test .github/scripts/cloudflare-sandbox-release.test.mjs
+
+      - name: Development reset refuses non-development environments
+        run: node --test scripts/db-reset.test.mjs
+
+      - name: Pre-review gate regressions
+        run: node --test scripts/pre-review-gate.test.mjs
+
+      - name: Lint
+        run: pnpm lint
+
+      # D-013: every architectural guard ships a probe that the rule MUST
+      # reject. This runner asserts the exact rule id fires — an exit-code
+      # check alone would read a parser error or a silently-dead rule as
+      # "guard working" (both have actually happened; see the runner header).
+      - name: Architectural guard probes fire (D-013)
+        run: node tools/guard-probes/run-probes.mjs
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      # Migrations MUST precede Test: the live-DB regression tests (e.g.
+      # skill-versioning) need the schema present. Caught at the M0-09 gate —
+      # with Test first, CI failed with "table public.User does not exist"
+      # once F2 stopped the test from silently skipping.
+      - name: Prisma migrations apply cleanly
+        run: pnpm db:deploy
+        env:
+          DATABASE_URL: postgresql://crewaid:crewaid@localhost:5432/crewaid?schema=public
+
+      - name: Test
+        run: pnpm test
+        env:
+          DATABASE_URL: postgresql://crewaid:crewaid@localhost:5432/crewaid?schema=public
+          # CC-02: GET /health probes Redis, and the compose-style deployment
+          # declares REDIS_URL too — without it the health suite would only
+          # ever exercise the "not configured" branch.
+          REDIS_URL: redis://localhost:6379
+          # Attachment storage dir: the service requires it; CI tests write to a throwaway path.
+          ARTIFACT_DIR: ${{ runner.temp }}/crewaid-artifacts
+
+      # Launches the built Electron application against a real HTTP + WebSocket
+      # orchestrator. Xvfb supplies Chromium's display on the Linux runner.
+      - name: Electron end-to-end (type · stream · restart · persist)
+        run: xvfb-run --auto-servernum pnpm test:e2e
+        env:
+          DATABASE_URL: postgresql://crewaid:crewaid@localhost:5432/crewaid?schema=public
+          ARTIFACT_DIR: ${{ runner.temp }}/crewaid-e2e-artifacts
+
+      # `migrate diff --from-migrations` replays the migration history into a
+      # throwaway database, so that database must exist first.
+      - name: Create shadow database for the drift guard
+        run: PGPASSWORD=crewaid psql -h localhost -U crewaid -d postgres -c 'CREATE DATABASE crewaid_shadow;'
+
+      # Guard: `migrate deploy` reports success when schema.prisma has drifted
+      # ahead of the migration history (a model edited without a new
+      # migration). This catches that — `--exit-code` returns 2 when the diff
+      # is non-empty. Without it, a missing column ships silently and the first
+      # failure is a runtime error in M1. Verified locally against a real drift.
+      - name: No schema/migration drift
+        run: pnpm --filter @crewaid/orchestrator exec prisma migrate diff
+          --from-migrations prisma/migrations
+          --to-schema prisma/schema.prisma
+          --exit-code
+        env:
+          SHADOW_DATABASE_URL: postgresql://crewaid:crewaid@localhost:5432/crewaid_shadow?schema=public
+
+      # Runs LAST, against the database the suites have just used, so it
+      # proves the seed is idempotent on a database that already holds rows —
+      # which is the state every developer re-runs it in.
+      #
+      # It used to be named "Seed produces exactly one User (PRD §3, R7)" and
+      # asserted that count. V1-08 made a second account the product working
+      # rather than a leak, so the assertion went with the premise; keeping the
+      # name would have left a step claiming a guarantee it no longer checks.
+      - name: Seed re-runs cleanly on a used database
+        run: pnpm db:seed

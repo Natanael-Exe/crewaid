@@ -1,0 +1,41 @@
+{
+  "address": "Anda (neutral, polite)",
+  "terms": {
+    "bot": "bot",
+    "crew": "tim",
+    "specialist": "spesialis",
+    "routine": "rutinitas",
+    "skill": "keterampilan",
+    "plugin": "plugin",
+    "connection": "koneksi",
+    "tool": "alat",
+    "Work": "Pekerjaan",
+    "task": "tugas",
+    "goal": "tujuan",
+    "project": "proyek",
+    "deliverable": "hasil kerja",
+    "template": "template",
+    "computer": "komputer",
+    "screen": "layar",
+    "take control": "ambil alih",
+    "approval": "persetujuan",
+    "conversation": "percakapan",
+    "composer": "kolom pesan",
+    "model": "model",
+    "call": "panggilan",
+    "voice message": "pesan suara",
+    "dictation": "dikte",
+    "recording": "rekaman",
+    "memory": "memori"
+  },
+  "screens": {
+    "Settings": "Pengaturan",
+    "General": "Umum",
+    "Models": "Model",
+    "Channels": "Saluran",
+    "Plan & usage": "Paket & penggunaan",
+    "Computer": "Komputer",
+    "Templates": "Template",
+    "Routines": "Rutinitas"
+  }
+}

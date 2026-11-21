@@ -1,0 +1,375 @@
+name: Release images
+
+# The self-hosted server's images (D-155), published to GHCR on the same `v*`
+# tag as the desktop apps, so a desktop release and the server it pairs with
+# share one version:
+#   ghcr.io/natanael-exe/crewaid-orchestrator   the orchestrator (infra/dokploy/Dockerfile)
+#   ghcr.io/natanael-exe/crewaid-sandbox        the computers (infra/sandbox-image/Dockerfile)
+#   ghcr.io/natanael-exe/crewaid-egress         the sandbox egress fence (infra/selfhost/egress)
+# each for linux/amd64 and linux/arm64 (Apple silicon, ARM servers), built on
+# native runners and joined into one multi-arch tag per version, plus `latest`.
+#
+# A pull request that changes an image builds both architectures and pushes
+# nothing.
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+    paths:
+      - .github/workflows/release-images.yml
+      - infra/dokploy/Dockerfile
+      - infra/dokploy/orchestrator-entrypoint.sh
+      - infra/sandbox-image/**
+      - infra/selfhost/egress/**
+      - infra/compose/agent-egress.py
+      - infra/cloudflare/control-worker/**
+      - .github/scripts/cloudflare-sandbox-release*.mjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-images-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PUBLISH: ${{ startsWith(github.ref, 'refs/tags/v') }}
+  REGISTRY: ghcr.io/natanael-exe
+
+jobs:
+  build:
+    name: ${{ matrix.image }} · ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [orchestrator, sandbox, egress]
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+          - image: orchestrator
+            dockerfile: infra/dokploy/Dockerfile
+          - image: sandbox
+            dockerfile: infra/sandbox-image/Dockerfile
+          - image: egress
+            dockerfile: infra/selfhost/egress/Dockerfile
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      # The job's token can push packages, and checkout would otherwise leave
+      # it in .git/config for every later step — on a pull request, steps and
+      # a build context the pull request wrote.
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Version
+        id: version
+        run: |
+          if [ "$PUBLISH" = true ]; then
+            app="$(node -p "require('./apps/desktop/package.json').version")"
+            if [ "v$app" != "$GITHUB_REF_NAME" ]; then
+              echo "::error::tag $GITHUB_REF_NAME does not match apps/desktop/package.json ($app)"
+              exit 1
+            fi
+            echo "value=$app" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=0.0.0-pr" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Sign in to GHCR
+        if: env.PUBLISH == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build (and push by digest when releasing)
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/${{ matrix.arch }}
+          build-args: CREWAID_VERSION=${{ steps.version.outputs.value }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.version.outputs.value }}
+          outputs: type=image,name=${{ env.REGISTRY }}/crewaid-${{ matrix.image }},push-by-digest=true,name-canonical=true,push=${{ env.PUBLISH }}
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}-${{ matrix.arch }}
+
+      - name: Keep the digest
+        if: env.PUBLISH == 'true'
+        run: |
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${DIGEST#sha256:}"
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+
+      - uses: actions/upload-artifact@v4
+        if: env.PUBLISH == 'true'
+        with:
+          name: digest-${{ matrix.image }}-${{ matrix.arch }}
+          path: /tmp/digests/*
+          retention-days: 1
+
+  # One tag per image naming both architectures, so `docker pull` picks the
+  # machine's own.
+  publish:
+    name: tag ${{ matrix.image }}
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        image: [orchestrator, sandbox, egress]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      # The tags, to tell whether this release is the newest (for :latest).
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: digest-${{ matrix.image }}-*
+          merge-multiple: true
+          path: /tmp/digests
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag the multi-arch image
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          image="$REGISTRY/crewaid-${{ matrix.image }}"
+          tags="-t $image:$version"
+          # :latest only for the newest release: re-running an older tag, or a
+          # prerelease, must not point it back at older images.
+          if .github/scripts/newest-release.sh "$version"; then tags="$tags -t $image:latest"; fi
+          cd /tmp/digests
+          # shellcheck disable=SC2086
+          docker buildx imagetools create $tags $(printf "$image@sha256:%s " *)
+          docker buildx imagetools inspect "$image:$version"
+
+  # The installer (D-155), on the same tag: `npx crewaid-selfhost` from npm,
+  # and the shim behind `curl -fsSL https://downloads.crewaid.io/install.sh | sh`.
+  # Both after the images exist, so nothing installs a version that cannot pull.
+  installer:
+    name: installer (npm + install.sh)
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # npm Trusted Publishing: npm trusts this workflow file in this
+      # repository (set on the package's npm settings) and accepts the job's
+      # OIDC token in place of a stored publish token.
+      id-token: write
+    steps:
+      # With the tags: only the newest release moves npm's `latest` and the
+      # published install.sh (.github/scripts/newest-release.sh).
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Is this the newest release?
+        id: newest
+        run: |
+          if .github/scripts/newest-release.sh "${GITHUB_REF_NAME#v}"; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          # The installer has no dependencies and this job runs no pnpm, so
+          # setup-node must not try to cache the repo's package manager.
+          package-manager-cache: false
+      # Trusted Publishing needs npm 11.5.1 or later; Node 22 ships npm 10.
+      - run: npm install -g npm@11.21.0
+      - name: Test
+        working-directory: packages/selfhost-cli
+        run: npm test
+      - name: Publish crewaid-selfhost to npm
+        working-directory: packages/selfhost-cli
+        run: |
+          npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
+          # npm points `latest` at whatever is published unless told otherwise:
+          # an older release or a prerelease goes out under its own dist-tag.
+          if [ "${{ steps.newest.outputs.value }}" = true ]; then tag=latest; else tag=previous; fi
+          # No --provenance: npm only attests builds from a public source
+          # repository, and this one is private — the publish would fail.
+          npm publish --access public --tag "$tag"
+      - name: Upload install.sh to downloads.crewaid.io
+        # The newest release's shim only: an older one must not replace it.
+        if: steps.newest.outputs.value == 'true'
+        env:
+          UPLOAD_SECRET: ${{ secrets.DOWNLOADS_UPLOAD_SECRET }}
+        # Pinned to the release it ships with: the shim runs the installer with
+        # the Docker socket, so it names the exact package this release
+        # published rather than whatever npm's `latest` points at when it runs.
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          sed "s/CREWAID_INSTALLER_VERSION:-latest}/CREWAID_INSTALLER_VERSION:-$version}/" \
+            packages/selfhost-cli/install.sh > "$RUNNER_TEMP/install.sh"
+          grep -q "CREWAID_INSTALLER_VERSION:-$version}" "$RUNNER_TEMP/install.sh"
+          curl --fail-with-body -sS --retry 3 -X PUT -H "Authorization: Bearer $UPLOAD_SECRET" \
+            --data-binary @"$RUNNER_TEMP/install.sh" \
+            https://downloads.crewaid.io/selfhost/install.sh
+
+  # The sandbox image on Runtime (D-219): Runtime pulls the release's GHCR
+  # image with the read token stored in it once, so nothing is built twice.
+  # Only the newest release moves crewaid-sandbox:latest, which deployments
+  # following releases name; their computers switch on their next start.
+  runtime-sandbox:
+    name: put the sandbox image on Runtime
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    concurrency:
+      group: runtime-sandbox-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Require the Runtime key
+        env:
+          RUNTIME_API_KEY: ${{ secrets.RUNTIME_API_KEY }}
+        run: |
+          if [ -z "$RUNTIME_API_KEY" ]; then
+            echo "::error::Add the RUNTIME_API_KEY Actions secret: a Runtime key that can manage images."
+            exit 1
+          fi
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @crewaid/sandbox-runtime
+      - name: Import the release image, and move latest for the newest release
+        env:
+          RUNTIME_API_KEY: ${{ secrets.RUNTIME_API_KEY }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          latest=""
+          if .github/scripts/newest-release.sh "$version"; then latest="--latest"; fi
+          # shellcheck disable=SC2086
+          pnpm --filter @crewaid/sandbox-runtime build-image "$GITHUB_REF_NAME" \
+            --from "$REGISTRY/crewaid-sandbox:$version" $latest
+          if [ -n "$latest" ]; then
+            echo "Runtime: crewaid-sandbox:latest is now $GITHUB_REF_NAME; computers switch on their next start." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Runtime: imported crewaid-sandbox:$GITHUB_REF_NAME; latest unchanged (not the newest release)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  cloudflare-sandbox:
+    name: update existing Cloudflare sandbox Worker
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    concurrency:
+      group: cloudflare-sandbox-production
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_SANDBOX_WORKER_NAME: ${{ vars.CLOUDFLARE_SANDBOX_WORKER_NAME }}
+      CLOUDFLARE_SANDBOX_APPLICATION_ID: ${{ vars.CLOUDFLARE_SANDBOX_APPLICATION_ID }}
+      WRANGLER_SEND_METRICS: 'false'
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Only update from the newest stable release
+        id: newest
+        run: |
+          if .github/scripts/newest-release.sh "${GITHUB_REF_NAME#v}"; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare sandbox unchanged: this is not the newest stable release." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Verify the existing Worker and compare sandbox inputs
+        if: steps.newest.outputs.deploy == 'true'
+        id: plan
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node .github/scripts/cloudflare-sandbox-release.mjs plan
+      - name: Keep an unchanged sandbox deployment
+        if: steps.plan.outputs.deploy == 'false'
+        run: |
+          echo "Cloudflare sandbox unchanged: image and Worker inputs match the live deployment." >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/download-artifact@v4
+        if: steps.plan.outputs.deploy == 'true'
+        with:
+          name: digest-sandbox-amd64
+          path: ${{ runner.temp }}/cloudflare-sandbox-digest
+      - name: Read the immutable release image
+        if: steps.plan.outputs.deploy == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare the existing Worker's release configuration
+        if: steps.plan.outputs.deploy == 'true'
+        id: config
+        env:
+          SANDBOX_DIGEST_DIR: ${{ runner.temp }}/cloudflare-sandbox-digest
+        run: node .github/scripts/cloudflare-sandbox-release.mjs prepare
+      - name: Verify the release sandbox under runtime constraints
+        if: steps.plan.outputs.deploy == 'true'
+        env:
+          RELEASE_SANDBOX_IMAGE: ${{ steps.config.outputs.sourceImage }}
+        run: |
+          docker pull "$RELEASE_SANDBOX_IMAGE"
+          python3 infra/sandbox-image/tests/smoke.py "$RELEASE_SANDBOX_IMAGE"
+      - name: Copy the release image and update the existing Worker
+        if: steps.plan.outputs.deploy == 'true'
+        id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          RELEASE_CONFIG: ${{ steps.config.outputs.config }}
+        run: |
+          git fetch origin --tags --force
+          if ! .github/scripts/newest-release.sh "${GITHUB_REF_NAME#v}"; then
+            echo "A newer release arrived; Cloudflare deployment skipped." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node .github/scripts/cloudflare-sandbox-release.mjs check
+          npx --yes wrangler@4.149.0 deploy --config "$RELEASE_CONFIG" --keep-vars --tag "$GITHUB_REF_NAME"
+          echo "deployed=true" >> "$GITHUB_OUTPUT"
+      - name: Verify that workspace and namespace bindings stayed intact
+        if: steps.deploy.outputs.deployed == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          node .github/scripts/cloudflare-sandbox-release.mjs verify
+          echo "Updated existing Cloudflare Worker. New computer starts use the release image; running computers keep their current image." >> "$GITHUB_STEP_SUMMARY"

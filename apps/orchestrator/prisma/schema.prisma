@@ -1,0 +1,1924 @@
+// Crewaid — Prisma schema.
+//
+// ⚠️ TRANSCRIBED VERBATIM FROM PRD §3. FIELD NAMES ARE CONTRACTUAL.
+//
+// Five other people are coding against these names. Do not rename, do not
+// "improve", do not add convenience fields. If a column is genuinely missing,
+// revise the PRD first (§0 rule 2: ask rather than guess).
+//
+// The ONLY deviations from §3, declared explicitly rather than buried:
+//
+//   1. §3 gives `McpServer.userId String` with no matching relation, and `User`
+//      with no `mcpServers` back-reference. Postgres will happily hold that as
+//      a bare column, but then deleting a User orphans its McpServer rows and
+//      their encrypted credentials — which §7.3 says must not outlive their
+//      owner. Added: `McpServer.user` + `User.mcpServers`, onDelete: Cascade.
+//
+//   2. `Bot.autoReviewRules Json @default("[]")`. Auto-review rules are stored
+//      as a Json column on Bot (see packages/shared/src/agent.ts) and validated by
+//      `AutoReviewRulesSchema`. Without this column the shared contract claims
+//      a field the database does not have.
+//
+//   3. `Sandbox.lastActiveAt` and `Sandbox.keepRunningUntil`, both nullable.
+//      §5 requires idle stop and D-031 requires a keep-running lease, but §3's
+//      Sandbox carries no clock for either. Ratified as D-039 §10; the full
+//      reasoning is docs/WORKSPACE.md §10.
+//
+//   4. `Recording.warning RecordingWarning?`. §6/M3 requires that breaching a
+//      hard limit "auto-stops and marks the recording READY with a warning",
+//      but §3's Recording has nowhere to put one — and `READY` on its own is
+//      indistinguishable from a recording the user stopped deliberately, so
+//      without a column the trace looks complete when it was cut short.
+//      Ratified as D-042; an enum rather than free text because the renderer
+//      and the M3-BE-06 compiler both branch on it.
+//
+//   5. `Recording.error String?`. §6/M3's acceptance criteria require that
+//      stopping produces "a DRAFT skill within 60 s, or a FAILED recording
+//      with a readable error", and §3's Recording has nowhere to put the
+//      error. FAILED on its own does not distinguish a trace with a hole in
+//      it from a compile the model refused, and the operator's only recourse
+//      is to re-record something that may fail the same way. Free text, not
+//      an enum, unlike `warning`: this carries a provider's verdict or a
+//      schema violation, which is a sentence, not a vocabulary. Ratified as
+//      D-044.
+//
+//   6. `Memory`, `MemoryTombstone`, and the three enums they need. §3 has no
+//      memory at all, and D-069 put one in a file on the workspace volume —
+//      which cannot express either scope the product requires (a user-global
+//      memory a new bot starts with, and a per-bot memory), and which lives on
+//      the one artifact §9 retention and D-056 both exist to reclaim.
+//      WORKSPACE.md §1 already promised the opposite of D-069: "Bot memory
+//      (Postgres rows) — durable across everything; it is not in the container
+//      at all." This makes that line true. Same class of gap addition as
+//      D-005's rules column and D-057's identities: nothing in §3 is renamed
+//      or reinterpreted, two tables are added beside it. Ratified as D-073.
+//
+//   7. `MemoryDistillation`. CC-38's sweep needs a durable watermark — which
+//      messages it has already read — and deriving one from existing rows does
+//      not work: a pass that finds nothing worth remembering leaves no marker,
+//      so the same window would be re-read and re-charged forever. One row per
+//      bot, and deliberately NOT a column on `Bot`: this is sweep bookkeeping,
+//      not part of what a bot IS, and §3's Bot is the table five people code
+//      against. Ratified as D-078.
+//
+//   8. `User` gains `name`, `emailVerified`, `image` and `updatedAt`, `email`
+//      becomes non-null, and `Session`, `Account` and `Verification` join it.
+//      §3's User described the seeded singleton, which had no way in and so
+//      needed neither an address nor a session. V1 gives every user three ways
+//      in (Google, GitHub, a magic link), and every one of them reaches an
+//      account BY EMAIL — a nullable email would mean a sign-in that cannot
+//      find its own row. The four tables are Better Auth's core schema and are
+//      GENERATED from `src/auth/better-auth.ts`, not written by hand: which
+//      plugins that config enables decides which tables exist, and hand-adding
+//      one is how the two drift into a runtime "column does not exist" that
+//      reads like a missing migration. Ratified as D-083's prerequisite.
+//
+//   9. `ProviderConnection`, `ProviderModel`, `UserSettings` and the three
+//      enums they need. §3 has no provider configuration at all, because D-002
+//      put it in the environment: three keys, one process, one registry built
+//      at boot. That stops being expressible the moment an install has two
+//      users, since whichever key the process holds is one person's and every
+//      turn bills it. Nothing in §3 is renamed; three tables are added beside
+//      it, the same shape of gap addition as deviation 6. Ratified as D-082
+//      and D-086.
+//
+//   10. `Skill.steps Json @default("[]")`. The compiler reads the trace and is
+//      the one writer that knows what the skill does in plain language, but
+//      §3's Skill stores only the machine halves (`description`, `script`) —
+//      so the review surface had nothing to open on but the source, and
+//      summarizing it again per view would re-ask a model for an answer one
+//      compile already settled. One sentence per step, written at compile
+//      time and carried forward unchanged across edits that do not restate
+//      it (the same treatment `paramsSchema` gets). Empty for skills the bot
+//      authored with `save_skill`, which had no trace to summarize. Ratified
+//      as D-098.
+//
+//   11. `Subscription`, `UsageLedger`, `User.stripeCustomerId`, the admin
+//      plugin's `User.role`/`banned`/`banReason`/`banExpires` and
+//      `Session.impersonatedBy`, `Sandbox.meteredAt`, the computer-time
+//      meter's watermark, and `ModelCharge` with the `CREWAID` provider kind
+//      for the models a plan includes (D-157). §3 has no
+//      billing because the PRD put it out of scope; the hosted service's plans
+//      (D-148) need a subscription to read entitlements from and a per-period
+//      record to check limits against. `Subscription` keeps
+//      `@better-auth/stripe`'s column names but is written by the billing
+//      module; the user columns are the Stripe and admin plugins', generated
+//      like deviation 8's tables. Used
+//      only on a cloud server with Stripe configured (D-152); elsewhere the
+//      tables exist and stay empty. Ratified as D-156.
+//
+// Existing column names are contractual and guarded by schema-contract.test.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// V1-02 / deviation 7: the four Better Auth columns sit beside §3's three.
+///
+/// `name`, `emailVerified`, `image` and `updatedAt` are REQUIRED by Better
+/// Auth's core schema, and `email` becomes non-null because an account is
+/// reached by email under every one of the three sign-in methods — Google,
+/// GitHub and the magic link. §3's nullable email described the seeded
+/// singleton, which had no way in and therefore needed no address.
+///
+/// This block is GENERATED — `npx @better-auth/cli generate --config
+/// src/auth/better-auth.ts`. Do not hand-edit it, and re-run the CLI after
+/// touching the plugin list in that config.
+model User {
+  gitCheckouts    GitCheckout[]
+  gitPublications GitPublication[]
+  gitRemoteWrites GitRemoteWrite[]
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  emailVerified   Boolean          @default(false)
+  image           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  /// D-156: the Stripe customer, set at this user's first checkout. Declared
+  /// by `@better-auth/stripe`, which finds a webhook's user by it.
+  stripeCustomerId String?
+
+  /// D-156: Better Auth's admin plugin. `role = 'admin'` is set by hand in the
+  /// database, never through the API, and puts the account on the `internal`
+  /// plan — no billing, no limits — for operating and testing the hosted
+  /// service. The ban columns are the plugin's; nothing in Crewaid sets them.
+  role       String?
+  banned     Boolean?  @default(false)
+  banReason  String?
+  banExpires DateTime?
+
+  sessions           Session[]
+  accounts           Account[]
+  telegramConnection TelegramConnection?
+  telegramLinkTicket TelegramLinkTicket?
+  telegramPendingBot TelegramPendingBot?
+
+  onboarding            UserOnboarding?
+  templateInstallations TemplateInstallation[]
+  bots                  Bot[]
+  mcpServers            McpServer[]
+  attachments           Attachment[] // D-021: uploads owned from creation
+  sandboxes             Sandbox[] // D-046: the user's computers, defaulting to one
+  memories              Memory[] // D-073: what this user's bots know
+  tombstones            MemoryTombstone[] // D-073: what they have been told to forget
+
+  providerConnections ProviderConnection[] // D-082: this user's model providers
+  settings            UserSettings? // D-086: the per-user `default` alias
+  botGroups           BotGroup[] // D-131: sidebar groups of bots
+
+  // D-133: Work — the user's projects, goals, tasks and what bots delivered.
+  projects     Project[]
+  goals        Goal[]
+  tasks        Task[]
+  taskSeries   TaskSeries[]
+  taskEvents   TaskEvent[]
+  deliverables Deliverable[]
+
+  usageLedger  UsageLedger[] // D-156: what each billing period used
+  modelCharges ModelCharge[] // D-157: each included-model call's cost
+  voiceCharges VoiceCharge[] // D-223: each request's voice seconds
+  voiceCalls   VoiceCall[] // D-222: each call's minutes
+
+  // D-159 §3.14: run state carries its owner directly, so retention, export and
+  // deletion never join through bots.
+  runInterrupts  RunInterrupt[]
+  toolDispatches ToolDispatch[]
+  runEvents      RunEvent[]
+}
+
+/// D-233: a person's own Telegram bot, linked to the Telegram account that confirmed it.
+/// The token is sealed (telegram-tokens.ts); the webhook secret is kept only as a digest.
+model TelegramConnection {
+  id                   String                       @id @default(cuid())
+  userId               String                       @unique
+  user                 User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  telegramBotId        String                       @unique
+  botUsername          String
+  managed              Boolean                      @default(false)
+  tokenCiphertext      String
+  webhookSecretHash    String
+  webhookUrl           String
+  commandsDigest       String?
+  telegramUserId       String
+  chatId               String
+  displayName          String
+  selectedBotId        String?
+  selectedAt           DateTime                     @default(now())
+  lastMessageSequence  Int                          @default(0)
+  lastRunSequence      Int                          @default(0)
+  notifiedInterruptIds String[]                     @default([])
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+  attachmentDeliveries TelegramAttachmentDelivery[]
+}
+
+/// D-233: a bot waiting to be paired. A managed bot arrives with only its creator; a pasted
+/// one with the account that pasted it. The right code fills the claim, and nothing is live
+/// until that account confirms in Crewaid.
+model TelegramPendingBot {
+  telegramBotId       String    @id
+  botUsername         String
+  managed             Boolean
+  ownerTelegramUserId String?
+  userId              String?   @unique
+  user                User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenCiphertext     String
+  webhookSecretHash   String
+  webhookUrl          String
+  failedAttempts      Int       @default(0)
+  claimedAt           DateTime?
+  claimTelegramUserId String?
+  claimChatId         String?
+  claimDisplayName    String?
+  expiresAt           DateTime
+  createdAt           DateTime  @default(now())
+
+  @@index([ownerTelegramUserId])
+  @@index([expiresAt])
+}
+
+/// Token rotation emits manager updates, so retirement must outlive the deleted credentials.
+model TelegramRetiredBot {
+  telegramBotId String   @id
+  retiredAt     DateTime @default(now())
+}
+
+model TelegramAttachmentDelivery {
+  connectionId String
+  connection   TelegramConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  attachmentId String
+  attachment   Attachment         @relation(fields: [attachmentId], references: [id], onDelete: Cascade)
+
+  @@id([connectionId, attachmentId])
+}
+
+/// D-233: the digest of a person's pairing code: one per account, single use, ten minutes.
+model TelegramLinkTicket {
+  tokenHash String   @id
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+}
+
+/// An interactive sign-in. Revoking one ends interactive access at the next
+/// frame (V1-09) — it does NOT stop already-authorized background work, which
+/// carries its own persisted owner (V1-10).
+///
+/// GENERATED by the Better Auth CLI; see the note on `User`.
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// D-156: the admin plugin's — the admin who opened this session as another user.
+  impersonatedBy String?
+
+  @@index([userId])
+}
+
+/// A linked identity provider proving WHO IS SIGNED IN.
+///
+/// ⚠️ NOT a model provider. D-082's `ProviderConnection` holds a key for
+/// calling an inference API; the tokens here are Google's and GitHub's, and no
+/// turn ever reads them. Two tables that both say "provider" is exactly the
+/// confusion worth naming once, here, rather than discovering in a review.
+///
+/// `password` is present because Better Auth's core schema declares it and the
+/// generator emits it; `emailAndPassword` is disabled in the config, so no row
+/// ever carries one.
+///
+/// GENERATED by the Better Auth CLI; see the note on `User`.
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+/// One-shot verification values, which is where a magic link lives until it is
+/// used. The row is consumed on use — that consumption is what makes a link
+/// single-use, and V1-15 asserts the replay case against this table.
+///
+/// GENERATED by the Better Auth CLI; see the note on `User`.
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+/// D-156: one Stripe subscription, as Stripe last had it. Entitlements are
+/// read from here.
+///
+/// Written only by the billing module's sync, which re-reads the subscription
+/// from Stripe on every webhook event — never from an event's payload, because
+/// Stripe delivers events in any order. `stripeSubscriptionId` is unique so two
+/// deliveries racing for a new subscription make one row.
+///
+/// The column set is `@better-auth/stripe`'s subscription schema, kept so the
+/// plugin's names stay recognisable, though its own subscription handling is
+/// off and it no longer writes here. `referenceId` is the user's id and
+/// `status` is Stripe's, verbatim; `plan` is `starter` or `pro`, and a Starter
+/// subscription that is `trialing` is the trial.
+model Subscription {
+  id                   String    @id
+  plan                 String
+  referenceId          String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  status               String    @default("incomplete")
+  periodStart          DateTime?
+  periodEnd            DateTime?
+  trialStart           DateTime?
+  trialEnd             DateTime?
+  cancelAtPeriodEnd    Boolean?  @default(false)
+  cancelAt             DateTime?
+  canceledAt           DateTime?
+  endedAt              DateTime?
+  seats                Int?
+  billingInterval      String?
+  stripeScheduleId     String?
+
+  @@unique([stripeSubscriptionId])
+  @@index([referenceId])
+}
+
+model Bot {
+  gitRemoteWrites     GitRemoteWrite[]
+  gitCheckouts        GitCheckout[]
+  gitPublications     GitPublication[]
+  id                  String           @id @default(cuid())
+  userId              String
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind                String           @default("STANDARD")
+  name                String // "Quill"
+  role                String // "Outbound Writer"
+  avatarColor         String // hex, e.g. "#8B6F47"
+  // Mascot silhouette, one of AvatarShapeSchema. NULLABLE on purpose: null
+  // means "whichever shape the name hashes to", which is how every bot
+  // created before this column looked. Defaulting it to a concrete shape
+  // would have silently restyled every existing bot on deploy. It is written
+  // only when an operator picks one.
+  avatarShape         String?
+  // Uploaded profile picture, preferred over the mascot when set. The upload
+  // path does not exist yet (no storage, no route); the column is here so the
+  // renderer's "url, else mascot" rule is written once against a real field
+  // rather than retrofitted through the wire contract later.
+  avatarUrl           String?
+  systemPrompt        String           @db.Text
+  modelId             String           @default("default") // key into the AI SDK provider registry
+  status              BotStatus        @default(IDLE)
+  sortOrder           Int              @default(0)
+  pinned              Boolean          @default(false)
+  hiddenFromSidebar   Boolean          @default(false)
+  // M5 auto-review rules, ordered, first match wins; default `ask` (§6/M5).
+  // Json rather than a table: always read as one whole list per bot, never
+  // queried across bots. Shape lives in `@crewaid/shared` AutoReviewRuleSchema.
+  autoReviewRules     Json             @default("[]")
+  approvalMode        ApprovalMode     @default(AUTO) // D-144: Ask for approval, Approve for me, Full access
+  // D-221: the ElevenLabs voice this bot speaks in. Null is the house voice.
+  voiceId             String?
+  pluginGrantRevision Int              @default(0)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  // D-046: the computer this bot works on. NULLABLE because a bot exists
+  // before any machine does (D-041 provisions storage at creation, and a
+  // never-started bot has none), and because detaching a bot must not delete
+  // a machine its siblings are still using.
+  sandboxId        String?
+  sandbox          Sandbox?            @relation(fields: [sandboxId], references: [id], onDelete: SetNull)
+  // D-131: the group this bot is in, if any. SetNull because deleting a group
+  // moves its bots back to Unassigned; it never deletes a bot.
+  groupId          String?
+  group            BotGroup?           @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  conversation     Conversation?
+  skills           Skill[]
+  routines         Routine[]
+  recordings       Recording[]
+  turns            AgentTurn[]
+  mcpServers       BotMcpServer[]
+  identities       BotIdentity[]
+  // Desired selection, never a claim that Chrome holds the profile.
+  activeIdentityId String?
+  activeIdentity   Identity?           @relation("SelectedIdentity", fields: [activeIdentityId], references: [id], onDelete: SetNull)
+  identityRevision Int                 @default(0)
+  memories         Memory[]            @relation("MemoryScope")
+  /// Shared facts this bot established. Kept apart from the scope relation:
+  /// a private memory's author IS its scope, but a workspace fact any bot
+  /// wrote is read by every bot, and rendering it needs to name the bot whose
+  /// work the claim describes.
+  memoriesAuthored Memory[]            @relation("MemoryAuthor")
+  distillation     MemoryDistillation?
+
+  // D-133: Work. Deleting a bot unassigns its tasks and series (SetNull) and
+  // deletes what it produced (D-136: deliverables cascade with the bot).
+  assignedTasks  Task[]        @relation("TaskAssignee")
+  createdTasks   Task[]        @relation("TaskCreator")
+  assignedSeries TaskSeries[]  @relation("SeriesAssignee")
+  taskEvents     TaskEvent[]   @relation("TaskEventActor")
+  deliverables   Deliverable[]
+  voiceCalls     VoiceCall[] // D-222
+
+  @@index([sandboxId])
+  @@index([groupId])
+}
+
+/// D-131: a named set of bots in the sidebar. What it shares with its members
+/// is `instructions` (read into every member's prompt) and a folder on the
+/// machine, `/home/bot/groups/<id>`. It is a label and a brief, never a role:
+/// nothing about a group changes who a bot may message or what it may do.
+model BotGroup {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  instructions String   @default("") @db.Text
+  sortOrder    Int      @default(0)
+  collapsed    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bots Bot[]
+
+  @@index([userId, sortOrder])
+}
+
+enum BotStatus {
+  IDLE
+  THINKING
+  ACTING
+  AWAITING_APPROVAL
+  ERROR
+}
+
+model Conversation {
+  id         String         @id @default(cuid())
+  botId      String         @unique
+  bot        Bot            @relation(fields: [botId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+  // D-131: the user has read every BOT message up to here. Null means never
+  // marked, which counts every bot message as unread.
+  lastReadAt DateTime?
+  messages   Message[]
+  runs       AgentTurn[]
+  interrupts RunInterrupt[]
+  dispatches ToolDispatch[]
+  events     RunEvent[]
+}
+
+model Message {
+  id             String        @id @default(cuid())
+  conversationId String
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  author         MessageAuthor
+  fromBotId      String? // set when author = BOT
+  content        String        @db.Text
+  // AI_SDK threads: the SDK's parts, verbatim. TANSTACK threads: one
+  // `ModelMessage` body, read through the one validating mapper (D-165).
+  parts          Json?
+  stopReason     String?
+  // D-165: the thread's order. Taken when a message begins, so a user message
+  // admitted while a reply streams sorts after the reply's earlier rows. An
+  // Int, not a BigInt: rows reach JSON in many places and a BigInt cannot.
+  sequence       Int           @unique @default(autoincrement())
+  // The run that wrote this assistant or tool row; many rows per run.
+  runId          String?
+  run            AgentTurn?    @relation("RunMessages", fields: [runId], references: [id], onDelete: SetNull)
+  chainId        String? // inter-bot conversation chain
+  hopCount       Int           @default(0)
+  // D-133: the task this message is about — a Start brief, or work another bot
+  // delegated with `send_message({taskId})`. It is what files a deliverable the
+  // turn produces (D-136 rule 2).
+  taskId         String?
+  task           Task?         @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  // D-136: the routine that posted this message; rule 3 files under its goal.
+  routineId      String?
+  routine        Routine?      @relation(fields: [routineId], references: [id], onDelete: SetNull)
+  // D-147: a `/new` boundary. The turn's history seed reads only what comes
+  // after the newest one, so an old subject stops riding along in every prompt
+  // while the transcript keeps it. Deleting the row restores the context.
+  startsTopic    Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+
+  attachments  Attachment[]
+  // D-073: what was learned here. SetNull on the far side — deleting a
+  // transcript must not delete the fact it established.
+  memories     Memory[]
+  taskEvents   TaskEvent[]
+  deliverables Deliverable[]
+
+  @@index([conversationId, createdAt])
+  @@index([conversationId, sequence])
+  @@index([taskId])
+  @@index([runId])
+}
+
+enum MessageAuthor {
+  USER
+  BOT
+  SYSTEM
+  TOOL
+}
+
+// The Attachment delete trigger also captures FK cascades in the same transaction.
+model ArtifactDeletion {
+  storageKey String   @id
+  retryAt    DateTime @default(now())
+
+  @@index([retryAt])
+}
+
+model Attachment {
+  telegramDeliveries TelegramAttachmentDelivery[]
+  id                 String                       @id @default(cuid())
+  // An upload (POST /attachments) happens BEFORE the message it belongs to
+  // exists, so messageId is nullable until a message claims the row; using a
+  // ghost Message row instead would pollute conversation history.
+  messageId          String?
+  message            Message?                     @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  // D-021: ownership from CREATION, not from claiming. Without it, user B
+  // can bind user A's unclaimed upload to B's message and download A's file
+  // through the now-owned link — the D-010 IDOR class shipping under a green
+  // test. No default: every row must have an owner from insert.
+  ownerId            String
+  user               User                         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  filename           String
+  mimeType           String
+  sizeBytes          Int
+  storageKey         String // key in the artifact store: R2, or ARTIFACT_DIR (D-220)
+  // D-221: a recorded or spoken clip rather than a file. On a USER message it
+  // marks the trigger as spoken, which is what makes the reply spoken too; an
+  // audio file sent with Attach stays FILE and changes nothing.
+  kind               AttachmentKind               @default(FILE)
+  durationMs         Int?
+  // D-020 addendum / J3 requires an upload-age for the 410 TTL fence and the
+  // Timestamp for the unclaimed-attachment TTL fence and reaper.
+  createdAt          DateTime                     @default(now())
+
+  // D-136: the record that makes a bot's file findable. Absent for uploads.
+  deliverable Deliverable?
+
+  @@index([ownerId])
+  @@index([createdAt]) // reaper scan: unclaimed AND older than TTL
+}
+
+// R9: one row per completed agent step, written before the next step starts.
+model AgentTurn {
+  sequence            Int            @unique @default(autoincrement())
+  id                  String         @id @default(cuid())
+  botId               String
+  bot                 Bot            @relation(fields: [botId], references: [id], onDelete: Cascade)
+  triggerMessageId    String
+  // D-159 §3.5: the thread this run belongs to (`RunRecord.threadId`).
+  conversationId      String
+  conversation        Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  status              TurnStatus     @default(running)
+  stepIndex           Int            @default(0)
+  workingMs           Int            @default(0)
+  steps               Json           @default("[]") // array of completed AI SDK step results
+  inputTokens         Int            @default(0)
+  outputTokens        Int            @default(0)
+  // D-009(3): cached reads bill at a fraction of fresh input once CC-11 lands.
+  // Folding them into inputTokens makes CC-12's cost report and §7.2's hard
+  // spend cap provably wrong — and §7.2 halts the product, so wrong numbers
+  // mean either false halts or blown budgets.
+  cachedInputTokens   Int            @default(0)
+  cacheCreationTokens Int            @default(0)
+  // D-178: validated canonical snapshot; counters above are materialized on this row.
+  usage               Json?
+  // CC-12: the resolved `provider:model` billing identity of the turn's
+  // settled model call(s) — what /usage's cost table prices the counters
+  // with. Nullable: turns settled before this column existed (or whose call
+  // never settled) have no recorded identity and cost stays unknown for
+  // them, never guessed. It is NOT the bot's current model: the composer's
+  // model picker PATCHes the bot between sends, so a bot's history is
+  // legitimately mixed-model.
+  modelId             String?
+  startedAt           DateTime       @default(now())
+  endedAt             DateTime?
+  stopReason          String?
+  // D-165: why a `failed` run failed: a D-006 code, or WORKER_LOST for a run
+  // whose worker died. Never a vendor's text.
+  errorCode           String?
+  // D-178: a safe sentence supplied by the server error projector, never vendor prose.
+  errorMessage        String?
+  // Nullable so completed/failed turns release the one-active-turn fence.
+  // D-160: a TANSTACK run holds it only while `running`. An AI_SDK turn also
+  // holds it while parked on an approval, until that path is deleted.
+  activeKey           String?        @unique
+  // D-159 §3.5: the library's fencing fields. Nullable, because "never set" and
+  // false/0 mean different things to the run store.
+  driverEpoch         Int?
+  // D-177: one server producer claim, renewed against PostgreSQL's clock.
+  workerId            String?
+  leaseExpiresAt      DateTime?
+  cancelRequested     Boolean?
+  detachedSince       DateTime?
+  sandboxKey          String?
+  // D-160: the paused run whose interrupts this continuation answered. A turn is
+  // a run and every continuation chained to it this way (D-164).
+  resumesRunId        String?
+  resumes             AgentTurn?     @relation("RunContinuation", fields: [resumesRunId], references: [id], onDelete: SetNull)
+  continuations       AgentTurn[]    @relation("RunContinuation")
+  // D-159 §3.7: set when the run's event log is closed; a tail stops here.
+  eventsClosedAt      DateTime?
+  messages            Message[]      @relation("RunMessages")
+  interrupts          RunInterrupt[]
+  dispatches          ToolDispatch[]
+  events              RunEvent[]
+
+  @@index([botId, startedAt])
+  @@index([conversationId, startedAt])
+  @@index([resumesRunId])
+  @@index([status, leaseExpiresAt])
+}
+
+/// D-159 §3.6, D-165: a human-in-the-loop pause, durable across a restart.
+/// Implements the library's `InterruptStore`. The id is minted by the server.
+/// D-197: one row per call that can change something, reserved before it runs.
+/// A second reservation of the same call finds this row and does not run it.
+model ToolDispatch {
+  id             String         @id @default(cuid())
+  runId          String
+  run            AgentTurn      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolCallId     String
+  toolName       String
+  effect         String
+  argsDigest     String
+  status         DispatchStatus @default(DISPATCHED)
+  reference      String?
+  dispatchedAt   DateTime       @default(now())
+  settledAt      DateTime?
+
+  @@unique([conversationId, toolCallId])
+  @@index([runId])
+  @@index([userId])
+}
+
+/// D-197: a dispatch is started, then known to have committed, known not to
+/// have been sent, or not known either way.
+enum DispatchStatus {
+  DISPATCHED
+  COMMITTED
+  REFUSED
+  UNCERTAIN
+}
+
+model RunInterrupt {
+  id             String          @id @default(cuid())
+  runId          String
+  run            AgentTurn       @relation(fields: [runId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status         InterruptStatus @default(pending)
+  // Insertion order, which the store's list contract requires. Two interrupts
+  // of one batch share a millisecond, so the timestamp cannot be the order.
+  sequence       Int             @unique @default(autoincrement())
+  requestedAt    DateTime        @default(now())
+  resolvedAt     DateTime?
+  // `crewaid.tool-approval`: the call, and its D-164 binding.
+  payload        Json
+  response       Json?
+
+  // Protocol consumption follows policy acceptance at the successful boundary.
+  // Both facets refer to this one proposal; a native record never grants approval.
+  nativeInterruptId String?          @unique
+  nativePayload     Json?
+  nativeResponse    Json?
+  nativeStatus      InterruptStatus?
+  nativeRequestedAt DateTime?
+  nativeResolvedAt  DateTime?
+
+  @@index([conversationId, nativeStatus, nativeRequestedAt, sequence])
+  @@index([runId, nativeStatus, nativeRequestedAt, sequence])
+  @@index([conversationId, status, sequence])
+  @@index([runId, status, sequence])
+  @@index([userId])
+}
+
+enum InterruptStatus {
+  pending
+  resolved
+  cancelled
+}
+
+/// D-159 §3.7, D-165: the delivery log. Every AG-UI event a run emits, in
+/// order. `id` is the offset: monotonic, so it orders a run and a thread.
+model RunEvent {
+  id             BigInt       @id @default(autoincrement())
+  runId          String
+  run            AgentTurn    @relation(fields: [runId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // One AG-UI event, as the library emitted it.
+  chunk          Json
+  createdAt      DateTime     @default(now())
+
+  @@index([runId, id])
+  @@index([conversationId, id])
+  @@index([userId])
+}
+
+/// D-159 §3.5: the library's `RunStatus`, so nothing translates on the way
+/// through. `interrupted` waits for a person and is not terminal.
+enum TurnStatus {
+  running
+  interrupted
+  completed
+  failed
+  aborted
+}
+
+/// D-046: the computer. One machine, shared by the bots attached to it,
+/// defaulting to one per user. The table keeps the name `Sandbox` — §0 rule 2
+/// does not spend a rename across M2's lifecycle code, M4's capture, the §4.1
+/// routes, the §4.3 frame header and the R7 allowlist on a word the UI already
+/// calls "computer".
+///
+/// `id` is the workspace key: the volume is `crewaid-workspace-<id>` and carries
+/// the label `crewaid.botId=<id>`. Both read as a bot id and no longer are. The
+/// migration preserves them by giving each migrated machine the id of the bot
+/// that used to own it, so not one durable volume is renamed or relabelled;
+/// renaming the label would mean relabelling every operator's storage to gain
+/// nothing a comment cannot say.
+model Sandbox {
+  id               String       @id @default(cuid())
+  userId           String
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId        String? // harness session id, used for resumeSession
+  containerId      String?
+  state            SandboxState @default(STOPPED)
+  // Only new Runtime workspaces may allocate a machine on their first admitted start.
+  workspacePending Boolean      @default(false)
+  // A failed or abandoned Runtime operation must confirm pause before releasing its slot.
+  pausePending     Boolean      @default(false)
+  widthPx          Int          @default(1280)
+  heightPx         Int          @default(800)
+  vncPort          Int?
+  cdpPort          Int?
+  bridgePort       Int?
+  lastStartedAt    DateTime?
+  lastError        String?      @db.Text
+  // D-039 §10. Idle stop needs a "since when" that survives an orchestrator
+  // restart; derived state would restart the clock on every deploy and make
+  // idle stop unpredictable. `keepRunningUntil` is §8's explicit lease — one
+  // with no expiry is a leak, and one held in memory does not survive the
+  // restart it is most needed across.
+  lastActiveAt     DateTime?
+  keepRunningUntil DateTime?
+  // D-156: how far this computer's running time has been counted against its
+  // owner's plan. The meter counts from here (or from the last start, if
+  // later) and moves it forward, so a restart neither loses nor repeats time.
+  meteredAt        DateTime?
+
+  bots       Bot[]
+  identities Identity[]
+
+  @@index([userId])
+  @@index([state])
+}
+
+/// M5-BE-27 / D-057 — a named Chrome profile several bots may share.
+///
+/// Scoped to the COMPUTER rather than the user, because that is where the
+/// thing actually is: an identity is a directory under one machine's
+/// `--user-data-dir`, and the logged-in session inside it exists on that
+/// machine's disk and nowhere else. A user with two computers who expects
+/// "company-google" to work on both would otherwise be told it exists and
+/// find it signed out, which is the failure this scoping makes impossible to
+/// express.
+///
+/// `name` IS the profile directory, deliberately not a display name with a
+/// slug beside it (`McpServer` has both because an operator types "Gmail" and
+/// the wire needs "gmail"). Here the bot names it and the operator only reads
+/// it back off an approval prompt, so a second column would be two truths
+/// about one directory. `IdentityNameSchema` is what keeps it a legal one.
+model Identity {
+  id        String   @id @default(cuid())
+  sandboxId String
+  sandbox   Sandbox  @relation(fields: [sandboxId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+
+  bots       BotIdentity[]
+  selectedBy Bot[]         @relation("SelectedIdentity")
+
+  @@unique([sandboxId, name])
+}
+
+/// M5-BE-27 / D-057 — the grant: this bot may open its seat on this identity.
+///
+/// Written when an operator approves the bot's `use_identity` call, and it
+/// outlives the turn: the next seat this bot opens still goes to the granted
+/// profile. That durability is the feature — a session stays reachable
+/// without re-signing in — and it is also why the approval prompt names the
+/// identity rather than just the tool.
+model BotIdentity {
+  botId      String
+  bot        Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+  identityId String
+  identity   Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  grantedAt  DateTime @default(now())
+
+  @@id([botId, identityId])
+}
+
+enum SandboxState {
+  STOPPED
+  STARTING
+  RUNNING
+  UNHEALTHY
+  ERROR
+}
+
+model Recording {
+  id           String            @id @default(cuid())
+  botId        String
+  bot          Bot               @relation(fields: [botId], references: [id], onDelete: Cascade)
+  state        RecordingState    @default(RECORDING)
+  intent       String?           @db.Text
+  cdpAvailable Boolean           @default(true)
+  // Deviation 4: why capture ended early, null when it ended when asked.
+  warning      RecordingWarning?
+  // Deviation 5: why a FAILED recording failed, null in every other state.
+  error        String?           @db.Text
+  startedAt    DateTime          @default(now())
+  endedAt      DateTime?
+  events       RecordingEvent[]
+  // D-009: a list, not `Skill?`. Dropping @unique on Skill.sourceRecordingId
+  // (so a skill can be re-versioned) turns this into one-to-many; Prisma
+  // rejects a one-to-one whose foreign side is not unique.
+  skills       Skill[]
+}
+
+enum RecordingState {
+  RECORDING
+  COMPILING
+  READY
+  FAILED
+  DISCARDED
+}
+
+/// §6/M3's two hard limits, as the reason a recording stopped itself (M3-BE-05).
+enum RecordingWarning {
+  EVENT_LIMIT
+  TIME_LIMIT
+}
+
+model RecordingEvent {
+  id               String       @id @default(cuid())
+  recordingId      String
+  recording        Recording    @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  tsOffsetMs       Int
+  layer            CaptureLayer
+  type             String // "click" | "type" | "navigate" | "input" | ...
+  payload          Json
+  screenshotKey    String? // set on X11 clicks only
+  correlatedWithId String? // set by the M4 correlator
+
+  @@index([recordingId, tsOffsetMs])
+}
+
+enum CaptureLayer {
+  X11
+  CDP
+  ATSPI
+}
+
+model Skill {
+  id                String      @id @default(cuid())
+  botId             String? // null = available to all bots
+  bot               Bot?        @relation(fields: [botId], references: [id], onDelete: SetNull)
+  name              String // snake_case
+  description       String      @db.Text
+  paramsSchema      Json // JSON Schema for the skill's arguments
+  // Deviation 10 (D-098): the compiler's plain-language summary of the task,
+  // one sentence per step — what the review surface opens on instead of the
+  // script. Empty for skills written by `save_skill`, which had no trace.
+  steps             Json        @default("[]")
+  script            String      @db.Text // TypeScript module source
+  version           Int         @default(1)
+  status            SkillStatus @default(DRAFT)
+  // D-009: NOT @unique. M3 requires that editing a script bumps `version` and
+  // keeps the previous version queryable, so v1 and v2 both point at the same
+  // source recording — a unique constraint fails on the second edit.
+  sourceRecordingId String?
+  sourceRecording   Recording?  @relation(fields: [sourceRecordingId], references: [id])
+  createdAt         DateTime    @default(now())
+  runs              SkillRun[]
+
+  @@unique([botId, name, version])
+}
+
+enum SkillStatus {
+  DRAFT
+  APPROVED
+  ARCHIVED
+}
+
+model SkillRun {
+  id        String    @id @default(cuid())
+  skillId   String
+  skill     Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  params    Json
+  status    RunStatus @default(PENDING)
+  logs      String?   @db.Text
+  error     String?   @db.Text
+  startedAt DateTime?
+  endedAt   DateTime?
+}
+
+enum RunStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+model McpServer {
+  gitRemoteWrites GitRemoteWrite[]
+  gitCheckouts    GitCheckout[]
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String // "Gmail"
+  slug            String // "gmail" — used for tool namespacing
+  category        String? // "Inbox And Collaboration"
+  iconUrl         String?
+  accessMode      PluginAccessMode @default(SELECTED)
+  accessRevision  Int              @default(0)
+  backend         McpBackend       @default(DIRECT)
+  transport       McpTransport?    @default(HTTP)
+  url             String?
+  isPrivate       Boolean          @default(false) // user-added by URL vs directory entry
+  authType        McpAuthType      @default(OAUTH2)
+  status          McpStatus        @default(DISCONNECTED)
+  lastError       String?          @db.Text
+  createdAt       DateTime         @default(now())
+
+  composioConnection ComposioConnection?
+  credential         McpCredential?
+  tools              McpTool[]
+  bots               BotMcpServer[]
+  oauthFlows         McpOAuthFlow[]
+
+  @@unique([userId, slug])
+}
+
+enum McpTransport {
+  HTTP
+  SSE
+}
+
+enum McpAuthType {
+  NONE
+  OAUTH2
+  HEADER
+}
+
+enum McpStatus {
+  DISCONNECTED
+  CONNECTING
+  CONNECTED
+  NEEDS_REAUTH
+  ERROR
+}
+
+// Both token columns are encrypted at rest with CREDENTIAL_KEY before they
+// reach Prisma (M6-BE-04, apps/orchestrator/src/mcp/mcp-credentials.ts — the
+// only writer and the only reader). Never log, never return over the API,
+// never pass to a sandbox.
+//
+// `authMetadata` is the exception, and it is not a credential: it holds the
+// three coordinates a REFRESH needs and only the connect flow ever knew —
+// `{ tokenEndpoint, clientId, resource }`. A refresh token alone cannot mint
+// a new access token without them, and re-discovery cannot supply them for a
+// private server that answers 401 without a bearer (D-103). Nothing in it is
+// secret: the client id belongs to a public PKCE client this orchestrator
+// registered with no secret, the token endpoint is a URL the user's browser
+// already visited, and `resource` is the server's own URL. Nullable, because
+// rows written before M6-BE-05 carry none — a credential with no metadata is
+// usable until it expires and then needs a reconnect.
+model McpCredential {
+  id           String    @id @default(cuid())
+  serverId     String    @unique
+  server       McpServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  accessToken  String    @db.Text
+  refreshToken String?   @db.Text
+  expiresAt    DateTime?
+  scopes       String[]
+  authMetadata Json?
+  revision     Int       @default(0)
+  updatedAt    DateTime  @updatedAt
+}
+
+// One browser trip in flight, from `POST /mcp/servers/:id/connect` until the
+// redirect lands on `GET /mcp/oauth/callback` (M6-BE-03). A row rather than
+// process memory because the callback arrives minutes later, from a browser,
+// with no session — and because a restart in between must not strand the
+// server in CONNECTING.
+//
+// `state` is unique because it is the whole lookup: it is the only thing the
+// redirect carries that names this row, and `codeVerifier` is what makes the
+// code useless to anyone else who sees it. Both are single-use — the callback
+// deletes the row it finds. `tokenEndpoint`, `clientId` and `redirectUri` are
+// recorded at connect time so the exchange uses the endpoint the authorize
+// URL was built against, rather than re-discovering it minutes later.
+//
+// ⚠️ NOTE WHAT IS NOT HERE: the server's `status` is left alone for the life
+// of a flow. `CONNECTING` is a fact about this row, not about the credential —
+// see `toSummary` in mcp-servers.service.ts.
+model McpOAuthFlow {
+  id            String    @id @default(cuid())
+  state         String    @unique
+  serverId      String
+  server        McpServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  codeVerifier  String
+  clientId      String
+  redirectUri   String
+  tokenEndpoint String
+  resource      String
+  scopes        String[]
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime
+
+  @@index([serverId])
+}
+
+enum McpToolSource {
+  REMOTE
+  CREWAID_GIT
+}
+
+model McpTool {
+  source      McpToolSource @default(REMOTE)
+  id          String        @id @default(cuid())
+  serverId    String
+  server      McpServer     @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  name        String // as reported by the server
+  description String        @db.Text
+  inputSchema Json
+  readOnly    Boolean       @default(false) // classified at list time, see M6
+  refreshedAt DateTime      @default(now())
+
+  @@unique([serverId, name])
+}
+
+model BotMcpServer {
+  botId    String
+  bot      Bot       @relation(fields: [botId], references: [id], onDelete: Cascade)
+  serverId String
+  server   McpServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  enabled  Boolean   @default(true)
+
+  @@id([botId, serverId])
+}
+
+model Routine {
+  id          String        @id @default(cuid())
+  botId       String
+  bot         Bot           @relation(fields: [botId], references: [id], onDelete: Cascade)
+  name        String
+  cron        String // 5-field cron
+  timezone    String        @default("America/Port-au-Prince")
+  endsOn      String?       @db.VarChar(10) // inclusive date in the routine's timezone
+  prompt      String?       @db.Text // exactly one of prompt or skillId
+  skillId     String?
+  skillParams Json?
+  enabled     Boolean       @default(true)
+  lastRunAt   DateTime?
+  lastStatus  RunStatus?
+  /// D-125 (M8-BE-08): who created it. A bot may schedule its own follow-ups,
+  /// and the operator must be able to tell those apart from their own — the
+  /// two are not equally trusted. Set once at creation; nothing updates it.
+  origin      RoutineOrigin @default(OPERATOR)
+  /// D-133: the goal this routine works toward. SetNull: deleting a goal
+  /// unlinks its routines and stops none of them.
+  goalId      String?
+  goal        Goal?         @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  messages    Message[]
+
+  @@index([goalId])
+}
+
+/// D-125 — the provenance of a `Routine`.
+enum RoutineOrigin {
+  OPERATOR
+  BOT
+}
+
+/// D-073 — what a bot knows that is not in its transcript.
+///
+/// Scope is two nullable columns rather than an enum, because that is what
+/// makes the query a filter instead of a branch: `userId = $1 AND (botId IS
+/// NULL OR botId = $2)` returns the global memory and this bot's own in one
+/// pass. A `projectId` lands beside them the first time a user can have two
+/// checkouts; today one machine per user (D-046) means every bot works on the
+/// same one, so a project scope would discriminate between cases the product
+/// cannot yet express.
+model Memory {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// NULL = every bot this user has. Set = this bot's own. Cascade rather than
+  /// SetNull: SetNull would PROMOTE a deleted bot's private notes to the
+  /// global memory, which is the one wrong answer available here.
+  botId       String?
+  bot         Bot?    @relation("MemoryScope", fields: [botId], references: [id], onDelete: Cascade)
+  /// The bot that ESTABLISHED a shared fact — null when nobody wrote it in a
+  /// bot's voice. Not the scope: a workspace fact may be authored by any bot
+  /// on the team, and the author's name is what stops a teammate reading "the
+  /// Kreova report lives at …" as its own résumé. SetNull, not Cascade — a
+  /// deleted teammate's facts survive as unattributed rather than vanishing
+  /// with it.
+  authorBotId String?
+  authorBot   Bot?    @relation("MemoryAuthor", fields: [authorBotId], references: [id], onDelete: SetNull)
+
+  kind   MemoryKind
+  source MemorySource
+  status MemoryStatus @default(ACTIVE)
+  /// One self-contained claim. Bounded at write time, not here: a CHECK
+  /// constraint has no Prisma spelling and would read as permanent drift.
+  text   String       @db.Text
+  /// A DECISION's rationale, or the attributed origin of an OBSERVED claim.
+  /// Never injected as fact — see D-079.
+  detail String?      @db.Text
+
+  /// The message that established it, when there was one. SetNull, not
+  /// Cascade: deleting a transcript must not delete what was learned from it.
+  messageId String?
+  message   Message? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  /// Where an OBSERVED claim came from when it was not a message — a URL, a
+  /// file path. Free text, because it carries a location rather than a
+  /// vocabulary.
+  sourceRef String?
+
+  /// A correction points the old row at the new one. Nothing is deleted, so a
+  /// superseded fact stays searchable as its own audit trail.
+  supersededById String?
+  supersededBy   Memory?   @relation("MemorySupersession", fields: [supersededById], references: [id], onDelete: SetNull)
+  supersedes     Memory[]  @relation("MemorySupersession")
+  supersededAt   DateTime?
+  /// TASK_STATE ages out of the prompt. Durable kinds leave this null.
+  expiresAt      DateTime?
+
+  /// Raised when a turn re-establishes something already held. A ranking
+  /// input, never the FIRST one: a model inference confirmed repeatedly must
+  /// not outrank something the user stated once (D-074).
+  confirmations Int       @default(1)
+  lastUsedAt    DateTime?
+  useCount      Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// The turn-start read: this user, this bot or global, still live.
+  @@index([userId, botId, status])
+  @@index([userId, updatedAt])
+}
+
+/// D-073 — a claim the user erased, kept so it cannot come back.
+///
+/// Without this the memory system has a live defect rather than a gap: the
+/// extraction sweep (CC-38) reads transcripts, so a fact removed by `forget`
+/// is re-derived on the next pass from the very conversation that established
+/// it, and the user's correction silently undoes itself. The hash is of the
+/// normalised claim, so a reworded restatement of the same thing is caught
+/// too.
+model MemoryTombstone {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Scoped the same way the memory was, so erasing a bot's private note does
+  /// not also suppress the user-global fact it happened to resemble.
+  botId     String?
+  claimHash String
+  createdAt DateTime @default(now())
+
+  /// Lookup only. The UNIQUENESS is a COALESCE expression index in the
+  /// migration, and it has to be, because Postgres treats NULLs as DISTINCT
+  /// in a unique index: `@@unique([userId, botId, claimHash])` would enforce
+  /// nothing at all for the user-global rows, which are the common case. A
+  /// restarted extraction sweep would then insert a second tombstone for the
+  /// same erased claim, and the idempotency this table exists to provide
+  /// would be a no-op exactly where it matters most.
+  @@index([userId, botId, claimHash])
+}
+
+/// What a memory IS, which is what decides how it decays and whether it may be
+/// injected at all. TASK_STATE replaces rather than accumulates; RESOURCE
+/// points at a source rather than replacing it.
+enum MemoryKind {
+  PREFERENCE
+  CONVENTION
+  FACT
+  DECISION
+  TASK_STATE
+  RESOURCE
+}
+
+/// Where a claim came from, in descending authority. The order matters: D-074
+/// resolves conflicts by source before recency, so a DISTILLED guess never
+/// silently overrides a TOLD statement.
+enum MemorySource {
+  TOLD
+  DISTILLED
+  OBSERVED
+  IMPORTED
+}
+
+/// Whether a claim counts yet. CANDIDATE is what makes automatic extraction
+/// safe to run: it is searchable but never injected, so a wrong inference is a
+/// search result rather than a standing truth.
+enum MemoryStatus {
+  CANDIDATE
+  ACTIVE
+  SUPERSEDED
+  FORGOTTEN
+}
+
+/// D-078 — how far CC-38's extraction sweep has read.
+///
+/// Advanced only when a pass COMMITS, so a crash re-reads a window rather than
+/// skipping it: re-reading costs one model call and is deduplicated by claim
+/// hash, while skipping loses the only chance to notice something.
+model MemoryDistillation {
+  botId String @id
+  bot   Bot    @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  /// The newest message this bot has been distilled through. Paired with its
+  /// timestamp because ids are not ordered — cuid sorts lexically, not
+  /// chronologically, so the id alone cannot answer "what is newer than this".
+  throughMessageId String?
+  throughCreatedAt DateTime?
+
+  lastRunAt         DateTime @default(now())
+  /// For the evidence pack: how much a sweep is actually producing.
+  candidatesWritten Int      @default(0)
+}
+
+// ── Provider connections (D-082 … D-086) ─────────────────────────────────────
+
+/// A model provider this user can call, and the credential to call it with.
+///
+/// D-082: the ROW is the identity. `name` is what an operator called it and is
+/// display only — two connections may both be called "work", and the first
+/// thing a name-keyed lookup does is silently pick one of them.
+///
+/// D-083: `credentialCiphertext` is AES-256-GCM output produced by the vault,
+/// never a value any route accepts or returns. The owner id and this row's id
+/// are bound in as additional authenticated data, so a ciphertext moved
+/// between rows fails to decrypt rather than decrypting into the wrong
+/// account. `credentialKeyVersion` names the keyring entry that produced it,
+/// which is what makes rotation possible without re-encrypting everything in
+/// one transaction.
+model ProviderConnection {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  kind     ProviderKind
+  name     String
+  /// Set for CUSTOM only. The built-ins have fixed endpoints the SDK owns, and
+  /// a nullable column is what keeps "which endpoint" from becoming a question
+  /// anyone asks about an OpenAI connection.
+  endpoint String?
+
+  authKind ConnectionAuthKind @default(API_KEY)
+  state    ConnectionState    @default(NEEDS_CREDENTIAL)
+
+  /// ⚠️ CIPHERTEXT. Never selected into a response, never logged, never sent
+  /// to a sandbox. The only reader is the owner-scoped credential service.
+  credentialCiphertext String?   @db.Text
+  credentialKeyVersion Int?
+  credentialSetAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  models ProviderModel[]
+
+  /// ⚠️ THE UNIQUENESS IS NOT HERE. One connection per BUILT-IN kind is a
+  /// PARTIAL unique index — `("userId", "kind") WHERE kind <> 'CUSTOM'` —
+  /// written by hand in
+  /// `migrations/20260916230000_v1_accounts_and_provider_connections`.
+  ///
+  /// Prisma cannot express a partial index, and the closest thing it can,
+  /// `@@unique([userId, kind])`, would also cap CUSTOM connections at one per
+  /// user, which is the opposite of the requirement (D-082). Enforcing it in a
+  /// service instead is enforcement only on the paths that call that service,
+  /// and the second call site is always written by someone who did not know
+  /// about the first.
+  @@index([userId])
+}
+
+/// A model a connection can serve.
+///
+/// D-082 keeps three identities apart: `id` is what a `Bot.modelId` stores,
+/// `upstreamModelId` is what goes on the wire to the provider, and `label` is
+/// what a person reads. Collapsing any two means a rename repoints bots.
+model ProviderModel {
+  id           String             @id @default(cuid())
+  connectionId String
+  connection   ProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  upstreamModelId String
+  label           String
+  contextWindow   Int
+
+  /// D-087: what the MODEL can do. Says nothing about what an execution
+  /// backend can do with it — a future runtime may refuse tools this model
+  /// supports, and that is a separate question with a separate answer.
+  supportsTools     Boolean @default(true)
+  supportsVision    Boolean @default(false)
+  supportsReasoning Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  /// D-086: the users whose `default` alias resolves here.
+  defaultFor UserSettings[]
+
+  /// One row per upstream id per connection. Two rows for `gpt-5.1` on one
+  /// connection are two ids for one model, and a bot pointed at the deleted
+  /// one fails resolution while the picker still shows the model as present.
+  @@unique([connectionId, upstreamModelId])
+  @@index([connectionId])
+}
+
+/// Per-user settings. One row per user, created lazily on first write.
+///
+/// D-086: `defaultModelId` is what the literal `default` in `Bot.modelId`
+/// resolves to, replacing the `DEFAULT_MODEL_ID` environment variable. Null
+/// means the user has not chosen one, and a bot on the alias then fails
+/// resolution with a typed error the settings pane can act on — rather than
+/// silently borrowing whichever model the process was configured with, which
+/// on a two-user install is somebody else's provider account.
+///
+/// `onDelete: Restrict` is the referential half of V1-05: deleting a model a
+/// default still points at is refused until the reference moves. A connection
+/// is covered transitively — its models cascade, and the first one a default
+/// points at refuses the cascade.
+model UserSettings {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// The model only. The connection is reached through it, in the same
+  /// `include`, rather than being denormalised alongside — a second column
+  /// naming the connection can disagree with the one the model actually
+  /// belongs to, and the resolution path would then have two answers and no
+  /// rule for which wins.
+  defaultModelId String?
+  defaultModel   ProviderModel? @relation(fields: [defaultModelId], references: [id], onDelete: Restrict)
+
+  /// D-234: the language and timezone the person chose, null for "Follow
+  /// System"/"Auto-detect", beside what a signed-in desktop last reported for
+  /// its computer. Two columns each because one cannot tell a choice from a
+  /// detection, and a second computer must update the detection without
+  /// overwriting the choice. Values are `LocaleSchema` codes and IANA zones,
+  /// validated at the edge.
+  language       String?
+  timezone       String?
+  systemLanguage String?
+  systemTimezone String?
+
+  updatedAt DateTime @updatedAt
+
+  @@index([defaultModelId])
+}
+
+/// What a connection talks to. CUSTOM is any public HTTPS endpoint speaking
+/// the OpenAI Chat Completions shape (D-085 constrains which hosts).
+enum ProviderKind {
+  OPENAI
+  ANTHROPIC
+  OPENROUTER
+  CUSTOM
+  /// D-157: the models a hosted plan includes; made by the server, no key.
+  CREWAID
+  /// D-221: a speech key, not a model provider. It holds no models and never
+  /// serves a turn; voice reads its credential through the same vault.
+  ELEVENLABS
+}
+
+/// D-221: what an attachment is for.
+enum AttachmentKind {
+  FILE
+  VOICE_NOTE
+}
+
+/// D-084: V1 accepts one kind. It is an enum rather than an inferred boolean
+/// so a V2 subscription-backed kind arrives as a migration and a contract
+/// change a client can refuse, instead of as a nullable column nobody reads.
+enum ConnectionAuthKind {
+  API_KEY
+}
+
+/// Whether a connection can currently serve a turn. NEEDS_CREDENTIAL is the
+/// state a connection is BORN in and the one it returns to when its key is
+/// removed, which is why it is stored rather than derived.
+enum ConnectionState {
+  ACTIVE
+  NEEDS_CREDENTIAL
+  DISABLED
+}
+
+// ── Work (D-132 … D-140, docs/PRD-WORK.md §4) ───────────────────────────────
+//
+// A record the user and their bots read and write, never a workflow: nothing
+// here is read by a scheduler or a trigger, except TaskSeries, which puts an
+// occurrence on the board when the user's schedule says so (D-137).
+//
+// A project is referenced with NoAction rather than Restrict. Both refuse to
+// delete a project something still points at — the service answers 409 before
+// either is reached — but NoAction is checked at the END of the statement, so
+// deleting a User can cascade to its projects and its tasks in one statement
+// in whichever order Postgres chooses.
+
+/// D-133: a grouping of goals and tasks. Not a folder, and not D-073's
+/// reserved memory project scope.
+model Project {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?       @db.Text
+  color       String // hex, same vocabulary as Bot.avatarColor
+  status      ProjectStatus @default(ACTIVE)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  goals        Goal[]
+  tasks        Task[]
+  series       TaskSeries[]
+  deliverables Deliverable[]
+
+  @@index([userId, status])
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+/// D-133: an outcome with a target date. The project is optional.
+model Goal {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project?   @relation(fields: [projectId], references: [id], onDelete: NoAction)
+  title     String
+  outcome   String?    @db.Text
+  targetOn  String?    @db.VarChar(10) // calendar date, same shape as Routine.endsOn
+  status    GoalStatus @default(ACTIVE)
+  closedAt  DateTime?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  tasks        Task[]
+  series       TaskSeries[]
+  routines     Routine[]
+  deliverables Deliverable[]
+
+  @@index([userId, status])
+}
+
+enum GoalStatus {
+  ACTIVE
+  ACHIEVED
+  ABANDONED
+}
+
+model Task {
+  id             String      @id @default(cuid())
+  userId         String
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId      String? // null = Inbox
+  project        Project?    @relation(fields: [projectId], references: [id], onDelete: NoAction)
+  goalId         String?
+  goal           Goal?       @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  parentId       String? // one level: a parent's parentId is always null (service-enforced)
+  parent         Task?       @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks       Task[]      @relation("Subtasks")
+  title          String
+  brief          String?     @db.Text
+  status         TaskStatus  @default(TODO)
+  blockedReason  String?     @db.Text
+  assigneeBotId  String?
+  assigneeBot    Bot?        @relation("TaskAssignee", fields: [assigneeBotId], references: [id], onDelete: SetNull)
+  origin         TaskOrigin  @default(OPERATOR) // who created it; mirrors Routine.origin (D-125)
+  seriesId       String? // set on an occurrence; SetNull if the series is deleted
+  series         TaskSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  occursAt       DateTime? // scheduled instant: retry identity, including hourly/minute repeats
+  occursOn       String?     @db.VarChar(10) // local date for display and date-range queries
+  createdByBotId String?
+  createdByBot   Bot?        @relation("TaskCreator", fields: [createdByBotId], references: [id], onDelete: SetNull)
+  dueOn          String?     @db.VarChar(10)
+  rank           String // lexicographic order within a column; a drag is one row write
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  events       TaskEvent[]
+  deliverables Deliverable[]
+  messages     Message[]
+
+  @@unique([seriesId, occursAt]) // one occurrence per scheduled firing, however often retried
+  @@index([userId, status])
+  @@index([assigneeBotId, status])
+  @@index([parentId])
+  @@index([goalId])
+  @@index([projectId])
+  @@index([userId, goalId, occursOn])
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  IN_REVIEW
+  DONE
+  CANCELLED
+}
+
+/// D-137: a task that comes back. Each firing creates one Task with seriesId set.
+model TaskSeries {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  brief         String?    @db.Text
+  assigneeBotId String?
+  assigneeBot   Bot?       @relation("SeriesAssignee", fields: [assigneeBotId], references: [id], onDelete: SetNull)
+  projectId     String?
+  project       Project?   @relation(fields: [projectId], references: [id], onDelete: NoAction)
+  goalId        String?
+  goal          Goal?      @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  cron          String // same CronSchema/TimezoneSchema as Routine
+  timezone      String
+  endsOn        String?    @db.VarChar(10)
+  enabled       Boolean    @default(true)
+  lastFiredAt   DateTime?
+  origin        TaskOrigin @default(OPERATOR)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  occurrences Task[]
+
+  @@index([userId, enabled])
+  @@index([goalId])
+}
+
+enum TaskOrigin {
+  OPERATOR
+  BOT
+}
+
+/// "Who did what, when." Append-only. The payload's shape per type lives in
+/// `TaskEventPayloadSchemas` in @crewaid/shared.
+model TaskEvent {
+  id         String        @id @default(cuid())
+  taskId     String
+  task       Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actor      TaskActor
+  actorBotId String? // SetNull: history outlives the bot
+  actorBot   Bot?          @relation("TaskEventActor", fields: [actorBotId], references: [id], onDelete: SetNull)
+  actorLabel String // name at the time, so a deleted bot still reads "Backend"
+  type       TaskEventType
+  payload    Json
+  startKey   String? // STARTED only; identifies retries even after status changes (D-135)
+  messageId  String? // BOT reply for a tool edit, Start brief for STARTED; null for board edits
+  message    Message?      @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  createdAt  DateTime      @default(now())
+
+  @@unique([userId, startKey])
+  @@index([taskId, createdAt])
+}
+
+enum TaskActor {
+  USER
+  BOT
+}
+
+enum TaskEventType {
+  CREATED
+  EDITED
+  ASSIGNED
+  UNASSIGNED
+  STARTED
+  STATUS_CHANGED
+  NOTE
+  DELIVERABLE_LINKED
+}
+
+/// D-136: something a bot produced that the user may want to find again.
+model Deliverable {
+  id           String          @id @default(cuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind         DeliverableKind
+  title        String
+  summary      String?         @db.Text
+  botId        String? // producer. Cascade: a deleted bot takes its deliverables
+  bot          Bot?            @relation(fields: [botId], references: [id], onDelete: Cascade)
+  attachmentId String?         @unique // Cascade: the record goes with its file
+  attachment   Attachment?     @relation(fields: [attachmentId], references: [id], onDelete: Cascade)
+  // D-147: SetNull, not Cascade. A deliverable is a record of work, and
+  // clearing or pruning a conversation must not erase what the bot produced.
+  messageId    String?
+  message      Message?        @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  url          String?
+  sourcePath   String? // where in the workspace the file was attached from
+  taskId       String?
+  task         Task?           @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  goalId       String?
+  goal         Goal?           @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  projectId    String? // denormalised from task/goal (D-136)
+  project      Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  searchText   String?         @db.Text // P1: bounded extract of a text-like file
+  createdAt    DateTime        @default(now())
+
+  @@index([userId, createdAt])
+  @@index([taskId])
+  @@index([goalId])
+  @@index([projectId])
+  @@index([botId])
+  @@index([messageId])
+}
+
+enum DeliverableKind {
+  FILE
+  LINK
+  MESSAGE
+}
+
+/// D-144 — how a bot's actions are approved, chosen from the composer.
+enum ApprovalMode {
+  ASK
+  AUTO
+  FULL
+}
+
+/// D-156: what one user used in one billing period, which is what a plan's
+/// limits are checked against.
+///
+/// Keyed by the period's start, so a new period is a new row and usage resets
+/// without anything having to zero it. A trial's period is the trial itself.
+/// Money is micro-dollars in a BigInt: summing per-call costs as floats drifts.
+model UsageLedger {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  periodStart    DateTime
+  periodEnd      DateTime
+  computeSeconds Int      @default(0)
+  modelMicroUsd  BigInt   @default(0)
+  /// D-223: seconds of audio heard (dictation, voice messages) on Crewaid's key.
+  listenSeconds  Int      @default(0)
+  /// D-223: seconds of audio made (spoken replies) on Crewaid's key.
+  speakSeconds   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, periodStart])
+}
+
+/// D-157: one call to an included model, and what it cost. `UsageLedger` holds
+/// the period's total that the allowance is checked against; these rows are
+/// the itemisation behind it, so "where did my allowance go" has an answer.
+///
+/// Written BEFORE the call as a reservation — an estimate already counted in
+/// the total, which is what makes concurrent calls see each other — and
+/// settled after it to the actual cost: OpenRouter's own figure, or for a
+/// cancelled or failed call an estimate of what it used. `settledAt` null is a
+/// reservation still standing; if settling never succeeds it stays counted at
+/// the estimate, so a charge is never lost.
+model ModelCharge {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  periodStart     DateTime
+  upstreamModelId String
+  costMicroUsd    BigInt
+  settledAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+/// D-223: which voice allowance a request draws on.
+enum VoiceUsageKind {
+  LISTEN
+  SPEAK
+}
+
+/// D-223: one request on Crewaid's ElevenLabs key, and the seconds it took
+/// from the period. Reserved at an estimate before the request, settled to
+/// the audio's real length after it, like D-157's `ModelCharge`.
+model VoiceCharge {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  periodStart DateTime
+  kind        VoiceUsageKind
+  seconds     Int
+  settledAt   DateTime?
+  createdAt   DateTime       @default(now())
+
+  @@index([userId, createdAt])
+}
+
+/// D-222: one live call with a bot, and the minutes it took from the period.
+/// `durationSeconds` is ElevenLabs' own count, read once the call ends; until
+/// then the call counts as its elapsed time, capped at `reservedSeconds`.
+model VoiceCall {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  botId           String
+  bot             Bot       @relation(fields: [botId], references: [id], onDelete: Cascade)
+  /// ElevenLabs' conversation id, once the call connects.
+  conversationId  String?   @unique
+  periodStart     DateTime
+  /// What was left of the period's minutes when the call started.
+  reservedSeconds Int
+  startedAt       DateTime  @default(now())
+  endedAt         DateTime?
+  durationSeconds Int?
+  settledAt       DateTime?
+
+  @@index([userId, periodStart])
+  @@index([botId])
+}
+
+// Composio owns OAuth tokens. These coordinates bind one installation to one account.
+enum McpBackend {
+  DIRECT
+  COMPOSIO
+}
+
+model ComposioConnection {
+  serverId         String    @id
+  server           McpServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  toolkit          String
+  authConfigId     String
+  accountId        String?
+  pendingAccountId String?
+  pendingExpiresAt DateTime?
+  sessionId        String?
+  revision         Int       @default(0)
+  removing         Boolean   @default(false)
+  cleanupAccounts  String[]  @default([])
+  cleanupSessions  String[]  @default([])
+}
+
+enum PluginAccessMode {
+  SELECTED
+  ALL
+}
+
+enum GitCheckoutStatus {
+  CREATING
+  READY
+  FAILED
+}
+
+enum GitPublicationStatus {
+  PREPARED
+  SENDING
+  CONFIRMED
+  UNCERTAIN
+}
+
+model GitCheckout {
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  botId             String
+  bot               Bot               @relation(fields: [botId], references: [id], onDelete: Cascade)
+  serverId          String
+  server            McpServer         @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  repository        String
+  repositoryId      String
+  defaultBranch     String
+  path              String
+  status            GitCheckoutStatus @default(CREATING)
+  activeOperationId String?
+  activeUntil       DateTime?
+  createdAt         DateTime          @default(now())
+  publications      GitPublication[]
+
+  @@unique([botId, path])
+  @@index([userId, serverId])
+}
+
+model GitPublication {
+  id                 String               @id @default(cuid())
+  userId             String
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  botId              String
+  bot                Bot                  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  checkoutId         String
+  checkout           GitCheckout          @relation(fields: [checkoutId], references: [id], onDelete: Cascade)
+  targetRepository   String
+  targetRepositoryId String
+  branch             String
+  intendedHead       String
+  tree               String
+  previousHead       String?
+  confirmedHead      String?
+  status             GitPublicationStatus @default(PREPARED)
+  updatedAt          DateTime             @updatedAt
+
+  @@unique([checkoutId, targetRepositoryId, branch])
+  @@index([userId, botId])
+}
+
+/// D-208: recovery receipt for the existing GitHub fork and PR tools.
+model GitRemoteWrite {
+  id        String               @id @default(cuid())
+  userId    String
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  botId     String
+  bot       Bot                  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  serverId  String
+  server    McpServer            @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  toolName  String
+  argsHash  String
+  input     Json
+  accountId String
+  status    GitPublicationStatus @default(PREPARED)
+  reference String?
+  updatedAt DateTime             @updatedAt
+
+  @@unique([botId, serverId, toolName, argsHash])
+  @@index([userId, botId])
+}
+
+/// D-229: account experience progress survives chat clearing.
+model UserOnboarding {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  welcomeSeen Boolean @default(false)
+  discovery String @default("NEW")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// D-229: committed setup receipt, also the retry fence.
+model TemplateInstallation {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idempotencyKey String
+  templateId String
+  revision String
+  configuration String @db.Text
+  groupId String?
+  botIds String[]
+  createdAt DateTime @default(now())
+  @@unique([userId, idempotencyKey])
+  @@index([userId, createdAt])
+}

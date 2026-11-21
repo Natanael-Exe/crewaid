@@ -1,0 +1,48 @@
+{
+  "name": "crewaid",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "packageManager": "pnpm@10.15.0",
+  "engines": {
+    "node": ">=22.22.3",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:e2e": "pnpm build && pnpm --filter @crewaid/desktop test:e2e",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "start:supervisor": "pnpm --filter @crewaid/sandbox-supervisor start",
+    "orch": "pnpm --filter @crewaid/orchestrator build && node --env-file-if-exists=infra/compose/.env apps/orchestrator/dist/main.js",
+    "pre-review": "node scripts/pre-review-gate.mjs",
+    "db:generate": "pnpm --filter @crewaid/orchestrator db:generate",
+    "db:migrate": "pnpm --filter @crewaid/orchestrator db:migrate",
+    "db:deploy": "pnpm --filter @crewaid/orchestrator db:deploy",
+    "db:seed": "pnpm --filter @crewaid/orchestrator db:seed",
+    "db:reset": "node scripts/db-reset.mjs",
+    "db:clean": "node scripts/db-clean.mjs",
+    "build:desktop": "pnpm --filter @crewaid/desktop build",
+    "run:desktop": "pnpm --filter @crewaid/desktop exec electron .",
+    "build:orch": "pnpm --filter @crewaid/orchestrator build",
+    "package:cloud": "pnpm --filter @crewaid/desktop package:cloud",
+    "package:selfhosted": "pnpm --filter @crewaid/desktop package:selfhosted",
+    "i18n:translate": "tsx --env-file-if-exists=infra/compose/.env tools/i18n/translate.mjs run",
+    "i18n:check": "tsx tools/i18n/translate.mjs check"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.4.1",
+    "eslint": "10.9.1",
+    "eslint-config-prettier": "10.1.8",
+    "prettier": "3.9.6",
+    "tsx": "4.23.13",
+    "turbo": "2.10.12",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.69.0",
+    "vitest": "4.1.11"
+  }
+}

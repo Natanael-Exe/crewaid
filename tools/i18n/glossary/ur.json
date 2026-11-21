@@ -1,0 +1,41 @@
+{
+  "address": "formal, respectful (آپ)",
+  "terms": {
+    "bot": "بوٹ",
+    "crew": "ٹیم",
+    "specialist": "ماہر",
+    "routine": "روٹین",
+    "skill": "مہارت",
+    "plugin": "پلگ اِن",
+    "connection": "کنکشن",
+    "tool": "ٹول",
+    "Work": "ورک",
+    "task": "کام",
+    "goal": "ہدف",
+    "project": "پروجیکٹ",
+    "deliverable": "ڈیلیوریبل",
+    "template": "ٹیمپلیٹ",
+    "computer": "کمپیوٹر",
+    "screen": "اسکرین",
+    "take control": "کنٹرول لیں",
+    "approval": "منظوری",
+    "conversation": "گفتگو",
+    "composer": "لکھنے کا خانہ",
+    "model": "ماڈل",
+    "call": "کال",
+    "voice message": "وائس میسج",
+    "dictation": "ڈکٹیشن",
+    "recording": "ریکارڈنگ",
+    "memory": "یادداشت"
+  },
+  "screens": {
+    "Settings": "ترتیبات",
+    "General": "عمومی",
+    "Models": "ماڈلز",
+    "Channels": "چینلز",
+    "Plan & usage": "پلان اور استعمال",
+    "Computer": "کمپیوٹر",
+    "Templates": "ٹیمپلیٹس",
+    "Routines": "روٹینز"
+  }
+}

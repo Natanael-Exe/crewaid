@@ -1,0 +1,36 @@
+# Crewaid — the hosted edition (D-152), on top of the shared base.
+#
+# The orchestrator address is NOT here: it is a per-deployment value, so
+# scripts/package.mjs adds it from CREWAID_ORCHESTRATOR_URL and refuses to
+# package a cloud build without an https one.
+extends: ./electron-builder.yml
+
+appId: ai.crewaid.desktop
+productName: Crewaid
+artifactName: Crewaid-${version}-${os}-${arch}.${ext}
+
+# Read once by src/edition.ts. Nothing at run time can change it.
+extraMetadata:
+  # electron-updater names its download cache after this (`<name>-updater`), so
+  # each edition gets its own: with the shared `@crewaid/desktop`, one app could
+  # clear or pick up the other's pending update.
+  name: crewaid
+  crewaid:
+    edition: cloud
+
+# Declared as well as registered at run time, so macOS routes the callback to
+# this app from its first launch, before main.ts has run.
+protocols:
+  - name: Crewaid sign-in
+    schemes: [crewaid]
+
+# The update feed (D-153). The release workflow uploads the installers and the
+# latest*.yml files electron-builder writes beside them; the app reads its feed
+# from the app-update.yml this produces. Nothing is published from here.
+publish:
+  provider: generic
+  url: https://downloads.crewaid.io/desktop/cloud
+  # R2 answers a multi-range request with the whole file, and electron-updater's
+  # differential download asks for many ranges at once by default — so every
+  # update would fall back to the full installer. One range per request works.
+  useMultipleRangeRequest: false

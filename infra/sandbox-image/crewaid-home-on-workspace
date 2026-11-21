@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# Bind a Runtime computer's home, kept in /workspace, over /home/bot (D-219).
+# Runs as root, before the desktop starts.
+#
+# Runtime keeps /workspace across an image switch and discards the rest of the
+# disk, and a bind mount ends with the boot, so this runs at every boot: from
+# the start command (`--create`, which also makes the home there the first
+# time, from the one the image ships) and from crewaid-desktop-up, which only
+# binds a home that is already there. Elsewhere — Docker mounts a volume at
+# /home/bot, and DigitalOcean and Cloudflare keep their disk — no home is ever
+# made in /workspace, and this does nothing.
+set -eu
+
+home=/home/bot
+kept=/workspace/.crewaid-home
+
+case "${1:-}" in
+  --create) create=true ;;
+  '') create=false ;;
+  *) echo "usage: crewaid-home-on-workspace [--create]" >&2; exit 2 ;;
+esac
+
+if mountpoint -q "$home"; then
+  exit 0
+fi
+if [ ! -d "$kept" ]; then
+  [ "$create" = true ] && [ -d /workspace ] || exit 0
+  # Copied under another name and renamed, so an interrupted copy is never
+  # mistaken for a home.
+  rm -rf "$kept.next"
+  mkdir "$kept.next"
+  cp -a "$home/." "$kept.next/"
+  chown bot:bot "$kept.next"
+  mv "$kept.next" "$kept"
+fi
+mount --bind "$kept" "$home"

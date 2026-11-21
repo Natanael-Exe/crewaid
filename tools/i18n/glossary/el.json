@@ -1,0 +1,41 @@
+{
+  "address": "Informal singular (εσύ), friendly and direct",
+  "terms": {
+    "bot": "μποτ",
+    "crew": "ομάδα",
+    "specialist": "ειδικό μποτ",
+    "routine": "ρουτίνα",
+    "skill": "δεξιότητα",
+    "plugin": "πρόσθετο",
+    "connection": "σύνδεση",
+    "tool": "εργαλείο",
+    "Work": "Δουλειά",
+    "task": "εργασία",
+    "goal": "στόχος",
+    "project": "έργο",
+    "deliverable": "παραδοτέο",
+    "template": "πρότυπο",
+    "computer": "υπολογιστής",
+    "screen": "οθόνη",
+    "take control": "Πάρε τον έλεγχο",
+    "approval": "έγκριση",
+    "conversation": "συνομιλία",
+    "composer": "πλαίσιο μηνύματος",
+    "model": "μοντέλο",
+    "call": "κλήση",
+    "voice message": "φωνητικό μήνυμα",
+    "dictation": "υπαγόρευση",
+    "recording": "καταγραφή",
+    "memory": "μνήμη"
+  },
+  "screens": {
+    "Settings": "Ρυθμίσεις",
+    "General": "Γενικά",
+    "Models": "Μοντέλα",
+    "Channels": "Κανάλια",
+    "Plan & usage": "Πλάνο & χρήση",
+    "Computer": "Υπολογιστής",
+    "Templates": "Πρότυπα",
+    "Routines": "Ρουτίνες"
+  }
+}

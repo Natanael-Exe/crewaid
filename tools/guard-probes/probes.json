@@ -1,0 +1,175 @@
+{
+  "$comment": "D-013: every architectural rule ships a probe the rule MUST reject. Each entry names the exact rule id that must fire \u2014 asserting on exit code alone would let a parser error masquerade as a working guard.",
+  "probes": [
+    {
+      "file": "tools/guard-probes/r2-dockerode.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "R2 (D-200) \u2014 only the sandbox supervisor's engine may import dockerode"
+    },
+    {
+      "file": "tools/guard-probes/m2be02-harness-direct.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "M2-BE-02 \u2014 harness types come through the re-export"
+    },
+    {
+      "file": "tools/guard-probes/cc06-dynamic-import.probe.ts",
+      "rule": "no-restricted-syntax",
+      "guard": "CC-06 / \u00a77.3 \u2014 no dynamic import() in the orchestrator"
+    },
+    {
+      "file": "tools/guard-probes/cc06-eval.probe.ts",
+      "rule": "no-eval",
+      "guard": "CC-06 / \u00a77.3 \u2014 no eval in the orchestrator"
+    },
+    {
+      "file": "tools/guard-probes/cc06-node-vm.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "CC-06 / \u00a77.3 \u2014 node:vm is not an isolation boundary"
+    },
+    {
+      "file": "tools/guard-probes/cc06-new-function.probe.ts",
+      "rule": "no-new-func",
+      "guard": "CC-06 / \u00a77.3 \u2014 the Function constructor is an eval path"
+    },
+    {
+      "file": "tools/guard-probes/cc06-vm-run-in-new-context.probe.ts",
+      "rule": "no-restricted-properties",
+      "guard": "CC-06 / \u00a77.3 \u2014 vm.runInNewContext is banned whether or not it arrived via an import"
+    },
+    {
+      "file": "tools/guard-probes/cc06-implied-eval.probe.ts",
+      "rule": "no-implied-eval",
+      "guard": "CC-06 / \u00a77.3 \u2014 a string handed to setTimeout is an eval path"
+    },
+    {
+      "file": "tools/guard-probes/cc06-implied-eval.probe.ts",
+      "rule": "@typescript-eslint/no-implied-eval",
+      "guard": "CC-06 / \u00a77.3 \u2014 the type-aware twin must fire on the same fixture"
+    },
+    {
+      "file": "tools/guard-probes/cc06-dynamic-require.probe.ts",
+      "rule": "no-restricted-syntax",
+      "guard": "CC-06 / \u00a77.3 \u2014 non-literal require() is a dynamic code path"
+    },
+    {
+      "file": "tools/guard-probes/r10-mcp-in-sandbox.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "R10 \u2014 MCP clients never enter sandbox-facing packages"
+    },
+    {
+      "file": "tools/guard-probes/shared-zero-deps.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "M0-04 \u2014 packages/shared has zero runtime deps but zod"
+    },
+    {
+      "file": "tools/guard-probes/r1-electron-orchestration.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "R1 \u2014 Electron contains zero orchestration logic"
+    },
+    {
+      "file": "tools/guard-probes/d025-download-attribute.probe.tsx",
+      "rule": "no-restricted-syntax",
+      "guard": "D-025 \u2014 authenticated renderer downloads are fetched, never linked"
+    },
+    {
+      "file": "tools/guard-probes/as-never-cast.probe.ts",
+      "rule": "no-restricted-syntax",
+      "guard": "`as never` is banned \u2014 convert at the boundary, do not cast"
+    },
+    {
+      "file": "tools/guard-probes/v1-10-job-reads-live-principal.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "V1-10 \u2014 a background job reads its PERSISTED owner, never a live connection's"
+    },
+    {
+      "file": "tools/guard-probes/v1-11-one-ipc-fence.probe.ts",
+      "rule": "no-restricted-syntax",
+      "guard": "CC-07/V1-11 \u2014 every IPC channel goes through the one trusted-sender fence"
+    },
+    {
+      "file": "tools/guard-probes/r1-tanstack-provider.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "R1 / D-159 \u00a73.12 \u2014 no TanStack provider adapter in the renderer"
+    },
+    {
+      "file": "tools/guard-probes/r1-tanstack-chat-loop.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "R1 / D-159 \u00a73.12 \u2014 the renderer takes types and defineInterrupt from @tanstack/ai, never chat()"
+    },
+    {
+      "file": "tools/guard-probes/shared-tanstack.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "M0-04 / D-159 \u2014 packages/shared imports nothing from the AI stack"
+    },
+    {
+      "file": "tools/guard-probes/r10-tanstack-mcp.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "R10 / D-159 \u00a73.12 \u2014 the TanStack MCP client never enters sandbox-facing packages"
+    },
+    {
+      "file": "tools/guard-probes/d160-tanstack-outside-seam.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "D-160 \u2014 TanStack AI enters the orchestrator only through its seam directories"
+    },
+    {
+      "file": "tools/guard-probes/r1-tanstack-tool-definition.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "R1 / D-175 \u2014 toolDefinition is allowed only in the renderer chat schema seam"
+    },
+    {
+      "file": "tools/guard-probes/r1-d175-schema-seam.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "R1 / D-175 \u2014 chat remains banned inside the definition-only schema seam"
+    },
+    {
+      "file": "tools/guard-probes/d176-execution-port.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "D-176 \u2014 canonical execution port is SDK independent"
+    },
+    {
+      "file": "tools/guard-probes/d200-orchestrator-supervisor.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "D-200 \u2014 the orchestrator never imports the sandbox supervisor"
+    },
+    {
+      "file": "tools/guard-probes/d200-supervisor-subpath.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "D-200 \u2014 supervisor subpath imports cannot bypass the process boundary"
+    },
+    {
+      "file": "tools/guard-probes/d200-supervisor-relative.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "D-200 \u2014 relative supervisor imports cannot bypass the process boundary"
+    },
+    {
+      "file": "tools/guard-probes/d202-composio.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "D-202 \u2014 Composio SDK imports stay in the server integration seam"
+    },
+    {
+      "file": "tools/guard-probes/r1-copilotkit.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "R1 / D-205 \u2014 no CopilotKit chat state in the renderer"
+    },
+    {
+      "file": "tools/guard-probes/r1-tanstack-client.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "R1 / D-205 \u2014 TanStack AI stays on the server"
+    },
+    {
+      "file": "tools/guard-probes/r1-elevenlabs.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "D-222 \u2014 only the call session imports @elevenlabs/client in the renderer"
+    },
+    {
+      "file": "tools/guard-probes/d222-elevenlabs-orchestrator.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "D-222 \u2014 the orchestrator imports no @elevenlabs/* SDK"
+    },
+    {
+      "file": "tools/guard-probes/d234-literal-copy.probe.tsx",
+      "rule": "no-restricted-syntax",
+      "guard": "D-234 \u2014 renderer copy comes from the catalog, never a JSX literal"
+    }
+  ]
+}

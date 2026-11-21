@@ -1,0 +1,41 @@
+{
+  "address": "informal tu",
+  "terms": {
+    "bot": "bot",
+    "crew": "squadra",
+    "specialist": "specialista",
+    "routine": "routine",
+    "skill": "abilità",
+    "plugin": "plugin",
+    "connection": "connessione",
+    "tool": "strumento",
+    "Work": "Work",
+    "task": "attività",
+    "goal": "obiettivo",
+    "project": "progetto",
+    "deliverable": "risultato",
+    "template": "template",
+    "computer": "computer",
+    "screen": "schermo",
+    "take control": "prendi il controllo",
+    "approval": "approvazione",
+    "conversation": "conversazione",
+    "composer": "campo messaggio",
+    "model": "modello",
+    "call": "chiamata",
+    "voice message": "messaggio vocale",
+    "dictation": "dettatura",
+    "recording": "registrazione",
+    "memory": "memoria"
+  },
+  "screens": {
+    "Settings": "Impostazioni",
+    "General": "Generale",
+    "Models": "Modelli",
+    "Channels": "Canali",
+    "Plan & usage": "Piano e utilizzo",
+    "Computer": "Computer",
+    "Templates": "Template",
+    "Routines": "Routine"
+  }
+}

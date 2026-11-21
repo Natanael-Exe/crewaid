@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" data-theme="crewaid">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- worker-src blob: is a hole this policy has on purpose: the PDF
+         preview's parser ships INSIDE the renderer bundle (a `file://` origin
+         cannot fetch a worker chunk) and so spawns from a blob URL. Workers
+         get no script-src of their own — they only run the bytes this bundle
+         already carries.
+         img-src names its hosts so the signed-in account's photo and the
+         Composio directory's toolkit logos can load: Google's and GitHub's
+         avatar hosts, the only sign-in providers the orchestrator offers, and
+         the one host every Composio logo answers on (D-204). Named rather
+         than `https:` so the renderer loads images from exactly the places it
+         has a reason to. A photo from anywhere else is blocked and the avatar
+         shows initials.
+         media-src blob: is how a voice note and a video preview play: their
+         bytes come through the authenticated fetch (D-025) and reach the
+         element as an object URL, never as a link to the route.
+         script-src blob: is the call's audio (D-222): @elevenlabs/client runs
+         its microphone and speaker processors as AudioWorklets, which a
+         file:// page can only load from object URLs it made itself — the same
+         reason the PDF worker is a blob. A blob URL is made by script already
+         running here, so it admits no code from anywhere else. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://logos.composio.dev; connect-src 'self' ws: wss: http: https:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self' blob:"
+    />
+    <title>Crewaid</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/renderer/main.tsx"></script>
+  </body>
+</html>

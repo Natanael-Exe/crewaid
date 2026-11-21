@@ -1,0 +1,41 @@
+{
+  "address": "Polite です・ます, no pronoun",
+  "terms": {
+    "bot": "ボット",
+    "crew": "チーム",
+    "specialist": "専門ボット",
+    "routine": "ルーティン",
+    "skill": "スキル",
+    "plugin": "プラグイン",
+    "connection": "連携",
+    "tool": "ツール",
+    "Work": "ワーク",
+    "task": "タスク",
+    "goal": "目標",
+    "project": "プロジェクト",
+    "deliverable": "成果物",
+    "template": "テンプレート",
+    "computer": "コンピューター",
+    "screen": "画面",
+    "take control": "操作を引き継ぐ",
+    "approval": "承認",
+    "conversation": "会話",
+    "composer": "入力欄",
+    "model": "モデル",
+    "call": "通話",
+    "voice message": "ボイスメッセージ",
+    "dictation": "音声入力",
+    "recording": "録画",
+    "memory": "メモリー"
+  },
+  "screens": {
+    "Settings": "設定",
+    "General": "一般",
+    "Models": "モデル",
+    "Channels": "チャンネル",
+    "Plan & usage": "プランと使用量",
+    "Computer": "コンピューター",
+    "Templates": "テンプレート",
+    "Routines": "ルーティン"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "address": "friendly second-person masculine singular (default)",
+  "terms": {
+    "bot": "בוט",
+    "crew": "צוות",
+    "specialist": "מומחה",
+    "routine": "שגרה",
+    "skill": "מיומנות",
+    "plugin": "תוסף",
+    "connection": "חיבור",
+    "tool": "כלי",
+    "Work": "עבודה",
+    "task": "משימה",
+    "goal": "מטרה",
+    "project": "פרויקט",
+    "deliverable": "תוצר",
+    "template": "תבנית",
+    "computer": "מחשב",
+    "screen": "מסך",
+    "take control": "השתלט",
+    "approval": "אישור",
+    "conversation": "צ'אט",
+    "composer": "תיבת כתיבה",
+    "model": "מודל",
+    "call": "שיחה",
+    "voice message": "הודעה קולית",
+    "dictation": "הכתבה",
+    "recording": "הקלטה",
+    "memory": "זיכרון"
+  },
+  "screens": {
+    "Settings": "הגדרות",
+    "General": "כללי",
+    "Models": "מודלים",
+    "Channels": "ערוצים",
+    "Plan & usage": "מסלול ושימוש",
+    "Computer": "מחשב",
+    "Templates": "תבניות",
+    "Routines": "שגרות"
+  }
+}

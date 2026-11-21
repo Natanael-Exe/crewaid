@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# Start the desktop when nothing else will (D-150).
+#
+# Under Docker the entrypoint IS the container's main process, so a dead
+# desktop is a stopped container and the orchestrator replaces it. A hosted
+# runtime that boots its own supervisor instead — DigitalOcean's template base
+# does — starts the entrypoint once, freezes it into the snapshot every session
+# resumes from, and never restarts it. The provider runs this through the
+# host's exec, as root, when the bridge does not answer after a resume.
+#
+# Idempotent: a healthy bridge or an entrypoint already running is left alone,
+# so running it on a machine that is merely slow to come up changes nothing.
+set -eu
+
+if curl -fsS --max-time 3 http://127.0.0.1:7070/health >/dev/null 2>&1; then
+  echo "crewaid-desktop: up"
+  exit 0
+fi
+if pgrep -u bot -f /usr/local/bin/entrypoint.sh >/dev/null 2>&1; then
+  echo "crewaid-desktop: starting"
+  exit 0
+fi
+
+mkdir -p /tmp/runtime-bot
+chown bot:bot /tmp/runtime-bot
+chmod 700 /tmp/runtime-bot
+
+# On Runtime the home is kept in /workspace and bound over /home/bot at every
+# boot (D-219); a restart from disk runs no start command, so the bind is
+# made here. Elsewhere there is no such home and this does nothing.
+/usr/local/bin/crewaid-home-on-workspace
+
+# The image's own environment, stated rather than inherited: this runs under
+# the host's exec, whose environment is the host agent's, not the image's.
+cd /home/bot
+setsid -f setpriv --reuid=bot --regid=bot --init-groups env -i \
+  PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+  USER=bot HOME=/home/bot DISPLAY=:1 \
+  SCREEN_WIDTH=1280 SCREEN_HEIGHT=800 SCREEN_DEPTH=24 \
+  XDG_RUNTIME_DIR=/tmp/runtime-bot XDG_CONFIG_HOME=/home/bot/.config XDG_CACHE_HOME=/home/bot/.cache \
+  /usr/local/bin/entrypoint.sh >/tmp/crewaid-entrypoint.log 2>&1 </dev/null
+echo "crewaid-desktop: started"

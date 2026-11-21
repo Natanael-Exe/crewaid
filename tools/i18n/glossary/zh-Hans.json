@@ -1,0 +1,41 @@
+{
+  "address": "informal, friendly 你",
+  "terms": {
+    "bot": "智能体",
+    "crew": "团队",
+    "specialist": "专家",
+    "routine": "定时任务",
+    "skill": "技能",
+    "plugin": "插件",
+    "connection": "连接",
+    "tool": "工具",
+    "Work": "工作",
+    "task": "任务",
+    "goal": "目标",
+    "project": "项目",
+    "deliverable": "交付物",
+    "template": "模板",
+    "computer": "电脑",
+    "screen": "屏幕",
+    "take control": "接管",
+    "approval": "批准",
+    "conversation": "对话",
+    "composer": "输入框",
+    "model": "模型",
+    "call": "通话",
+    "voice message": "语音消息",
+    "dictation": "语音输入",
+    "recording": "录屏",
+    "memory": "记忆"
+  },
+  "screens": {
+    "Settings": "设置",
+    "General": "通用",
+    "Models": "模型",
+    "Channels": "渠道",
+    "Plan & usage": "套餐与用量",
+    "Computer": "电脑",
+    "Templates": "模板",
+    "Routines": "定时任务"
+  }
+}

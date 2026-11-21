@@ -1,0 +1,41 @@
+{
+  "address": "Respectful మీరు (formal you), neutral polite",
+  "terms": {
+    "bot": "బాట్",
+    "crew": "బృందం",
+    "specialist": "నిపుణ బాట్",
+    "routine": "రొటీన్",
+    "skill": "నైపుణ్యం",
+    "plugin": "ప్లగిన్",
+    "connection": "కనెక్షన్",
+    "tool": "సాధనం",
+    "Work": "వర్క్",
+    "task": "టాస్క్",
+    "goal": "లక్ష్యం",
+    "project": "ప్రాజెక్ట్",
+    "deliverable": "డెలివరబుల్",
+    "template": "టెంప్లేట్",
+    "computer": "కంప్యూటర్",
+    "screen": "స్క్రీన్",
+    "take control": "నియంత్రణ తీసుకోండి",
+    "approval": "ఆమోదం",
+    "conversation": "సంభాషణ",
+    "composer": "సందేశ పెట్టె",
+    "model": "మోడల్",
+    "call": "కాల్",
+    "voice message": "వాయిస్ మెసేజ్",
+    "dictation": "డిక్టేషన్",
+    "recording": "రికార్డింగ్",
+    "memory": "మెమరీ"
+  },
+  "screens": {
+    "Settings": "సెట్టింగ్స్",
+    "General": "సాధారణం",
+    "Models": "మోడల్స్",
+    "Channels": "ఛానెల్స్",
+    "Plan & usage": "ప్లాన్ & వినియోగం",
+    "Computer": "కంప్యూటర్",
+    "Templates": "టెంప్లేట్స్",
+    "Routines": "రొటీన్లు"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "address": "polite तुम्ही, friendly",
+  "terms": {
+    "bot": "बॉट",
+    "crew": "टीम",
+    "specialist": "तज्ज्ञ",
+    "routine": "नियमित काम",
+    "skill": "कौशल्य",
+    "plugin": "प्लगइन",
+    "connection": "कनेक्शन",
+    "tool": "साधन",
+    "Work": "वर्क",
+    "task": "काम",
+    "goal": "ध्येय",
+    "project": "प्रकल्प",
+    "deliverable": "डिलिव्हरेबल",
+    "template": "टेम्पलेट",
+    "computer": "संगणक",
+    "screen": "स्क्रीन",
+    "take control": "नियंत्रण घ्या",
+    "approval": "मंजुरी",
+    "conversation": "संभाषण",
+    "composer": "संदेश बॉक्स",
+    "model": "मॉडेल",
+    "call": "कॉल",
+    "voice message": "ध्वनी संदेश",
+    "dictation": "बोलून टाइप",
+    "recording": "रेकॉर्डिंग",
+    "memory": "स्मृती"
+  },
+  "screens": {
+    "Settings": "सेटिंग्ज",
+    "General": "सामान्य",
+    "Models": "मॉडेल्स",
+    "Channels": "चॅनल्स",
+    "Plan & usage": "प्लॅन आणि वापर",
+    "Computer": "संगणक",
+    "Templates": "टेम्पलेट्स",
+    "Routines": "नियमित कामे"
+  }
+}

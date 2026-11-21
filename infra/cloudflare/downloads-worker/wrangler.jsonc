@@ -1,0 +1,11 @@
+// downloads.crewaid.io: desktop installers and update feeds (D-153). See README.md.
+{
+  "name": "crewaid-downloads",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-30",
+  "r2_buckets": [{ "binding": "DOWNLOADS", "bucket_name": "crewaid-downloads" }],
+  "routes": [{ "pattern": "downloads.crewaid.io", "custom_domain": true }],
+  // The default workers.dev address would be a second, unadvertised way in.
+  "workers_dev": false,
+  "observability": { "enabled": true },
+}

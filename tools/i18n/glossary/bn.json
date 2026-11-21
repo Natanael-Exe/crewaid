@@ -1,0 +1,41 @@
+{
+  "address": "আপনি (polite, singular)",
+  "terms": {
+    "bot": "বট",
+    "crew": "ক্রু",
+    "specialist": "বিশেষজ্ঞ",
+    "routine": "রুটিন",
+    "skill": "দক্ষতা",
+    "plugin": "প্লাগইন",
+    "connection": "সংযোগ",
+    "tool": "টুল",
+    "Work": "ওয়ার্ক",
+    "task": "কাজ",
+    "goal": "লক্ষ্য",
+    "project": "প্রকল্প",
+    "deliverable": "ফলাফল",
+    "template": "টেমপ্লেট",
+    "computer": "কম্পিউটার",
+    "screen": "স্ক্রিন",
+    "take control": "নিয়ন্ত্রণ নিন",
+    "approval": "অনুমোদন",
+    "conversation": "চ্যাট",
+    "composer": "মেসেজ বক্স",
+    "model": "মডেল",
+    "call": "কল",
+    "voice message": "ভয়েস মেসেজ",
+    "dictation": "কথা বলে লেখা",
+    "recording": "রেকর্ডিং",
+    "memory": "মেমরি"
+  },
+  "screens": {
+    "Settings": "সেটিংস",
+    "General": "সাধারণ",
+    "Models": "মডেল",
+    "Channels": "চ্যানেল",
+    "Plan & usage": "প্ল্যান ও ব্যবহার",
+    "Computer": "কম্পিউটার",
+    "Templates": "টেমপ্লেট",
+    "Routines": "রুটিন"
+  }
+}

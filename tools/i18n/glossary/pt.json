@@ -1,0 +1,41 @@
+{
+  "address": "você, informal and direct",
+  "terms": {
+    "bot": "bot",
+    "crew": "equipe",
+    "specialist": "especialista",
+    "routine": "rotina",
+    "skill": "habilidade",
+    "plugin": "plugin",
+    "connection": "conexão",
+    "tool": "ferramenta",
+    "Work": "Work",
+    "task": "tarefa",
+    "goal": "meta",
+    "project": "projeto",
+    "deliverable": "entregável",
+    "template": "modelo",
+    "computer": "computador",
+    "screen": "tela",
+    "take control": "assumir o controle",
+    "approval": "aprovação",
+    "conversation": "conversa",
+    "composer": "campo de mensagem",
+    "model": "modelo de IA",
+    "call": "chamada",
+    "voice message": "mensagem de voz",
+    "dictation": "ditado",
+    "recording": "gravação",
+    "memory": "memória"
+  },
+  "screens": {
+    "Settings": "Configurações",
+    "General": "Geral",
+    "Models": "Modelos de IA",
+    "Channels": "Canais",
+    "Plan & usage": "Plano e uso",
+    "Computer": "Computador",
+    "Templates": "Modelos",
+    "Routines": "Rotinas"
+  }
+}

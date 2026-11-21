@@ -1,0 +1,50 @@
+# Fly.io configuration for the self-hosted Crewaid Orchestrator.
+# Bot computers run on Runtime (https://withruntime.com) via SANDBOX_PROVIDER=runtime.
+#
+# Quick start:
+#   fly launch --copy-config --no-deploy
+#   fly postgres create && fly postgres attach <pg-app>
+#   fly secrets set \
+#     BETTER_AUTH_URL="https://<your-app>.fly.dev" \
+#     BETTER_AUTH_SECRET="$(openssl rand -base64 32)" \
+#     CREWAID_CREDENTIAL_KEYRING="{\"1\":\"$(openssl rand -hex 32)\"}" \
+#     CREDENTIAL_KEY="$(openssl rand -hex 32)" \
+#     RUNTIME_API_KEY="<your-runtime-api-key>" \
+#     REDIS_URL="<your-redis-url>"
+#   fly deploy
+
+primary_region = 'iad'
+
+[build]
+  dockerfile = 'infra/dokploy/Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '3000'
+  CREWAID_EDITION = 'selfhosted'
+  SANDBOX_PROVIDER = 'runtime'
+  SANDBOX_RUNTIME_IMAGE = 'crewaid-sandbox:latest'
+  ARTIFACT_DIR = '/data/artifacts'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'off'
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = '60s'
+    interval = '30s'
+    method = 'GET'
+    timeout = '10s'
+    path = '/health'
+
+[[mounts]]
+  source = 'crewaid_artifacts'
+  destination = '/data'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

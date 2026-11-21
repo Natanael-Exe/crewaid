@@ -1,0 +1,1 @@
+ALTER TABLE "Routine" ADD COLUMN "endsOn" VARCHAR(10);

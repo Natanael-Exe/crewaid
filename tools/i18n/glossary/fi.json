@@ -1,0 +1,41 @@
+{
+  "address": "sinä, informal singular",
+  "terms": {
+    "bot": "botti",
+    "crew": "tiimi",
+    "specialist": "asiantuntija",
+    "routine": "rutiini",
+    "skill": "taito",
+    "plugin": "lisäosa",
+    "connection": "yhteys",
+    "tool": "työkalu",
+    "Work": "Työ",
+    "task": "tehtävä",
+    "goal": "tavoite",
+    "project": "projekti",
+    "deliverable": "tuotos",
+    "template": "mallipohja",
+    "computer": "tietokone",
+    "screen": "näyttö",
+    "take control": "ota hallinta",
+    "approval": "hyväksyntä",
+    "conversation": "keskustelu",
+    "composer": "viestikenttä",
+    "model": "malli",
+    "call": "puhelu",
+    "voice message": "ääniviesti",
+    "dictation": "sanelu",
+    "recording": "nauhoitus",
+    "memory": "muisti"
+  },
+  "screens": {
+    "Settings": "Asetukset",
+    "General": "Yleiset",
+    "Models": "Mallit",
+    "Channels": "Kanavat",
+    "Plan & usage": "Tilaus ja käyttö",
+    "Computer": "Tietokone",
+    "Templates": "Mallipohjat",
+    "Routines": "Rutiinit"
+  }
+}

@@ -1,0 +1,238 @@
+@import '@crewaid/brand/mascot.css';
+/*
+ * Crewaid renderer styles (M1-FE-01 + start of M1-FE-09).
+ *
+ * HeroUI v3 is CSS-first. Tailwind supplies the utility layer, HeroUI supplies
+ * component styles and semantic tokens, then the named Crewaid theme overrides
+ * those tokens with the product's visual language.
+ *
+ * CC-79 adds the approved Paper B Night palette using the same semantic roles.
+ */
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss';
+@import '@heroui/styles';
+@import './themes/crewaid.css' layer(theme);
+@import './room.css';
+
+/* Streamdown renders the transcript's Markdown with its own utility classes,
+   which Tailwind only generates when it reads them. */
+@source '../../../node_modules/streamdown/dist/*.js';
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Electron's hidden-inset title bar keeps macOS traffic lights inside the
+   application shell. Only dedicated headers drag; controls opt back out. */
+.window-drag {
+  -webkit-app-region: drag;
+}
+
+.window-no-drag,
+.window-drag button,
+.window-drag input,
+.window-drag textarea,
+.window-drag a {
+  -webkit-app-region: no-drag;
+}
+
+/* Native drag regions can intercept a portaled overlay even above its paint
+   layer. Turn off the underlying regions for the lifetime of the overlay. */
+body:has(.modal__backdrop, .dropdown__popover, .crewaid-search-container, [role='menu'])
+  .window-drag,
+.modal__backdrop,
+.modal__backdrop *,
+.dropdown__popover,
+.dropdown__popover * {
+  -webkit-app-region: no-drag;
+}
+.window-drag {
+  user-select: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+/* The live canvas owns its pixels, but it needs a composed surface before the
+   first framebuffer update and in the small bands around a scaled display.
+   This echoes the sandbox wallpaper without shipping the bitmap twice. */
+.crewaid-screen-ambient {
+  background:
+    radial-gradient(ellipse at 18% 12%, rgb(255 255 255 / 82%) 0%, transparent 42%),
+    radial-gradient(ellipse at 78% 82%, rgb(204 245 255 / 72%) 0%, transparent 48%),
+    linear-gradient(145deg, #dff3ff 0%, #a9d8fb 52%, #c8f0fb 100%);
+}
+
+/* The transcript highlighter emits allowlisted token classes as React
+   elements. Keep their palette semantic so highlighting remains visible in
+   the light Crewaid theme without an HTML/highlight.js injection pipeline. */
+.hljs {
+  color: var(--foreground);
+}
+
+.hljs-comment {
+  color: var(--crewaid-muted-foreground);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-title {
+  color: var(--accent-soft-foreground);
+  font-weight: 600;
+}
+
+.hljs-string {
+  color: var(--danger);
+}
+
+.hljs-number,
+.hljs-literal {
+  color: var(--warning);
+}
+
+/* Streamdown fills inline code, table heads and code chrome with `bg-muted`,
+   a shadcn surface tint. HeroUI's muted is a text colour, which as a fill reads
+   as a dark slab behind dark text, so inside Markdown it is the tint. */
+[data-markdown-renderer] {
+  --muted: color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+
+/* CC-85: what a person or a bot wrote reads in its own direction, whatever
+   the app's language — an Arabic reply in an English app, or the reverse —
+   one paragraph at a time. Code reads left to right everywhere. */
+[data-markdown-renderer] :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th),
+.crewaid-user-prose,
+textarea[data-composer-slot='text'] {
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+[data-markdown-renderer] pre,
+[data-markdown-renderer] code,
+.crewaid-code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
+}
+
+/* M1-FE-12: free HeroUI has no Resizable/Splitter. This shared sash is the
+   only non-HeroUI layout primitive; it exposes a keyboard-operable separator
+   alongside pointer dragging and never owns pane state. The sash lives between
+   panes, outside every .window-drag strip, so it stays pointer-draggable under
+   the hidden-inset title bar. */
+.crewaid-pane-sash {
+  position: relative;
+  width: 0px;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+  background: transparent;
+}
+
+.crewaid-pane-sash::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -4px;
+  right: -4px;
+  content: '';
+}
+
+.crewaid-pane-sash::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -2px;
+  width: 3px;
+  background: var(--separator);
+  content: '';
+  opacity: 0;
+  transition:
+    background-color 120ms ease,
+    opacity 120ms ease;
+}
+
+/* The grab indicator wears the user-bubble border tint, not --accent: the app
+   accent is solid black (light) / solid white (dark), which reads as a harsh
+   stripe against the room wallpaper. */
+.crewaid-pane-sash:hover::after,
+.crewaid-pane-sash:focus-visible::after,
+.crewaid-pane-sash[data-dragging='true']::after {
+  background: var(--message-user-border);
+  opacity: 1;
+}
+
+/* M1-FE-07: the composer pill runs as one row while the draft fits beside the
+   controls, and splits into two rows the moment it would wrap — the textarea
+   takes the full width, `+` and the model picker / send cluster drop below it.
+   Grid AREAS do the switch (not two JSX branches) so the same <textarea> node
+   survives it: re-mounting would drop focus and the caret mid-sentence. The
+   mode itself is measured in composerLayout.ts. */
+.crewaid-composer-pill {
+  display: grid;
+  align-items: end;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'attach text controls';
+}
+
+.crewaid-composer-pill[data-composer-stacked] {
+  grid-template-areas:
+    'text text text'
+    'attach . controls';
+}
+
+.crewaid-composer-pill > [data-composer-slot='attach'] {
+  grid-area: attach;
+}
+
+.crewaid-composer-pill > [data-composer-slot='text'] {
+  grid-area: text;
+}
+
+.crewaid-composer-pill > [data-composer-slot='controls'] {
+  grid-area: controls;
+}
+
+/* The mascot at work (CC-43).
+ *
+ * A bot's status is already on the wire (`bot.status`: THINKING while the
+ * model has the turn, ACTING while a tool runs — CC-25), and it reached the
+ * operator as a 6px coloured dot. A turn that spends four minutes in tool
+ * calls looked, on the face of the thing representing the bot, exactly like a
+ * bot doing nothing at all.
+ *
+ * ── What moves, and why each piece is where it is ───────────────────────────
+ *
+ * The animation is built from NESTED groups, each owning exactly one
+ * transform, because two animations on one element fight over `transform` and
+ * the loser silently does nothing: the body squashes, a blink group inside it
+ * closes the eyes, and an eye group inside THAT looks around. Nesting is what
+ * lets a bot blink in the middle of a scan.
+ *
+ * Every keyframe is a transform or an opacity — no layout property moves — so
+ * an animating row costs a composite rather than a reflow, and a sidebar of
+ * twelve working bots does not thrash the virtualized list.
+ *
+ * `--crewaid-mascot-phase` is a per-bot delay derived from the name hash. Without
+ * it, every mascot on screen blinks on the same frame, which reads as a
+ * rendering artifact; with it, they blink like a room of separate creatures.
+ *
+ * IDLE, AWAITING_APPROVAL and ERROR blink and breathe, and nothing else. A
+ * bot waiting for an answer should look like it is looking AT you, and a calm
+ * face beside three busy ones is what makes the busy ones mean anything.
+ */

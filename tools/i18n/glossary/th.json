@@ -1,0 +1,41 @@
+{
+  "address": "คุณ (polite, friendly, neutral)",
+  "terms": {
+    "bot": "บอท",
+    "crew": "ทีม",
+    "specialist": "บอทเฉพาะทาง",
+    "routine": "งานประจำ",
+    "skill": "ทักษะ",
+    "plugin": "ปลั๊กอิน",
+    "connection": "การเชื่อมต่อ",
+    "tool": "เครื่องมือ",
+    "Work": "Work",
+    "task": "งาน",
+    "goal": "เป้าหมาย",
+    "project": "โปรเจกต์",
+    "deliverable": "ผลงาน",
+    "template": "เทมเพลต",
+    "computer": "คอมพิวเตอร์",
+    "screen": "หน้าจอ",
+    "take control": "เข้าควบคุม",
+    "approval": "การอนุมัติ",
+    "conversation": "บทสนทนา",
+    "composer": "ช่องข้อความ",
+    "model": "โมเดล",
+    "call": "การโทร",
+    "voice message": "ข้อความเสียง",
+    "dictation": "พิมพ์ด้วยเสียง",
+    "recording": "การบันทึกหน้าจอ",
+    "memory": "ความจำ"
+  },
+  "screens": {
+    "Settings": "การตั้งค่า",
+    "General": "ทั่วไป",
+    "Models": "โมเดล",
+    "Channels": "ช่องทาง",
+    "Plan & usage": "แพ็กเกจและการใช้งาน",
+    "Computer": "คอมพิวเตอร์",
+    "Templates": "เทมเพลต",
+    "Routines": "งานประจำ"
+  }
+}

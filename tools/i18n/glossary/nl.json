@@ -1,0 +1,41 @@
+{
+  "address": "informal je/jij",
+  "terms": {
+    "bot": "bot",
+    "crew": "team",
+    "specialist": "specialist",
+    "routine": "routine",
+    "skill": "vaardigheid",
+    "plugin": "plug-in",
+    "connection": "koppeling",
+    "tool": "hulpmiddel",
+    "Work": "Work",
+    "task": "taak",
+    "goal": "doel",
+    "project": "project",
+    "deliverable": "resultaat",
+    "template": "sjabloon",
+    "computer": "computer",
+    "screen": "scherm",
+    "take control": "overnemen",
+    "approval": "goedkeuring",
+    "conversation": "gesprek",
+    "composer": "berichtveld",
+    "model": "model",
+    "call": "spraakgesprek",
+    "voice message": "spraakbericht",
+    "dictation": "spraakinvoer",
+    "recording": "opname",
+    "memory": "geheugen"
+  },
+  "screens": {
+    "Settings": "Instellingen",
+    "General": "Algemeen",
+    "Models": "Modellen",
+    "Channels": "Kanalen",
+    "Plan & usage": "Abonnement en gebruik",
+    "Computer": "Computer",
+    "Templates": "Sjablonen",
+    "Routines": "Routines"
+  }
+}

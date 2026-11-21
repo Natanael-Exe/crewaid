@@ -1,0 +1,1611 @@
+@font-face {
+  font-family: Fraunces;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/room/fraunces.ttf') format('truetype');
+}
+@font-face {
+  font-family: Inter;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/room/inter-400.ttf') format('truetype');
+}
+@font-face {
+  font-family: Inter;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../assets/room/inter-500.ttf') format('truetype');
+}
+@font-face {
+  font-family: Inter;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/room/inter-600.ttf') format('truetype');
+}
+
+.crewaid-room {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  gap: 12px;
+  overflow: hidden;
+  color: var(--room-foreground);
+  position: relative;
+  isolation: isolate;
+  background: var(--background);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+}
+.crewaid-room-topbar {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr);
+  align-items: center;
+  flex-shrink: 0;
+  height: 54px;
+  margin: -14px -14px 0;
+  padding: 14px 22px 0;
+}
+.crewaid-wordmark {
+  padding-inline-start: 13px;
+  font: 600 20px/24px var(--font-display-room);
+  letter-spacing: -0.01em;
+  font-variation-settings:
+    'SOFT' 100,
+    'opsz' 72;
+  color: var(--foreground);
+}
+/* macOS draws its window buttons on the left whatever the app's language, so
+   the room they need is physical: the wordmark's side in a left-to-right
+   language, the top bar's far side in a right-to-left one (CC-85). */
+[data-native-titlebar='mac']:not([data-window-fullscreen='true']):not([dir='rtl'])
+  .crewaid-wordmark {
+  padding-left: 70px;
+}
+[data-native-titlebar='mac'][dir='rtl']:not([data-window-fullscreen='true']) .crewaid-room-topbar {
+  padding-left: 92px;
+}
+.crewaid-topbar-actions {
+  justify-self: end;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: end;
+}
+.crewaid-room-nav {
+  --focus: var(--app-accent);
+}
+.crewaid-room-nav .tabs__list-container {
+  border-radius: var(--radius-pill);
+  background: var(--topbar-surface);
+  backdrop-filter: blur(20px);
+}
+.crewaid-room-nav .tabs__list {
+  gap: 2px;
+  padding: 4px;
+}
+.crewaid-room-nav .tabs__tab {
+  width: auto;
+  height: 30px;
+  min-height: 30px;
+  padding: 7px 16px;
+  gap: 6px;
+  border-radius: var(--radius-pill);
+  color: var(--room-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.crewaid-room-nav .tabs__tab[aria-selected='true'] {
+  color: var(--nav-selected-foreground);
+  font-weight: 600;
+}
+.crewaid-room-nav .tabs__indicator {
+  background: var(--nav-selected);
+  border-radius: var(--radius-pill);
+  box-shadow: none;
+}
+.crewaid-room-nav .tabs__tab:not([aria-selected='true']) .tabs__indicator {
+  opacity: 0;
+}
+.crewaid-room-nav .tabs__tab:not([aria-selected='true']):hover {
+  background: var(--nav-selected);
+  color: var(--nav-selected-foreground);
+  opacity: 1;
+}
+.crewaid-topbar-trigger.button {
+  height: 32px;
+  min-height: 32px;
+  gap: 8px;
+  border-radius: var(--radius-pill);
+  padding-inline: 14px;
+  background: var(--topbar-surface);
+  color: var(--room-muted);
+  font-size: 13px;
+}
+
+@keyframes crewaid-control-nudge {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--app-accent) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--app-accent) 25%, transparent);
+  }
+}
+.button[data-control-hint='true'] {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 2px;
+  animation: crewaid-control-nudge 700ms ease-out 2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .button[data-control-hint='true'] {
+    animation: none;
+  }
+}
+.crewaid-account-trigger {
+  border-radius: 50%;
+  outline: none;
+}
+.crewaid-account-trigger > span {
+  background: var(--nav-selected);
+  color: var(--nav-selected-foreground);
+}
+.crewaid-room-panels {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+/* Only the selected bot's surfaces inherit its palette. These same classes
+   on portaled controls keep app settings and Work navigation neutral. */
+.crewaid-bot-context {
+  --accent: var(--bot-accent, var(--app-accent));
+  --accent-foreground: var(--bot-accent-foreground, var(--app-accent-foreground));
+  --accent-control: var(--bot-accent-control, var(--app-accent));
+  --accent-control-foreground: var(--bot-accent-control-foreground, var(--app-accent-foreground));
+  --accent-soft: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  --accent-soft-foreground: var(--bot-accent-ink-light, var(--app-accent));
+  --focus: var(--accent-soft-foreground);
+  --link: var(--accent-soft-foreground);
+}
+[data-theme='crewaid-dark'] .crewaid-bot-context {
+  --accent-soft: color-mix(in srgb, var(--accent) 26%, #101430);
+  --accent-soft-foreground: var(--bot-accent-ink-dark, var(--app-accent));
+}
+/* Sashes occupy the existing gap, keeping their keyboard and pointer seam. */
+.crewaid-room-panels > .crewaid-pane-sash {
+  margin-inline: -6px;
+  flex-shrink: 0;
+  z-index: 1;
+}
+.crewaid-room-panels > [data-pane='sidebar'] {
+  align-self: flex-start;
+  height: auto;
+  max-height: 100%;
+  display: flex;
+}
+.crewaid-crew-dock,
+.crewaid-rail,
+.crewaid-profile-pane,
+.crewaid-work-detail,
+.crewaid-work-pane {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-panel);
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shadow);
+}
+.crewaid-crew-dock {
+  container: crew / inline-size;
+  max-height: 100%;
+  overflow: hidden;
+  padding: 14px 0 10px;
+  gap: 4px;
+}
+.crewaid-crew-title-short,
+.crewaid-bot-status-compact {
+  display: none;
+}
+
+.crewaid-crew-heading {
+  height: 44px;
+  padding: 4px 20px 10px;
+}
+.crewaid-crew-heading h2 {
+  font: 600 24px/30px var(--font-display-room);
+  font-variation-settings:
+    'SOFT' 100,
+    'opsz' 72;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+.crewaid-crew-heading .button {
+  background: color-mix(in srgb, var(--room-foreground) 6%, transparent);
+  color: var(--room-foreground);
+  flex-shrink: 0;
+}
+.crewaid-roster-filter {
+  opacity: 0;
+}
+.crewaid-crew-dock:hover .crewaid-roster-filter,
+.crewaid-roster-filter:focus-visible,
+.crewaid-roster-filter[aria-expanded='true'] {
+  opacity: 1;
+}
+/* Roster surfaces use glass rather than the opaque generic field gray. */
+.crewaid-bot-row,
+.crewaid-pinned-tile.button {
+  background: transparent;
+  color: var(--foreground);
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+.crewaid-bot-row[data-hovered='true'],
+.crewaid-pinned-tile.button[data-hovered='true'] {
+  background: var(--crew-hover);
+}
+.crewaid-bot-row[data-selected='true'],
+.crewaid-pinned-tile.button[aria-pressed='true'] {
+  background: var(--crew-selected);
+}
+.crewaid-pinned-role > span {
+  border-radius: var(--radius-pill);
+  background: var(--crew-hover);
+  font-size: 11px;
+  line-height: 16px;
+  padding-inline: 8px;
+}
+.crewaid-pinned-tile[aria-pressed='true'] .crewaid-pinned-role > span {
+  background: color-mix(in srgb, var(--pinned-accent) 8%, #ffffff);
+  color: var(--pinned-ink-light);
+}
+[data-theme='crewaid-dark'] .crewaid-pinned-tile[aria-pressed='true'] .crewaid-pinned-role > span {
+  background: color-mix(in srgb, var(--pinned-accent) 26%, #101430);
+  color: var(--pinned-ink-dark);
+}
+.crewaid-crew-dock [role='listbox'] {
+  flex: 0 1 auto;
+  padding-inline: 10px;
+}
+.crewaid-bot-filter {
+  padding-inline: 10px;
+}
+.button--primary {
+  --button-bg: var(--accent-control, var(--accent));
+  --button-bg-hover: color-mix(in srgb, var(--accent-control, var(--accent)) 92%, #1d1830);
+  --button-bg-pressed: var(--button-bg-hover);
+  --button-fg: var(--accent-control-foreground, var(--accent-foreground));
+}
+.radio:has(input:checked) .radio__control,
+.radio[data-selected] .radio__control {
+  background: var(--accent-control, var(--accent));
+}
+.radio:has(input:checked) .radio__indicator:empty::before,
+.radio[data-selected] .radio__indicator:empty::before {
+  background: var(--accent-control-foreground, var(--accent-foreground));
+}
+.crewaid-compose-action.button {
+  --accent-control: var(--bot-accent-control, var(--app-accent));
+  --accent-control-foreground: var(--bot-accent-control-foreground, var(--app-accent-foreground));
+}
+.crewaid-compose-action.button[disabled]:not([data-pending='true']) {
+  opacity: 0.65;
+}
+.crewaid-crew-dock [role='option'] {
+  border-radius: 16px;
+  padding: 8px 10px;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 20px) !important;
+}
+.crewaid-crew-dock [role='option'][data-selected='true'] {
+  background: var(--surface);
+  box-shadow: 0 2px 10px #3c287814;
+}
+.crewaid-crew-dock [role='option'] .font-semibold {
+  font-size: 15px;
+}
+.crewaid-crew-dock [role='option'] .text-muted {
+  color: var(--room-muted);
+}
+.crewaid-rail {
+  overflow: hidden;
+}
+.crewaid-rail-header {
+  padding: 16px 16px 12px;
+  min-height: 64px;
+}
+.crewaid-rail-collapsed {
+  height: auto;
+  align-self: flex-start;
+  gap: 10px;
+  padding: 8px 0 12px;
+  /* noVNC measures the viewport during resize. Scaling this ancestor would
+     leave its canvas undersized after returning from full screen. */
+  animation: crewaid-fade-in var(--motion-enter) var(--motion-ease);
+}
+.crewaid-rail:not(.crewaid-rail-collapsed) > div:last-child {
+  padding-inline: 16px;
+  gap: 16px;
+}
+[data-screen-surface='rail'] {
+  border: 0;
+  background: transparent;
+  border-radius: 16px;
+  flex-shrink: 0;
+}
+[data-screen-surface='rail'] > div:first-child {
+  border-radius: 16px;
+  overflow: hidden;
+}
+[data-screen-surface='rail'] > div:last-child {
+  padding: 16px 4px 0;
+  font-size: 13px;
+  min-height: 56px;
+  flex-wrap: wrap;
+}
+.crewaid-transcript-header {
+  min-height: 86px;
+  padding-block: 18px 16px;
+}
+.crewaid-transcript-header h1 {
+  font: 600 30px/34px var(--font-display-room);
+  font-variation-settings:
+    'SOFT' 100,
+    'opsz' 72;
+  letter-spacing: -0.015em;
+}
+.crewaid-working-pill {
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-soft-foreground);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.crewaid-bubble-wrap {
+  max-width: min(100%, 520px);
+}
+.crewaid-bubble-wrap:has([data-message-bubble='user']) {
+  max-width: min(88%, 420px);
+}
+[data-message-bubble] {
+  border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+  box-shadow: none;
+}
+[data-message-bubble='user'] {
+  border-color: var(--message-user-border);
+  backdrop-filter: blur(16px);
+}
+[data-message-bubble='user']:not([data-voice-note]) {
+  border-radius: 22px 22px 8px 22px;
+}
+[data-bot-mention] {
+  color: var(--mention-ink-light);
+  background: color-mix(in srgb, var(--mention-color) 8%, #ffffff);
+}
+[data-theme='crewaid-dark'] [data-bot-mention] {
+  color: var(--mention-ink-dark);
+  background: color-mix(in srgb, var(--mention-color) 26%, #101430);
+}
+.crewaid-bubble-footer {
+  transform: translateY(-2px);
+  transition:
+    opacity var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+.crewaid-bubble-wrap:is(:hover, :focus-within) .crewaid-bubble-footer,
+.crewaid-bubble-footer[data-transcript-open='true'] {
+  transform: none;
+}
+[data-message-bubble='user'] a {
+  color: inherit;
+  text-decoration: underline;
+}
+[data-transcript-content] > [data-message-enter] {
+  animation: crewaid-message-in var(--motion-enter) var(--motion-ease);
+}
+.crewaid-transcript-footer > div {
+  padding-inline: 24px;
+}
+.crewaid-composer-pill {
+  min-height: 56px;
+  box-shadow: none;
+  background: var(--surface);
+  transition:
+    border-color var(--motion-fast),
+    transform var(--motion-fast);
+}
+.crewaid-composer-pill:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.crewaid-composer-pill .button[aria-label='Send message'],
+.crewaid-composer-pill .button[aria-label='Stop generating'] {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+}
+.crewaid-compose-action:not(:disabled) > svg {
+  animation: crewaid-action-in var(--motion-fast) var(--motion-ease);
+}
+.crewaid-compose-action:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+.crewaid-compose-action[data-pressed='true'] {
+  transform: scale(0.94);
+}
+.crewaid-approval-trigger {
+  background: var(--accent-soft);
+  color: var(--accent-soft-foreground);
+}
+.crewaid-approval-trigger[data-approval-mode='FULL'] {
+  background: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  color: var(--warning);
+}
+.crewaid-approval-card {
+  width: min(100%, 520px);
+}
+.crewaid-approval-card[data-approval-answered='no'] {
+  --muted: #bdbdbd;
+  --foreground: #ffffff;
+  --border: #ffffff40;
+  --accent: #ffffff;
+  --accent-foreground: #000000;
+  --accent-control: #ffffff;
+  --accent-control-foreground: #000000;
+  --default: #ffffff14;
+  --default-foreground: #ffffff;
+  --focus: #ffffff;
+  background: var(--approval-pending-background);
+  color: var(--foreground);
+}
+.crewaid-approval-card[data-approval-answered='approved'] {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.crewaid-approval-card[data-approval-answered='no'] .button--primary {
+  --button-bg: #ffffff;
+  --button-bg-hover: #e8e8e8;
+  --button-fg: #000000;
+}
+.crewaid-approval-card[data-approval-answered='no'] .button--outline {
+  --button-fg: #ffffff;
+  --button-bg-hover: #ffffff1f;
+  --button-border: #ffffff66;
+}
+.crewaid-create-routine.button {
+  color: var(--accent-soft-foreground);
+  background: color-mix(in srgb, var(--accent-soft) 75%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+}
+.crewaid-routines [data-routine-id] {
+  border: 0;
+  border-top: 1px solid var(--separator);
+  border-radius: 0;
+  background: transparent;
+  padding: 12px 4px;
+}
+.crewaid-routines > ul {
+  gap: 0;
+}
+.crewaid-bot-tasks > ul {
+  gap: 0;
+}
+.crewaid-bot-tasks > ul > li {
+  border-top: 1px solid var(--separator);
+}
+.crewaid-bot-tasks > ul button {
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  padding: 12px 4px;
+}
+.crewaid-bot-tasks > ul button:hover {
+  background: var(--accent-soft);
+}
+.crewaid-routine-form {
+  background: var(--surface);
+  border-radius: 18px;
+  animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
+}
+.crewaid-work-pane {
+  overflow: hidden;
+}
+.crewaid-work-pane > header {
+  min-height: 86px;
+  border: 0;
+  padding: 20px 24px 16px;
+}
+.crewaid-work-pane > header h1 {
+  font: 600 30px/34px var(--font-display-room);
+  letter-spacing: -0.015em;
+}
+.crewaid-work-pane > header > svg {
+  display: none;
+}
+.crewaid-work-pane [aria-label='To do'],
+.crewaid-work-pane [aria-label='In progress'],
+.crewaid-work-pane [aria-label='Review'],
+.crewaid-work-pane [aria-label='Blocked'],
+.crewaid-work-pane [aria-label='Done'] {
+  background: var(--glass);
+  border-radius: 18px;
+}
+.crewaid-profile-pane {
+  overflow: hidden;
+}
+.crewaid-work-detail {
+  overflow: hidden;
+  animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
+}
+.crewaid-work-detail > header {
+  min-height: 64px;
+  padding-inline: 20px;
+}
+.crewaid-work-detail > header > span {
+  font: 600 22px/28px var(--font-display-room);
+  color: var(--foreground);
+}
+.crewaid-work-detail > div {
+  padding-inline: 20px;
+}
+.crewaid-work-detail > div > footer {
+  margin-inline: -20px;
+  padding-inline: 20px;
+  background: var(--surface);
+}
+.crewaid-profile-pane > div:first-child {
+  min-height: 64px;
+}
+/* The dialog floats brighter than the room's side panels: a modal sits over
+   dimmed content, and passing that dim through at side-panel opacity read as
+   a dark shell. These roles stay scoped to this dialog; global tokens are only
+   read, never overridden. Sections divide by hairlines, not tint. */
+.crewaid-settings-dialog.modal__dialog,
+.crewaid-templates-dialog.modal__dialog {
+  --settings-material: color-mix(in srgb, var(--surface) 90%, transparent);
+  --settings-nav: color-mix(in srgb, var(--surface) 55%, transparent);
+  --settings-field: var(--field-background);
+  background: var(--settings-material);
+  color: var(--room-foreground);
+  border-radius: 28px;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shadow);
+}
+.crewaid-settings-dialog.modal__dialog {
+  width: min(920px, 94vw);
+  max-width: none;
+  height: min(640px, 90vh);
+  min-height: 0;
+}
+.crewaid-settings-dialog .crewaid-settings-nav {
+  background: var(--settings-nav);
+  overflow-y: auto;
+  border-inline-end: 1px solid var(--separator);
+}
+.crewaid-settings-dialog .crewaid-settings-title {
+  font: 600 24px/30px var(--font-display-room);
+  letter-spacing: -0.015em;
+}
+.crewaid-settings-nav-item.button {
+  color: var(--room-muted);
+  background: transparent;
+  flex-shrink: 0;
+}
+.crewaid-settings-nav-item.button[data-hovered='true'] {
+  background: var(--crew-hover);
+}
+.crewaid-settings-nav-item.button[aria-current='true'] {
+  background: var(--surface);
+  color: var(--room-foreground);
+  font-weight: 500;
+  box-shadow: 0 2px 8px #1d183014;
+}
+.crewaid-settings-header h2 {
+  font: 600 20px/26px var(--font-sans);
+  letter-spacing: -0.02em;
+}
+.crewaid-settings-header p {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--room-muted);
+}
+.crewaid-settings-close.button {
+  background: var(--surface);
+}
+.crewaid-settings-dialog .crewaid-settings-section {
+  margin-bottom: 22px;
+}
+.crewaid-settings-dialog .crewaid-settings-section > h3 {
+  color: var(--room-muted);
+}
+.crewaid-settings-dialog .crewaid-settings-surface,
+.crewaid-settings-dialog .crewaid-connection-card {
+  background: var(--surface);
+  border-radius: 18px;
+  border: 0;
+  box-shadow: 0 2px 10px #1d183010;
+}
+.crewaid-settings-dialog .crewaid-settings-surface > div {
+  border-width: 0;
+}
+.crewaid-settings-dialog input:not([type='checkbox']) {
+  height: 40px;
+  border-color: transparent;
+  background: var(--settings-field);
+}
+.crewaid-settings-dialog .switch {
+  --switch-control-bg: color-mix(in srgb, var(--room-muted) 20%, var(--surface));
+}
+.crewaid-settings-dialog .crewaid-settings-account-avatar {
+  background: var(--nav-selected);
+  color: var(--nav-selected-foreground);
+}
+.crewaid-settings-dialog .crewaid-connection-card > header {
+  background: transparent;
+}
+.crewaid-settings-dialog .button {
+  border-radius: var(--radius-pill);
+}
+.crewaid-settings-dialog .crewaid-settings-nav-item.button {
+  border-radius: 12px;
+}
+.crewaid-settings-preferences {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.crewaid-settings-preferences .crewaid-settings-section {
+  margin-bottom: 0;
+}
+.crewaid-settings-preferences .crewaid-settings-surface > div {
+  padding: 16px;
+  gap: 14px;
+}
+[data-theme='crewaid-dark'] .crewaid-settings-dialog.modal__dialog,
+[data-theme='crewaid-dark'] .crewaid-templates-dialog.modal__dialog {
+  /* Night separates by the app's own elevation: a background-dark material
+     under surface cards, and fields that lift off the card they live in
+     (--field-background equals --surface there, so it cannot inset). */
+  --settings-material: color-mix(in srgb, var(--background) 92%, transparent);
+  --settings-field: color-mix(in srgb, var(--surface-foreground) 4%, transparent);
+}
+.crewaid-theme-segments.toggle-button-group {
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--settings-nav);
+  padding: 3px;
+  gap: 2px;
+}
+.crewaid-theme-segments .toggle-button {
+  min-width: 0;
+  flex: 1;
+  padding-inline: 6px;
+  gap: 4px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--room-muted);
+  font-size: 12px;
+}
+.crewaid-theme-segments .toggle-button[data-selected='true'] {
+  background: var(--surface);
+  color: var(--room-foreground);
+  box-shadow: 0 2px 6px #1d183014;
+}
+@media (max-width: 800px) {
+  .crewaid-settings-dialog .crewaid-settings-nav {
+    width: 170px;
+  }
+  .crewaid-settings-dialog .crewaid-settings-header,
+  .crewaid-settings-dialog .crewaid-settings-body {
+    padding-inline: 20px;
+  }
+}
+.crewaid-search-dialog.modal__dialog {
+  width: min(640px, 92vw);
+  max-width: none;
+  min-height: 0;
+  height: auto;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 80px #1d183026;
+}
+/* React Aria keeps overlays mounted until these exit animations finish, so
+   dismissal preserves focus restoration without timers in application code. */
+.modal__backdrop[data-entering='true'] {
+  animation: crewaid-fade-in var(--motion-enter) var(--motion-ease);
+}
+.modal__backdrop[data-exiting='true'] {
+  animation: crewaid-fade-in var(--motion-exit) var(--motion-ease) reverse;
+}
+.modal__container:not(.modal__container--full)[data-entering='true'] {
+  animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
+}
+.modal__container:not(.modal__container--full)[data-exiting='true'] {
+  animation: crewaid-panel-in var(--motion-exit) var(--motion-ease) reverse;
+}
+.crewaid-search-backdrop.modal__backdrop {
+  background: color-mix(in srgb, var(--background) 12%, transparent);
+  backdrop-filter: blur(18px);
+}
+.crewaid-search-backdrop.modal__backdrop[data-entering='true'] {
+  animation: crewaid-search-focus 300ms var(--motion-ease);
+}
+.crewaid-search-backdrop.modal__backdrop[data-exiting='true'] {
+  animation: crewaid-search-focus 220ms var(--motion-ease) reverse;
+}
+.crewaid-search-container.modal__container {
+  height: 100%;
+  width: 100%;
+  padding: 10vh 0 0;
+  flex: none;
+  transform-origin: 50% calc(10vh + 26px);
+}
+.crewaid-search-container.modal__container[data-entering='true'] {
+  animation: crewaid-search-in 300ms var(--motion-ease);
+}
+.crewaid-search-container.modal__container[data-exiting='true'] {
+  animation: crewaid-search-in 220ms var(--motion-ease) reverse;
+}
+.crewaid-search-container[data-entering='true'] .crewaid-search-dialog > div {
+  animation: crewaid-fade-in 160ms var(--motion-ease) 80ms backwards;
+}
+.dropdown__popover[data-entering='true'],
+.popover[data-entering='true'] {
+  animation-duration: var(--motion-enter);
+  animation-timing-function: var(--motion-ease);
+}
+.dropdown__popover[data-exiting='true'],
+.popover[data-exiting='true'] {
+  animation-duration: var(--motion-exit);
+  animation-timing-function: var(--motion-ease);
+}
+.crewaid-room button,
+.crewaid-room [role='option'] {
+  transition:
+    background-color var(--motion-fast),
+    color var(--motion-fast),
+    opacity var(--motion-fast),
+    transform var(--motion-fast) var(--motion-ease);
+}
+.crewaid-room button:focus-visible,
+.crewaid-account-trigger[data-focus-visible='true'] {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.crewaid-account-trigger[data-focus-visible='true'] {
+  outline-color: var(--app-accent);
+}
+.crewaid-settings-dialog {
+  --accent: var(--app-accent);
+  --accent-foreground: var(--app-accent-foreground);
+  --accent-control: var(--app-accent);
+  --accent-control-foreground: var(--app-accent-foreground);
+  --accent-soft: color-mix(in srgb, var(--app-accent) 8%, var(--surface));
+  --accent-soft-foreground: var(--app-accent);
+  --focus: var(--app-accent);
+  --link: var(--app-accent);
+}
+@keyframes crewaid-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes crewaid-search-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--search-origin-x, 0px), var(--search-origin-y, -12px))
+      scale(0.22, 0.5);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes crewaid-search-focus {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(18px);
+  }
+}
+@keyframes crewaid-action-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes crewaid-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes crewaid-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 1150px) {
+  .crewaid-room {
+    padding: 10px;
+  }
+  .crewaid-room-topbar {
+    grid-template-columns: minmax(130px, 1fr) auto minmax(130px, 1fr);
+  }
+  .crewaid-wordmark {
+    font-size: 18px;
+  }
+  .crewaid-room-nav .tabs__tab {
+    padding-inline: 12px;
+  }
+  .crewaid-transcript-header,
+  [data-transcript-content] {
+    padding-inline: 16px;
+  }
+  .crewaid-transcript-footer > div {
+    padding-inline: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .crewaid-room *,
+  .modal__backdrop,
+  .modal__backdrop *,
+  .dropdown__popover,
+  .popover {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+[data-reduce-motion='true'] .crewaid-room *,
+[data-reduce-motion='true'] .modal__backdrop,
+[data-reduce-motion='true'] .modal__backdrop *,
+[data-reduce-motion='true'] .dropdown__popover,
+[data-reduce-motion='true'] .popover {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+.crewaid-room::before,
+.crewaid-room::after,
+.crewaid-gate::before,
+.crewaid-gate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url('../assets/room/wallpaper.png') center bottom / cover;
+  transition: opacity var(--motion-enter) var(--motion-ease);
+}
+.crewaid-room::after,
+.crewaid-gate::after {
+  background-image: url('../assets/room/wallpaper-night.png');
+  opacity: 0;
+}
+[data-theme='crewaid-dark'] :is(.crewaid-room, .crewaid-gate)::after {
+  opacity: 1;
+}
+[data-theme='crewaid-dark'] :is(.crewaid-room, .crewaid-gate)::before {
+  opacity: 0;
+}
+[data-theme='crewaid-dark'] .crewaid-room-nav .tabs__list-container,
+[data-theme='crewaid-dark'] .crewaid-topbar-trigger {
+  border: 1px solid var(--glass-border);
+}
+[data-theme='crewaid-dark'] .crewaid-crew-dock [role='option'][data-selected='true'] {
+  background: color-mix(in srgb, var(--bot-accent, var(--app-accent)) 26%, #101430);
+  box-shadow: none;
+}
+[data-theme='crewaid-dark'] .crewaid-crew-heading .button {
+  background: #ffffff14;
+}
+[data-theme='crewaid-dark'] .crewaid-account-trigger > span {
+  background: var(--nav-selected);
+  color: var(--nav-selected-foreground);
+}
+[data-theme='crewaid-dark'] .crewaid-work-pane [role='list'] {
+  background: var(--glass);
+}
+.crewaid-room :is(button, input, textarea, select, [role='option'], h1, h2, p),
+.crewaid-crew-dock,
+.crewaid-rail,
+.crewaid-profile-pane,
+.crewaid-work-detail,
+.crewaid-work-pane,
+.crewaid-working-pill,
+.crewaid-composer-pill,
+[data-message-bubble],
+.modal__dialog,
+.dropdown__popover {
+  transition:
+    background-color var(--motion-enter) var(--motion-ease),
+    color var(--motion-enter) var(--motion-ease),
+    border-color var(--motion-enter) var(--motion-ease),
+    opacity var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .crewaid-room::before,
+  .crewaid-room::after {
+    transition: none;
+  }
+}
+[data-reduce-motion='true'] .crewaid-room::before,
+[data-reduce-motion='true'] .crewaid-room::after {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal__dialog {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+[data-reduce-motion='true'] .modal__dialog {
+  animation: none !important;
+  transition: none !important;
+}
+
+[data-room-view='work'] [data-pane='sidebar'],
+[data-room-view='work'] [data-pane='sidebar'] + .crewaid-pane-sash {
+  display: none;
+}
+.crewaid-work-pane > header {
+  flex-wrap: wrap;
+  min-height: 74px;
+}
+.crewaid-work-pane > header .button {
+  border-radius: var(--radius-pill);
+  height: 36px;
+  padding-inline: 14px;
+}
+.crewaid-work-pane > header .button--primary {
+  background: var(--nav-selected);
+  color: var(--nav-selected-foreground);
+}
+.crewaid-task-card {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px;
+}
+.crewaid-task-card {
+  background: var(--crew-selected);
+}
+.crewaid-task-card:hover,
+.crewaid-task-row:hover {
+  background: var(--crew-hover);
+}
+.crewaid-task-card[aria-pressed='true'],
+.crewaid-task-row[aria-selected='true'] {
+  background: var(--crew-selected);
+}
+.crewaid-task-card[aria-pressed='true'] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--room-foreground) 18%, transparent);
+}
+.crewaid-deliverable-row[aria-pressed='true'] {
+  background: var(--accent-soft);
+}
+.crewaid-goal-card {
+  padding: 20px;
+  border-radius: 20px;
+  border: 0;
+  gap: 16px;
+}
+.crewaid-goal-card[aria-pressed='true'] {
+  outline: 2px solid var(--focus);
+}
+.crewaid-deliverable-row {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.crewaid-routine-dialog .crewaid-routine-form {
+  border: 0;
+  padding: 0;
+  animation: none;
+}
+.crewaid-routine-dialog .modal__heading {
+  font: 600 28px/34px var(--font-display-room);
+}
+[data-theme='crewaid-dark'] .crewaid-screen-ambient:has([data-screen-state]),
+[data-theme='crewaid-dark'] .crewaid-screen-ambient[data-screen-state] {
+  background: var(--surface);
+  color: var(--muted);
+}
+[data-theme='crewaid-dark'] [data-screen-action] {
+  color: var(--foreground);
+}
+
+.crewaid-welcome-card {
+  padding: 36px 40px 32px;
+  border-radius: 28px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shadow);
+}
+.crewaid-welcome-card h1 {
+  font: 600 40px/44px var(--font-display-room);
+  letter-spacing: -0.02em;
+}
+.crewaid-welcome-card > p {
+  font-size: 15px;
+  line-height: 22px;
+}
+.crewaid-welcome-card > ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.crewaid-welcome-card > ul > li {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+.crewaid-welcome-card > ul > li > span {
+  display: none;
+}
+.crewaid-welcome-card .button {
+  border-radius: var(--radius-pill);
+}
+.crewaid-create-bot-dialog.modal__dialog {
+  border-radius: 24px;
+  padding: 28px;
+  gap: 20px;
+}
+.crewaid-create-bot-dialog h2,
+.crewaid-empty-conversation h2 {
+  font: 600 30px/34px var(--font-display-room);
+}
+.crewaid-profile-pane > div:first-child > span {
+  font: 600 22px/28px var(--font-display-room);
+}
+[data-room-view='crew'][data-room-empty='true'] .crewaid-room-panels > main {
+  padding-inline-end: 256px;
+}
+@media (max-width: 1150px) {
+  [data-room-view='crew'][data-room-empty='true'] .crewaid-room-panels > main {
+    padding-inline-end: 0;
+  }
+  .crewaid-welcome-card {
+    padding: 24px;
+  }
+  .crewaid-welcome-card h1 {
+    font-size: 32px;
+    line-height: 36px;
+  }
+  .crewaid-welcome-card > ul {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sign-in and plan choice: the room's wallpaper and the welcome card's glass,
+   with no room around them, because nothing in the room works yet. */
+.crewaid-gate {
+  position: relative;
+  isolation: isolate;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--room-foreground);
+  background: var(--background);
+  font-family: var(--font-sans);
+}
+.crewaid-gate-card {
+  width: 100%;
+  padding: 36px 40px 32px;
+  border-radius: 28px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shadow);
+  animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
+}
+.crewaid-gate-card h1 {
+  font: 600 34px/38px var(--font-display-room);
+  letter-spacing: -0.02em;
+  font-variation-settings:
+    'SOFT' 100,
+    'opsz' 72;
+}
+.crewaid-gate-wordmark {
+  font: 600 20px/24px var(--font-display-room);
+  letter-spacing: -0.01em;
+  font-variation-settings:
+    'SOFT' 100,
+    'opsz' 72;
+}
+.crewaid-gate-card .button {
+  border-radius: var(--radius-pill);
+}
+.crewaid-gate-card input {
+  border: 0;
+  border-radius: 12px;
+  background: var(--field-background);
+}
+.crewaid-plan-option {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 20px;
+  background: var(--surface);
+}
+.crewaid-plan-option[data-recommended='true'] {
+  box-shadow: inset 0 0 0 1.5px var(--room-foreground);
+}
+.crewaid-settings-dialog .crewaid-plan-option {
+  box-shadow: 0 2px 10px #1d183010;
+}
+.crewaid-settings-dialog .crewaid-plan-option[data-recommended='true'] {
+  box-shadow:
+    inset 0 0 0 1.5px var(--room-foreground),
+    0 2px 10px #1d183010;
+}
+.crewaid-plan-price {
+  font: 600 34px/38px var(--font-sans);
+  letter-spacing: -0.03em;
+}
+@media (max-width: 700px) {
+  .crewaid-gate-card {
+    padding: 24px;
+  }
+  .crewaid-gate-card h1 {
+    font-size: 28px;
+    line-height: 32px;
+  }
+}
+
+.crewaid-roster {
+  transition: height var(--motion-enter) var(--motion-ease);
+}
+.crewaid-profile-pane {
+  animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
+}
+
+/* Backdrop blur establishes a containing block for fixed descendants. Remove
+   it while this same canvas expands, so the viewer fills the native window
+   without moving/remounting noVNC or interrupting its stream. */
+.crewaid-rail:has([data-screen-surface='fullscreen']) {
+  backdrop-filter: none;
+  animation: none;
+  overflow: visible;
+}
+
+@container crew (max-width: 239px) {
+  .crewaid-crew-title-full {
+    display: none;
+  }
+  .crewaid-crew-title-short {
+    display: inline;
+  }
+}
+@container crew (max-width: 139px) {
+  .crewaid-crew-heading {
+    justify-content: center;
+    padding-inline: 0;
+    gap: 2px;
+  }
+  .crewaid-crew-heading h2,
+  .crewaid-bot-row-copy {
+    display: none;
+  }
+  .crewaid-roster-filter {
+    opacity: 1;
+  }
+  .crewaid-crew-dock [role='listbox'] {
+    padding-inline: 6px;
+  }
+  .crewaid-crew-dock [role='option'] {
+    width: calc(100% - 12px) !important;
+    justify-content: center;
+    padding-inline: 4px;
+    gap: 0;
+  }
+  .crewaid-bot-status-compact {
+    display: flex;
+    position: absolute;
+    bottom: 1px;
+    inset-inline-end: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--surface);
+  }
+  .crewaid-bot-status-compact > span {
+    width: 8px;
+    height: 8px;
+  }
+  .crewaid-pinned > div:first-child,
+  .crewaid-group-heading > span {
+    display: none;
+  }
+  .crewaid-pinned > div:last-child {
+    padding-inline: 6px;
+  }
+  .crewaid-pinned > div:last-child > div {
+    flex-direction: column;
+    min-width: 0;
+  }
+  .crewaid-pinned > div:last-child > div > div {
+    flex-basis: auto;
+  }
+  .crewaid-pinned .button {
+    padding: 8px 4px;
+  }
+  /* HeroUI's avatar root is `.avatar` and carries no data-slot; a slot
+     selector here matched nothing, so the 64px avatar overflowed its tile. */
+  .crewaid-pinned-avatar,
+  .crewaid-pinned-avatar > .avatar {
+    width: 42px;
+    height: 42px;
+  }
+  /* No sentence fits an icon-wide roster; the tile and + say enough. */
+  .crewaid-roster-empty {
+    display: none;
+  }
+  .crewaid-group-heading {
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .crewaid-group-heading button span,
+  .crewaid-group-heading .chip {
+    display: none;
+  }
+}
+
+/* Tool activity shares the room's paper surface; preview text is inert and bounded. */
+.crewaid-tool-card.card {
+  width: min(100%, 520px);
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--foreground) 3%, transparent);
+  text-align: start;
+}
+.crewaid-tool-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent-soft-foreground);
+}
+.crewaid-tool-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  color: var(--muted);
+  padding-top: 3px;
+}
+.crewaid-tool-status[data-status='error'] {
+  color: var(--danger);
+}
+.crewaid-tool-status[data-status='awaiting-approval'] {
+  color: inherit;
+}
+.crewaid-tool-fields {
+  display: grid;
+  gap: 6px;
+}
+.crewaid-tool-fields > div {
+  display: grid;
+  grid-template-columns: minmax(60px, 90px) minmax(0, 1fr);
+  gap: 12px;
+}
+.crewaid-tool-fields dt {
+  color: var(--muted);
+  font-size: 11px;
+}
+.crewaid-tool-fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.crewaid-tool-preview {
+  /* A tool's output (a page, an email, a command) reads in its own direction (CC-85). */
+  unicode-bidi: plaintext;
+  margin-bottom: 0;
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-inline-start: 2px solid var(--border);
+  padding-inline-start: 10px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 18px;
+}
+.crewaid-tool-preview[data-result-status='error'] {
+  color: var(--danger);
+}
+.crewaid-tool-disclosure {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11px;
+  border-radius: 4px;
+}
+.crewaid-tool-disclosure:hover {
+  color: var(--foreground);
+}
+.crewaid-tool-disclosure:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.crewaid-approval-card {
+  border-radius: 14px;
+}
+.crewaid-approval-card .crewaid-tool-card.card {
+  background: inherit;
+  color: inherit;
+}
+.crewaid-approval-card[data-approval-answered='no'] .crewaid-tool-icon {
+  color: var(--foreground);
+  background: var(--default);
+}
+
+.crewaid-artifact-card.card {
+  width: min(100%, 360px);
+}
+[data-message-attachments='user'] [data-audio-attachment] > .crewaid-artifact-card.card {
+  background: var(--message-user);
+  color: var(--message-user-foreground);
+  border-color: var(--message-user-border);
+  backdrop-filter: blur(16px);
+}
+[data-message-attachments='bot'] [data-audio-attachment] > .crewaid-artifact-card.card {
+  background: var(--message-bot);
+  color: var(--message-bot-foreground);
+}
+.crewaid-artifact-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--foreground);
+  font-size: 12px;
+  cursor: pointer;
+}
+.crewaid-artifact-action:hover {
+  background: var(--default);
+}
+.crewaid-artifact-action:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.crewaid-artifact-action[aria-disabled='true'] {
+  color: var(--muted);
+  cursor: progress;
+}
+.crewaid-resource-body {
+  max-height: 240px;
+  line-height: 20px;
+}
+.crewaid-deliverable-row {
+  border: 1px solid var(--border);
+}
+
+.crewaid-tool-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+.crewaid-tool-icon {
+  background: transparent;
+  color: var(--muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 0;
+}
+.crewaid-tool-card.card {
+  box-shadow: none;
+  gap: 10px;
+  padding: 16px;
+}
+[data-tool-activity] {
+  width: min(100%, 640px);
+}
+.crewaid-output-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr));
+  gap: 0 12px;
+  align-items: start;
+}
+.crewaid-output-wide {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.crewaid-output-tile {
+  min-width: 0;
+}
+.crewaid-output-tile .crewaid-tool-card.card {
+  width: 100%;
+}
+.crewaid-output-tile [data-resource-receipt] {
+  margin-top: 0;
+}
+.crewaid-resource-body {
+  border: 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+/* A routine action is one quiet line; its machinery lives in Details (D-215). */
+.crewaid-tool-line .crewaid-tool-icon,
+.crewaid-tool-line .crewaid-tool-mark {
+  width: 22px;
+  height: 22px;
+}
+.crewaid-tool-details {
+  margin-top: 2px;
+}
+.crewaid-tool-count {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-weight: 500;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  line-height: 16px;
+}
+
+/* D-229: the Templates door floats bottom-left, outside the sidebar, on the
+   Crew tab. The sidebar column stops short of it so it never covers a bot. */
+.crewaid-templates-trigger.button {
+  position: absolute;
+  inset-inline-start: 14px;
+  bottom: 14px;
+  z-index: 20;
+  height: 42px;
+  border-radius: var(--radius-pill);
+  padding-inline: 16px;
+  gap: 8px;
+  background: var(--topbar-surface);
+  backdrop-filter: blur(20px);
+  color: var(--foreground);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.crewaid-templates-trigger.button[data-compact='true'] {
+  width: 42px;
+  padding-inline: 0;
+}
+.crewaid-room-panels > [data-pane='sidebar'] {
+  max-height: calc(100% - 54px);
+}
+
+/* The library's display type is the room's, at the size of a pane title. */
+.crewaid-template-title {
+  font: 500 30px/36px var(--font-display-room);
+  letter-spacing: -0.015em;
+  color: var(--room-foreground);
+}
+/* A title inside the rail, where the library's size would wrap. */
+.crewaid-pane-title {
+  font: 500 24px/30px var(--font-display-room);
+  letter-spacing: -0.01em;
+  color: var(--room-foreground);
+}
+/* Crewaid's hello: its own mascot in a frosted disc, so it reads as a moment
+   rather than a second copy of the header's avatar. */
+.crewaid-welcome-mascot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  padding: 14px;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur));
+}
+.crewaid-welcome-title {
+  font: 500 34px/42px var(--font-display-room);
+  letter-spacing: -0.025em;
+  color: var(--room-foreground);
+}
+.crewaid-welcome-choice.button {
+  border-radius: var(--radius-pill);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--room-foreground);
+  /* A long translation wraps inside the column instead of running out of it
+     (D-234); one line still sits at the button's own height. */
+  height: auto;
+  min-height: 2.5rem;
+  max-width: 100%;
+  padding-block: 0.5rem;
+  white-space: normal;
+  text-align: start;
+}
+.crewaid-template-card {
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+}
+.crewaid-template-search {
+  border: 1px solid var(--border);
+}
+.crewaid-template-search:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.crewaid-template-chip {
+  color: var(--muted);
+}
+.crewaid-template-chip[aria-pressed='true'] {
+  background: var(--field-background);
+  color: var(--foreground);
+}
+.crewaid-template-handoff,
+.crewaid-template-brief,
+.crewaid-template-note,
+.crewaid-memory-edit {
+  background: var(--field-background);
+}
+.crewaid-template-example {
+  background: var(--surface-secondary);
+}
+.crewaid-template-failure {
+  border: 1px solid var(--danger);
+  background: var(--surface);
+}
+.crewaid-tool-chip {
+  background: var(--field-background);
+  color: var(--foreground);
+}
+.crewaid-tool-chip[data-tool-state='connected'] {
+  color: var(--success);
+}
+.crewaid-template-entry {
+  transition: opacity var(--motion-fast);
+}
+.crewaid-template-entry:hover {
+  opacity: 0.78;
+}
+.crewaid-template-entry:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .crewaid-template-entry {
+    transition: none;
+  }
+}

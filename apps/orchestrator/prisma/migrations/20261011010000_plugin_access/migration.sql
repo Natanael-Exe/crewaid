@@ -1,0 +1,4 @@
+CREATE TYPE "PluginAccessMode" AS ENUM ('SELECTED', 'ALL');
+ALTER TABLE "McpServer"
+  ADD COLUMN "accessMode" "PluginAccessMode" NOT NULL DEFAULT 'SELECTED',
+  ADD COLUMN "accessRevision" INTEGER NOT NULL DEFAULT 0;

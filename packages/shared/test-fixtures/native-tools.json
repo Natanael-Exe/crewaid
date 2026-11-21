@@ -1,0 +1,123 @@
+{
+  "preview_email": {
+    "valid": {
+      "to": "Alex <alex@example.test>",
+      "subject": "Update",
+      "body": "Here is the update."
+    },
+    "invalid": { "to": "Alex", "subject": "Update", "body": "" }
+  },
+  "task_list": { "valid": { "assignee": "Quill", "status": "todo" }, "invalid": { "assignee": 1 } },
+  "task_read": { "valid": { "taskId": "task-1" }, "invalid": {} },
+  "task_create": {
+    "valid": { "title": "Write report", "after": "task-1" },
+    "invalid": { "title": 1 }
+  },
+  "task_update": {
+    "valid": { "taskId": "task-1", "assignee": null },
+    "invalid": { "assignee": null }
+  },
+  "project_create": { "valid": { "name": "Launch" }, "invalid": {} },
+  "send_message": {
+    "valid": { "toBot": "Quill", "content": "Write the report", "taskId": null },
+    "invalid": { "toBot": "Quill" }
+  },
+  "schedule_routine": {
+    "valid": { "name": "Morning", "cron": "0 9 * * *", "prompt": "Check inbox" },
+    "invalid": { "name": "", "cron": "0 9 * * *", "prompt": "Check inbox" }
+  },
+  "cancel_routine": { "valid": { "routine": "Morning" }, "invalid": { "routine": "" } },
+  "board_read": { "valid": {}, "invalid": null },
+  "board_add": { "valid": { "entry": "Write report" }, "invalid": {} },
+  "board_update": {
+    "valid": { "find": "Write report", "replace": "Review report" },
+    "invalid": { "find": "Write report" }
+  },
+  "save_skill": {
+    "valid": {
+      "name": "read_inbox",
+      "description": "Read mail",
+      "script": "export default async () => {};"
+    },
+    "invalid": {
+      "name": "Read Inbox",
+      "description": "Read mail",
+      "script": "export default async () => {};"
+    }
+  },
+  "use_identity": {
+    "valid": { "identity": "company-google" },
+    "invalid": { "name": "company-google" }
+  },
+  "capture_screen": { "valid": {}, "invalid": null },
+  "record_screen_start": { "valid": {}, "invalid": null },
+  "record_screen_stop": { "valid": {}, "invalid": null },
+  "mouse_move": { "valid": { "x": 100, "y": 40 }, "invalid": { "x": 0.5, "y": 40 } },
+  "mouse_click": {
+    "valid": { "x": 100, "y": 40, "button": "double" },
+    "invalid": { "x": 100, "y": 40, "button": "back" }
+  },
+  "mouse_scroll": {
+    "valid": { "direction": "down", "amount": 3 },
+    "invalid": { "direction": "down", "amount": 11 }
+  },
+  "keyboard": { "valid": { "keys": ["ctrl+l", "Return"] }, "invalid": { "keys": "ctrl+l" } },
+  "create_bot": {
+    "valid": { "name": "Quill", "role": "Writer", "systemPrompt": "Write reports" },
+    "invalid": { "name": "Quill", "role": "Writer" }
+  },
+  "edit_bot": {
+    "valid": { "botId": "bot-1", "pinned": true },
+    "invalid": { "botId": "bot-1", "pinned": "yes" }
+  },
+  "delete_bot": { "valid": { "botId": "bot-1" }, "invalid": {} },
+  "memory_read": { "valid": {}, "invalid": null },
+  "remember": {
+    "valid": { "fact": "Use British English", "kind": "preference", "scope": "workspace" },
+    "invalid": { "fact": "Use British English", "kind": "preference" }
+  },
+  "memory_search": { "valid": { "query": "English" }, "invalid": {} },
+  "forget": { "valid": { "fact": "Use British English" }, "invalid": {} },
+  "run_skill": {
+    "valid": { "name": "read_inbox", "params": { "count": 3 } },
+    "invalid": { "name": "read_inbox", "approved": true }
+  },
+  "attach_file": { "valid": { "path": "/home/bot/report.pdf", "taskId": "task-1" }, "invalid": {} },
+  "screenshot": { "valid": {}, "invalid": null },
+  "shell": { "valid": { "command": "ls -la" }, "invalid": { "command": 1 } },
+  "fs_read": { "valid": { "path": "notes.md" }, "invalid": {} },
+  "fs_write": {
+    "valid": { "path": "notes.md", "content": "Report" },
+    "invalid": { "path": "notes.md" }
+  },
+  "browser_navigate": { "valid": { "url": "https://example.com" }, "invalid": { "url": 1 } },
+  "browser_read": { "valid": {}, "invalid": null },
+  "browser_click": { "valid": { "reference": "r1_e2" }, "invalid": { "selector": "#send" } },
+  "browser_type": {
+    "valid": { "reference": "r1_e2", "text": "Report" },
+    "invalid": { "reference": "r1_e2" }
+  },
+
+  "search_templates": {
+    "valid": {
+      "query": "content"
+    },
+    "invalid": {
+      "query": 3
+    }
+  },
+  "read_template": {
+    "valid": {
+      "templateId": "content-publishing",
+      "goal": "Publish three useful LinkedIn posts a week."
+    },
+    "invalid": {}
+  },
+  "install_template": {
+    "valid": {
+      "templateId": "content-publishing",
+      "revision": "1"
+    },
+    "invalid": {}
+  }
+}

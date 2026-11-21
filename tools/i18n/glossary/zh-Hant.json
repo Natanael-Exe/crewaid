@@ -1,0 +1,41 @@
+{
+  "address": "friendly, direct, uses 你",
+  "terms": {
+    "bot": "機器人",
+    "crew": "團隊",
+    "specialist": "專家",
+    "routine": "例行工作",
+    "skill": "技能",
+    "plugin": "外掛",
+    "connection": "連結",
+    "tool": "工具",
+    "Work": "工作",
+    "task": "任務",
+    "goal": "目標",
+    "project": "專案",
+    "deliverable": "交付項目",
+    "template": "範本",
+    "computer": "電腦",
+    "screen": "畫面",
+    "take control": "接管",
+    "approval": "核准",
+    "conversation": "對話",
+    "composer": "輸入框",
+    "model": "模型",
+    "call": "通話",
+    "voice message": "語音訊息",
+    "dictation": "語音輸入",
+    "recording": "錄製",
+    "memory": "記憶"
+  },
+  "screens": {
+    "Settings": "設定",
+    "General": "一般",
+    "Models": "模型",
+    "Channels": "頻道",
+    "Plan & usage": "方案與用量",
+    "Computer": "電腦",
+    "Templates": "範本",
+    "Routines": "例行工作"
+  }
+}

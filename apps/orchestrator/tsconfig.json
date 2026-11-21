@@ -1,0 +1,30 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"],
+  // Project references, not just dependencies. CI runs `turbo lint` BEFORE
+  // `turbo build`, and lint has no `dependsOn`, so no workspace package has a
+  // dist/ when the orchestrator is linted. A reference lets TypeScript resolve
+  // the import to the referenced project's SOURCE instead of a built .d.ts;
+  // without one the import silently becomes the `error` type, which behaves as
+  // `any` and sets off every no-unsafe-* rule at once. @crewaid/shared has always
+  // had this, which is why only the newer package tripped it.
+  "references": [
+    { "path": "../../packages/shared/tsconfig.build.json" },
+    { "path": "../../packages/sandbox-core/tsconfig.build.json" },
+    { "path": "../../packages/sandbox-cloudflare/tsconfig.build.json" },
+    { "path": "../../packages/sandbox-digitalocean/tsconfig.build.json" },
+    { "path": "../../packages/sandbox-docker/tsconfig.build.json" },
+    { "path": "../../packages/sandbox-runtime/tsconfig.build.json" },
+    { "path": "../../packages/screen-stream/tsconfig.build.json" }
+  ]
+}

@@ -1,0 +1,244 @@
+# Self-hosted Crewaid (D-152, D-155): the orchestrator, its database and queue,
+# the sandbox egress fence, and the sandbox image the computers run.
+#
+# `npx crewaid-selfhost init` writes this file and its .env; to run it by hand,
+# copy .env.example to .env, fill it in, then `docker compose up -d`.
+# Works on Linux (Docker Engine + Compose v2) and on Docker Desktop (Mac,
+# Windows): the fence runs in the Docker daemon's own network namespace.
+
+name: crewaid
+
+services:
+  postgres:
+    image: postgres:16.10-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: crewaid
+      POSTGRES_DB: crewaid
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD (hex, as it goes into a URL)}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U crewaid -d crewaid']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    # A password as well as a private network (#355): Redis holds every queue,
+    # so anything that reaches it can schedule work as any user. `$$` leaves
+    # the expansion to the container's shell, out of the command line.
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD (hex, as it goes into a URL)}
+    command: ['sh', '-c', 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # The sandbox egress fence (D-155). A computer may reach the internet on 80
+  # and 443 and nothing else: not this machine, not the local network, not a
+  # cloud metadata address. It runs in the Docker daemon's network namespace —
+  # the Linux host, or Docker Desktop's VM — because that is where the sandbox
+  # bridge is. Privileged only to write the bridge-netfilter sysctls; it holds
+  # no Docker socket.
+  egress:
+    image: ghcr.io/natanael-exe/crewaid-egress:${CREWAID_VERSION}
+    restart: unless-stopped
+    network_mode: host
+    privileged: true
+    environment:
+      CREWAID_SANDBOX_BRIDGE: crewaid-sbx0
+      # The orchestrator's address on the sandbox network: the one thing that
+      # may open a connection to a computer, since nothing is published.
+      CREWAID_TRUSTED_SOURCE: ${CREWAID_ORCHESTRATOR_ADDRESS:-10.231.0.2}
+      CREWAID_EGRESS_STATE: /run/crewaid
+    volumes:
+      - egress-state:/run/crewaid
+    depends_on:
+      # Not used by the fence: depending on it makes compose create the
+      # sandbox network (and so its bridge) before this starts.
+      networks-ready:
+        condition: service_completed_successfully
+
+  # Exists to create the sandbox network, and to make sure the
+  # sandbox image is on this machine: the orchestrator starts computers from
+  # it but never pulls it. Runs once and exits.
+  networks-ready:
+    image: ghcr.io/natanael-exe/crewaid-sandbox:${CREWAID_VERSION}
+    entrypoint: ['true']
+    restart: 'no'
+    networks:
+      - sandboxes
+
+  # The one service with the Docker socket (D-200). It starts, stops and
+  # removes computers for the orchestrator and refuses anything else: only the
+  # sandbox image, only the sandbox network, only a bot's own workspace volume,
+  # and only within these limits. It answers on the private `control` network
+  # alone, to requests signed with SANDBOX_SUPERVISOR_SECRET, and is never
+  # published. Same image as the orchestrator, a different program.
+  sandbox-supervisor:
+    image: ghcr.io/natanael-exe/crewaid-orchestrator:${CREWAID_VERSION:?Set CREWAID_VERSION to a release, e.g. 0.1.0}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      SANDBOX_SUPERVISOR_SECRET: ${SANDBOX_SUPERVISOR_SECRET:?Set SANDBOX_SUPERVISOR_SECRET (openssl rand -hex 32)}
+      # Only during a rotation: the secret the orchestrator may still be using.
+      SANDBOX_SUPERVISOR_SECRET_PREVIOUS: ${SANDBOX_SUPERVISOR_SECRET_PREVIOUS:-}
+      SANDBOX_SUPERVISOR_HOST: 0.0.0.0
+      SANDBOX_SUPERVISOR_PORT: '7300'
+      SANDBOX_IMAGE: ghcr.io/natanael-exe/crewaid-sandbox:${CREWAID_VERSION}
+      SANDBOX_NETWORK: crewaid-sandboxes
+      # Nothing is published: the orchestrator reaches a computer's screen,
+      # DevTools and bridge at the computer's own address on the sandbox
+      # network, which it joins below — the one address the fence lets in.
+      # (Docker Desktop cannot publish on a bridge gateway.)
+      SANDBOX_CONNECT: network
+    # Starts no computer before the egress fence has installed its policy.
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        until [ -e /run/crewaid/egress-ready ]; do sleep 2; done
+        exec node packages/sandbox-supervisor/dist/main.js
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:7300/v1/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks:
+      - control
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - egress-state:/run/crewaid:ro
+    depends_on:
+      networks-ready:
+        condition: service_completed_successfully
+
+  orchestrator:
+    image: ghcr.io/natanael-exe/crewaid-orchestrator:${CREWAID_VERSION:?Set CREWAID_VERSION to a release, e.g. 0.1.0}
+    restart: unless-stopped
+    environment:
+      CREWAID_EDITION: selfhosted
+      SEAT_CONTROL_DRAIN_MS: ${SEAT_CONTROL_DRAIN_MS:-5000}
+      SEAT_CONTROL_LEASE_MS: ${SEAT_CONTROL_LEASE_MS:-30000}
+      SEAT_CONTROL_AGENT_WAIT_MS: ${SEAT_CONTROL_AGENT_WAIT_MS:-120000}
+      NODE_ENV: production
+      PORT: '3000'
+      DATABASE_URL: postgresql://crewaid:${POSTGRES_PASSWORD}@postgres:5432/crewaid?schema=public
+      MIGRATION_DATABASE_URL: postgresql://crewaid:${POSTGRES_PASSWORD}@postgres:5432/crewaid?schema=public
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the address the desktop app will use, e.g. http://localhost:3000}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET}
+      CREWAID_CREDENTIAL_KEYRING: ${CREWAID_CREDENTIAL_KEYRING:?Set CREWAID_CREDENTIAL_KEYRING}
+      CREDENTIAL_KEY: ${CREDENTIAL_KEY:?Set CREDENTIAL_KEY}
+      ARTIFACT_DIR: /var/lib/crewaid/artifacts
+      # D-220: optional. Set all four to keep files in R2 instead of the
+      # artifacts volume; set none to keep them on this host.
+      ARTIFACT_R2_ACCOUNT_ID: ${ARTIFACT_R2_ACCOUNT_ID:-}
+      ARTIFACT_R2_ACCESS_KEY_ID: ${ARTIFACT_R2_ACCESS_KEY_ID:-}
+      ARTIFACT_R2_SECRET_ACCESS_KEY: ${ARTIFACT_R2_SECRET_ACCESS_KEY:-}
+      ARTIFACT_R2_BUCKET: ${ARTIFACT_R2_BUCKET:-}
+      SANDBOX_PROVIDER: docker
+      # Must match the supervisor's: it refuses any other image or network.
+      SANDBOX_IMAGE: ghcr.io/natanael-exe/crewaid-sandbox:${CREWAID_VERSION}
+      SANDBOX_NETWORK: crewaid-sandboxes
+      # No Docker socket here (D-200): computers are started by the supervisor.
+      SANDBOX_SUPERVISOR_URL: http://sandbox-supervisor:7300
+      SANDBOX_SUPERVISOR_SECRET: ${SANDBOX_SUPERVISOR_SECRET:?Set SANDBOX_SUPERVISOR_SECRET (openssl rand -hex 32)}
+      SANDBOX_MAX_RUNNING: ${SANDBOX_MAX_RUNNING:-2}
+    # Docker restarts this container on boot alongside the fence. Starting only
+    # once the fence's marker exists keeps a routine from waking a computer
+    # with no egress policy; if the fence fails, this never starts.
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        if [ ! -e /run/crewaid/egress-ready ]; then
+          echo 'Waiting for the egress fence (the "egress" service) to install its policy' >&2
+          until [ -e /run/crewaid/egress-ready ]; do sleep 2; done
+        fi
+        exec infra/dokploy/orchestrator-entrypoint.sh
+    ports:
+      # This computer only, unless the installer chose the local network.
+      - ${CREWAID_BIND:-127.0.0.1}:${CREWAID_PORT:-3000}:3000
+    networks:
+      default: {}
+      control: {}
+      sandboxes:
+        ipv4_address: ${CREWAID_ORCHESTRATOR_ADDRESS:-10.231.0.2}
+    volumes:
+      - egress-state:/run/crewaid:ro
+      - artifacts:/var/lib/crewaid/artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      networks-ready:
+        condition: service_completed_successfully
+      sandbox-supervisor:
+        condition: service_healthy
+
+  # HTTPS for a server reached by a domain name: `--profile https`, with
+  # CREWAID_DOMAIN pointing at this machine. Certificates come from Let's
+  # Encrypt automatically; WebSockets pass through.
+  caddy:
+    image: caddy:2.10-alpine
+    profiles: [https]
+    restart: unless-stopped
+    command:
+      ['caddy', 'reverse-proxy', '--from', '${CREWAID_DOMAIN:-}', '--to', 'orchestrator:3000']
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - caddy-data:/data
+    depends_on:
+      - orchestrator
+
+networks:
+  default: {}
+  # The orchestrator and the sandbox supervisor, and nothing else. Internal:
+  # no route out, so the supervisor talks to the Docker socket and to its one
+  # caller.
+  control:
+    internal: true
+  # Computers. The fence lets a computer out only to the internet on 80/443,
+  # and lets only the orchestrator's address open connections into it.
+  # 10.x on purpose: Docker hands out 172.17–31 and 192.168 to new networks,
+  # so a fixed range there collides on any machine with a few compose
+  # projects. The installer checks this range is free and picks another if not.
+  sandboxes:
+    name: crewaid-sandboxes
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: crewaid-sbx0
+    ipam:
+      config:
+        - subnet: ${CREWAID_SANDBOX_SUBNET:-10.231.0.0/24}
+
+volumes:
+  postgres-data:
+  redis-data:
+  artifacts:
+  caddy-data:
+  # tmpfs: emptied when the daemon or machine restarts, so the orchestrator
+  # waits for the fence to install its policy again before it starts.
+  egress-state:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=1m,mode=0755

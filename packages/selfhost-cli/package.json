@@ -1,0 +1,24 @@
+{
+  "name": "crewaid-selfhost",
+  "version": "0.0.0",
+  "description": "Install, update and look after a self-hosted Crewaid server (Docker).",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "homepage": "https://crewaid.io/self-host",
+  "bin": {
+    "crewaid-selfhost": "bin/crewaid-selfhost.mjs"
+  },
+  "files": [
+    "LICENSE",
+    "bin",
+    "src",
+    "assets",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\""
+  }
+}

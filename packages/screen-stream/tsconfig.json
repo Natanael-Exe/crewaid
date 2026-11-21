@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "composite": false,
+    "incremental": false
+  },
+  "include": ["src/**/*.ts", "vitest.config.mts"],
+  "exclude": ["node_modules", "dist"],
+  "references": [{ "path": "../shared/tsconfig.build.json" }]
+}

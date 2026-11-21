@@ -1,0 +1,41 @@
+{
+  "address": "informal jy, direct",
+  "terms": {
+    "bot": "bot",
+    "crew": "span",
+    "specialist": "spesialis",
+    "routine": "roetine",
+    "skill": "vaardigheid",
+    "plugin": "inprop",
+    "connection": "koppeling",
+    "tool": "hulpmiddel",
+    "Work": "Work",
+    "task": "taak",
+    "goal": "doel",
+    "project": "projek",
+    "deliverable": "leweransie",
+    "template": "sjabloon",
+    "computer": "rekenaar",
+    "screen": "skerm",
+    "take control": "neem oor",
+    "approval": "goedkeuring",
+    "conversation": "gesprek",
+    "composer": "skryfveld",
+    "model": "model",
+    "call": "oproep",
+    "voice message": "stemnota",
+    "dictation": "diktee",
+    "recording": "opname",
+    "memory": "geheue"
+  },
+  "screens": {
+    "Settings": "Instellings",
+    "General": "Algemeen",
+    "Models": "Modelle",
+    "Channels": "Kanale",
+    "Plan & usage": "Plan en gebruik",
+    "Computer": "Rekenaar",
+    "Templates": "Sjablone",
+    "Routines": "Roetines"
+  }
+}

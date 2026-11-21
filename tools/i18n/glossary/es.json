@@ -1,0 +1,41 @@
+{
+  "address": "tú, informal, neutral Latin American Spanish",
+  "terms": {
+    "bot": "bot",
+    "crew": "equipo",
+    "specialist": "especialista",
+    "routine": "rutina",
+    "skill": "habilidad",
+    "plugin": "complemento",
+    "connection": "conexión",
+    "tool": "herramienta",
+    "Work": "Trabajo",
+    "task": "tarea",
+    "goal": "objetivo",
+    "project": "proyecto",
+    "deliverable": "entregable",
+    "template": "plantilla",
+    "computer": "computadora",
+    "screen": "pantalla",
+    "take control": "tomar el control",
+    "approval": "aprobación",
+    "conversation": "conversación",
+    "composer": "campo de mensaje",
+    "model": "modelo",
+    "call": "llamada",
+    "voice message": "mensaje de voz",
+    "dictation": "dictado",
+    "recording": "grabación",
+    "memory": "memoria"
+  },
+  "screens": {
+    "Settings": "Configuración",
+    "General": "General",
+    "Models": "Modelos",
+    "Channels": "Canales",
+    "Plan & usage": "Plan y uso",
+    "Computer": "Computadora",
+    "Templates": "Plantillas",
+    "Routines": "Rutinas"
+  }
+}

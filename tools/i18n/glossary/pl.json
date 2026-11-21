@@ -1,0 +1,41 @@
+{
+  "address": "informal, second person singular (Ty)",
+  "terms": {
+    "bot": "bot",
+    "crew": "ekipa",
+    "specialist": "specjalista",
+    "routine": "rutyna",
+    "skill": "umiejętność",
+    "plugin": "wtyczka",
+    "connection": "połączenie",
+    "tool": "narzędzie",
+    "Work": "Praca",
+    "task": "zadanie",
+    "goal": "cel",
+    "project": "projekt",
+    "deliverable": "wynik",
+    "template": "szablon",
+    "computer": "komputer",
+    "screen": "ekran",
+    "take control": "przejmij kontrolę",
+    "approval": "zatwierdzenie",
+    "conversation": "czat",
+    "composer": "pole wiadomości",
+    "model": "model",
+    "call": "rozmowa",
+    "voice message": "wiadomość głosowa",
+    "dictation": "dyktowanie",
+    "recording": "nagrywanie",
+    "memory": "pamięć"
+  },
+  "screens": {
+    "Settings": "Ustawienia",
+    "General": "Ogólne",
+    "Models": "Modele",
+    "Channels": "Kanały",
+    "Plan & usage": "Plan i użycie",
+    "Computer": "Komputer",
+    "Templates": "Szablony",
+    "Routines": "Rutyny"
+  }
+}

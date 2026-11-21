@@ -1,0 +1,41 @@
+{
+  "address": "du (informal, singular)",
+  "terms": {
+    "bot": "Bot",
+    "crew": "Crew",
+    "specialist": "Spezialist",
+    "routine": "Routine",
+    "skill": "Fähigkeit",
+    "plugin": "Plugin",
+    "connection": "Verbindung",
+    "tool": "Tool",
+    "Work": "Work",
+    "task": "Aufgabe",
+    "goal": "Ziel",
+    "project": "Projekt",
+    "deliverable": "Ergebnis",
+    "template": "Vorlage",
+    "computer": "Computer",
+    "screen": "Bildschirm",
+    "take control": "Steuerung übernehmen",
+    "approval": "Freigabe",
+    "conversation": "Chat",
+    "composer": "Eingabefeld",
+    "model": "Modell",
+    "call": "Anruf",
+    "voice message": "Sprachnachricht",
+    "dictation": "Spracheingabe",
+    "recording": "Aufzeichnung",
+    "memory": "Gedächtnis"
+  },
+  "screens": {
+    "Settings": "Einstellungen",
+    "General": "Allgemein",
+    "Models": "Modelle",
+    "Channels": "Kanäle",
+    "Plan & usage": "Tarif & Nutzung",
+    "Computer": "Computer",
+    "Templates": "Vorlagen",
+    "Routines": "Routinen"
+  }
+}

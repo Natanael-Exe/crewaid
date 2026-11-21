@@ -1,0 +1,41 @@
+{
+  "address": "आप — respectful, gender-neutral",
+  "terms": {
+    "bot": "बॉट",
+    "crew": "क्रू",
+    "specialist": "विशेषज्ञ",
+    "routine": "रूटीन",
+    "skill": "कौशल",
+    "plugin": "प्लगइन",
+    "connection": "कनेक्शन",
+    "tool": "टूल",
+    "Work": "वर्क",
+    "task": "कार्य",
+    "goal": "लक्ष्य",
+    "project": "प्रोजेक्ट",
+    "deliverable": "डिलीवरेबल",
+    "template": "टेम्पलेट",
+    "computer": "कंप्यूटर",
+    "screen": "स्क्रीन",
+    "take control": "नियंत्रण लें",
+    "approval": "मंज़ूरी",
+    "conversation": "बातचीत",
+    "composer": "संदेश बॉक्स",
+    "model": "मॉडल",
+    "call": "कॉल",
+    "voice message": "वॉइस मैसेज",
+    "dictation": "बोलकर लिखना",
+    "recording": "रिकॉर्डिंग",
+    "memory": "मेमोरी"
+  },
+  "screens": {
+    "Settings": "सेटिंग्स",
+    "General": "सामान्य",
+    "Models": "मॉडल",
+    "Channels": "चैनल",
+    "Plan & usage": "प्लान और उपयोग",
+    "Computer": "कंप्यूटर",
+    "Templates": "टेम्पलेट्स",
+    "Routines": "रूटीन्स"
+  }
+}

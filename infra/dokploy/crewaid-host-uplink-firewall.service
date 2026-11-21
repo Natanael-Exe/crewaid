@@ -1,0 +1,17 @@
+# Closes Docker Swarm's ports and Dokploy's 3000 on the uplink of a one-node
+# Dokploy host (see host-uplink-firewall.sh). PartOf/WantedBy docker.service
+# re-applies it whenever Docker restarts, which re-creates its own chains.
+[Unit]
+Description=Crewaid host uplink firewall for a one-node Dokploy install
+Wants=network-online.target
+After=network-online.target docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh /opt/crewaid/infra/dokploy/host-uplink-firewall.sh
+ExecReload=/bin/sh /opt/crewaid/infra/dokploy/host-uplink-firewall.sh
+
+[Install]
+WantedBy=multi-user.target docker.service

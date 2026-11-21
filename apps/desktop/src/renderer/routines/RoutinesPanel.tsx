@@ -1,0 +1,643 @@
+import { Button, Chip, Modal, Spinner, Switch } from '@heroui/react';
+import {
+  IconAlertTriangle,
+  IconPencil,
+  IconPlayerPlay,
+  IconPlus,
+  IconTrash,
+} from '@tabler/icons-react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import type {
+  CreateRoutineBody,
+  GoalWithProgress,
+  Routine,
+  UpdateRoutineBody,
+} from '@crewaid/shared';
+
+import {
+  createRoutine,
+  deleteRoutine,
+  failureOf,
+  listRoutines,
+  runRoutineNow,
+  updateRoutine,
+  type ApiClient,
+} from '../api';
+import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
+import { listGoals } from '../api/work';
+import { Picker } from '../work/Fields';
+import { EndsField, ScheduleField, TimezonePicker } from './RoutineScheduleFields';
+import { formatDay } from './scheduleChoices';
+import {
+  createBodyOf,
+  draftFromRoutine,
+  draftProblem,
+  emptyDraft,
+  isInFlight,
+  lastRunView,
+  routineEnded,
+  routinesForBot,
+  scheduleText,
+  updateBodyOf,
+  type RoutineDraft,
+  type RunTone,
+} from './routinesState';
+import { defaultTimezone } from '../settings/accountSettings';
+import { useT } from '../i18n/i18n';
+
+/**
+ * The right rail's routine panel: create, edit, enable/disable,
+ * run-now and last-run status, for the selected bot.
+ *
+ * It lists what the bot scheduled for itself beside the operator's own,
+ * marked, because a schedule nobody can see is the failure M8-BE-08 exists
+ * to prevent. Every write re-reads the list rather than patching it
+ * locally: the server is what decides a disabled routine is unscheduled or a
+ * cron is valid, and the panel shows its answer.
+ *
+ * Why it polls
+ *
+ * A run's outcome lands in `lastStatus` long after the 202, and nothing on
+ * the WebSocket announces it. The panel re-reads on a short interval while
+ * any routine is running or was just started, and on a long one otherwise, so
+ * a schedule that fired while the operator watched does not sit at "Never
+ * run". The whole list is one small query for one user's routines.
+ */
+
+export type RoutineActions = {
+  readonly list: () => Promise<Routine[]>;
+  readonly create: (body: CreateRoutineBody) => Promise<unknown>;
+  readonly update: (id: string, body: UpdateRoutineBody) => Promise<unknown>;
+  readonly remove: (id: string) => Promise<void>;
+  readonly runNow: (id: string) => Promise<unknown>;
+  /** The user's active goals, for the form's Goal and the row's chip. */
+  readonly goals?: () => Promise<readonly GoalWithProgress[]>;
+};
+
+export function liveRoutineActions(client: ApiClient): RoutineActions {
+  return {
+    list: () => listRoutines(client),
+    create: (body) => createRoutine(client, body),
+    update: (id, body) => updateRoutine(client, id, body),
+    remove: (id) => deleteRoutine(client, id),
+    runNow: (id) => runRoutineNow(client, id),
+    goals: () => listGoals(client, { status: 'ACTIVE' }),
+  };
+}
+
+const ACTIVE_POLL_MS = 3_000;
+const IDLE_POLL_MS = 30_000;
+
+const TONE_CHIP: Record<RunTone, 'success' | 'danger' | 'accent' | 'default'> = {
+  success: 'success',
+  danger: 'danger',
+  accent: 'accent',
+  default: 'default',
+};
+
+type Editing = { readonly kind: 'new' } | { readonly kind: 'edit'; readonly routine: Routine };
+
+export type RoutinesPanelProps = {
+  readonly botId: string | null;
+  readonly actions: RoutineActions;
+  /** Rows to render before the first read lands — the render tests' seam. */
+  readonly initial?: readonly Routine[];
+  readonly now?: () => Date;
+};
+
+export function RoutinesPanel({
+  botId,
+  actions,
+  initial,
+  now = () => new Date(),
+}: RoutinesPanelProps) {
+  const t = useT();
+  const [all, setAll] = useState<readonly Routine[] | null>(initial ?? null);
+  /** A write the operator made failed: interrupting them is right. */
+  const [problem, setProblem] = useState<string | null>(null);
+  /**
+   * The background read failed. Not an alert: nobody asked for it, it repeats
+   * on every poll, and an assistive-tech announcement per poll about a panel
+   * the operator is not using would be noise. The last good list stays up.
+   */
+  const [readProblem, setReadProblem] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Editing | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [managing, setManaging] = useState(false);
+  const kickedAt = useRef(0);
+  const [goals, setGoals] = useState<readonly GoalWithProgress[]>([]);
+  useEffect(() => {
+    // Goals are optional here: without any, the form has no Goal field and
+    // no row carries a chip, exactly as before Work existed.
+    actions
+      .goals?.()
+      .then(setGoals)
+      .catch(() => setGoals([]));
+  }, [actions, botId]);
+
+  const refresh = useCallback(async () => {
+    try {
+      setAll(await actions.list());
+      setReadProblem(null);
+    } catch (error: unknown) {
+      setReadProblem(failureOf(error).message);
+    }
+  }, [actions]);
+
+  useEffect(() => {
+    setEditing(null);
+    setManaging(false);
+    setConfirmDelete(null);
+    void refresh();
+  }, [botId, refresh]);
+
+  const mine = botId === null || all === null ? [] : routinesForBot(all, botId);
+  const active = mine.some(isInFlight) || Date.now() - kickedAt.current < 15_000;
+  useEffect(() => {
+    if (botId === null) return undefined;
+    const timer = setInterval(() => void refresh(), active ? ACTIVE_POLL_MS : IDLE_POLL_MS);
+    return () => clearInterval(timer);
+  }, [botId, active, refresh]);
+
+  /** One write, then the server's answer. The failure is the panel's to show. */
+  const run = async (key: string, act: () => Promise<unknown>): Promise<boolean> => {
+    setBusy(key);
+    try {
+      await act();
+      setProblem(null);
+      await refresh();
+      return true;
+    } catch (error: unknown) {
+      setProblem(failureOf(error).message);
+      return false;
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (botId === null) return null;
+
+  const form =
+    editing === null ? null : (
+      <RoutineForm
+        key={editing.kind === 'edit' ? editing.routine.id : 'new'}
+        initial={
+          editing.kind === 'edit'
+            ? draftFromRoutine(editing.routine)
+            : emptyDraft(defaultTimezone())
+        }
+        runsSkill={editing.kind === 'edit' && editing.routine.skillId !== null}
+        goals={goals}
+        busy={busy === 'form'}
+        submitLabel={
+          editing.kind === 'edit'
+            ? t('routines.routinesPanel.save')
+            : t('routines.routinesPanel.create')
+        }
+        onCancel={() => setEditing(null)}
+        onSubmit={async (draft) => {
+          const ok =
+            editing.kind === 'new'
+              ? await run('form', () => actions.create(createBodyOf(draft, botId)))
+              : await run('form', async () => {
+                  const body = updateBodyOf(draft, editing.routine);
+                  if (body !== null) await actions.update(editing.routine.id, body);
+                });
+          if (ok) setEditing(null);
+        }}
+      />
+    );
+
+  return (
+    <section
+      aria-label={t('routines.routinesPanel.routines')}
+      className="crewaid-routines flex flex-col gap-2 pt-4"
+    >
+      <div className="flex items-center justify-between">
+        <h2 className="text-[13px] font-semibold text-foreground">
+          {t('routines.routinesPanel.routines')}
+        </h2>
+        <div className="flex items-center gap-2">
+          {mine.length === 0 ? null : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={() => setManaging(true)}
+              className="h-8 px-1 text-[13px] text-muted"
+            >
+              {t('routines.routinesPanel.manage')}
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={() => setEditing({ kind: 'new' })}
+            className="crewaid-create-routine h-8 gap-1 rounded-full px-2.5 text-[13px]"
+          >
+            <IconPlus className="size-3.5" stroke={1.8} aria-hidden />{' '}
+            {t('routines.routinesPanel.createRoutine')}
+          </Button>
+        </div>
+      </div>
+
+      {problem !== null ? (
+        <p
+          role="alert"
+          className="flex items-start gap-1.5 rounded-[10px] bg-danger/10 px-3 py-2 text-[12px] leading-4 text-danger"
+        >
+          <IconAlertTriangle className="mt-px size-3.5 shrink-0" stroke={1.8} aria-hidden />
+          {problem}
+        </p>
+      ) : null}
+
+      {readProblem !== null && problem === null ? (
+        <p role="status" className="text-[12px] leading-4 text-muted">
+          {t('routines.loadFailed', { reason: readProblem })}
+        </p>
+      ) : null}
+
+      {all === null && readProblem !== null ? null : all === null ? (
+        <div className="flex justify-center py-6">
+          <Spinner size="sm" aria-label={t('routines.routinesPanel.loadingRoutines')} />
+        </div>
+      ) : mine.length === 0 && editing === null ? (
+        <div className="flex min-h-[160px] flex-col items-center justify-center gap-3 px-4 py-8 text-center">
+          <p className="max-w-[235px] text-[13px] leading-5 text-muted">
+            {t('routines.routinesPanel.setAScheduleAndA')}
+          </p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {mine.map((routine) => (
+            <RoutineRow
+              key={routine.id}
+              routine={routine}
+              goal={goals.find((goal) => goal.id === routine.goalId)?.title ?? null}
+              now={now()}
+              busy={busy === routine.id}
+              confirmingDelete={confirmDelete === routine.id}
+              onToggle={(enabled) =>
+                void run(routine.id, () => actions.update(routine.id, { enabled }))
+              }
+              onRunNow={() => {
+                kickedAt.current = Date.now();
+                void run(routine.id, () => actions.runNow(routine.id));
+              }}
+              onEdit={() => {
+                setConfirmDelete(null);
+                setEditing({ kind: 'edit', routine });
+              }}
+              onAskDelete={() => setConfirmDelete(routine.id)}
+              onCancelDelete={() => setConfirmDelete(null)}
+              onDelete={() => {
+                setConfirmDelete(null);
+                void run(routine.id, () => actions.remove(routine.id));
+              }}
+            />
+          ))}
+        </ul>
+      )}
+      <Modal
+        isOpen={editing !== null || managing}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditing(null);
+            setManaging(false);
+          }
+        }}
+      >
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog className="crewaid-routine-dialog w-[min(640px,calc(100vw-40px))] max-w-none rounded-[24px]">
+              <Modal.CloseTrigger />
+              <Modal.Header>
+                <Modal.Heading>
+                  {editing?.kind === 'new'
+                    ? t('routines.routinesPanel.createRoutine')
+                    : editing?.kind === 'edit'
+                      ? t('routines.routinesPanel.editRoutine')
+                      : t('routines.routinesPanel.manageRoutines')}
+                </Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                {form ?? (
+                  <ul className="flex flex-col gap-2">
+                    {mine.map((routine) => (
+                      <li key={routine.id} className="flex items-center justify-between gap-3 py-3">
+                        <div>
+                          <p className="font-medium">{routine.name}</p>
+                          <p className="text-sm text-muted">{scheduleText(routine.cron)}</p>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onPress={() => setEditing({ kind: 'edit', routine })}
+                        >
+                          {t('routines.edit', { name: routine.name })}
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {problem === null ? null : (
+                  <p role="alert" className="mt-3 text-sm text-danger">
+                    {problem}
+                  </p>
+                )}
+              </Modal.Body>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
+    </section>
+  );
+}
+
+function RoutineRow({
+  routine,
+  goal,
+  now,
+  busy,
+  confirmingDelete,
+  onToggle,
+  onRunNow,
+  onEdit,
+  onAskDelete,
+  onCancelDelete,
+  onDelete,
+}: {
+  readonly routine: Routine;
+  /** The title of the goal it works toward, when it has one. */
+  readonly goal: string | null;
+  readonly now: Date;
+  readonly busy: boolean;
+  readonly confirmingDelete: boolean;
+  readonly onToggle: (enabled: boolean) => void;
+  readonly onRunNow: () => void;
+  readonly onEdit: () => void;
+  readonly onAskDelete: () => void;
+  readonly onCancelDelete: () => void;
+  readonly onDelete: () => void;
+}) {
+  const t = useT();
+  const last = lastRunView(routine, now);
+  const ended = routineEnded(routine, now);
+  return (
+    <li
+      data-routine-id={routine.id}
+      className="flex flex-col gap-2 rounded-[12px] border border-separator bg-background-secondary/40 px-3 py-2.5"
+    >
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="truncate text-[13px] font-medium text-foreground">{routine.name}</span>
+            {routine.origin === 'BOT' ? (
+              // The operator must be able to tell what the bot
+              // scheduled for itself from what they set up.
+              <Chip
+                size="sm"
+                variant="soft"
+                color="warning"
+                title={t('routines.routinesPanel.thisBotScheduledItItself')}
+              >
+                <Chip.Label>{t('routines.routinesPanel.setByBot')}</Chip.Label>
+              </Chip>
+            ) : null}
+            {goal === null ? null : (
+              <Chip
+                size="sm"
+                variant="soft"
+                title={t('routines.routinesPanel.theGoalThisRoutineWorks')}
+              >
+                <Chip.Label>◎ {goal}</Chip.Label>
+              </Chip>
+            )}
+          </div>
+          <p className="mt-0.5 text-[12px] leading-4 text-muted" title={routine.cron}>
+            {scheduleText(routine.cron)} · {routine.timezone.replaceAll('_', ' ')}
+          </p>
+          {routine.endsOn !== null ? (
+            <p className={`mt-0.5 text-[11px] ${ended ? 'text-danger' : 'text-muted'}`}>
+              {ended ? t('routines.routinesPanel.ended') : t('routines.routinesPanel.until')}{' '}
+              {formatDay(routine.endsOn)}
+            </p>
+          ) : null}
+        </div>
+        <Switch
+          size="sm"
+          isSelected={routine.enabled}
+          isDisabled={busy}
+          onChange={onToggle}
+          aria-label={t('routines.enabled', { name: routine.name })}
+          className="shrink-0"
+        >
+          <Switch.Content>
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+          </Switch.Content>
+        </Switch>
+      </div>
+
+      <div className="flex items-center gap-1">
+        <Chip size="sm" variant="soft" color={TONE_CHIP[last.tone]}>
+          <Chip.Label>{last.label}</Chip.Label>
+        </Chip>
+        <span className="flex-1" />
+        {confirmingDelete ? (
+          <>
+            <span className="text-[12px] text-muted">{t('routines.routinesPanel.delete')}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={onDelete}
+              className="h-7 rounded-lg px-2 text-[12px] text-danger"
+            >
+              {t('routines.routinesPanel.delete2')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={onCancelDelete}
+              className="h-7 rounded-lg px-2 text-[12px]"
+            >
+              {t('routines.routinesPanel.keep')}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              variant="ghost"
+              isIconOnly
+              size="sm"
+              aria-label={t('routines.runNow', { name: routine.name })}
+              // A disabled or ended routine is refused by the server (409,
+              // D-120/D-127); the button says so up front instead.
+              isDisabled={busy || !routine.enabled || ended}
+              onPress={onRunNow}
+              className="size-7 rounded-lg text-muted"
+            >
+              <IconPlayerPlay className="size-3.5" stroke={1.8} />
+            </Button>
+            <Button
+              variant="ghost"
+              isIconOnly
+              size="sm"
+              aria-label={t('routines.edit', { name: routine.name })}
+              isDisabled={busy}
+              onPress={onEdit}
+              className="size-7 rounded-lg text-muted"
+            >
+              <IconPencil className="size-3.5" stroke={1.8} />
+            </Button>
+            <Button
+              variant="ghost"
+              isIconOnly
+              size="sm"
+              aria-label={t('routines.delete', { name: routine.name })}
+              isDisabled={busy}
+              onPress={onAskDelete}
+              className="size-7 rounded-lg text-muted"
+            >
+              <IconTrash className="size-3.5" stroke={1.8} />
+            </Button>
+          </>
+        )}
+      </div>
+    </li>
+  );
+}
+
+function RoutineForm({
+  initial,
+  runsSkill,
+  goals,
+  busy,
+  submitLabel,
+  onCancel,
+  onSubmit,
+}: {
+  readonly initial: RoutineDraft;
+  readonly runsSkill: boolean;
+  readonly goals: readonly GoalWithProgress[];
+  readonly busy: boolean;
+  readonly submitLabel: string;
+  readonly onCancel: () => void;
+  readonly onSubmit: (draft: RoutineDraft) => Promise<void>;
+}) {
+  const t = useT();
+  const id = useId();
+  const [draft, setDraft] = useState<RoutineDraft>(initial);
+  const [touched, setTouched] = useState(false);
+  const blocked = draftProblem(draft, runsSkill, initial.endsOn);
+  const set = (field: 'name' | 'cron' | 'timezone' | 'prompt') => (value: string) =>
+    setDraft((current) => ({ ...current, [field]: value }));
+  const setEndsOn = (endsOn: string | null) => setDraft((current) => ({ ...current, endsOn }));
+
+  return (
+    <form
+      aria-label={
+        submitLabel === 'Create'
+          ? t('routines.routinesPanel.newRoutine')
+          : t('routines.routinesPanel.editRoutine')
+      }
+      className="crewaid-routine-form flex flex-col gap-2.5 rounded-[12px] border border-separator px-3 py-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setTouched(true);
+        if (blocked === null) void onSubmit(draft);
+      }}
+    >
+      <Field id={`${id}-name`} label={t('routines.routinesPanel.name')}>
+        <input
+          id={`${id}-name`}
+          value={draft.name}
+          onChange={(event) => set('name')(event.target.value)}
+          placeholder={t('routines.routinesPanel.morningDigest')}
+          className={SETTINGS_INPUT_CLASS}
+        />
+      </Field>
+      <ScheduleField
+        cron={draft.cron}
+        timezone={draft.timezone}
+        endsOn={draft.endsOn}
+        onCronChange={set('cron')}
+        onEndsChange={setEndsOn}
+      />
+      <TimezonePicker value={draft.timezone} onChange={set('timezone')} />
+      <EndsField endsOn={draft.endsOn} timezone={draft.timezone} onChange={setEndsOn} />
+      {goals.length === 0 && draft.goalId === null ? null : (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[12px] font-medium text-foreground">
+            {t('routines.routinesPanel.goal')}
+          </span>
+          <Picker
+            label={t('routines.routinesPanel.goal')}
+            value={draft.goalId}
+            noneLabel={t('routines.routinesPanel.noGoal')}
+            options={goals.map((goal) => ({ id: goal.id, label: goal.title }))}
+            onChange={(goalId) => setDraft((current) => ({ ...current, goalId }))}
+          />
+        </div>
+      )}
+      {runsSkill ? (
+        <p className="text-[12px] text-muted">{t('routines.routinesPanel.runsASkillWithSaved')}</p>
+      ) : (
+        <Field id={`${id}-prompt`} label={t('routines.routinesPanel.whatShouldTheBotDo')}>
+          <textarea
+            id={`${id}-prompt`}
+            value={draft.prompt}
+            onChange={(event) => set('prompt')(event.target.value)}
+            rows={3}
+            placeholder={t('routines.routinesPanel.summariseYesterdaySUnreadEmail')}
+            className={`${SETTINGS_INPUT_CLASS} h-auto py-2`}
+          />
+        </Field>
+      )}
+      {touched && blocked !== null ? (
+        <p role="alert" className="text-[12px] text-danger">
+          {blocked}
+        </p>
+      ) : null}
+      <div className="flex justify-end gap-1.5">
+        <Button
+          variant="ghost"
+          size="sm"
+          onPress={onCancel}
+          className="h-8 rounded-[10px] px-3 text-[12px]"
+        >
+          {t('routines.routineScheduleFields.cancel')}
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          size="sm"
+          isDisabled={busy}
+          className="h-8 rounded-[10px] px-3.5 text-[12px] font-medium"
+        >
+          {submitLabel}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function Field({
+  id,
+  label,
+  children,
+}: {
+  readonly id: string;
+  readonly label: string;
+  readonly children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-[12px] font-medium text-foreground">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}

@@ -1,0 +1,25 @@
+-- M6-BE-05: what a refresh needs, beside the tokens it refreshes.
+--
+-- A refresh token is not enough on its own. RFC 6749's refresh grant also
+-- wants the token endpoint it was issued from, the client id the grant belongs
+-- to, and — for an MCP server — the `resource` the token is for (RFC 8707).
+-- M6-BE-03 recorded exactly those three on `McpOAuthFlow`, which the callback
+-- then DELETES as the single-use row it is; after a successful connect nothing
+-- on disk knew the token endpoint any more, and re-discovery is not a
+-- substitute for a private server that answers 401 without a bearer.
+--
+-- So the three move onto the credential row, as one JSON object rather than
+-- three columns or a table of its own (D-103): they are written together, read
+-- together, never queried across rows, and they cascade away with the
+-- credential and the server — the revocation path §7.3 already names.
+--
+-- ⚠️ NOT ENCRYPTED, UNLIKE THE TWO COLUMNS BESIDE IT. A public PKCE client
+-- has no secret to keep, the token endpoint is a URL the user has already been
+-- sent to, and `resource` is the server's own URL. Nothing here is a bearer.
+--
+-- Nullable, and deliberately without a default: a credential written before
+-- this migration has no metadata. It keeps working until its access token
+-- expires, and then the refresh path refuses with NEEDS_REAUTH and the one fix
+-- that exists for a missing grant — reconnect the server.
+
+ALTER TABLE "McpCredential" ADD COLUMN "authMetadata" JSONB;

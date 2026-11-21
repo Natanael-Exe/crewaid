@@ -1,0 +1,41 @@
+{
+  "address": "neutral вы, lowercase",
+  "terms": {
+    "bot": "бот",
+    "crew": "команда",
+    "specialist": "специалист",
+    "routine": "автозадача",
+    "skill": "навык",
+    "plugin": "плагин",
+    "connection": "подключение",
+    "tool": "инструмент",
+    "Work": "Работа",
+    "task": "задача",
+    "goal": "цель",
+    "project": "проект",
+    "deliverable": "результат",
+    "template": "шаблон",
+    "computer": "компьютер",
+    "screen": "экран",
+    "take control": "взять управление",
+    "approval": "подтверждение",
+    "conversation": "чат",
+    "composer": "поле ввода",
+    "model": "модель",
+    "call": "звонок",
+    "voice message": "голосовое сообщение",
+    "dictation": "диктовка",
+    "recording": "запись",
+    "memory": "память"
+  },
+  "screens": {
+    "Settings": "Настройки",
+    "General": "Общие",
+    "Models": "Модели",
+    "Channels": "Мессенджеры",
+    "Plan & usage": "Тариф и использование",
+    "Computer": "Компьютер",
+    "Templates": "Шаблоны",
+    "Routines": "Автозадачи"
+  }
+}

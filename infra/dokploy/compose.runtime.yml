@@ -1,0 +1,79 @@
+# Dokploy Compose mode (not Stack), for a deployment whose computers run as
+# Runtime (withruntime.com) sandboxes (D-217). Add the HTTPS domain to the
+# orchestrator service on container port 3000 in Dokploy's Domains tab.
+#
+# Unlike compose.yml, nothing here reaches the host's Docker: no socket mount,
+# no crewaid-control network and no wait for the egress unit. Those exist to
+# publish and fence sandbox containers on this VPS, and there are none here —
+# the machines are remote, and each port reaches the orchestrator through a
+# loopback listener over Runtime's authenticated tunnel, inside its own process.
+services:
+  orchestrator:
+    build:
+      context: ../..
+      dockerfile: infra/dokploy/Dockerfile
+      args:
+        CREWAID_VERSION: ${CREWAID_RELEASE_TAG:?Set the release being deployed}
+    image: crewaid/orchestrator:${CREWAID_RELEASE_TAG:?Set the release being deployed}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set the Neon pooled connection URL}
+      MIGRATION_DATABASE_URL: ${MIGRATION_DATABASE_URL:?Set the Neon direct connection URL}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the public HTTPS origin}
+      # The hosted service (D-152). Fixed rather than read from .env: a stray
+      # `selfhosted` would open password sign-up on a public server.
+      CREWAID_EDITION: cloud
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set a signing secret}
+      CREWAID_CREDENTIAL_KEYRING: ${CREWAID_CREDENTIAL_KEYRING:?Set the provider keyring}
+      # Fixed rather than read from .env: this file only makes sense with it,
+      # and a stray `docker` would boot a provider with no socket to talk to.
+      SANDBOX_PROVIDER: runtime
+      RUNTIME_API_KEY: ${RUNTIME_API_KEY:?Set a Runtime API key that can manage sandboxes}
+      SANDBOX_RUNTIME_IMAGE: ${SANDBOX_RUNTIME_IMAGE:?Set the sandbox image on Runtime — crewaid-sandbox:latest follows releases}
+      NODE_ENV: production
+      PORT: '3000'
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD — openssl rand -hex 24}@redis:6379
+      # D-220: files live in R2, never on this host. The server refuses to
+      # start without all four.
+      ARTIFACT_R2_ACCOUNT_ID: ${ARTIFACT_R2_ACCOUNT_ID:?Set the Cloudflare account id that owns the artifact bucket}
+      ARTIFACT_R2_ACCESS_KEY_ID: ${ARTIFACT_R2_ACCESS_KEY_ID:?Set an R2 API token's access key id}
+      ARTIFACT_R2_SECRET_ACCESS_KEY: ${ARTIFACT_R2_SECRET_ACCESS_KEY:?Set an R2 API token's secret access key}
+      ARTIFACT_R2_BUCKET: ${ARTIFACT_R2_BUCKET:?Set the artifact bucket name}
+    healthcheck:
+      # Release identity only. Traefik drops an unhealthy container from routing,
+      # so Runtime, R2 and Redis are checked by hand at release, not here.
+      test: ['CMD', 'node', 'apps/orchestrator/scripts/runtime-readiness.mjs', '--liveness']
+      interval: 60s
+      timeout: 20s
+      start_period: 90s
+      retries: 3
+    expose:
+      - '3000'
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # A password as well as a private network: Redis holds every BullMQ queue,
+    # so anything that reaches it can schedule work as any user, and this host
+    # may run other apps that a later network change could connect to it.
+    # `$$` leaves the expansion to the container's shell, so the value is read
+    # from the container's environment rather than baked into the command.
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD — openssl rand -hex 24}
+    command: ['sh', '-c', 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      # `redis-cli ping` exits 0 on a NOAUTH refusal too, so the check looks for
+      # the PONG. REDISCLI_AUTH keeps the password out of the process list.
+      test: ['CMD-SHELL', 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  redis-data:

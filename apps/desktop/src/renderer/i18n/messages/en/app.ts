@@ -1,0 +1,21 @@
+export const app = {
+  'units.bytes': '{value} B',
+  'units.kilobytes': '{value} KB',
+  'units.megabytes': '{value} MB',
+  'app.shell.resizeSidebar': 'Resize sidebar',
+  'app.shell.thisConversationCannotBeOpened': 'This conversation cannot be opened',
+  'app.shell.notConfigured': 'Not configured',
+  'app.shell.resizeDetailsRail': 'Resize details rail',
+  'app.shell.templates': 'Templates',
+  'app.shell.connectingToTheOrchestrator': 'Connecting to the orchestrator…',
+  'app.shell.details': 'Details',
+  'app.shell.expandPanel': 'Expand panel',
+  'app.shell.botSettings': 'Bot settings',
+  'app.shell.collapsePanel': 'Collapse panel',
+  'app.shell.theBot': 'The bot',
+  'app.shell.thisBotHasNoConversation':
+    'This bot has no conversation row. Create the bot again, or re-seed the database.',
+  'app.shell.tellCrewaidWhatYouD': 'Tell Crewaid what you’d like to get done…',
+  'app.shell.describeTheTask': 'Describe the task…',
+  'app.shell.couldNotReachTheOrchestrator': 'Could not reach the orchestrator.',
+} as const;
