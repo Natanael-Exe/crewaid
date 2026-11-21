@@ -51,7 +51,7 @@ export const BROWSER_SANDBOX_SYSCALLS = Object.freeze(['chroot', 'clone', 'unsha
  * checks each call: `chroot` needs `CAP_SYS_CHROOT` in the caller's user
  * namespace, which a process has only inside one it just created, so the
  * container's own root cannot be escaped with it. What does widen is the
- * kernel surface a user namespace reaches, which is D-145's trade.
+ * kernel surface a user namespace reaches, which is the trade.
  *
  * The masked `clone` rules are removed rather than left beside the
  * unconditional one, so exactly one rule decides `clone`.

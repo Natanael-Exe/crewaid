@@ -38,7 +38,7 @@ export class CredentialDecryptError extends Error {
 /**
  * The additional authenticated data binding a ciphertext to its row.
  *
- * ⚠️ LENGTH-PREFIXED, not delimiter-joined, and that is the whole point of the
+ * LENGTH-PREFIXED, not delimiter-joined, and that is the whole point of the
  * function. With a plain `${userId}:${connectionId}` the pairs
  * (`ab`, `cd`) and (`a`, `bcd`) produce the same string, so a ciphertext could
  * be moved between two rows whose ids happen to concatenate the same way and

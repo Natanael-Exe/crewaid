@@ -22,7 +22,7 @@ export interface TanStackTurnSource {
    * resolve at once when the trigger is left for the run that will answer it.
    */
   startStored(userId: string, botId: string, trigger: StoredTrigger): Promise<void>;
-  /** §3.9's Stop. True when a run this worker produces was aborted in-process. */
+  /** The Stop. True when a run this worker produces was aborted in-process. */
   cancel(userId: string, botId: string): boolean;
 }
 

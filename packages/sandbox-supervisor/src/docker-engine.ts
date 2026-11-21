@@ -1,7 +1,7 @@
 /**
  * The sandbox supervisor's Docker adapter.
  *
- * ⚠️ PRD R2, as D-200 amends it: THIS IS THE ONLY FILE IN THE MONOREPO
+ * PRD R2, as D-200 amends it: THIS IS THE ONLY FILE IN THE MONOREPO
  * PERMITTED TO IMPORT `dockerode`. The allowlist in `eslint.config.mjs` names
  * this exact path; `no-restricted-imports` fails the build anywhere else, and
  * `tools/guard-probes/r2-dockerode.probe.ts` proves the rule fires. If you need
@@ -366,11 +366,11 @@ export class DockerContainerEngine implements ContainerEngine {
         Tmpfs: { '/dev/shm': `size=${spec.limits.shmSizeBytes}` },
         RestartPolicy: { Name: 'no' },
         // `network`: nothing is published; the orchestrator connects to the
-        // container's own address on the sandbox bridge (D-155).
+        // container's own address on the sandbox bridge.
         PortBindings: this.connect === 'published' ? bindings : {},
         // R5, stated rather than assumed: no host filesystem reaches a bot.
         // `Binds` is the bind-mount channel and stays empty forever; durable
-        // storage goes through `Mounts` as named volumes only (D-039).
+        // storage goes through `Mounts` as named volumes only.
         Binds: [],
         Mounts: spec.mounts.map((mount) => ({
           Type: 'volume' as const,
@@ -502,7 +502,7 @@ export class DockerContainerHandle implements SandboxContainer {
     try {
       // Runtime cleanup must never ask Docker to remove attached volumes.
       // Named volumes are not removed by `v: true` today, but relying on that
-      // daemon distinction here would make D-039's strongest rule implicit.
+      // daemon distinction here would make the strongest rule implicit.
       await this.container.remove({ force: true, v: false });
     } catch (error: unknown) {
       if ((error as { statusCode?: number } | null)?.statusCode !== 404) throw error;
@@ -514,7 +514,7 @@ export class DockerContainerHandle implements SandboxContainer {
     const portBindings: Record<number, ContainerPortBinding | undefined> = {};
 
     if (this.connect === 'network') {
-      // Nothing is published (D-155): every exposed port is reached at the
+      // Nothing is published: every exposed port is reached at the
       // container's own address on its one network, which the orchestrator
       // shares. No address yet means not running, and so no ports.
       const address = Object.values(info.NetworkSettings.Networks ?? {})[0]?.IPAddress ?? '';
@@ -594,7 +594,7 @@ export class DockerContainerHandle implements SandboxContainer {
     const modem = this.container.modem as DockerModem;
     modem.demuxStream(stream, stdout, stderr);
     // demuxStream never ends the sinks it writes into, so both web streams
-    // would stay open forever and every collect() below would hang.
+    // would stay open forever and every collect below would hang.
     stream.on('error', (error: Error) => {
       stdout.destroy(error);
       stderr.destroy(error);
@@ -665,7 +665,7 @@ class DockerExecProcess implements ContainerProcess {
           raw.write(chunk, (error) => (error ? reject(error) : resolve()));
         }),
       // Half-closing the hijacked connection is what delivers EOF to the
-      // process. Without it `cat > file` never returns and wait() never
+      // process. Without it `cat > file` never returns and wait never
       // resolves — the write appears to hang rather than fail.
       close: () => new Promise((resolve) => raw.end(resolve)),
       abort: () => raw.destroy(),

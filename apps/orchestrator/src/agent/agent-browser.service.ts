@@ -45,7 +45,7 @@ export class AgentBrowserService {
    * This bot's seat, creating one if it has none — WITHOUT opening CDP.
    *
    * The screen-level built-ins (machine capture, recording, pointer) need the
-   * seat's display and geometry and nothing else, and `connect()` costs a
+   * seat's display and geometry and nothing else, and `connect` costs a
    * browser start they must not pay for (D-061: a seat is a desktop; its
    * browser is a separate, deliberate spend). `ensureSeat` here is the same
    * lazy create the browser path uses, so a bot reaching for its screen and a
@@ -80,7 +80,7 @@ export class AgentBrowserService {
     const session = await this.provider.attachSession({ sessionId });
     if (session === null) throw new Error(`no container is attached to session ${sessionId}`);
 
-    // D-060: the seat comes FIRST, because the seat is what says which browser
+    // The seat comes FIRST, because the seat is what says which browser
     // to dial — a seat is a browser of its own on its own `--user-data-dir`,
     // so the port is the bot's. The seat is ensured rather than looked up: a
     // bot reaching for a browser tool is a bot that needs a screen, and this
@@ -182,7 +182,7 @@ export class AgentBrowserService {
 
 /**
  * Pull `webSocketDebuggerUrl` out of a `/json/version` body. The sandbox is
- * the untrusted side of this connection (§7.3), so the body is a value to
+ * the untrusted side of this connection, so the body is a value to
  * inspect, not a shape to assume.
  */
 function readDebuggerUrl(body: unknown): string | null {

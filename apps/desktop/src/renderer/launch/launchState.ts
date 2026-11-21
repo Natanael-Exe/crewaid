@@ -151,7 +151,7 @@ export function isReady(state: LaunchState): state is Extract<LaunchState, { kin
 /**
  * The initials for an avatar, from whoever is actually signed in.
  *
- * ⚠️ THIS REPLACES A HARDCODED NAME. `BotSidebar` carried
+ * THIS REPLACES A HARDCODED NAME. `BotSidebar` carried
  * `const ACCOUNT_NAME = 'Natanael Exe'` — a design-mock placeholder from M1,
  * defensible while there were no accounts and wrong the moment V1 created
  * them. It showed one developer's name to every person who ran the app.

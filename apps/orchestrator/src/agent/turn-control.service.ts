@@ -20,7 +20,7 @@ export class TurnControlService {
     @Inject(TanStackTurns) private readonly tanstack: TanStackTurns,
   ) {}
 
-  /** §3.9's Stop: the bot's run, and any question a scheduled skill is waiting on. */
+  /** The Stop: the bot's run, and any question a scheduled skill is waiting on. */
   cancelTurn(userId: string, botId: string): boolean {
     const waiting = this.approvalHub.cancelBot(userId, botId);
     const stopped = this.tanstack.cancel(userId, botId);

@@ -354,7 +354,7 @@ export class CrewaidChat {
       this.setMessages(this.agent.messages.filter((row) => row.id !== message.id));
       throw error;
     }
-    // The id the server stores the message under (D-159 §3.1), which is how a
+    // The id the server stores the message under, which is how a
     // caller recognises the run that answers it.
     return message.id;
   };

@@ -101,7 +101,7 @@ export interface RuntimeForward {
 export interface RuntimeTunnel {
   forward(port: number): Promise<RuntimeForward>;
   close(): Promise<void>;
-  /** Settles when the tunnel ends, by `close()` or because the sandbox went away. */
+  /** Settles when the tunnel ends, by `close` or because the sandbox went away. */
   readonly closed: Promise<void>;
 }
 

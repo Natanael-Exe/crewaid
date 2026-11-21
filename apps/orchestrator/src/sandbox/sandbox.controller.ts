@@ -19,7 +19,7 @@ import { SandboxService } from './sandbox.service.js';
  * so the response describes a settled state rather than an accepted intent.
  *
  * Start goes through `SandboxReadinessService` rather than straight to the
- * lifecycle (M3-BE-11, D-039 §16). Opening the computer from its rail card is
+ * lifecycle. Opening the computer from its rail card is
  * one of the three things that may wake one, and §16 gives all three the same
  * path — the route is the transport, not a second implementation of it.
  */

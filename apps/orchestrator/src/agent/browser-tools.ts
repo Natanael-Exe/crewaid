@@ -9,30 +9,22 @@ import type { RegisteredTool, ToolContext } from './tool-registry.js';
  *
  * They take the page from the TURN's context rather than holding one, and
  * they take it inside `execute` rather than when they are built. That is what
- * keeps M5-BE-14's promise: registering these four costs nothing, a turn that
- * only answers never calls `context.browser()`, and no desktop is started for
+ * keeps the promise: registering these four costs nothing, a turn that
+ * only answers never calls `context.browser`, and no desktop is started for
  * a bot that was asked a question.
  *
  * Why these four and not a browser api
  *
  * The model is choosing actions from a page description, so every tool has to
- * be answerable from what `read()` returned. Navigate, read, click, type is
+ * be answerable from what `read` returned. Navigate, read, click, type is
  * the smallest set that closes that loop. Anything wider — evaluate
  * arbitrary JS, read raw HTML — either hands the sandbox a way to run code
  * the orchestrator never sees (§7.3, and `no-eval` is lint-enforced on this
  * side of the boundary for the same reason) or spends the context window on
  * markup the model cannot act on.
  *
- * Failures are results, not exceptions
- *
- * §6/M5's rule for a denial is that it "returns a tool result the model can
- * react to, not an exception", and MCP plugins is that "one broken plugin must
- * never fail a turn". A selector that matches nothing is the model's most
- * common mistake and its most recoverable one: told plainly, it reads the
- * page again and picks another. So these catch and return text. The AI SDK
- * would also turn a throw into a `tool-error` part and keep looping, but that
- * result is shaped for a developer reading a stack, not for a model choosing
- * its next step.
+ * Failures return plain text rather than throwing so the model can read the
+ * page again and recover cleanly instead of receiving a developer stack trace.
  */
 
 /** The message a tool gives the model when it could not do the thing. */

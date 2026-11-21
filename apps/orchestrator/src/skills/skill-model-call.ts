@@ -89,7 +89,7 @@ export function refuseModelFailure(error: unknown, phase: string, logger: Logger
 }
 
 /**
- * §6's corrective message (M3-BE-08): the retry the validator's verdict buys.
+ * The corrective message: the retry the validator's verdict buys.
  *
  * The retry is a fresh request — a model has no memory of the answer that was
  * rejected — so the message names each defect and asks for the whole answer

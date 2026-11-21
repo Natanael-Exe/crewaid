@@ -18,9 +18,9 @@ import { CurrentUser } from '../auth/current-user.decorator.js';
 import { MessagesService } from './messages.service.js';
 
 /**
- * D-147's deletions and `/new` over the canonical transcript. A message is
- * sent and the history read through the chat routes; the
- * REST list and send routes went with the AI SDK engine.
+ * The deletions and `/new` over the canonical transcript. A message is
+ * Messages are sent and read through the chat routes; this controller handles
+ * deletion and starting a fresh session.
  */
 @Controller('bots/:id')
 export class MessagesController {

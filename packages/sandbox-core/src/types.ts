@@ -2,7 +2,7 @@ import type { GitProcessRunner } from './git-process.js';
 /**
  * The single re-export point for `@ai-sdk/harness` types.
  *
- * ⚠️ THE CHURN FIREWALL. Every sandbox provider, and everything downstream of
+ * THE CHURN FIREWALL. Every sandbox provider, and everything downstream of
  * one, imports harness types from HERE, never from `@ai-sdk/harness` directly, so an
  * upstream rename is a one-file fix rather than a repo-wide sweep. These types
  * carry `Experimental_` and `harness-sandbox-v1` markers and are expected to
@@ -13,7 +13,7 @@ import type { GitProcessRunner } from './git-process.js';
  * This file lands before anything downstream names a harness type, because a
  * firewall built after the first direct import is a firewall with a hole in it.
  *
- * Verified against @ai-sdk/harness@1.0.98 (read from the installed .d.ts)
+ * Verified against @ai-sdk/harness@1.0.98 (read from the installed.d.ts)
  *
  * On `HarnessV1NetworkSandboxSession`:
  * REQUIRED id, defaultWorkingDirectory, ports, getPortEndpoint,
@@ -32,12 +32,12 @@ import type { GitProcessRunner } from './git-process.js';
  *
  * 1. NETWORK POLICY. `setNetworkPolicy` is optional, so iptables rules
  * on the `agent-net` bridge are the PRIMARY mechanism and
- * `setNetworkPolicy?.()` is an opportunistic upgrade behind a capability
- * check. The PRD's "prefer session.setNetworkPolicy()" hedge inverts the
+ * `setNetworkPolicy?.` is an opportunistic upgrade behind a capability
+ * check. The the "prefer session.setNetworkPolicy" hedge inverts the
  * real priority. M2-BE-09 implements iptables as the real path.
  *
  * 2. RESUME. `resumeSession` is optional. The call site must be an
- * optional call with a `createSession()` fallback so an upstream change
+ * optional call with a `createSession` fallback so an upstream change
  * degrades instead of throwing. The harness throws
  * `HarnessCapabilityUnsupportedError` when resume is attempted against a
  * provider that omits it — we implement it ourselves, so we control this,
@@ -96,7 +96,7 @@ export const HARNESS_SANDBOX_SPECIFICATION_VERSION: HarnessV1SandboxProvider['sp
   'harness-sandbox-v1';
 
 /**
- * Options accepted by `createSession()`.
+ * Options accepted by `createSession`.
  *
  * Upstream declares this shape inline on the method and exports no name for it,
  * so without an alias here every downstream implementation and test would
@@ -109,21 +109,21 @@ export type HarnessV1CreateSessionOptions = NonNullable<
   Parameters<HarnessV1SandboxProvider['createSession']>[0]
 >;
 
-/** Options accepted by `resumeSession()`. Inline upstream, same reasoning. */
+/** Options accepted by `resumeSession`. Inline upstream, same reasoning. */
 export type HarnessV1ResumeSessionOptions = Parameters<
   NonNullable<HarnessV1SandboxProvider['resumeSession']>
 >[0];
 
-/** Options accepted by `getPortEndpoint()`. Inline upstream, same reasoning. */
+/** Options accepted by `getPortEndpoint`. Inline upstream, same reasoning. */
 export type HarnessV1PortEndpointOptions = Parameters<
   HarnessV1NetworkSandboxSession['getPortEndpoint']
 >[0];
 
 /**
- * The reduced session handed to tool `execute()` calls — file I/O, exec,
+ * The reduced session handed to tool `execute` calls — file I/O, exec,
  * and spawn, with no way to stop the sandbox or change its network policy.
  *
- * Derived from `restricted()` rather than imported from `@ai-sdk/provider-utils`
+ * Derived from `restricted` rather than imported from `@ai-sdk/provider-utils`
  * on purpose. The underlying `Experimental_SandboxSession` lives in a different
  * package that is only a transitive dependency here, and naming it directly
  * would put a second harness-shaped type outside the firewall — the lint rule
@@ -166,23 +166,23 @@ export const SANDBOX_INFRA_SURFACE = [
 ] as const;
 
 /**
- * The session a tool's `execute()` receives.
+ * The session a tool's `execute` receives.
  *
  * `HarnessV1RestrictedSandboxSession` on its own is not enough, and the reason
  * is structural typing: the network session EXTENDS the base one, so it is
  * assignable to it. Typing a tool's session as the reduced view therefore stops
- * a tool CALLING `destroy()` — the property is not on the type — but stops
+ * a tool CALLING `destroy` — the property is not on the type — but stops
  * nobody handing it the full session in the first place. That is the mistake
- * with a real chance of happening, because `() => this.session` is one word
- * shorter than `() => this.session.restricted()` and, until this type existed,
+ * with a real chance of happening, because ` => this.session` is one word
+ * shorter than ` => this.session.restricted` and, until this type existed,
  * compiled.
  *
  * Declaring each infra member as an optional `never` closes it. A value that
- * HAS `destroy: () => PromiseLike<void>` stops being assignable, because a
+ * HAS `destroy: => PromiseLike<void>` stops being assignable, because a
  * function is not a `never`, so the wide session is rejected at the boundary —
  * while the reduced view, which carries no such property, still fits. Calling
- * stays blocked in both spellings: `s.destroy()` because the property is
- * possibly undefined, and `s.destroy?.()` because `never` has no call
+ * stays blocked in both spellings: `s.destroy` because the property is
+ * possibly undefined, and `s.destroy?.` because `never` has no call
  * signatures, so the optional-call escape hatch is not one.
  *
  * It cannot be the whole fence, because the type is erased: a value laundered
@@ -200,7 +200,7 @@ export type ToolSandboxSession = HarnessV1RestrictedSandboxSession & {
  * The option and result shapes on the reduced session's own methods.
  *
  * These live one package further out than the harness — they are
- * `@ai-sdk/provider-utils` types reached through `restricted()` — and upstream
+ * `@ai-sdk/provider-utils` types reached through `restricted` — and upstream
  * exports a name for none of them. Deriving them here keeps that package out of
  * the rest of the repo for the same reason the harness itself is: the lint rule
  * fences one import name, but the churn arrives through whatever type the
@@ -208,13 +208,13 @@ export type ToolSandboxSession = HarnessV1RestrictedSandboxSession & {
  */
 type Reduced = HarnessV1RestrictedSandboxSession;
 
-/** Options for `run()` and `spawn()`. */
+/** Options for `run` and `spawn`. */
 export type SandboxProcessOptions = Parameters<Reduced['run']>[0];
 
-/** The handle `spawn()` returns: two byte streams, `wait()`, and `kill()`. */
+/** The handle `spawn` returns: two byte streams, `wait`, and `kill`. */
 export type SandboxProcess = Awaited<ReturnType<Reduced['spawn']>>;
 
-/** The `{ exitCode, stdout, stderr }` triple `run()` resolves to. */
+/** The `{ exitCode, stdout, stderr }` triple `run` resolves to. */
 export type SandboxRunResult = Awaited<ReturnType<Reduced['run']>>;
 
 /** Options for every read: `readFile`, `readBinaryFile`, `readTextFile`. */

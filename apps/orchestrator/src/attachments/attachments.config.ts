@@ -20,7 +20,7 @@ import path from 'node:path';
 export const UNCLAIMED_TTL_MS = 24 * 60 * 60 * 1000;
 
 /**
- * D-031's cumulative artifact quota: the total bytes of every Attachment row
+ * The cumulative artifact quota: the total bytes of every Attachment row
  * (claimed and unclaimed) the host will hold. Two gigabytes is a measurement
  * target for the personal MVP, not a proven guarantee. It protects a local
  * disk, so it applies to the disk store only.
@@ -28,7 +28,7 @@ export const UNCLAIMED_TTL_MS = 24 * 60 * 60 * 1000;
 export const DEFAULT_MAX_TOTAL_MB = 2048;
 
 /**
- * D-220's per-user cap: the bytes of every Attachment row one user owns,
+ * The per-user cap: the bytes of every Attachment row one user owns,
  * claimed or not, across every bot. Applies whichever store holds them.
  */
 export const DEFAULT_MAX_USER_MB = 10_240;
@@ -56,7 +56,7 @@ export function readArtifactMaxTotalBytes(raw: string | undefined): number {
   return bytes;
 }
 
-/** `ARTIFACT_MAX_USER_MB` — the cap on stored artifact bytes per user (D-220). */
+/** `ARTIFACT_MAX_USER_MB` — the cap on stored artifact bytes per user. */
 export function readArtifactMaxUserBytes(raw: string | undefined): number {
   const value = readNumber('ARTIFACT_MAX_USER_MB', raw, DEFAULT_MAX_USER_MB);
   const bytes = value * 1024 * 1024;

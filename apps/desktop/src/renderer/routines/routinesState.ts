@@ -113,7 +113,7 @@ export function scheduleText(cron: string): string {
 }
 
 /**
- * Whether a routine's last day has passed in its own zone (D-127). It stays
+ * Whether a routine's last day has passed in its own zone. It stays
  * enabled on the server — ending is not disabling — but it will not run
  * again, and the server refuses to run it now.
  */
@@ -170,7 +170,7 @@ export function isInFlight(routine: Pick<Routine, 'lastStatus'>): boolean {
   return routine.lastStatus === 'RUNNING' || routine.lastStatus === 'PENDING';
 }
 
-// ── The form ──────────────────────────────────────────────────────────────
+// The form
 
 export type RoutineDraft = {
   readonly name: string;
@@ -178,7 +178,7 @@ export type RoutineDraft = {
   readonly timezone: string;
   readonly endsOn: string | null;
   readonly prompt: string;
-  /** D-133: the goal the routine works toward, if any. */
+  /** The goal the routine works toward, if any. */
   readonly goalId: string | null;
 };
 
@@ -210,7 +210,7 @@ export function draftFromRoutine(routine: Routine): RoutineDraft {
 
 /**
  * What stops Save, as a sentence — or null. The server checks the cron and
- * zone properly (D-120); this only catches what is plainly missing, so the
+ * zone properly; this only catches what is plainly missing, so the
  * operator is not sent on a round trip to learn a field is empty.
  */
 export function draftProblem(

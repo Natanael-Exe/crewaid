@@ -8,7 +8,7 @@ import { WorkToolsService } from './work-tools.service.js';
 import { WorkModule } from './work.module.js';
 
 /**
- * The task tools join the registry from here — M5-BE-06's rule, a tool group
+ * The task tools join the registry from here — the rule, a tool group
  * registers from wherever its dependencies live — so `WorkModule` itself
  * never depends on the agent loop.
  */

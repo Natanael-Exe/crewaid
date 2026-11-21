@@ -40,7 +40,7 @@ export interface RoutineSchedule {
  *
  * The timezone is checked with `Intl` before the parser sees it, because
  * `cron-parser` does not reject an unknown zone — it fails later, on the first
- * `next()`, with "unhandled timestamp: Invalid Date", which names neither the
+ * `next`, with "unhandled timestamp: Invalid Date", which names neither the
  * field nor the value the operator typed.
  */
 export function parseRoutineSchedule(cron: string, timezone: string): RoutineSchedule {

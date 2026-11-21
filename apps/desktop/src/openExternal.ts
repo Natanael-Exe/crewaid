@@ -8,7 +8,7 @@ import { guardedIpc, type GuardedIpcOptions } from './tokenStore.js';
  * `GET /mcp/servers/:id` for status." So the renderer, which is where the
  * authorize URL arrives, needs one thing it cannot do itself — and this is it.
  *
- * ⚠️ why the scheme is checked here and not in the renderer
+ * why the scheme is checked here and not in the renderer
  *
  * `shell.openExternal` is the widest capability in this app. It hands a string
  * to the OS, which decides what to run: `file:` opens a file manager,

@@ -16,7 +16,7 @@ import { z } from 'zod';
  * records.
  *
  * A thread's canonical transcript is the library's `ModelMessage[]`, one
- * `Message` row each (D-159 §3.4). The row keeps what the product needs
+ * `Message` row each. The row keeps what the product needs
  * (author, provenance, order, read state) in columns; `parts` keeps the one
  * message body the model saw. Everything that crosses between the two goes
  * through a `safeParse` here, and nothing is cast: a row that does not fit is
@@ -63,7 +63,7 @@ const ThinkingSchema = z
  * than dropped silently on the way to the database.
  *
  * - A user message is text. Attachments are rows that point at it, turned
- * into parts for the model at call time (D-159 §3.4), so no bytes are
+ * into parts for the model at call time, so no bytes are
  * stored in the transcript.
  * - Only the library's `metadata.tanstack` is stored. Any other key is
  * dropped: a client's metadata is not trusted, and what the product knows
@@ -118,7 +118,7 @@ export type TranscriptProvenance = {
   /** The run that wrote an assistant or tool message; null for a user message. */
   readonly runId: string | null;
   /**
-   * Set for a user-role message another bot sent (D-092's `send_message`).
+   * Set for a user-role message another bot sent (the `send_message`).
    * Its row is BOT-authored, as today, and the model reads it as a user turn.
    */
   readonly senderBotId?: string | null | undefined;
@@ -176,7 +176,7 @@ export function toTranscriptRow(
 
 /**
  * A stored row as the model reads it, or `null` for a product row (a SYSTEM
- * notice or a `/new` boundary), which the model never sees (D-159 §3.4).
+ * notice or a `/new` boundary), which the model never sees.
  */
 export function fromTranscriptRow(
   row: Pick<Message, 'id' | 'author' | 'fromBotId' | 'runId' | 'parts' | 'createdAt'>,
@@ -312,7 +312,7 @@ export function assignTranscriptIds(
  * The canonical id of one tool result row: its thread, the run whose assistant
  * message made the call, and the call id, which is unique within a run.
  *
- * Exported because an attachment a tool produces claims this row (D-190), and
+ * Exported because an attachment a tool produces claims this row, and
  * two derivations of the same id would be two rows the first time they
  * disagreed.
  */
@@ -321,7 +321,7 @@ export function toolResultMessageId(threadId: string, runId: string, toolCallId:
 }
 
 /**
- * D-191 §2 — the columns one out-of-request trigger writes.
+ * The columns one out-of-request trigger writes.
  *
  * The row is a model message, so it carries the validated body and an id
  * minted here — the mapper needs one, and Prisma's default would only arrive
@@ -347,7 +347,7 @@ export function triggerRowColumns(
 }
 
 /**
- * An id for a trigger row the server is about to write (D-191 §2).
+ * An id for a trigger row the server is about to write.
  *
  * The mapper needs an id before the row exists, so Prisma's default cannot
  * supply it. Random rather than derived: two identical briefs for the same
@@ -447,15 +447,15 @@ function toInputJson(value: Json): Prisma.InputJsonValue | null {
   return value;
 }
 
-// ── Product facts, projected on read ───────────────────────────────────────
+// Product facts, projected on read
 
 /**
  * What a client is told about a message beyond the model's view of it, under
- * `metadata.crewaid` (D-159 §3.4). Read from columns; never written from a
+ * `metadata.crewaid`. Read from columns; never written from a
  * client's metadata. The wire shape itself is
  * `CrewaidMessageMetadataSchema` in `packages/shared`, which both ends parse.
  *
- * D-192: the attachments are projected whole, not as ids. A card needs a name,
+ * The attachments are projected whole, not as ids. A card needs a name,
  * a type and a size, there is no route that reads one attachment, and the read
  * that builds this already holds the rows.
  */
@@ -510,7 +510,7 @@ export type OperatorRow = Pick<
 >;
 
 /**
- * A stored row as the OPERATOR reads it (D-192).
+ * A stored row as the OPERATOR reads it.
  *
  * `fromTranscriptRow` reads a thread for the model, which is a different
  * conversation from the one a person sees: it drops the SYSTEM notices and
@@ -561,14 +561,14 @@ export function fromTranscriptRowForOperator(
   return { ok: true, value: { ...read.value, metadata: { ...read.value.metadata, crewaid } } };
 }
 
-// ── Runs ───────────────────────────────────────────────────────────────────
+// Runs
 
 /**
  * An `AgentTurn` row as the library's run record. "Never set" stays absent,
- * distinct from `false` and `0` (D-159 §3.5).
+ * distinct from `false` and `0`.
  *
  * A failed run's error carries its code and a sentence built from the code,
- * never a vendor's text (D-006).
+ * never a vendor's text.
  */
 export function toRunRecord(row: AgentTurn): RunRecord {
   const usage =
@@ -608,7 +608,7 @@ export function toRunRecord(row: AgentTurn): RunRecord {
   };
 }
 
-// ── Interrupts ─────────────────────────────────────────────────────────────
+// Interrupts
 
 const InterruptPayloadSchema = z.record(z.string(), JsonSchema);
 

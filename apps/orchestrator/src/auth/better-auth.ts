@@ -24,7 +24,7 @@ import { sendMagicLinkEmail } from './magic-link-email.js';
 /**
  * The Better Auth instance (V1-08, D-083 adjacent).
  *
- * ⚠️ THIS FILE IS THE SCHEMA'S SOURCE OF TRUTH. Which plugins are enabled here
+ * THIS FILE IS THE SCHEMA'S SOURCE OF TRUTH. Which plugins are enabled here
  * decides which tables exist, so `prisma/schema.prisma`'s auth block is
  * GENERATED from this config with `@better-auth/cli generate` — never written
  * by hand. Adding a plugin and hand-adding its table is how the two drift into
@@ -36,7 +36,7 @@ import { sendMagicLinkEmail } from './magic-link-email.js';
  * holds a key for calling a model provider. They never mix: no inference
  * credential is read from here, and no sign-in token is ever handed to a turn.
  *
- * Wiring into Nest is V1-08's job. This file exists at V1-02 because the
+ * Wiring into Nest is the job. This file exists at V1-02 because the
  * schema cannot be generated without it.
  */
 
@@ -149,7 +149,7 @@ const magicLinkPlugin: BetterAuthPlugin = magicLink({
 });
 
 /**
- * Operator accounts for the hosted service (D-156).
+ * Operator accounts for the hosted service.
  *
  * An admin is a user whose `role` is `admin`, set by hand in the database —
  * there is no route that grants it to yourself, and the plugin's own routes
@@ -161,7 +161,7 @@ const magicLinkPlugin: BetterAuthPlugin = magicLink({
 const adminPlugin: BetterAuthPlugin = admin({ defaultRole: 'user', adminRoles: ['admin'] });
 
 /**
- * Stripe's webhook, verified (D-156).
+ * Stripe's webhook, verified.
  *
  * The plugin is here for one thing: `POST /api/v1/auth/stripe/webhook`, which
  * checks Stripe's signature over the raw body and hands each event on. Its own
@@ -202,7 +202,7 @@ function billingPlugin(config: BillingConfig): BetterAuthPlugin {
  * failure it produces arrives after the operator has already typed an email
  * address and been told to check their inbox.
  *
- * A self-hosted server signs in with email and password only (D-152): no
+ * A self-hosted server signs in with email and password only: no
  * identity provider to register an app with, no mail service to pay for. It
  * ignores Google, GitHub and Resend settings even when they are present — an
  * edition that grew a sign-in method because someone copied a hosted `.env`
@@ -296,7 +296,7 @@ export function createAuth(
      * provider that already does account recovery, rate limiting and breach
      * detection. Owning passwords there means owning all three badly.
      *
-     * On a self-hosted server it is the ONLY way in (D-152): the operator has no
+     * On a self-hosted server it is the ONLY way in: the operator has no
      * identity provider or mail service by default, and the account lives on
      * hardware they run. Signing up signs in at once, and there is no email to
      * verify because nothing could send one.
@@ -324,14 +324,14 @@ export function createAuth(
        * restart.
        */
       bearer(),
-      // Hosted only: a self-hosted server has no mail service to send a link with (D-152).
+      // Hosted only: a self-hosted server has no mail service to send a link with.
       ...(methods.magicLink ? [magicLinkPlugin] : []),
-      // Hosted only (D-152, D-156): operator accounts, then billing once Stripe is configured.
+      // Hosted only: operator accounts, then billing once Stripe is configured.
       ...(edition === 'cloud' ? [adminPlugin] : []),
       ...(edition === 'cloud' && billing !== null ? [billingPlugin(billing)] : []),
 
       /**
-       * Browser sign-in for the desktop app (V1-11, D-088).
+       * Browser sign-in for the desktop app.
        *
        * This is the half of the flow that has to be right and is not obvious:
        * after the provider redirects a BROWSER, the session it creates lives in
@@ -376,12 +376,12 @@ export function createAuth(
     trustedOrigins: [desktopAuthOrigin(edition)],
 
     /**
-     * ⚠️ THESE ARE PRISMA CLIENT PROPERTIES, NOT TABLE NAMES, AND NOT THE PRISMA
+     * THESE ARE PRISMA CLIENT PROPERTIES, NOT TABLE NAMES, AND NOT THE PRISMA
      * MODEL NAMES EITHER.
      *
      * The Prisma model is `User` and the table is `"User"`; the generated client
      * exposes it as `prisma.user`. The adapter addresses models through that
-     * property — `clientProperty()` in `@better-auth/prisma-adapter` lowercases
+     * property — `clientProperty` in `@better-auth/prisma-adapter` lowercases
      * the first character, and `introspectPrismaDataModel` keys its view of the
      * schema the same way — so `modelName: 'User'` makes it reach for
      * `prisma['User']`, which is `undefined`.
@@ -434,7 +434,7 @@ export function createAuth(
        * Explicitly ON, because its default is not.
        *
        * `create-context.ts` reads
-       * `disableOriginCheck: options.advanced?.disableOriginCheck ?? (isTest() ? true : false)`
+       * `disableOriginCheck: options.advanced?.disableOriginCheck ?? (isTest ? true: false)`
        * — so under `NODE_ENV=test`, which is what vitest sets, Better Auth turns
        * the origin check OFF. Left at the default, the request a test makes and
        * the request a user makes go down different branches, and every case that

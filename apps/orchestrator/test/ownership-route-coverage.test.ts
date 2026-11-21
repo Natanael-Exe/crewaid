@@ -164,7 +164,7 @@ const EXEMPT: ReadonlyArray<{ route: string; reason: string }> = [
   {
     route: 'GET /bots/:id/approvals',
     reason:
-      'M5-BE-13. AgentTurnService.listPendingApprovals filters the in-process pending map on principal.userId before it returns a row, so a foreign bot id yields an empty list rather than another user\u2019s prompts. The map is not a table, and the bot-scoped families resolve ownership in their services (see the note above EXEMPT).',
+      'ApprovalService filters pending approvals on principal.userId before returning a row, so a foreign bot id yields an empty list rather than another user\u2019s prompts. The bot-scoped families resolve ownership in their services (see the note above EXEMPT).',
   },
   {
     route: 'GET /bots/:id/turns',

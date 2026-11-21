@@ -225,7 +225,7 @@ export class VoiceService {
   }
 
   /**
-   * D-006's rule for models holds for speech too: a vendor's error text never
+   * The rule for models holds for speech too: a vendor's error text never
    * reaches the person. The log keeps the class, never the message, because
    * a provider error can echo the request.
    */

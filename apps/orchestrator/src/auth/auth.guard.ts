@@ -38,7 +38,7 @@ function hasBearer(header: string | string[] | undefined): boolean {
  *
  * THE ONLY place in the codebase that reads `req.headers.authorization`.
  * No handler may touch the header directly; handlers receive the
- * resolved Principal via `@CurrentUser()` instead.
+ * resolved Principal via `@CurrentUser` instead.
  *
  * The swap promised
  *
@@ -87,7 +87,7 @@ export class AuthGuard implements CanActivate {
     }
 
     // Signing in cannot require being signed in. `BetterAuthMiddleware` answers
-    // this tree and never calls `next()`, so in practice a request that reaches
+    // this tree and never calls `next`, so in practice a request that reaches
     // the guard here is one the middleware declined — and Nest has no
     // controller on these paths, so it 404s rather than falling through to
     // anything. The exemption exists so that a path the middleware does not
@@ -98,17 +98,17 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    // ── THE THIRD EXEMPTION, AND THE ONLY ONE THAT IS NOT A TREE ─────────────
+    // The third exemption, and the only one that is not a tree
     //
-    // §4.1's `GET /mcp/oauth/callback` — the MCP authorization redirect
-    // (M6-BE-03). The caller is a browser this orchestrator just sent to a
+    // The `GET /mcp/oauth/callback` — the MCP authorization redirect
+    //. The caller is a browser this orchestrator just sent to a
     // third party, so there is no session cookie to send and nothing to
     // authenticate WITH: the authority is the single-use `state` in the query,
     // which names one `McpOAuthFlow` row that only a signed-in user's
     // `connect` could have created and that the callback deletes as it reads
-    // it (D-101).
+    // it.
     //
-    // ⚠️ EQUALITY, NOT A PREFIX, AND THAT IS THE WHOLE FENCE. The sign-in tree
+    // EQUALITY, NOT A PREFIX, AND THAT IS THE WHOLE FENCE. The sign-in tree
     // above is exempted as a PREFIX because Better Auth owns everything under
     // it; this route owns one pathname and nothing beneath it. A
     // `startsWith` here would hand every future `/mcp/oauth/callback/...`
@@ -130,7 +130,7 @@ export class AuthGuard implements CanActivate {
     }
 
     // Telegram's two webhooks check their own secret header before reading
-    // anything (D-233). POST only, the manager path exactly, and a person's bot
+    // anything. POST only, the manager path exactly, and a person's bot
     // path as exactly one numeric segment: every other Telegram route, from
     // status to Confirm, still needs a session.
     if (request.method === 'POST') {

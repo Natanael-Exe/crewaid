@@ -11,7 +11,7 @@ import type { ApiClient } from './apiClient';
  * One function, and the omission is the design. D-041 replaced the manual
  * Start/Stop pair with a computer that wakes when someone asks for it: the
  * orchestrator's ensure-ready path is what this route reaches, and
- * §8's idle policy is what puts the computer back down. So there is no
+ * The idle policy is what puts the computer back down. So there is no
  * `stopSandbox` here — not because stopping is unimplemented, but because a
  * Stop button would hand the operator a lifecycle chore the product exists to
  * take away, and would let one click strip a desktop out from under an agent

@@ -6,7 +6,7 @@ import { RoutinesService } from './routines.service.js';
 
 /**
  * `schedule_routine` and `cancel_routine` join the registry from the module
- * that owns routines — M5-BE-06's rule: a tool group registers itself from
+ * that owns routines — the rule: a tool group registers itself from
  * wherever its dependencies already live.
  */
 @Injectable()

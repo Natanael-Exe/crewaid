@@ -23,7 +23,7 @@ import { work } from './en/work';
  * translated from.
  *
  * Keys are flat and named by where the words appear. A value's `{name}`
- * placeholders are the parameters `t()` demands for that key, so a call that
+ * placeholders are the parameters `t` demands for that key, so a call that
  * forgets one does not compile. A plural message carries `other` and the
  * categories English uses; a translation carries the categories ITS language
  * uses, which the catalog check reads from `Intl.PluralRules`.

@@ -54,7 +54,7 @@ export class SandboxWorkspaceService implements OnApplicationBootstrap, OnModule
   }
 
   /**
-   * Make sure this bot has a machine with usable storage (D-041, D-046 §19).
+   * Make sure this bot has a machine with usable storage.
    *
    * Two jobs since D-046, and the order matters: attach the bot to its user's
    * computer — creating that computer and its volume the first time — and then
@@ -69,7 +69,7 @@ export class SandboxWorkspaceService implements OnApplicationBootstrap, OnModule
         await tx.$executeRaw`SELECT 1 FROM "Bot" WHERE id = ${botId} AND "userId" = ${userId} FOR UPDATE`;
         const bot = await tx.bot.findFirst({ where: { id: botId, userId } });
         if (bot === null) throw new NotFoundException('Bot not found');
-        // D-046: attach first, so a bot that has never had a machine gets its
+        // Attach first, so a bot that has never had a machine gets its
         // user's one (creating it if this is the first bot) before anything
         // below asks about that machine's workspace.
         const computerId =
@@ -85,7 +85,7 @@ export class SandboxWorkspaceService implements OnApplicationBootstrap, OnModule
         // created the row and its volume when there was none, so a missing
         // workspace here is a machine whose storage went away underneath it,
         // which is the recoverable diagnosis below rather than a reason to
-        // silently make a new empty one (D-031).
+        // silently make a new empty one.
         const workspace = await this.provider.inspectWorkspace({ botId: computerId });
 
         let reason: string | null = null;

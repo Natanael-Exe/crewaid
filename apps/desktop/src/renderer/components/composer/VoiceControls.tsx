@@ -62,7 +62,7 @@ export function DictationButton({
 }
 
 /**
- * D-221: the right-hand slot while the draft is empty. It records a voice
+ * The right-hand slot while the draft is empty. It records a voice
  * message, which the bot answers aloud. Same size and place as the send
  * arrow it yields to, so the composer never shifts (the rule the disabled
  * placeholder held before voice shipped).

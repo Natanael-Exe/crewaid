@@ -513,7 +513,7 @@ const ROUTINE_SUGGESTION =
   'Once a first result looks right, you can ask for it on a schedule. Nothing repeats until you choose when.';
 
 /**
- * D-235: everything a person reads in a template, apart from its structure
+ * Everything a person reads in a template, apart from its structure
  * (members, looks, tools, revision), so one definition is offered in every
  * language. Plain data: each translation is generated from this shape. A
  * specialist's name is a name, and stays as it is.

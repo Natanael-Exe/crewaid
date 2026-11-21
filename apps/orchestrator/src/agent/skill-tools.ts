@@ -28,7 +28,7 @@ import type { DeliverableFiling } from '../work/file-deliverable.js';
  *
  * Failures are results
  *
- * Same rule the browser tools follow, and §6/M5's words: a denial "returns a
+ * Same rule the browser tools follow, and the words: a denial "returns a
  * tool result the model can react to, not an exception". A DRAFT skill, a
  * name that is not there, a script that threw — the model can choose
  * differently when told, and cannot when the turn dies.
@@ -65,7 +65,7 @@ function failure(action: string, error: unknown): string {
 /**
  * POSIX single-quoting for a path the MODEL supplied.
  *
- * `run()` takes a shell string, so a path is interpolated into one. Single
+ * `run` takes a shell string, so a path is interpolated into one. Single
  * quotes make every character literal except a single quote itself, which is
  * closed, escaped and reopened. Without this, a path is an injection point
  * into the bot's own computer.
@@ -180,7 +180,7 @@ export function skillTools(deps: {
               const buffer = Buffer.from(bytes);
               const stored = await deps.attachments.storeFromBot({
                 userId: context.userId,
-                // The host this call files under (D-190): the reply being
+                // The host this call files under: the reply being
                 // composed, or this call's own tool result.
                 messageId: await context.attachmentHost(options.toolCallId),
                 filename: basename(path),

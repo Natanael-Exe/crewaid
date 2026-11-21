@@ -16,18 +16,18 @@ import { withCappedOutputs } from './tool-result-projection.js';
 /**
  * The tool registry.
  *
- * Everything the model may call lands here: M5's built-ins (M5-BE-04/05/06),
+ * Everything the model may call lands here: M5's built-ins,
  * M6's MCP tools, and the approved skills `run_skill` reaches. The registry
  * answers two questions, and it is the only place that answers either:
  *
- * 1. *What may the model call?* — `toolSetFor()`, a neutral server `ToolSet`, is
+ * 1. *What may the model call?* — `toolSetFor`, a neutral server `ToolSet`, is
  * what an execution adapter converts for its library. The library has no opinion about
  * provenance or policy, and must not learn one: it should see exactly
  * the definitions the provider will validate.
  * 2. *What IS this tool?* — `behaviorOf(name)` returns the out-of-band
  * behavior descriptor. Classification and failure policy are read from
- * here by the approval matcher, the read-only classifier
- * (M6-BE-08), failure isolation (M6-BE-10) and namespacing (M6-BE-06).
+ * here by the approval matcher, the read-only classifier,
+ * failure isolation and namespacing.
  *
  * `resolveFor(context, extras)` answers BOTH at once, and it is the method a
  * turn actually calls. Not every tool a turn offers is registered:
@@ -37,7 +37,7 @@ import { withCappedOutputs } from './tool-result-projection.js';
  * them — which the approval matcher answers with `deny`. One resolution, one
  * map, two views of it.
  *
- * ⚠️ The descriptor is deliberately NOT a field on the tool definition. The
+ * The descriptor is deliberately NOT a field on the tool definition. The
  * tool's public shape is the provider's contract, and `AutoReviewRuleSchema`
  * (packages/shared/src/agent.ts) is ratified across five codebases — §0 rule 2
  * and D-005 both forbid growing either one to carry metadata an M6 plugin
@@ -53,7 +53,7 @@ import { withCappedOutputs } from './tool-result-projection.js';
  * payload its consumers actually need, and a typo picks a branch at compile
  * time instead of at the first tool call. `builtin` needs none; `mcp` carries
  * the server (M6-BE-06 round-trips a call back to it, M6-BE-10 keys strike
- * state off it); `skill` carries the skill (M3-BE-09's APPROVED check is per
+ * state off it); `skill` carries the skill (the APPROVED check is per
  * skill, not per name).
  */
 export type ToolOrigin =
@@ -65,7 +65,7 @@ export type ToolOrigin =
  * What the turn does when a tool call fails.
  *
  * Both variants isolate — MCP plugins "One broken plugin must never fail a turn"
- * and §6/M5's rule that a denial "returns a tool result the model can react
+ * and the rule that a denial "returns a tool result the model can react
  * to, not an exception". The model sees an error result and gets another step;
  * the turn does not end, ever, for either kind.
  *
@@ -81,7 +81,7 @@ export type ToolOrigin =
  * a bound on how long the turn waits, and a count of
  * consecutive failures after which the server stops being
  * offered at all. Both numbers live HERE rather than as
- * fields on the model-facing tool object (M6-BE-12's note), so
+ * fields on the model-facing tool object (the note), so
  * the timeout the caller enforces and the limit the
  * failure path counts against are read from one place.
  *
@@ -93,7 +93,7 @@ export type ToolFailurePolicy =
   | { readonly kind: 'isolate' }
   | {
       readonly kind: 'isolate-remote';
-      /** §7.4's "MCP tool call ≤ 30 s". Exceeded is a failure, not a hang. */
+      /** The "MCP tool call ≤ 30 s". Exceeded is a failure, not a hang. */
       readonly callTimeoutMs: number;
       /** MCP plugins "three consecutive failures move the server to ERROR". */
       readonly strikeLimit: number;
@@ -170,21 +170,12 @@ export type ToolContext = {
    */
   readonly groupId?: string | null;
   /**
-   * The transcript message an attachment this call produces claims
-   * (D-019/D-021, D-190).
-   *
-   * A function of the CALL, not a value of the turn, because the two engines
-   * have different answers and only one of them has a message before the call
-   * exists: the AI SDK path is composing a draft reply and hands its id to
-   * every call, so the download card lands on the reply the operator is
-   * already watching; a TanStack run composes no draft and derives the
-   * canonical tool result row of this call, which its backend reserved when
-   * the call started.
+   * Resolves the transcript message ID an attachment from this tool call binds to.
+   * Computed per call so the execution backend can attach it to the reserved tool result row.
    */
   readonly attachmentHost: (toolCallId: string) => Promise<string>;
   /**
-   * The message that started this turn, as far as chain accounting needs it
-   * (M7-BE-01).
+   * The message that started this turn, as far as chain accounting needs it.
    *
    * `send_message` derives the delivered message's `chainId` and `hopCount`
    * from here, so a hop is counted from the exchange the turn is actually
@@ -206,7 +197,7 @@ export type ToolContext = {
   readonly browser: () => Promise<BrowserPage>;
   /**
    * The bot's computer as a REDUCED session: file I/O, exec and spawn,
-   * with no `destroy()`, `setNetworkPolicy()` or `setPorts()`.
+   * with no `destroy`, `setNetworkPolicy` or `setPorts`.
    *
    * `ToolSandboxSession` rather than the plain reduced alias, because the
    * network session EXTENDS the reduced one and is therefore assignable to it:
@@ -314,13 +305,13 @@ export type UnwrappedToolCall = {
  *
  * Validated at registration rather than at the provider boundary, where a
  * rejected name surfaces mid-turn as a 400 the model cannot act on. It is also
- * what M6-BE-06's `<serverSlug>__<toolName>` has to survive: an MCP server that
+ * what the `<serverSlug>__<toolName>` has to survive: an MCP server that
  * reports `foo.bar` must be slugified by the caller, not smuggled through here.
  */
 const TOOL_NAME_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 
 /**
- * The exhaustive-handler guard M6-BE-12's note asks for: "an unhandled variant
+ * The exhaustive-handler guard the note asks for: "an unhandled variant
  * should be a compile error in the registry". A `default:` that swallows a new
  * union member is silent data loss; passing it through `assertNever` makes it
  * a type error at the switch instead.
@@ -426,7 +417,7 @@ export class ToolRegistry {
     this.tools.set(tool.name, tool);
   }
 
-  /** Whether a name is registered. Used for collision checks (M6-BE-06). */
+  /** Whether a name is registered. Used for collision checks. */
   has(name: string): boolean {
     return this.tools.has(name);
   }
@@ -459,7 +450,7 @@ export class ToolRegistry {
    * asked by different callers about different things. `behaviorOf` answers a
    * WIRING question — "classify this tool I registered" — where an absent
    * entry is a bug and a throw is the only honest answer. This answers a
-   * RUNTIME question the approval matcher (M5-BE-08) asks once per tool call:
+   * RUNTIME question the approval matcher asks once per tool call:
    * "is there anything registered under this name?", where `no` is an ordinary
    * result and an exception would fail the turn that asked. §6 is explicit
    * that a broken plugin must never do that.
@@ -469,7 +460,7 @@ export class ToolRegistry {
    * classifies a tool nobody classified, which is the silent allow M6-BE-08
    * warns about.
    *
-   * `has()` followed by `behaviorOf()` reaches the same answer with two lookups
+   * `has` followed by `behaviorOf` reaches the same answer with two lookups
    * and a shape that invites the second one to be forgotten.
    */
   tryBehaviorOf(name: string): ToolBehavior | undefined {
@@ -477,63 +468,17 @@ export class ToolRegistry {
   }
 
   /**
-   * The model-facing projection for one turn: definitions only, no descriptor.
-   *
-   * This is the object `TurnRunnerDeps.tools` takes, so the metadata cannot
-   * reach the provider by accident — it never leaves the registry, and the
-   * model sees the same shape it would see if the tools were hard-coded.
-   *
-   * Built per turn from `context`. That costs nothing — a builder returns
-   * schemas and a closure, and the work each closure can do is deferred until
-   * the model calls it.
-   *
-   * M5-BE-12 hangs §6/M5's 100 KB ceiling here, on the way out. This is the
-   * one place every tool passes through — built-ins now, M6's MCP tools and
-   * `run_skill`'s compiled skills later — and a cap each author has to
-   * remember to apply is not a cap. `withCappedOutputs` composes onto a tool's
-   * own `toModelOutput` rather than replacing it, and adds nothing the
-   * provider is shown: `toModelOutput` is a server-side callback the SDK runs
-   * when it builds the next step's messages, so the definition the model
-   * validates is the one the tool declared.
+   * Model-facing tool definitions for one turn (no behavior metadata exposed to the provider).
+   * Wraps every tool output in the 100 KB ceiling and seat-admission guard.
    */
   toolSetFor(context: ToolContext): ToolSet {
     return this.resolveFor(context).toolSet;
   }
 
   /**
-   * M6-BE-12 — everything one turn may call, and what each of those things IS.
-   *
-   * The registered tools plus `extras`: definitions that belong to ONE turn and
-   * are gone with it. That is what an MCP tool is (D-104) — it belongs to a
-   * user's server, changes when the server is re-listed, and must reach a turn
-   * without a restart — and it is why a per-turn resolution exists at all
-   * rather than a second `register()` call.
-   *
-   * ── WHY THIS RETURNS THE LOOKUP AND NOT JUST THE SET ────────────────────────
-   *
-   * The registry's promise is that a tool's definition and its behavior
-   * descriptor are read from ONE place, so classification (M6-BE-08) and
-   * failure policy (M6-BE-10) cannot drift from what the model was actually
-   * offered. A `toolSet` returned on its own breaks that promise the moment a
-   * turn has extras: the caller would hold definitions from here and a
-   * `tryBehaviorOf` that has never heard of half of them, and an MCP tool would
-   * classify as `unregistered` — which the approval matcher answers with
-   * `deny`. So the resolution hands back both, over the same map, and
-   * `AgentTurnService` passes the two halves of one object to `tools` and to
-   * `toolApproval` rather than reaching for two sources.
-   *
-   * ── AN EXTRA IS DROPPED, NEVER THROWN ───────────────────────────────────────
-   *
-   * `register()` throws on a bad name or a duplicate, which is right at boot:
-   * the stack names the caller and nothing has started. Here it would be
-   * wrong twice — the caller is a turn in flight, and the material is a third
-   * party's (§6/M6: "one broken plugin must never fail a turn"). So an extra
-   * that a provider would reject, or that would shadow a registered tool, is
-   * refused into `refusals` with the reason, and the turn runs with the rest.
-   * Shadowing is refused rather than allowed to win, because the registered
-   * tool is this build's own: a plugin quietly replacing `shell` is the shape
-   * of the thing M6-BE-06's install-time slug check exists to prevent, and
-   * this is the second fence under it.
+   * Resolves all registered tools plus per-turn `extras` (such as MCP plugin tools)
+   * over one map so definitions, behavior classification, and approval checks stay in sync.
+   * Invalid or shadowing extras are collected in `refusals` instead of failing the turn.
    */
   resolveFor(context: ToolContext, extras: readonly RegisteredTool[] = []): ResolvedTools {
     const entries = new Map<string, RegisteredTool>(this.tools);
@@ -604,12 +549,8 @@ export type ToolRefusal = {
 };
 
 /**
- * Everything one turn may call, resolved once.
- *
- * `toolSet` is what `TurnRunnerDeps.tools` takes — definitions only, so no
- * descriptor can reach the provider by accident. `behaviorOf` answers over the
- * SAME map, which is the property that makes "one place" true for a tool that
- * was never registered.
+ * Resolved tools for one turn: `toolSet` holds provider-facing definitions only,
+ * while `behaviorOf` and `projectCall` read over the same resolved map.
  */
 export type ResolvedTools = {
   /** Registered names in registration order, then the extras that survived. */
@@ -618,7 +559,7 @@ export type ResolvedTools = {
   /** The descriptor, or `undefined` for a name this turn does not offer. */
   behaviorOf(name: string): ToolBehavior | undefined;
   /**
-   * D-113 — the same question asked about a CALL rather than a name.
+   * The same question asked about a CALL rather than a name.
    *
    * `behaviorOf` answers "what is `use_plugin_tool`", which is the right
    * question for a directory and the wrong one for a turn: the plugin bridge
@@ -637,7 +578,7 @@ export type ResolvedTools = {
   readonly refusals: readonly ToolRefusal[];
 };
 
-/** One call, as the things that decide about it have to see it (D-113). */
+/** One call, as the things that decide about it have to see it. */
 export type ToolCallProjection = {
   /** The name rules match and the operator is shown. */
   readonly name: string;

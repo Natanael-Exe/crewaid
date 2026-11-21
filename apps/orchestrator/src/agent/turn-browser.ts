@@ -4,7 +4,7 @@ import type { TurnComputer } from './turn-computer.js';
 /**
  * The turn's browser, opened on demand.
  *
- * Layered on M5-BE-14's `TurnComputer` and following the same rule one step
+ * Layered on the `TurnComputer` and following the same rule one step
  * further out: a turn that only answers starts no desktop, and a turn that
  * uses no browser tool opens no CDP socket either. Registering the four tools
  * costs nothing; the first `browser_*` call is what wakes the computer and
@@ -36,7 +36,7 @@ export interface TurnBrowser {
    * a page in the same moment this lands. An open that was already connecting
    * when the switch happened is attaching to the profile the turn has just
    * left, so it is closed and refused rather than memoized — see the guard in
-   * `page()`.
+   * `page`.
    */
   reset(): Promise<void>;
 }
@@ -51,12 +51,12 @@ export function createTurnBrowser(deps: {
   /**
    * The page the connection above is attached to, kept for one reason: the
    * turn has to stop whatever it left loading before it lets go. See
-   * `settle()`.
+   * `settle`.
    */
   let page: BrowserPage | undefined;
   let disposed = false;
   /**
-   * Bumped by `reset()`, read by an open that is already connecting.
+   * Bumped by `reset`, read by an open that is already connecting.
    *
    * The switch invalidates an open the same way `disposed` does, and for the
    * same reason: a connection nobody can use is a socket to close, not to

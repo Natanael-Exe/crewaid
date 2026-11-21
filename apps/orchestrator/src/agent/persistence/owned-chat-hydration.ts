@@ -8,7 +8,7 @@ import { createPrismaMessageStore } from './prisma-message-store.js';
 import { createPrismaRunStore, projectRunError, RunStoreError } from './prisma-run-store.js';
 
 /**
- * `GET /bots/:id/chat?threadId=` (D-159 §3.2): the library's hydration over
+ * `GET /bots/:id/chat?threadId=`: the library's hydration over
  * read-only views of the owned stores. Every write authority refuses, so a read
  * can never admit, attach or consume anything, and only the bot's own thread is
  * authorized — any other id is the library's 403 before a row is read.

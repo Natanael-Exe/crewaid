@@ -59,7 +59,7 @@ export function useAutoGrow(
 }
 
 /**
- * IME-safe Enter handling (M1-FE-07).
+ * IME-safe Enter handling.
  *
  * Enter submits, Shift+Enter newlines — EXCEPT while an IME composition is in
  * flight (Chinese/Japanese/Korean input renders candidates through Enter

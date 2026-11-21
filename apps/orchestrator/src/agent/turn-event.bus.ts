@@ -16,41 +16,12 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { sendBounded } from '../ws/ws-limits.js';
 
 /**
- * In-process fan-out for WebSocket server frames, to the sockets of the account the
- * frame belongs to — and to no other.
+ * In-process WebSocket fan-out for server frames, scoped strictly to the
+ * owning account.
  *
- * Who receives a frame
- *
- * Every frame has exactly one audience: the user who owns the bot it names,
- * or, for the frames that name no bot (`mcp.status`, the Work invalidations),
- * the user the caller says it belongs to. The audience is derived HERE, on
- * the server, and never from anything a client sent. This used to be a
- * broadcast to every connected window, which was right while there was one
- * singleton user and became a cross-account leak of transcripts, tool
- * arguments and approval prompts the moment a second account could sign in.
- *
- * A bot's owner is read once and remembered: `Bot.userId` never changes, so
- * the cache cannot go stale, and a per-token query would cost a round trip
- * per delta. Frames for a bot whose owner is still being read wait in a
- * per-bot queue, so a turn's first delta cannot overtake its second. A frame
- * whose owner cannot be established is dropped, never broadcast: an event a
- * window misses heals on its next fetch, and one delivered to the wrong
- * account cannot be taken back.
- *
- * When a socket stops receiving
- *
- * A socket's account is asked at the moment of sending, through the accessor
- * it registered with, not remembered from the handshake. A session that has
- * expired answers null there, with no query, and the socket is ended — a
- * window that only listens sends no frame that would otherwise have been
- * refused. Revocation, which needs a read, is the gateway's periodic sweep.
- *
- * WebSocket is enforced on BOTH ends. The renderer's WsClient rejects any frame
- * failing `ServerFrameSchema`, so this bus refuses to put one on the wire in
- * the first place — otherwise a malformed frame is dropped silently by the
- * client and looks like a lost event. Broadcasting the PARSED frame also means
- * a column added to a Prisma model cannot leak over the wire before the shared
- * schema admits it.
+ * Resolves and caches `Bot.userId` on first emit (queuing frames per bot until
+ * the lookup resolves so order is preserved), validates every outbound frame
+ * against `ServerFrameSchema`, and disconnects sockets whose session expires.
  */
 
 /** `ws` exposes readyState OPEN as a numeric literal, not an exported value. */
@@ -263,7 +234,7 @@ export class TurnEventBus {
    * refused to mint a token is written to the row and told to the window that
    * is watching, so the plugin modal can offer the one fix there is.
    *
-   * ⚠️ NO `botId`. Every other frame here is about a bot, and this one is about
+   * NO `botId`. Every other frame here is about a bot, and this one is about
    * a server: at this point in M6 it can be enabled for zero or more bots, and
    * naming one of them would make a server-scoped fact look like a bot-scoped
    * one. The payload is `{serverId, status, toolCount, lastError?}` — a status,
@@ -485,7 +456,7 @@ export class TurnEventBus {
   }
 
   private deliver({ frame, seq }: Outgoing, userId: string): void {
-    // D-071: stamped here rather than before the parse above, because the
+    // Stamped here rather than before the parse above, because the
     // union schemas do not declare `wireVersion` and zod strips what they do
     // not declare — a stamp applied first would be removed by that parse.
     const encoded = JSON.stringify(stampWireVersion(frame));

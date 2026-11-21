@@ -75,8 +75,8 @@ export function useWsConnection(options: UseWsConnectionOptions = {}): {
    * The socket already re-reads the CC-07 bag on every attempt, so a save
    * eventually takes hold on its own — but "eventually" is up to the 30s
    * ceiling of the reconnect backoff, which reads as a save that did nothing.
-   * `stop()` clears the pending timer and resets the attempt counter, so the
-   * following `start()` opens immediately rather than serving the old delay.
+   * `stop` clears the pending timer and resets the attempt counter, so the
+   * following `start` opens immediately rather than serving the old delay.
    */
   const reconnect = useCallback(() => {
     const client = clientRef.current;

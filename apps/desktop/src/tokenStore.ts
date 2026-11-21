@@ -344,10 +344,10 @@ export type GuardedIpcOptions = {
 };
 
 /**
- * ⚠️ THE ONLY WAY A CHANNEL REACHES THE MAIN PROCESS. Register through this,
+ * THE ONLY WAY A CHANNEL REACHES THE MAIN PROCESS. Register through this,
  * never through `ipcMain.handle` directly.
  *
- * CC-07's rule is that an invocation is answered only when it came from the
+ * The rule is that an invocation is answered only when it came from the
  * main frame of a window this app created, and that every other outcome — an
  * untrusted sender, a thrown handler, a rejected promise — becomes a
  * normalized result rather than an exception carrying platform detail across

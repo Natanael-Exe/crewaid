@@ -17,7 +17,7 @@ import type { ApiClient } from './apiClient';
 /**
  * REST provider-connection routes.
  *
- * ⚠️ NOTHING HERE RETURNS A KEY, AND NOTHING HERE CAN. `setCredential` takes
+ * NOTHING HERE RETURNS A KEY, AND NOTHING HERE CAN. `setCredential` takes
  * one and answers 204; `ProviderConnectionSchema` has no field that could
  * carry one back, and no masked stand-in either. That is the whole point of
  * The write-only property is a fact about the TYPE, so a handler

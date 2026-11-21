@@ -240,8 +240,12 @@ describe.skipIf(DATABASE_URL === undefined || DATABASE_URL === '')(
       });
       expect(skill?.paramsSchema).toEqual(PARAMS_SCHEMA);
 
-      // 3) Emitted on WS: two frames through the real bus, both §4.2-legal —
-      // the second is the one §4.2 names `skill.compiled`.
+      // 3) Emitted on WS: two frames through the real bus, the second `skill.compiled`.
+      // TurnEventBus resolves the bot's owner asynchronously on the first frame, so
+      // wait for both frames to flush before asserting.
+      await vi.waitFor(() => {
+        expect(client.frames).toHaveLength(2);
+      });
       const frames = client.frames.map((raw) => ServerFrameSchema.parse(JSON.parse(raw)));
       expect(frames.map((frame) => frame.type)).toEqual(['recording.state', 'skill.compiled']);
       const compiled = frames[1];

@@ -156,7 +156,7 @@ export class TaskStartService {
     const message = await tx.message.create({
       data: {
         conversationId: conversation.id,
-        // D-191 §2: a Start brief is a trigger, so it is written as the model
+        // A Start brief is a trigger, so it is written as the model
         // message it is. `taskId` is what files the deliverables the turn
         // produces.
         ...triggerRowColumns(task.assigneeBotId, await this.brief(tx, userId, task)),
@@ -201,7 +201,7 @@ export class TaskStartService {
   }
 
   /**
-   * The brief as PRD-WORK §3.3 writes it, closed by D-143's line naming the
+   * The brief as PRD-WORK §3.3 writes it, closed by the line naming the
    * task and asking the bot to report back on it:
    *
    * Task: API auth

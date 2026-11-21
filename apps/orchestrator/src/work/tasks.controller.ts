@@ -29,8 +29,8 @@ import { USER_ACTOR } from './task-events.js';
 import { TasksService } from './tasks.service.js';
 
 /**
- * REST `/tasks`. Every `:id` route carries its ownership marker
- * (D-026). The board is the user acting, so every write here is attributed to
+ * REST `/tasks`. Every `:id` route carries its ownership marker.
+ * The board is the user acting, so every write here is attributed to
  * the user and carries no message link.
  */
 @Controller('tasks')

@@ -36,13 +36,13 @@ import { renderEntry } from '../memory/memory-select.js';
  * memory a new bot starts with nor a bot's own — and it sat on a volume the
  * retention reaper exists to delete.
  *
- * The bound (16,000 characters) and the duplicate handling survive from D-069
+ * The bound (16,000 characters) and the duplicate handling survive
  * unchanged, because the reasoning behind them never depended on storage.
  *
  * These tools can no longer start a machine
  *
- * Every one of them used to reach `shared-document.ts` -> `context.session()`
- * -> `computerHandle.ensure()`, so reading the memory could wake a 2 GiB
+ * Every one of them used to reach `shared-document.ts` -> `context.session`
+ * -> `computerHandle.ensure`, so reading the memory could wake a 2 GiB
  * desktop. That cost is what D-069 cited for NOT injecting memory at turn
  * start, and it is now gone rather than re-balanced: a Postgres read wakes
  * nothing. D-069 named that exit itself — "if trimming still loses invariants
@@ -148,7 +148,7 @@ export function memoryTools(memories: MemoryService): RegisteredTool[] {
 
             const botId = scope === 'mine' ? context.botId : null;
 
-            // CC-39 — an unconfirmed guess the user then states out loud
+            // An unconfirmed guess the user then states out loud
             // becomes a fact, rather than a second row beside it.
             //
             // Before this, `remember` looked at ACTIVE rows only, so saying
@@ -169,7 +169,7 @@ export function memoryTools(memories: MemoryService): RegisteredTool[] {
               // Answered as a success, because it IS one — the fact is
               // remembered — and a refusal would make the model try to write
               // it another way. The confirmation count is the ranking signal
-              // this produces (D-074), where it is a TIEBREAK and never the
+              // this produces, where it is a TIEBREAK and never the
               // first thing compared.
               await memories.confirm(existing.id);
               return `Already remembered: ${existing.text}`;
@@ -201,7 +201,7 @@ export function memoryTools(memories: MemoryService): RegisteredTool[] {
               kind: kindOf(kind),
               text: claim,
               detail: detail.trim() === '' ? undefined : detail.trim(),
-              // What established this fact (D-190): the reply being composed,
+              // What established this fact: the reply being composed,
               // or the result row of this remember call.
               messageId: await context.attachmentHost(options.toolCallId),
             });

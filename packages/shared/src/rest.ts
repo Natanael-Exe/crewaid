@@ -41,7 +41,7 @@ import { ApprovalRequestedPayloadSchema } from './ws.js';
 /**
  * REST request/response bodies. All under `/api/v1`, all JSON.
  *
- * ⚠️ PATHS AND BODY SHAPES ARE CONTRACTUAL. The path registry at the bottom of
+ * PATHS AND BODY SHAPES ARE CONTRACTUAL. The path registry at the bottom of
  * this file is the single source of truth the Electron client builds URLs from,
  * so a typo here is a typo everywhere — which is the point.
  */
@@ -58,7 +58,7 @@ export const API_PREFIX = '/api/v1' as const;
  * sees, and the compose example already warns about exactly that class of
  * mistake for the sign-in callbacks.
  *
- * ⚠️ This path is AUTHENTICATED LIKE EVERY OTHER ROUTE except that one
+ * This path is AUTHENTICATED LIKE EVERY OTHER ROUTE except that one
  * exemption in `AuthGuard` names it: the browser arriving here carries no
  * session, so the `state` in the query is the entire authority. See.
  */
@@ -171,7 +171,7 @@ export const UpdateBotBodySchema = z
 export type UpdateBotBody = z.infer<typeof UpdateBotBodySchema>;
 
 /**
- * `POST /bots/:id/read` — . Without a body (or `unread: false`) every
+ * `POST /bots/:id/read` —. Without a body (or `unread: false`) every
  * message is read; `unread: true` puts the newest bot message back to unread,
  * which is what "Mark as unread" means in every chat app.
  */
@@ -794,7 +794,7 @@ export type McpServerSummary = z.infer<typeof McpServerSummarySchema>;
 /**
  * The `GET /mcp/servers` body, a bare array for the same reason.
  *
- * ⚠️ The array is of summaries; there is no credential field and no
+ * The array is of summaries; there is no credential field and no
  * `McpCredentialDto` for one to live on. `` asserts no token
  * material in the serialized response, not just in the type.
  */
@@ -815,7 +815,7 @@ export type ListMcpServersResponse = z.infer<typeof ListMcpServersResponseSchema
  * a row created now and authorized in a second call is a row that exists in a
  * state the operator never asked for if the second call never comes.
  *
- * ⚠️ NOTE WHICH DIRECTION THIS TRAVELS. §7.3 forbids token material in a
+ * NOTE WHICH DIRECTION THIS TRAVELS. §7.3 forbids token material in a
  * RESPONSE; a request body is how a secret gets in at all, and it is the same
  * direction `ConnectProviderBody` already carries an API key. What the server
  * does with it is not this schema's business, but it is fixed: encrypted
@@ -872,7 +872,7 @@ export type BotPlugin = z.infer<typeof BotPluginSchema>;
  * builds its own array schema is building a contract the server never agreed
  * to, and `packages/shared` is where a wire shape is decided.
  *
- * ⚠️ Every server the caller installed, with THIS bot's enablement on each —
+ * Every server the caller installed, with THIS bot's enablement on each —
  * not only the enabled ones. `enabled` would be a constant otherwise, and a
  * field that is always true is a field nobody needs.
  */
@@ -915,7 +915,7 @@ export const PLUGIN_LISTING_TOKEN_BUDGET = 4000 as const;
 // Provider connections
 
 /**
- * ⚠️ THE KEY TRAVELS IN ONE DIRECTION ONLY.
+ * THE KEY TRAVELS IN ONE DIRECTION ONLY.
  *
  * `apiKey` appears on REQUEST bodies below and on no response anywhere. There
  * is deliberately no "reveal" route and no response schema with a field it
@@ -1609,14 +1609,14 @@ export const API_ROUTES = {
     updateModel: 'PATCH /providers/models/:modelId',
     removeModel: 'DELETE /providers/models/:modelId',
   },
-  /** V1-05 / D-086: where the per-user `default` alias is chosen. */
+  /** Where the per-user `default` alias is chosen. */
   settings: {
     get: 'GET /settings',
     update: 'PATCH /settings',
   },
   usage: 'GET /usage',
   /**
-   * D-156: the hosted service's plans. Registered only on a cloud server with
+   * The hosted service's plans. Registered only on a cloud server with
    * Stripe configured; anywhere else these answer 404.
    */
   billing: {
@@ -1626,19 +1626,19 @@ export const API_ROUTES = {
   },
   memoryUpdate: 'PATCH /memory/:id',
   memoryRemove: 'DELETE /memory/:id',
-  memory: 'GET /memory', // CC-36 / D-080: read-only; the seat's MEMORY.md replacement
+  memory: 'GET /memory',
   models: 'GET /models',
-  attachmentUpload: 'POST /attachments', // D-019: the creation half (multipart/form-data)
-  attachmentRemove: 'DELETE /attachments/:id', // D-020 addendum: manual fallback, unclaimed only
+  attachmentUpload: 'POST /attachments', // multipart/form-data
+  attachmentRemove: 'DELETE /attachments/:id', // unclaimed only
   attachmentDownload: 'GET /attachments/:id/download',
   voice: {
-    transcribe: 'POST /voice/transcriptions', // D-221: dictation, multipart, nothing stored
-    note: 'POST /voice/notes', // D-221: a voice message, multipart, stored unclaimed
+    transcribe: 'POST /voice/transcriptions', // dictation, multipart, nothing stored
+    note: 'POST /voice/notes', // voice message, multipart, stored unclaimed
     voices: 'GET /voice/voices',
     status: 'GET /voice/status',
   },
   calls: {
-    start: 'POST /bots/:id/calls', // D-222: cloud edition only
+    start: 'POST /bots/:id/calls', // cloud edition only
     update: 'PATCH /calls/:callId',
     allowance: 'GET /calls/allowance',
   },

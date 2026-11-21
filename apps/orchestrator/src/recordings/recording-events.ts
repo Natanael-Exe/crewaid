@@ -6,7 +6,7 @@ type RfbPointerEvent = Extract<RfbInputEvent, { kind: 'pointer' }>;
 
 /**
  * The X11 capture vocabulary, its ordering rule, and the two coalescers
- * PRD §6/M3 defines over it (M3-BE-01/02/03).
+ * PRD §6/M3 defines over it.
  *
  * Pure on purpose: everything here is decided per event from an arrival time
  * the caller supplies, with no clock, no database and no service — which is
@@ -30,7 +30,7 @@ export interface CapturedX11Event {
  * was a click or the start of a drag. M3-BE-06 is what reads a press-and-
  * release pair as a click.
  *
- * `key` and `type` are not raw, and that is M3-BE-03's whole job. §6 fixes
+ * `key` and `type` are not raw, and that is the whole job. §6 fixes
  * their meaning by fixing what replays them — `SkillContext.type(text)` and
  * `SkillContext.key(combo)` — and a keydown cannot be sorted into one or the
  * other without knowing which modifiers are down, which is state the raw
@@ -166,8 +166,7 @@ export function createInputCoalescer(): InputCoalescer {
 const CLICK_BUTTONS = 0b111;
 
 /**
- * Whether this event presses a click button that was not already down
- * (M3-BE-04).
+ * Whether this event presses a click button that was not already down.
  *
  * Read from the coalescer's own `lastButtonMask` rather than from a second
  * copy kept by the caller. There is exactly one answer to "was this button

@@ -17,13 +17,13 @@
  * set viewOnly(viewOnly) {
  * this._viewOnly = viewOnly; // set first
  * ...
- * this._keyboard.ungrab(); // which calls _allKeysUp()
+ * this._keyboard.ungrab; // which calls _allKeysUp
  *
  * and every release `_allKeysUp` produces reaches `sendKey`, whose first line
  * is `if (this._rfbConnectionState !== 'connected' || this._viewOnly) return;`.
  * So the releases are generated and immediately dropped, while
  * `Keyboard._keyDownList` is cleared on the way past — after which nothing on
- * either side knows the key is still down. `disconnect()` has the same shape:
+ * either side knows the key is still down. `disconnect` has the same shape:
  * it ungrabs after the connection state has already left `connected`.
  *
  * This reads the messages that are ALREADY going out, so it cannot disagree

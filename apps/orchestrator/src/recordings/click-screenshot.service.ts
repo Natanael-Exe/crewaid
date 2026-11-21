@@ -31,7 +31,7 @@ import { computerOfBot } from '../sandbox/attached-computer.js';
  * Why the bridge endpoint is resolved once per bot
  *
  * Reaching the bridge means a `Sandbox` row, a Docker inspect, and a port
- * lookup. None of that changes while a recording runs — §8's idle sweep
+ * lookup. None of that changes while a recording runs — the idle sweep
  * refuses to stop a bot with a `RECORDING` row, which is the only thing that
  * would move the port — so it is resolved on the first click and reused. The
  * promise is cached rather than its result, so a burst of clicks during a slow
@@ -220,7 +220,7 @@ export class ClickScreenshotService {
     const session = await this.provider.attachSession({ sessionId });
     if (session === null) throw new Error(`no container is attached to session ${sessionId}`);
     const endpoint = await session.getPortEndpoint({ port: SANDBOX_PORTS.bridge });
-    // D-012: a provider may require headers on its endpoints. Unlike the RFB
+    // A provider may require headers on its endpoints. Unlike the RFB
     // proxy, which has nowhere to put them, this is plain HTTP — so they are
     // simply sent, and the decision D-012 exists to force never arises here.
     return { url: endpoint.url, headers: endpoint.headers ?? {} };
@@ -240,7 +240,7 @@ export class ClickScreenshotService {
 
 /** What a stored crop contributes to the `RecordingEvent` that names it. */
 export interface StoredCrop {
-  /** `RecordingEvent.screenshotKey` — a key in the artifact store (D-220). */
+  /** `RecordingEvent.screenshotKey` — a key in the artifact store. */
   readonly key: string;
   readonly rect: CropRect;
 }
@@ -273,9 +273,9 @@ function storageKeyFor(recordingId: string): string {
 /**
  * Read a response body, refusing one that outgrows the cap.
  *
- * `arrayBuffer()` would buffer whatever arrives before anything could check
+ * `arrayBuffer` would buffer whatever arrives before anything could check
  * it, and `content-length` is a claim the sender makes, not a constraint on
- * what it sends. The sandbox is the untrusted side of this connection (§7.3),
+ * what it sends. The sandbox is the untrusted side of this connection,
  * so the running total is what actually bounds the read.
  */
 async function readCapped(response: Response, cap: number): Promise<Buffer> {

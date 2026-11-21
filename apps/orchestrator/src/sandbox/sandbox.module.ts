@@ -40,8 +40,8 @@ import { SandboxMeterService } from './sandbox-meter.service.js';
  * be possible to wire the lifecycle without the poll that keeps its states
  * honest.
  *
- * SandboxIdleService and SandboxActivityService are here for the same reason
- * (M2-BE-11). Capacity admission only works if slots are actually given back,
+ * SandboxIdleService and SandboxActivityService are here for the same reason.
+ * Capacity admission only works if slots are actually given back,
  * so a deployment that could start sandboxes without the sweep that stops idle
  * ones would fill its host once and stay full.
  *

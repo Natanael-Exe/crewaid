@@ -18,13 +18,13 @@
  * What this is, and what it is not
  *
  * A guardrail against a confused model, never a boundary against a determined
- * one. §22 is explicit: `shell()` executes as the same uid and can read
+ * one. §22 is explicit: `shell` executes as the same uid and can read
  * anything that uid can, so a path check here is worth exactly as much as the
  * model's willingness to use the tool that has one. The boundary is the
- * container, and under D-046 it is per user.
+ * container, and it is per user.
  *
  * That is the reason to be strict anyway rather than the reason not to
- * bother. §6/M5's rejection cases are about a model reaching somewhere it did
+ * bother. The rejection cases are about a model reaching somewhere it did
  * not mean to — `/etc/shadow`, an escape upward — and those are exactly the
  * mistakes a check catches.
  */
@@ -75,7 +75,7 @@ export type PathVerdict =
  * Resolve a path the model asked for, or say why not — in a sentence the
  * model can act on.
  *
- * Refusals are text rather than exceptions for §6/M5's reason: a tool result
+ * Refusals are text rather than exceptions for the reason: a tool result
  * the model can react to beats one shaped for a developer reading a stack. A
  * model told "that is another bot's area, yours is /home/bot/agents/<id>" can
  * retry correctly; one handed a stack trace re-runs the same call.
@@ -137,7 +137,7 @@ export function resolveWorkspacePath(
     };
   }
 
-  // Another group's folder (D-131). Refused for the same reason as another
+  // Another group's folder. Refused for the same reason as another
   // bot's area: a model writing into a group it is not in has confused whose
   // folder this is, and the members of that group would find its files there.
   if (first === 'groups' && second !== undefined && second !== '' && second !== groupId) {

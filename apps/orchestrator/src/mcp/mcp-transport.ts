@@ -64,10 +64,10 @@ export function parseMcpTransport(value: unknown): McpTransport {
 /**
  * The client transport config for one server.
  *
- * ── THE FETCH IS PASSED IN, NEVER DEFAULTED HERE ────────────────────────────
+ * The fetch is passed in, never defaulted here
  *
  * The caller supplies it, because the caller is what decides what a URL this
- * process has never seen is allowed to reach (D-085). `openMcpConnection`
+ * process has never seen is allowed to reach. `openMcpConnection`
  * defaults that to the guarded fetch; this function defaults nothing, so there
  * is no path through this module that reaches the platform `fetch` by simply
  * omitting an argument.

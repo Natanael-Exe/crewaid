@@ -15,7 +15,7 @@ import type { ZodType } from 'zod';
  *
  * Failures are 400 with the Zod issues verbatim. `detail` stays structured
  * rather than flattened, so the client can render field-level errors without
- * parsing a message string (M1-BE-11's rule applied to our own errors).
+ * parsing a message string (the rule applied to our own errors).
  */
 @Injectable()
 export class ZodValidationPipe<T> implements PipeTransform<unknown, T> {

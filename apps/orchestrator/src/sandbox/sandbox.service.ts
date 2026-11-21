@@ -165,7 +165,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
   /** `POST /bots/:id/sandbox/start` — idempotent; resumes by sessionId when present. */
   async start(userId: string, botId: string): Promise<SandboxStatusResponse> {
     await this.assertOwned(userId, botId);
-    // D-156: the plan first, ahead of storage and the host's capacity. A
+    // The plan first, ahead of storage and the host's capacity. A
     // refusal here is about this account and stays true until it pays or the
     // period turns over; reporting "the host is full" instead would send the
     // operator to stop a sibling's computer for nothing. Every wake — a turn's
@@ -186,7 +186,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
       // Only RUNNING satisfies "start this sandbox". Every other settled state
       // means the compare-and-swap lost to a concurrent writer — a stop that
       // finished first, or a health poll moving the row to UNHEALTHY between
-      // this claim's read and its write (M2-BE-05) — and the caller still
+      // this claim's read and its write — and the caller still
       // wants the desktop up, so claim again rather than hand back the state a
       // racing writer happened to leave behind.
       //
@@ -227,7 +227,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
   }
 
   /**
-   * D-237: run `work` on this computer while it is paused, holding its
+   * Run `work` on this computer while it is paused, holding its
    * lifecycle lease, then put it back the way it was found.
    *
    * Paused rather than running because a snapshot is taken of, or restored
@@ -301,7 +301,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
    *
    * No principal, because a background sweep has none — the same exemption the
    * health poll carries, and the reason this is not reachable from a route:
-   * §4.1's stop is `stop()` above and keeps its ownership check.
+   * The stop is `stop` above and keeps its ownership check.
    *
    * `confirm` runs INSIDE the lifecycle lease rather than before it. The sweep
    * decided this sandbox was idle by reading rows a moment ago; a turn or a
@@ -315,7 +315,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
    * between "idle, stopped it" and "changed its mind" rather than assume.
    */
   async stopIdle(target: Attachment, confirm: () => Promise<boolean>): Promise<boolean> {
-    // Not the retry loop `stop()` uses: a sweep has no user waiting on it and
+    // Not the retry loop `stop` uses: a sweep has no user waiting on it and
     // runs again shortly. Losing the claim means someone else is already
     // moving this row, and the right response is to leave it to them.
     const lease = await this.claimRunningStop(target.computerId);
@@ -334,7 +334,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
   }
 
   /**
-   * Stop a computer its owner's plan no longer covers (D-156).
+   * Stop a computer its owner's plan no longer covers.
    *
    * Unlike idle stop this takes `UNHEALTHY` computers too: a container that
    * stopped answering may still be running, and it is still being metered, so
@@ -400,7 +400,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
         cdpPort: null,
         bridgePort: null,
         lastError: failure ?? null,
-        // A lease says "keep this RUNNING until T" (§8). Once it is down the
+        // A lease says "keep this RUNNING until T". Once it is down the
         // lease has nothing left to protect, and carrying it into the next
         // start would make a sandbox unstoppable for a promise made about a
         // session that no longer exists.
@@ -441,10 +441,10 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
     return failed[0];
   }
 
-  // ── the lock ───────────────────────────────────────────────────────────────
+  // the lock
 
   /**
-   * Admission (§7) and the start lock, in one critical section.
+   * Admission and the start lock, in one critical section.
    *
    * The advisory lock spans BOTH the count and the claim, because the claim is
    * what makes this bot one of the things being counted. Reading five and then
@@ -455,7 +455,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
    * and that is not an optimisation. Restarting an `UNHEALTHY` sandbox does
    * not add a sandbox — the container is already there, already counted — so
    * charging it for a slot it holds would make a full host one where the sick
-   * ones can never be recovered. It also keeps §4.1's idempotent start honest:
+   * ones can never be recovered. It also keeps the idempotent start honest:
    * asking a RUNNING sandbox to start must never answer "the host is full".
    */
   private async admitAndClaim(target: Attachment): Promise<Admission> {
@@ -536,7 +536,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
   }
 
   /**
-   * Hand a claimed lease back without doing anything with it (M2-BE-11).
+   * Hand a claimed lease back without doing anything with it.
    *
    * Pinned to the lease like every other completion write, so an expired
    * holder cannot undo a newer operation. Zero rows means exactly that, and it
@@ -578,7 +578,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
     }
   }
 
-  // ── the slow half, run only by the lock holder ─────────────────────────────
+  // the slow half, run only by the lock holder
 
   private renew(target: Attachment, lease: Date) {
     return renewLifecycleLease(async () => {
@@ -618,7 +618,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
       state: 'RUNNING',
       workspacePending: false,
       pausePending: false,
-      // §8's clock starts here, so a sandbox that has just come up gets a full
+      // The clock starts here, so a sandbox that has just come up gets a full
       // idle period rather than inheriting whatever the last session left.
       lastActiveAt: new Date(),
       sessionId: session.id,
@@ -667,7 +667,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
         ...(workspacePending ? { ensureWorkspaceRetention: true } : {}),
       });
     // `identity` is what the provider keys the durable workspace on, so it is
-    // the COMPUTER, not the session (D-039 §2, D-046 §19). They carry the same
+    // the COMPUTER, not the session. They carry the same
     // string today, which is exactly why this is passed explicitly: a future
     // session id that diverged would otherwise strand a machine's files under
     // a name nothing looks for, and nothing would fail until someone went
@@ -677,7 +677,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
       identity: computerId,
       requireExistingWorkspace: !workspacePending || !this.provider.workspaceOnFirstStart,
       abortSignal,
-      // D-237: a computer that comes back from its snapshot keeps only the
+      // A computer that comes back from its snapshot keeps only the
       // profiles that still belong to it.
       ...(this.provider.snapshots === undefined
         ? {}
@@ -685,7 +685,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
     });
   }
 
-  // ── plumbing ───────────────────────────────────────────────────────────────
+  // plumbing
 
   /**
    * R7: resolve the bot through its owner first. A 404 covers both "no such
@@ -745,7 +745,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
 }
 
 /**
- * The states that occupy a slot on the host (§7).
+ * The states that occupy a slot on the host.
  *
  * `STARTING` counts because a start in flight is already consuming the host —
  * the container is being created right now. `UNHEALTHY` counts because the
@@ -759,7 +759,7 @@ export class SandboxService implements OnApplicationBootstrap, OnModuleDestroy {
 export const OCCUPIES_A_SLOT: readonly SandboxState[] = ['STARTING', 'RUNNING', 'UNHEALTHY'];
 
 /**
- * A bot and the machine it works on (D-046).
+ * A bot and the machine it works on.
  *
  * Both halves travel together because the two questions a lifecycle operation
  * asks have different answers now: every row it reads or writes is keyed on
@@ -773,7 +773,7 @@ export type Attachment = { readonly botId: string; readonly computerId: string }
 type Admission = { admitted: true; lease: Date | null } | { admitted: false; running: number };
 
 /**
- * §7's refusal.
+ * The refusal.
  *
  * 503 rather than 409, and the difference is the whole point: the condition is
  * temporary and the identical request succeeds once something stops. `code`

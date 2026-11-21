@@ -153,7 +153,7 @@ const CONTAINED: ToolBehavior = {
 /**
  * The descriptor of the call door itself.
  *
- * ⚠️ A CALL IS NOT CLASSIFIED BY THIS. `unwrap` answers that with the
+ * A CALL IS NOT CLASSIFIED BY THIS. `unwrap` answers that with the
  * underlying tool's own descriptor, and this value is only what a reader that
  * asks about the NAME `use_plugin_tool` gets — so it is the fail-safe
  * direction: anything reaching this door is `sensitive`, which asks. The
@@ -259,12 +259,12 @@ export function indirectPluginTools(
           }),
         }),
       /**
-       * D-113's seam: what this CALL is really about.
+       * The seam: what this CALL is really about.
        *
        * The approval matcher and the operator both ask this question, and both
        * have to get the plugin tool rather than the door — otherwise §6/M6's
        * `readOnly` defaults to allow" would be decided for every plugin tool
-       * by the door's one classification, which is D-110's problem returning
+       * by the door's one classification, which is the problem returning
        * with the door count changed.
        *
        * The behaviour comes from the catalogue (the binding's own descriptor),
@@ -402,14 +402,14 @@ function matchBlock(entry: CatalogueEntry): string {
  * materializes the schema for what matched, which is the half that would have
  * cost a slot per tool.
  *
- * ── THE ANSWER IS BUDGETED TOO, AND IT IS THE EXPENSIVE HALF ────────────────
+ * The answer is budgeted too, and it is the expensive half
  *
  * The listing rides in a tool DESCRIPTION: it is part of the prompt prefix, it
  * is identical across a conversation's turns, and a provider's prefix cache
- * therefore pays for it once (D-094's reason for keeping the prefix stable).
+ * therefore pays for it once (the reason for keeping the prefix stable).
  * This answer is a tool RESULT. It lands in the message history behind that
  * prefix and is re-sent on every subsequent step of the turn, uncached — which
- * is §6/M6's sentence exactly: "burns input tokens on every step of every
+ * is the sentence exactly: "burns input tokens on every step of every
  * turn". Ten schemas at a kilobyte each is a bigger recurring cost than the
  * whole advertisement, so it cannot be the half that goes unbounded.
  *
@@ -419,7 +419,7 @@ function matchBlock(entry: CatalogueEntry): string {
  * the same rule as the listing decides what gives: the FORM degrades, the
  * reachability never does.
  *
- * ⚠️ WHICH IS WHY THE FIRST MATCH IS ADMITTED WHATEVER IT COSTS. A tool whose
+ * WHICH IS WHY THE FIRST MATCH IS ADMITTED WHATEVER IT COSTS. A tool whose
  * schema alone exceeds the budget must still be callable, and the schema is
  * what makes it callable; refusing it would put a tool behind a search that
  * cannot answer for it, and "a name the listing omitted still runs" would stop
@@ -471,7 +471,7 @@ async function run(
     if (!valid.ok) return `INVALID_ARGUMENTS: ${valid.reason}`;
     return await callTool({
       serverId: entry.serverId,
-      // The SERVER's name, exactly as a direct binding sends it (D-104).
+      // The SERVER's name, exactly as a direct binding sends it.
       toolName: entry.toolName,
       args,
       timeoutMs: MCP_CALL_TIMEOUT_MS,

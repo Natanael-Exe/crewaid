@@ -239,7 +239,7 @@ export class TaskSeriesService {
 
   /**
    * The schedule, validated exactly as a routine's is. An end date
-   * already past is refused when it is being set — D-129's rule — because the
+   * already past is refused when it is being set — the rule — because the
    * scheduler would drop it at once and the series would read as live.
    */
   private checkedRepeat(

@@ -8,7 +8,7 @@ import { TurnControlService } from './turn-control.service.js';
  * `GET /bots/:id/approvals` — what a bot is waiting on now.
  *
  * `approval.requested` is emitted once, when the turn suspends. A desktop app
- * relaunched after that never saw it, and M5-FE-02's pending set is renderer
+ * relaunched after that never saw it, and the pending set is renderer
  * memory: it survives a reconnect, correctly, but not a restart. The turn then
  * sat suspended with no way to answer it but `bot.cancel`, which throws the
  * whole turn away to answer a question about one tool call.

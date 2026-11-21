@@ -903,19 +903,19 @@ function PluginCard({
 }
 
 /**
- * Connect a server this build does not curate (CC-57, D-114).
+ * Connect a server this build does not curate.
  *
- * ── STDIO IS NOT OFFERED, AND THAT IS THE CONTRACT RATHER THAN A CHOICE ────
+ * Stdio is not offered, and that is the contract rather than a choice
  *
- * `McpTransportSchema` is `['HTTP', 'SSE']`: v1 is remote-only (PRD §2.5), so
+ * `McpTransportSchema` is `['HTTP', 'SSE']`: v1 is remote-only, so
  * there is no STDIO to offer and no toggle to grey out. The references this
  * screen follows show STDIO beside Streamable HTTP because their builds run a
  * local process; this one would be offering a transport nothing implements.
  *
- * ── THE TOKEN IS OPTIONAL AND THE FORM SAYS WHY ───────────────────────────
+ * The token is optional and the form says why
  *
  * A blank token installs the server with `authType: NONE` and a filled one
- * makes it `HEADER` (D-114). That is a real fork with a consequence an
+ * makes it `HEADER`. That is a real fork with a consequence an
  * operator cannot see later — a NONE server has no token to rotate — so the
  * field says what leaving it empty means rather than letting the absence
  * decide silently.

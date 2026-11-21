@@ -22,7 +22,7 @@ import { ScreenTicketService } from './screen-ticket.service.js';
  * The route's `@OwnedResource` marker has already tied the bot to the caller;
  * this decides the rest. Only a RUNNING computer gets a grant, and getting one
  * changes nothing about the computer: the panel opening is not a reason to
- * wake it (D-039 §16), so a stopped one is refused and the viewer shows the
+ * wake it, so a stopped one is refused and the viewer shows the
  * stopped state it already knows how to show.
  *
  * Where the stream is served

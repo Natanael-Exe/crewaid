@@ -38,7 +38,7 @@ export interface BotRowView {
 export interface TranscriptMessage {
   id: string;
   author: 'USER' | 'BOT' | 'SYSTEM';
-  /** Persisted AI SDK parts, verbatim (PRD M1). Rendered via the registry. */
+  /** Persisted message parts, rendered via the part registry. */
   parts: AnyPart[];
   timeLabel: string;
   /** The day this message falls on, for the transcript's date separator. */
@@ -96,9 +96,9 @@ export interface TranscriptMessage {
  * all render as the same silent stop, and a truncated answer is
  * indistinguishable from a short one.
  *
- * The server writes three families into `stopReason`: the AI SDK's own
- * FinishReason on the happy path; the literal `interrupted` for BOTH an
- * orchestrator restart and an operator cancel, which share the value; and a
+ * The server writes three families into `stopReason`: the model's finish reason
+ * on the happy path; the literal `interrupted` for both an orchestrator restart
+ * and an operator cancel; and a
  * D-006 error code when the turn failed. Only the first family contains
  * values meaning "finished", so anything unrecognised is reported as
  * incomplete rather than passed off as a whole reply. The raw value is never

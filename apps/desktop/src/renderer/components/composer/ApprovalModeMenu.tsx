@@ -22,7 +22,7 @@ export type ApprovalModeOption = {
   readonly warns: boolean;
 };
 
-/** D-144's three modes, least trusting first. */
+/** The three modes, least trusting first. */
 export const APPROVAL_MODES: readonly ApprovalModeOption[] = [
   {
     id: 'ASK',

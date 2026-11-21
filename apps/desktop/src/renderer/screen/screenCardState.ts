@@ -16,7 +16,7 @@ export type ScreenCardView =
   | { readonly kind: 'stopped'; readonly caption: string }
   | { readonly kind: 'starting'; readonly caption: string }
   /**
-   * The host is full (D-039 §7). Deliberately not `failed`: nothing about this
+   * The host is full. Deliberately not `failed`: nothing about this
    * bot is wrong, the same request succeeds once a slot frees, and telling the
    * operator their computer is broken would send them looking for a fault that
    * is not there.
@@ -68,7 +68,7 @@ export const THUMBNAIL_QUALITY = 3;
  *
  * This is the only view where the desktop is rendered near 1:1, so it is the
  * only one where Tight's JPEG artefacts land on things the operator has to
- * read: a terminal's output, a URL bar, a file name. §5's acceptance criterion
+ * read: a terminal's output, a URL bar, a file name. The acceptance criterion
  * is literally "click the terminal icon, type `touch /home/bot/proof.txt`" —
  * which is not a thing you can do against a picture you cannot read.
  *
@@ -141,7 +141,7 @@ export function screenCardView(
   // 1. A live picture wins outright. Something is on screen, and nothing said
   // about a request can be more useful than the desktop itself — a wake
   // that resolves against an already-running computer is exactly what
-  // M3-BE-11's idempotent ensure-ready is for.
+  // The idempotent ensure-ready is for.
   if (durable.kind === 'live' || wake === undefined) return durable;
   // 2. Then anything in flight, whether the row knows about it yet or not.
   if (wake.kind === 'waking') return { kind: 'starting', caption: durable.caption };

@@ -148,7 +148,7 @@ export function instructionIssue(instruction: string): string | null {
 /**
  * The standing, from the skill the server last answered with.
  *
- * `APPROVED` is the only status M3 lets run (§6/M3's acceptance criterion), so
+ * `APPROVED` is the only status M3 lets run (the acceptance criterion), so
  * the note says which side of that line the skill is on — the operator should
  * not have to know the enum to know whether stopping here is enough.
  */
@@ -239,8 +239,7 @@ export function skillFailureMessage(failure: ApiFailure): string {
 }
 
 /**
- * What the operator is told when a plain-language change could not be compiled
- * (D-098).
+ * What the operator is told when a plain-language change could not be compiled.
  *
  * The server answers a refused revision with 400 and a sentence written for
  * this surface — but the transport deliberately keeps response bodies out of

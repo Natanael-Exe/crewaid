@@ -1,24 +1,9 @@
 /**
- * §6/M5's loop safety limits — the accounting, and the decision it feeds.
+ * Per-turn loop safety limits (steps, accumulated input tokens, and wall-clock duration).
  *
- * Three ceilings on one turn: steps taken, input tokens accumulated, and time
- * spent working. This module owns all three so they are compared in one place
- * and reported in one vocabulary; the runner owns where they are consulted and
- * the service owns what a user is told.
- *
- * D-047 applies to two of them. A wall that refuses work the operator asked
- * for ships OFF, and `0` is how each says so — `AGENT_MAX_TURN_TOKENS` and
- * `AGENT_MAX_TURN_MS` are both absent by default, so a stock install has the
- * accounting and none of the refusals. The step ceiling is the exception, and
- * for a measured reason rather than an inherited one: an agent built with no
- * stop condition at all runs 20 steps, because that is the AI SDK's own
- * default (measured against ai@7.0.89). "Off" is not one of the states the
- * loop offers, so the only question the step ceiling asks is which number, and
- * §6/M5 answers 25.
- *
- * Nothing here imports the AI SDK. The numbers arrive as numbers so the whole
- * decision is a pure function over three integers, which is the part worth
- * pinning with fixtures rather than with a mock provider.
+ * Token and duration ceilings ship disabled (`0`) by default while accounting
+ * stays active; the step ceiling defaults to 25 so every turn has a hard upper
+ * bound. Pure arithmetic with no provider imports.
  */
 
 /** Which ceiling ended a turn. */
@@ -102,7 +87,7 @@ const NO_ROUND: TurnLimitRound = { steps: 0, tokens: 0 };
  *
  * Mutable and per-turn, like the usage totals it sits beside. It exists
  * because M5-BE-09 made a turn one stream PER APPROVAL ROUND: `stopWhen`
- * counts inside one `stream()` call, so a per-round ceiling would hand a turn
+ * counts inside one `stream` call, so a per-round ceiling would hand a turn
  * a fresh budget every time it asked a question.
  */
 export type TurnLimitAccount = {
@@ -138,7 +123,7 @@ export function createTurnLimitAccount(
   let runningSince: number | undefined;
   let stop: TurnLimitStop | undefined;
 
-  // `Math.max(0, …)` because `Date.now()` is not monotonic: an NTP step
+  // `Math.max(0, …)` because `Date.now` is not monotonic: an NTP step
   // backwards mid-turn would otherwise subtract from the elapsed total and a
   // clock that can run backwards is a limit that can un-fire.
   const elapsedMs = (): number =>
@@ -202,7 +187,7 @@ function fmtDuration(ms: number): string {
   return seconds === 0 ? `${minutes}m` : `${minutes}m ${seconds}s`;
 }
 
-/** D-206: an actual stop needs an action; internal budgets stay in logs and model instructions. */
+/** An actual stop needs an action; internal budgets stay in logs and model instructions. */
 export function turnLimitCopy(_stop: TurnLimitStop): string {
   return 'The bot paused before finishing. Anything it finished is above — send a message to carry on from there.';
 }
@@ -210,11 +195,11 @@ export function turnLimitCopy(_stop: TurnLimitStop): string {
 /**
  * The MODEL's half: which ceiling fired, and the key that sets it.
  *
- * Exported because the model is told this on a continuation (M5-BE-19), and
+ * Exported because the model is told this on a continuation, and
  * precision is what that reader needs — naming the ceiling is what stops it
  * re-planning from the same starting point and walking into the same wall on
  * the same step. It is deliberately NOT what the person is shown; see
- * `turnLimitCopy` above for that half and why they differ (D-093).
+ * `turnLimitCopy` above for that half and why they differ.
  */
 export function turnLimitSentence(stop: TurnLimitStop): string {
   switch (stop.kind) {
@@ -273,7 +258,7 @@ export function wrapUpCopy(stepsDone: number, maxSteps: number): string {
  *
  * Here rather than in either coordinator, because both engines continue a
  * limit stop and a second wording would be a second answer to why the last
- * run ended (D-191 §4).
+ * run ended.
  */
 export function continuationInstruction(stop: TurnLimitStop): string {
   return (

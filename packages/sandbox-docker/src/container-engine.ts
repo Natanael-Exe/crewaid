@@ -33,7 +33,7 @@ export interface ContainerCreateSpec {
  * A bot's durable workspace, as the engine reports it.
  *
  * The labels are the load-bearing part: they are the ONLY authoritative record
- * of which bot a workspace belongs to (D-039 §2). Nothing stores the volume
+ * of which bot a workspace belongs to. Nothing stores the volume
  * name in Postgres, precisely so that a stored copy cannot disagree with the
  * daemon about who owns a desktop's files.
  */

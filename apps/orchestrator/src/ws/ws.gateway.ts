@@ -418,7 +418,7 @@ export class WsGateway implements OnGatewayConnection, OnModuleInit, OnModuleDes
             response.reason,
             response.editedArgs,
           );
-          // D-191: a run's approval is answered through `POST /bots/:id/chat`,
+          // A run's approval is answered through `POST /bots/:id/chat`,
           // which records the decision before anything acts on it; delivering
           // it here would approve a call the durable admission never saw.
           if (outcome === 'wrong-route') {

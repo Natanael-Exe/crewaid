@@ -86,7 +86,7 @@ export async function bridgeExec(
     resolveWait = resolve;
     rejectWait = reject;
   });
-  // A caller that never awaits wait() must not produce an unhandled rejection
+  // A caller that never awaits wait must not produce an unhandled rejection
   // when the connection drops; the streams carry the same error.
   exited.catch(() => undefined);
 

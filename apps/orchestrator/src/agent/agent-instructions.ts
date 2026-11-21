@@ -167,7 +167,7 @@ export function identityHeader(identity: { readonly name: string; readonly role:
  * names are here because a model told "you have a memory" without its name
  * asks the user for it.
  *
- * ── THE INJECTION BOUNDARY LIVES HERE, NOT IN THE BLOCK (CC-35 / D-079) ─────
+ * The injection boundary lives here, not in the block (cc-35 / d-079)
  *
  * Memory is a persistence layer for prompt injection unless something says
  * otherwise: a bot reads a page, stores what it read, and from then on the
@@ -233,7 +233,7 @@ export interface TeamMember {
 }
 
 /**
- * The one machine, several bots, and the line between their things (§19).
+ * The one machine, several bots, and the line between their things.
  *
  * The layout has existed since D-046 — `/home/bot/agents/<botId>` per bot,
  * `/home/bot/shared` for the team — but it existed only as a GUARD on the
@@ -255,7 +255,7 @@ export function workspaceInstructions(home: string): string {
 }
 
 /**
- * D-234 — the language and timezone the person set in Crewaid's settings.
+ * The language and timezone the person set in Crewaid's settings.
  *
  * The language line makes it the bot's starting language rather than a rule:
  * the house style already matches the language a person writes in, and a
@@ -267,7 +267,7 @@ export function workspaceInstructions(home: string): string {
  * Inside the cached prefix: both change only when the person changes a
  * setting, the same class of event as renaming a bot. There is no clock here
  * and must never be — the time changes every turn, and the scheduling result
- * already carries it (D-125). Each line is emitted only for a value the
+ * already carries it. Each line is emitted only for a value the
  * server actually knows; '' when it knows neither.
  */
 export function personInstructions(person: PersonContext): string {
@@ -371,7 +371,7 @@ export function teamInstructions(peers: readonly TeamMember[]): string {
   return `Your team:\n${bullets.join('\n')}`;
 }
 
-/** The bot's sidebar group, as the group block needs it (D-131). */
+/** The bot's sidebar group, as the group block needs it. */
 export interface GroupContext {
   readonly name: string;
   /** What the user wrote for every bot in the group. May be empty. */
@@ -383,7 +383,7 @@ export interface GroupContext {
 }
 
 /**
- * D-131 — the group a bot is in, and what the group shares with it.
+ * The group a bot is in, and what the group shares with it.
  *
  * A group shares two things: the instructions the user wrote for it, and a
  * folder. Both are useless unless the bot is told, which is the whole reason
@@ -429,9 +429,9 @@ export function groupInstructions(group: GroupContext): string {
 }
 
 /**
- * CC-32 — what the bot already knows, handed to it rather than looked up.
+ * What the bot already knows, handed to it rather than looked up.
  *
- * ── WHY THE BLOCK GOES LAST ─────────────────────────────────────────────────
+ * Why the block goes last
  *
  * It is the part of `instructions` that differs between two turns of the same
  * bot in ordinary use — the roster block above it moves only when the operator
@@ -446,7 +446,7 @@ export function groupInstructions(group: GroupContext): string {
  * timestamps or counts, so on the overwhelming majority of turns — where the
  * memory did not change — the bytes are identical and the cache survives.
  *
- * ── WHY AN OBJECT AND NOT A SECOND STRING ───────────────────────────────────
+ * Why an object and not a second string
  *
  * Two optional strings in a row is the classic mis-ordering bug, and this
  * particular one would be silent and bad: `agentInstructions(memoryBlock)`
@@ -459,7 +459,7 @@ export function agentInstructions(input?: AgentInstructionsInput): string {
 
 /**
  * The same instructions as {@link agentInstructions}, cut where the cache
- * breakpoint goes (CC-11): `prefix` is everything that is byte-identical
+ * breakpoint goes: `prefix` is everything that is byte-identical
  * across a bot's turns, and `memory` is the one block that is not.
  *
  * A provider's cache is keyed on the bytes up to a breakpoint, so the
@@ -497,14 +497,14 @@ export function agentInstructionBlocks(input?: AgentInstructionsInput): {
     if (teamBlock !== '') parts.push(teamBlock);
   }
   // After the team it belongs to, and fixed until the user edits the group or
-  // moves this bot — so, like the team block, inside the cached prefix (D-131).
+  // moves this bot — so, like the team block, inside the cached prefix.
   if (group !== undefined) {
     const groupBlock = groupInstructions(group);
     if (groupBlock !== '') parts.push(groupBlock);
   }
   // Beside the team block, and for the same reason: it is live data that
   // changes only when the operator changes something, so it is fixed for the
-  // life of a conversation and the cached prefix survives (D-094, D-116).
+  // life of a conversation and the cached prefix survives.
   if (plugins !== undefined) {
     const pluginBlock = pluginInstructions(plugins, input?.pluginSurface);
     if (pluginBlock !== '') parts.push(pluginBlock);
@@ -526,7 +526,7 @@ export function agentInstructionBlocks(input?: AgentInstructionsInput): {
     parts.push(workspaceInstructions(workspace.home));
   }
   // Fixed until the person changes a setting, so inside the cached prefix,
-  // like the team block (D-234).
+  // like the team block.
   if (input?.person !== undefined) {
     const personBlock = personInstructions(input.person);
     if (personBlock !== '') parts.push(personBlock);
@@ -542,7 +542,7 @@ export type AgentInstructionsInput = {
   /** `Bot.name` and `Bot.role`: what the app knows and the model cannot infer. */
   readonly identity?: { readonly name: string; readonly role: string };
   /**
-   * The other bots on this account, as the turn read them (CC-53), rendered
+   * The other bots on this account, as the turn read them, rendered
    * as the team block (teamInstructions).
    *
    * A list rather than a rendered string, unlike `memory`: the block is the
@@ -551,10 +551,10 @@ export type AgentInstructionsInput = {
    * happened to load the rows. An empty list renders nothing at all.
    */
   readonly team?: readonly TeamMember[];
-  /** The bot's sidebar group, rendered as the group block (D-131). Absent when it has none. */
+  /** The bot's sidebar group, rendered as the group block. Absent when it has none. */
   readonly group?: GroupContext;
   /**
-   * The plugins this turn can actually reach (D-116).
+   * The plugins this turn can actually reach.
    *
    * A list, like `team`, and for the same reason: the sentence a model reads
    * about its plugins belongs in this file, not in whichever service loaded

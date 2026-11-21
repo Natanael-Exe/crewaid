@@ -30,7 +30,7 @@ const PdfPreview = lazy(() => import('../components/attachments/pdfPreview'));
  * rendered, CSV as a table, images, video and PDFs inline — and the three
  * things to do with it: Download, File under…, and Open in conversation.
  *
- * The bytes come through `ApiClient.download()`: fetched with the
+ * The bytes come through `ApiClient.download`: fetched with the
  * bearer and never linked, exactly as the transcript's attachment card does.
  */
 export function DeliverablePane({

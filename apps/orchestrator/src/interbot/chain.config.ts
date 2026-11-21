@@ -3,7 +3,7 @@
  *
  * Why they are all off by default
  *
- * D-047 amends §6/M7's defaults: "the product's job is to make spend and
+ * D-047 amends the defaults: "the product's job is to make spend and
  * runaway loops visible and bounded by the OPERATOR, not to pick the bound for
  * them." Ten hops is roughly five round trips — a PM delegating to a developer
  * and a reviewer exhausts it before lunch — so the number §6/M7 writes down
@@ -27,7 +27,7 @@
  * "at `MAX_HOPS` (default 10) delivery is dropped".
  *
  * Specified, not default. The number is here because an operator who wants
- * §6/M7's behaviour needs something to copy, and because the test for the
+ * The behaviour needs something to copy, and because the test for the
  * acceptance criterion sets the limit it asserts.
  */
 export const SPECIFIED_MAX_HOPS = 10;
@@ -57,13 +57,13 @@ function readChainCeiling(key: string, raw: string | undefined, unit: string): n
   return parsed;
 }
 
-/** `CHAIN_MAX_HOPS` — §6/M7's `MAX_HOPS`, off unless an operator sets it. */
+/** `CHAIN_MAX_HOPS` — the `MAX_HOPS`, off unless an operator sets it. */
 export function readMaxHops(raw: string | undefined): number {
   return readChainCeiling('CHAIN_MAX_HOPS', raw, 'hops');
 }
 
 /**
- * §6/M7: "Each `chainId` carries a token budget (default 200,000 across all
+ * "Each `chainId` carries a token budget (default 200,000 across all
  * participants)."
  *
  * Specified, not default — D-047 gives this one the same treatment as the hop
@@ -80,7 +80,7 @@ export function readMaxChainTokens(raw: string | undefined): number {
 }
 
 /**
- * §6/M7: "A bot may not send more than 3 messages to the same bot within one
+ * "A bot may not send more than 3 messages to the same bot within one
  * chain."
  *
  * Specified, not default, and D-047 is blunt about why: three messages to the
@@ -91,7 +91,7 @@ export function readMaxChainTokens(raw: string | undefined): number {
  */
 export const SPECIFIED_MAX_REPEAT_SENDS = 3;
 
-/** D-047: off, like the other two. */
+/** Off, like the other two. */
 export const DEFAULT_MAX_REPEAT_SENDS = 0;
 
 /** `CHAIN_MAX_REPEAT_SENDS` — messages from one bot to one peer, per chain. */

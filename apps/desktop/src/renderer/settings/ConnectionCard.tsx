@@ -505,7 +505,7 @@ export function ConnectionCard({
           )}
 
           {connection.kind === 'elevenlabs' ? (
-            // D-221: a speech key has no models; it is what bots listen and
+            // A speech key has no models; it is what bots listen and
             // speak with, so the card says that instead of offering a list.
             <p className="border-t border-separator px-4 py-2.5 text-[12px] text-muted">
               {t('settings.connection.speechKey')}

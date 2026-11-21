@@ -35,7 +35,7 @@ export const SKILL_COMPILE_JOB = 'skill.compile';
  * It refuses rather than silently dropping the job, and the refusal is the
  * sentence that lands in `Recording.error`. The alternative — settling
  * `READY` with no skill — reports success for work that never happened, and
- * §6's acceptance criteria are explicit that the other outcome is "a FAILED
+ * The acceptance criteria are explicit that the other outcome is "a FAILED
  * recording with a readable error".
  *
  * Not a boot-time throw, unlike `auth.guard.ts`: chat, the desktop, sandboxes

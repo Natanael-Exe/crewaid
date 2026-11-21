@@ -165,7 +165,7 @@ export function redactResult(value: unknown): Json {
   return visit(data);
 }
 
-/** D-204's directory scope: a toolkit this build can connect without a secret form. */
+/** The directory scope: a toolkit this build can connect without a secret form. */
 function isManagedOAuthToolkit(item: {
   noAuth?: boolean | undefined;
   composioManagedAuthSchemes?: string[] | undefined;
@@ -362,7 +362,7 @@ export class ComposioSdk implements ComposioPort {
   }
 
   async toolkits(signal: AbortSignal): Promise<CatalogToolkit[]> {
-    // get() drops next_cursor in 0.22.0; the public SDK client preserves it.
+    // get drops next_cursor in 0.22.0; the public SDK client preserves it.
     const entries = new Map<string, CatalogToolkit>();
     const seen = new Set<string>();
     let cursor: string | undefined;

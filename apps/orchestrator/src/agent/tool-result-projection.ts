@@ -12,27 +12,12 @@ import type { ToolSet } from './tool-contract.js';
  * WHY THE CUT CANNOT LIVE IN `execute`
  *
  * A tool's return value is not only the model's. The SDK's `tool-result`
- * chunk is persisted into `Message.parts` verbatim (PRD M1's rule that parts
- * are stored as the SDK emits them), so it is also what R9 replays after a
- * kill, what the transcript shows the operator, and what a later step of our
- * own code reads. Truncating in `execute` spends all four to pay for one:
- * the orchestrator loses the bytes too, and it had no context window to
- * protect.
+ * `toModelOutput` projects a tool's raw result into the model-facing shape
+ * (for example, `screenshot` returns `{ bytes, base64 }` and projects an image
+ * part) without truncating what is persisted in the transcript.
  *
- * The AI SDK already has the right seam and we already use it in one place —
- * `screenshot` returns `{bytes, base64}` and declares `toModelOutput` so the
- * provider gets an image part instead of base64 buried in a JSON string
- * (M5-BE-05). `toModelOutput` is invoked by `createToolModelOutput` in the
- * `streamText` step loop when the next step's messages are built, NOT when the
- * chunk is emitted, which is precisely the split this task needs. Measured
- * against `ai@7.0.89`: `dist/index.js` calls it on the streaming path, on
- * `generateText`, and in `convertToModelMessages`; a tool without one falls
- * back to `string → {type:'text'}` and everything else to `{type:'json'}`.
- *
- * Why the backstop is in the registry, not in each tool
- *
- * A cap each tool author has to remember is not a cap. M6 registers MCP tools
- * whose output shape is a third party's, and `run_skill` returns whatever a
+ * Applying the output cap in the registry guarantees built-in tools, MCP
+ * plugins, and compiled skills all share the same ceiling.
  * compiled skill printed — neither can be trusted to have read this file. So
  * `ToolRegistry.toolSetFor` runs every definition through `capToolOutput`
  * below, composing with the tool's own `toModelOutput` rather than replacing
@@ -55,7 +40,7 @@ import type { ToolSet } from './tool-contract.js';
 type RegisteredDefinition = ToolSet[string];
 
 /**
- * §6/M5's ceiling on one tool result, in bytes of UTF-8.
+ * The ceiling on one tool result, in bytes of UTF-8.
  *
  * "100 KB" read as 1024-based, matching `MAX_WRITE_BYTES` in
  * `computer-tools.ts`, which spells the same unit `1024 * 1024`. The
@@ -83,7 +68,7 @@ function marker(keptBytes: number, totalBytes: number): string {
 /**
  * Cut a string to a byte budget without splitting a character in half.
  *
- * `Buffer.subarray().toString('utf8')` decodes a severed multi-byte sequence
+ * `Buffer.subarray.toString('utf8')` decodes a severed multi-byte sequence
  * to U+FFFD, so a naive cut can hand the provider a replacement character
  * that was never in the source. The trailing one is dropped when the cut
  * created it — checked against the source rather than assumed, because a
@@ -148,7 +133,7 @@ type JsonValue = null | string | number | boolean | JsonValue[] | { [key: string
  *
  * Declared here rather than imported because `ToolResultOutput` is exported
  * from `@ai-sdk/provider-utils`, which the orchestrator does not depend on
- * directly — `ai` re-exports the value-level `tool()` but the type would be a
+ * directly — `ai` re-exports the value-level `tool` but the type would be a
  * second package in `package.json` for one alias. The variants below are read
  * off that union at `@ai-sdk/provider-utils@5.0.35`; an upstream addition
  * lands in `default:` and is passed through untouched, which is the safe

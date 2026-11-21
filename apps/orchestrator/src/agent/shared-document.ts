@@ -1,13 +1,13 @@
 import type { ToolContext } from './tool-registry.js';
 
 /**
- * M5-BE-20/21 — one plain-text file on the machine that several bots edit.
+ * One plain-text file on the machine that several bots edit.
  *
  * The board and the memory are the same problem twice, and the problem is not
  * storage: `fs_read`/`fs_write` already store. It is that `fs_write` replaces
  * the WHOLE file, so a bot changing one line has to re-emit every other line
- * — from a context window that may have been trimmed since it read them
- * (M5-BE-02), beside a sibling writing the same file in the same moment.
+ * — from a context window that may have been trimmed since it read them,
+ * beside a sibling writing the same file in the same moment.
  * D-046 made that ordinary rather than exotic.
  *
  * So the three operations here are the ones that cannot lose a write nobody

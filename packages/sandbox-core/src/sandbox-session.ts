@@ -17,8 +17,8 @@ import { runGitProcess, type GitProcessRunner } from './git-process.js';
  * - `setNetworkPolicy` and `setPorts` are deliberately NOT implemented. Both
  * are optional upstream, both would need capabilities §5.1 drops, and
  * omitting them is what makes callers write the optional-call form
- * DECISIONS.md requires. §7.3's egress policy is iptables on `agent-net`
- * (M2-BE-09), which is the primary mechanism regardless.
+ * DECISIONS.md requires. The egress policy is iptables on `agent-net`,
+ * which is the primary mechanism regardless.
  */
 
 import {
@@ -38,7 +38,7 @@ import {
 import type { ContainerProcess, SandboxContainer } from './container.js';
 
 /**
- * §5's machine ports — the screen, CDP and the bridge.
+ * The machine ports — the screen, CDP and the bridge.
  *
  * Not the only ports this session resolves: a seat's RFB port goes through
  * `getPortEndpoint` too. These three are the ones the machine itself
@@ -63,7 +63,7 @@ export const SANDBOX_PORTS = {
  * concurrent seats is fixed for its life and widening it means replacing the
  * machine.
  *
- * Sixteen is read off §20's measurement against the machine's own memory limit
+ * Sixteen is read off the measurement against the machine's own memory limit
  * rather than chosen — a display seat costs ~439 MB and `memoryBytes` defaults
  * to 2 GB, so memory is what refuses the fifth or sixth seat, which is where
  * the bound belongs. That makes sixteen a ceiling rather than a promise that
@@ -96,7 +96,7 @@ export const SEAT_CDP_PORTS: readonly number[] = Array.from(
   (_, index) => 9301 + index,
 );
 
-/** §5's `WORKDIR`. Read from the image rather than guessed by callers. */
+/** The `WORKDIR`. Read from the image rather than guessed by callers. */
 export const SANDBOX_WORKING_DIRECTORY = '/home/bot';
 
 /**
@@ -173,7 +173,7 @@ export class ContainerSandboxSession implements HarnessV1NetworkSandboxSession {
     ].join(' ');
   }
 
-  // ── ports (D-012) ──────────────────────────────────────────────────────────
+  // ports
 
   getPortEndpoint = async (options: {
     port: number;
@@ -244,7 +244,7 @@ export class ContainerSandboxSession implements HarnessV1NetworkSandboxSession {
     // exactly this case. Docker only reports an exec's pid on a separate
     // inspect call, and the value is not known at the instant spawn returns —
     // so the honest options are an extra daemon round trip on every read and
-    // write, or admitting we do not expose one. `kill()` does not need it from
+    // write, or admitting we do not expose one. `kill` does not need it from
     // here; the adapter looks it up when it is actually required.
     return {
       stdout: process.stdout,
@@ -326,7 +326,7 @@ export class ContainerSandboxSession implements HarnessV1NetworkSandboxSession {
     return lines.slice(from, to).join('\n');
   };
 
-  // ── writes ─────────────────────────────────────────────────────────────────
+  // writes
 
   writeFile = async (options: SandboxWriteStreamOptions): Promise<void> => {
     await this.#write(options.path, await collectBytes(options.content));
@@ -368,7 +368,7 @@ export class ContainerSandboxSession implements HarnessV1NetworkSandboxSession {
       await writer.write(content);
     } finally {
       // Closing stdin is what ends `cat`. Skipping it on the error path leaves
-      // the process waiting on a pipe that will never close, and `wait()`
+      // the process waiting on a pipe that will never close, and `wait`
       // below never resolves.
       await writer.close().catch(() => undefined);
     }
@@ -381,16 +381,16 @@ export class ContainerSandboxSession implements HarnessV1NetworkSandboxSession {
     }
   }
 
-  // ── R4 ─────────────────────────────────────────────────────────────────────
+  // R4
 
   /**
-   * The view tool `execute()` calls receive. It points at the same container —
+   * The view tool `execute` calls receive. It points at the same container —
    * it is a narrower surface, not a second sandbox — and deliberately carries
    * no `stop`, `destroy`, `getPortEndpoint`, or network-policy method, so a
    * tool cannot take the desktop away from the operator watching it.
    *
-   * `ToolSandboxSession` rather than the plain reduced alias (M5-BE-07). The
-   * wide session is structurally assignable to the alias, so `restricted = ()
+   * `ToolSandboxSession` rather than the plain reduced alias. The
+   * wide session is structurally assignable to the alias, so `restricted =
    * => this` — the shape a provider slides into — typechecked here; the
    * intersection puts the implementation under the same fence as the wiring.
    */

@@ -27,7 +27,7 @@ import {
  * `BotsModule` for `MessagesService`, `ChatSendService`, `TurnEventBus` and
  * `ToolRegistry`, all of which it already exports. The dependency runs one
  * way: `BotsModule` knows nothing about this module, which is what keeps
- * `send_message` registerable from here (M5-BE-06's rule) without the cycle
+ * `send_message` registerable from here (the rule) without the cycle
  * `TurnEventsModule` was extracted to break.
  *
  * Why the wiring is conditional
@@ -69,7 +69,7 @@ const { redisUrl, workerEnabled } = describeDeliveryConfig();
     PrismaPeerDirectory,
     ChainNoticeService,
     ChainBudgetService,
-    // D-047's ceilings, resolved once. A factory rather than a constructor
+    // The ceilings, resolved once. A factory rather than a constructor
     // read so a suite proving a limit FIRES can supply one without mutating
     // the process environment; a malformed value still throws at boot.
     { provide: CHAIN_LIMITS, useFactory: () => readChainLimits() },

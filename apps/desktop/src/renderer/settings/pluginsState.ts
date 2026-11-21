@@ -40,8 +40,8 @@ export type PluginRow = {
  * Why the join is on slug and happens here
  *
  * `GET /mcp/directory` deliberately carries no "installed" flag: an entry is
- * the same entry for every user, while being installed is per user and per row
- * (D-100). So the client joins, and the join key is the slug — which is also
+ * the same entry for every user, while being installed is per user and per row.
+ * So the client joins, and the join key is the slug — which is also
  * the thing that is unique per user and namespaces every tool, so two
  * rows can never collide on it.
  *
@@ -133,7 +133,7 @@ export const PLUGIN_RENDER_CAP = 60;
 /**
  * The rows a section actually renders.
  *
- * D-204's directory is a live catalog of hundreds of toolkits, and the grid
+ * The directory is a live catalog of hundreds of toolkits, and the grid
  * maps rows into DOM without virtualization. Rendering all of them would make
  * every poll reload (two seconds during a connect) re-mount hundreds of cards
  * for a list nobody scrolls to the end of. The cap is honest about it: the
@@ -176,7 +176,7 @@ export function filterPlugins(
   });
 }
 
-/** §6/M6's "installed count" summary, said rather than counted on screen. */
+/** The "installed count" summary, said rather than counted on screen. */
 export function installedSummary(rows: readonly PluginRow[]): string {
   const installed = rows.filter((row) => row.server !== null);
   if (installed.length === 0) return t('plugins.noneInstalled');
@@ -192,7 +192,7 @@ export function installedSummary(rows: readonly PluginRow[]): string {
 /**
  * What a status means to the person reading it, and what they can do about it.
  *
- * ── M6-FE-03 IS THIS FUNCTION ───────────────────────────────────────────────
+ * M6-fe-03 is this function
  *
  * "NEEDS_REAUTH surfaced as an actionable state, not a raw error." A raw error
  * is `lastError` rendered into a red box: it is the server's own words, it
@@ -304,19 +304,19 @@ export function authorizeUrlOf(
  * How long to keep polling after sending someone to their browser, and how
  * often.
  *
- * ── WHY IT STOPS AT ALL ─────────────────────────────────────────────────────
+ * Why it stops at all
  *
  * A browser trip can simply not come back: the person closes the tab, or
  * chooses "no". §6/M6 wants the modal to update "with no manual refresh", not
  * to poll forever — a pane that polls an abandoned flow until the app closes
  * spends a request every two seconds on a question nobody is waiting for. The
- * flow's own row expires server-side (D-101), so the poll gives up a little
+ * flow's own row expires server-side, so the poll gives up a little
  * after that and says so.
  */
 export const CONNECT_POLL_INTERVAL_MS = 2_000;
 export const CONNECT_POLL_TIMEOUT_MS = 5 * 60_000;
 
-// ── CC-57: the grid, the tiles, and the custom-server form ──────────────────
+// The grid, the tiles, and the custom-server form
 
 /**
  * Installed first, then the rest — the split the grid is drawn in.
@@ -384,7 +384,7 @@ const TILE_COLORS: readonly string[] = [
 /**
  * The tile for a row.
  *
- * ── WHY AN INITIAL AND NOT A FAVICON ───────────────────────────────────────
+ * Why an initial and not a favicon
  *
  * `iconUrl` is null for every curated entry on purpose: `mcp-directory.ts`
  * refuses to guess one from the host because "an icon URL is a claim that an
@@ -398,7 +398,7 @@ const TILE_COLORS: readonly string[] = [
  * The hue is derived rather than assigned so it survives a restart and a
  * reorder: a plugin whose colour changes between sessions is a plugin the
  * operator has to read rather than recognise. `iconUrl` is still rendered when
- * it is non-null — D-204's Composio entries carry the vendor's logo, from the
+ * it is non-null — the Composio entries carry the vendor's logo, from the
  * one host every toolkit answers on — so the directory can gain icons for the
  * curated entries later without this screen changing at all.
  */
@@ -422,7 +422,7 @@ export type CustomServerDraft = {
   readonly name: string;
   readonly url: string;
   readonly transport: 'HTTP' | 'SSE';
-  /** Blank means the server needs none — `authType` follows this (D-114). */
+  /** Blank means the server needs none — `authType` follows this. */
   readonly bearerToken: string;
 };
 
@@ -436,10 +436,10 @@ export const EMPTY_CUSTOM_SERVER: CustomServerDraft = {
 /**
  * What is wrong with a draft, by field, or nothing.
  *
- * ── WHY THE CLIENT CHECKS AT ALL, WHEN THE SERVER DOES IT PROPERLY ─────────
+ * Why the client checks at all, when the server does it properly
  *
  * `admitEndpoint` is the real fence and it is not reproducible here: it
- * resolves the host and refuses private and link-local addresses (D-085),
+ * resolves the host and refuses private and link-local addresses,
  * which a renderer cannot do and must not pretend to. So this checks only the
  * three things a person can see they got wrong — an empty name, a URL that is
  * not a URL, a URL that is not https — and says so beside the field instead of
@@ -472,7 +472,7 @@ export function validateCustomServer(draft: CustomServerDraft): {
   return problems;
 }
 
-/** The body `POST /mcp/servers` takes, built from a draft (D-114). */
+/** The body `POST /mcp/servers` takes, built from a draft. */
 export function customServerBody(draft: CustomServerDraft): {
   name: string;
   url: string;

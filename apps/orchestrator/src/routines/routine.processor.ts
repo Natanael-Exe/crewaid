@@ -22,7 +22,7 @@ import { RoutineRunnerService, type RoutineRunOutcome } from './routine-runner.s
 export const ROUTINE_CONCURRENCY = 4;
 
 /**
- * The worker for §6/M8's routines.
+ * The worker for the routines.
  *
  * Registered only when `ROUTINE_WORKER` is on, for the reason every
  * `@Processor` here is: it starts a real worker in every Nest context that

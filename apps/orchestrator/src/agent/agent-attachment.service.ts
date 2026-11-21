@@ -88,7 +88,7 @@ export class AgentAttachmentService {
       },
     );
 
-    // D-136 / PRD-WORK §8: the claim and the deliverable commit together or
+    // WORK §8: the claim and the deliverable commit together or
     // not at all. A file a bot attached is therefore never missing from the
     // Deliverables index; and a filing that is refused (a foreign task, a
     // task and goal that disagree) leaves no chip on the reply either — the

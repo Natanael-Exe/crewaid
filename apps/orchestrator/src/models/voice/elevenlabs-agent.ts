@@ -4,7 +4,7 @@
  * Two REST calls and nothing else, and the only file that makes them: a signed
  * URL for one conversation, and the conversation itself once it ends, whose
  * `call_duration_secs` is what a call's minutes settle to. TanStack's
- * `elevenlabsRealtimeToken()` would mint the URL, but it reads its key only
+ * `elevenlabsRealtimeToken` would mint the URL, but it reads its key only
  * from `process.env.ELEVENLABS_API_KEY`, and a key here is always passed in.
  *
  * A failure is reported by kind, never with ElevenLabs' response body.

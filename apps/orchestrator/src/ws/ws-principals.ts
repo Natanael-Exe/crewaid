@@ -9,7 +9,7 @@ import { auth } from '../auth/better-auth.js';
  * The handshake authenticates once. A socket then lives for hours, so "who is
  * this" cannot be answered from the handshake alone — a session revoked at
  * 10:05 must not keep driving a desktop until the client happens to reconnect.
- * V1-09's requirement is that interactive access ends at the NEXT FRAME rather
+ * The requirement is that interactive access ends at the NEXT FRAME rather
  * than the next reconnect, and this is where that is enforced.
  *
  * Why a revalidation window, and what it costs

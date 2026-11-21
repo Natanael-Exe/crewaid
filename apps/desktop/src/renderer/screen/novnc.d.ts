@@ -28,7 +28,7 @@ declare module '@novnc/novnc' {
     /**
      * Focuses noVNC's own canvas, which it creates with `tabIndex = -1` — so
      * nothing else can put focus there, and without focus its keyboard grab
-     * never fires (M2-FE-03).
+     * never fires.
      */
     focus(options?: FocusOptions): void;
     disconnect(): void;

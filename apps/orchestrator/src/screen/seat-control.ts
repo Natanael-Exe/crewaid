@@ -8,7 +8,7 @@ import type { RfbInputEvent } from './rfb-input.js';
 /**
  * Who may drive a bot's seat, and when the bot must wait.
  *
- * One state machine per seat, in memory and never persisted (D-163 §4). The
+ * One state machine per seat, in memory and never persisted. The
  * orchestrator is the only authority: a viewer's own idea of whether it is
  * in control grants nothing, and watching a seat is never permission to
  * drive it.
@@ -62,7 +62,7 @@ export type SeatControlConfig = {
   readonly now?: () => number;
 };
 
-/** How a tool call relates to the seat (D-169's admission table). */
+/** How a tool call relates to the seat (the admission table). */
 export type SeatActionKind =
   /** Acts on what is on screen: refused until the bot has looked after a hand-back. */
   | 'targeted'

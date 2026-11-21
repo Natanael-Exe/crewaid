@@ -50,7 +50,7 @@ export function chatEndpoint(credentials: TokenCredentials, botId: string): Chat
     url: url.toString(),
     headers: {
       Authorization: `Bearer ${token}`,
-      // D-188: both sides state the contract they speak, so a client built
+      // Both sides state the contract they speak, so a client built
       // against another one fails plainly instead of half-parsing a stream.
       'x-crewaid-wire-version': String(WIRE_VERSION),
     },

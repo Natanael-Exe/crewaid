@@ -19,28 +19,11 @@ import { CdpCaptureService } from './cdp-capture.service.js';
 import { ClickCorrelatorService } from './click-correlator.service.js';
 
 /**
- * Recording lifecycle.
+ * Recording lifecycle service.
  *
- * R7/D-010 discipline as `BotsService`: every query carries the caller's
- * `userId`, and a 404 deliberately does not distinguish "absent" from "not
- * yours". The `@OwnedResource('recording')` marker on the direct-by-id routes
- * is a second fence in front of this one, not a replacement for it.
- *
- * Why starting a recording wakes the computer
- *
- * D-039 §16 names recording as one of the three things that may wake one, and
- * ensure-ready is the single path. Going straight to
- * `SandboxService.start` would skip the ordering §17 depends on — protection
- * claimed before the runtime is asked for — and a recording that began against
- * a sandbox the idle sweep was already entitled to stop would lose its desktop
- * mid-capture.
- *
- * The lease is released as soon as the `Recording` row exists, because from
- * that moment the ROW is the protection: §8's idle sweep reads
- * `state: 'RECORDING'` directly and refuses to stop the sandbox. That is
- * exactly the hand-off `SandboxReadinessService.ensureReady` documents for
- * work that has a durable row of its own, and it is what makes a recording
- * survive an orchestrator restart without a lease renewal timer.
+ * Scopes every query by caller `userId` (returning 404 for absent or foreign
+ * rows) and wakes the sandbox through `SandboxReadinessService.ensureReady`
+ * before creating the durable `Recording` row that protects it from idle sweep.
  */
 @Injectable()
 export class RecordingsService {
@@ -79,7 +62,7 @@ export class RecordingsService {
    * Settle recordings left `RECORDING` by a process that is gone.
    *
    * The tee's active set is in memory, so such a row captures nothing — and
-   * §8's idle sweep counts it as work, which would pin that bot's container
+   * The idle sweep counts it as work, which would pin that bot's container
    * open for the life of this process. `FAILED` rather than `READY` because
    * the trace stops at an arbitrary point: compiling it would
    * produce a skill that silently does part of the task, which fails later and
@@ -116,7 +99,7 @@ export class RecordingsService {
    * A `COMPILING` row left by a crash sits between "settled" and "enqueued" —
    * `finishCapture` cannot make those one transaction — and the job can also
    * have been lost with Redis. Either way nothing picks the row up again by
-   * itself, which is the silent stranding D-044's error column exists to
+   * itself, which is the silent stranding the error column exists to
    * prevent. The job id is the recording id, so a row whose job is still in
    * Redis dedupes to a no-op; a row the queue refuses (no `REDIS_URL`) is
    * settled `FAILED` with the refusal as its reason. Every write here is
@@ -196,12 +179,12 @@ export class RecordingsService {
         });
         this.tee.begin(botId, recording.id, recording.startedAt);
         // The browser half of capture attaches for this recording's duration
-        // (M4-BE-01). Deliberately not awaited: a recording start must not
+        //. Deliberately not awaited: a recording start must not
         // wait on Chrome — through a Docker port mapping, a relay and a
         // handshake — and an attach that fails only costs the CDP layer.
         this.cdp.attach(botId, recording.id);
         // The capture script and its binding ride on that connection
-        // (M4-BE-02). Also not awaited, and it awaits the attach itself
+        //. Also not awaited, and it awaits the attach itself
         // through `connectionFor`, so the order of these two lines is
         // convenience rather than ordering.
         this.capture.arm(botId, recording.id);
@@ -209,7 +192,7 @@ export class RecordingsService {
         this.logger.log(`bot ${botId}: recording ${recording.id} started`);
         return { recordingId: recording.id };
       } finally {
-        // The row is the protection from here (§8/§17). Releasing also records
+        // The row is the protection from here. Releasing also records
         // final activity, so the idle clock runs from the wake rather than
         // from whenever the last renewal happened to land.
         await ready.lease.release();
@@ -237,7 +220,7 @@ export class RecordingsService {
   }
 
   /**
-   * `POST /recordings/:id/stop` — §4.1's "stop and enqueue compilation".
+   * `POST /recordings/:id/stop` — the "stop and enqueue compilation".
    *
    * Two steps, and the order matters. Capture ends first, because whether the
    * trace is whole decides whether compiling it is worth anything at all: a
@@ -263,13 +246,13 @@ export class RecordingsService {
 
   /**
    * Settle a recording whose capture has just ended, and hand a whole trace to
-   * the compiler (M3-BE-06).
+   * the compiler.
    *
-   * Shared by the operator's stop and M3-BE-05's ceiling, because "capture
+   * Shared by the operator's stop and the ceiling, because "capture
    * ended" means the same thing whichever stopped it — and a recording that
    * ran out of budget still reaches the compiler (D-044: a ceiling may not
-   * skip compilation). §6's `warning` says which happened; what it changes is
-   * decided by the compiler, on the other side of the queue (D-042).
+   * skip compilation). The `warning` says which happened; what it changes is
+   * decided by the compiler, on the other side of the queue.
    */
   private async finishCapture(
     recording: Recording,
@@ -291,7 +274,7 @@ export class RecordingsService {
       return this.settle(recording, 'FAILED', warning, error);
     }
 
-    // M4-BE-05: the two layers saw the same physical clicks; mark the provable
+    // The two layers saw the same physical clicks; mark the provable
     // pairs before the row can be read as compiling. The compiler is only ever
     // handed a trace this pass had its turn at (PRD §6/M4: "the compiler must
     // not emit both"). Best effort by contract — it never rejects, and a pass
@@ -315,7 +298,7 @@ export class RecordingsService {
   }
 
   /**
-   * §6/M3: "Hard limits: 20 minutes, 5000 events. Exceeding either auto-stops
+   * "Hard limits: 20 minutes, 5000 events. Exceeding either auto-stops
    * and marks the recording `READY` with a warning."
    *
    * Reached from the tee's listener, so there is nobody to answer: the frame
@@ -353,7 +336,7 @@ export class RecordingsService {
     const result = await this.endCapture(botId, recordingId);
 
     // Unscoped by necessity: the ceiling is reached on the §4.3 input path,
-    // which carries no principal by design (D-036). Nothing untrusted reaches
+    // which carries no principal by design. Nothing untrusted reaches
     // this id — it comes from the tee's own active set, which only an
     // owner-checked `start` can put a recording into.
     const recording = await this.prisma.recording.findUnique({ where: { id: recordingId } });
@@ -364,8 +347,8 @@ export class RecordingsService {
 
     // A trace cut short is still whole up to the point it stops, so it goes
     // to the compiler like any other — the compiler's own judgement of the
-    // truncation happens there (D-042). A trace with a HOLE in it is not
-    // whole, and reaching a ceiling does not make it so (M3-BE-01).
+    // truncation happens there. A trace with a HOLE in it is not
+    // whole, and reaching a ceiling does not make it so.
     await this.finishCapture(recording, result, warning);
   }
 
@@ -420,7 +403,7 @@ export class RecordingsService {
   }
 
   /**
-   * End all capture layers before anything is settled (M4-BE-01, M4-BE-02).
+   * End all capture layers before anything is settled.
    *
    * Order is not cosmetic. `tee.end` removes the bot from the active set
    * synchronously, so no input frame can join a flush already on its way, and
@@ -436,7 +419,7 @@ export class RecordingsService {
   }
 
   /**
-   * Take both browser layers down, in the only order that works (M4-BE-02).
+   * Take both browser layers down, in the only order that works.
    *
    * The capture is disarmed while the connection is still open — removing a
    * page's script registration is a command, and there is nothing left to
@@ -566,7 +549,7 @@ export class RecordingsService {
         where: { recordingId: recording.id },
         _count: { _all: true },
       }),
-      // A recording may have several version rows (D-009); the card follows
+      // A recording may have several version rows; the card follows
       // the newest one rather than whichever row Postgres happens to return.
       this.prisma.skill.findFirst({
         where: { sourceRecordingId: recording.id },

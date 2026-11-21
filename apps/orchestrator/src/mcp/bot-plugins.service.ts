@@ -129,7 +129,7 @@ export class BotPluginsService implements TurnPluginSource {
    * rejected submission leaves the bot exactly as it was rather than
    * half-applied.
    *
-   * ⚠️ AND NOTHING IS CHECKED ABOUT SIZE, which is rather than an
+   * AND NOTHING IS CHECKED ABOUT SIZE, which is rather than an
    * omission. This route used to refuse a set whose tools exceeded forty
    * resolved definitions, and then a set that left no room for the
    * doors that carry the overflow. Both numbers are gone: a bot's
@@ -197,7 +197,7 @@ export class BotPluginsService implements TurnPluginSource {
     return this.list(userId, botId);
   }
 
-  /** D-203: replace the installation's mode and overrides atomically. */
+  /** Replace the installation's mode and overrides atomically. */
   async setAccess(userId: string, serverId: string, access: PluginAccess): Promise<PluginAccess> {
     const ids = [...new Set(access.mode === 'ALL' ? access.excludedBotIds : access.selectedBotIds)];
     return this.prisma.$transaction(async (tx) => {
@@ -278,7 +278,7 @@ export class BotPluginsService implements TurnPluginSource {
     const bound: BoundPluginTool[] = [];
     const refusals: ToolRefusal[] = [];
     const unavailable: UnavailableServer[] = [];
-    // D-116 — what the bot is TOLD it has, which the two doors cannot say on
+    // What the bot is TOLD it has, which the two doors cannot say on
     // their own: `find_plugin_tools` is named for what it does, not for what
     // is behind it. Counted from the cached rows, so the number a bot reads
     // is the number this turn can actually reach.
@@ -289,8 +289,8 @@ export class BotPluginsService implements TurnPluginSource {
         request.serverId,
         request.toolName,
         request.args,
-        // §7.4's ceiling, as the tool's own descriptor published it
-        // (M6-BE-10). Passed rather than re-read, so the number the registry
+        // The ceiling, as the tool's own descriptor published it
+        //. Passed rather than re-read, so the number the registry
         // advertises is the number the socket is held to.
         request.timeoutMs,
         request.abortSignal,
@@ -298,7 +298,7 @@ export class BotPluginsService implements TurnPluginSource {
 
     for (const row of rows) {
       if (row.status !== 'CONNECTED') {
-        // §6/M6: a server that is not connected "stays out of tool sets until
+        // A server that is not connected "stays out of tool sets until
         // reconnected". Offering its cached tools would put names in the
         // model's list that can only fail, and spend budget doing it.
         unavailable.push({
@@ -315,8 +315,8 @@ export class BotPluginsService implements TurnPluginSource {
         source: entry.source,
         description: entry.description,
         inputSchema: toMcpInputSchema(entry.inputSchema),
-        // M6-BE-08's verdict, carried from the row the listing wrote. It is
-        // what decides whether this tool asks before it runs (M6-BE-09).
+        // The verdict, carried from the row the listing wrote. It is
+        // what decides whether this tool asks before it runs.
         readOnly: entry.readOnly,
       }));
       const bindings = bindMcpTools(server, cached, call);
@@ -356,9 +356,9 @@ export class BotPluginsService implements TurnPluginSource {
             inputSchema: source.inputSchema,
             readOnly: source.readOnly,
             // The descriptor comes from the binding rather than a second
-            // derivation here, so the reach a door decides on (D-113) is the
+            // derivation here, so the reach a door decides on is the
             // reach a direct definition would have carried — one ladder,
-            // consulted in one place (M6-BE-08).
+            // consulted in one place.
             behavior: resolved.behavior,
             ...(resolved.commitAdapter ? { commitAdapter: resolved.commitAdapter } : {}),
             dispatch: resolved.build,
@@ -369,7 +369,7 @@ export class BotPluginsService implements TurnPluginSource {
       }
     }
 
-    // ── D-113: the whole catalogue goes behind two definitions ─────────────
+    // The whole catalogue goes behind two definitions
     //
     // The order is the one the loop above built — install order, then tool
     // name — and it matters more than it used to: the listing is generated
@@ -405,7 +405,7 @@ export class BotPluginsService implements TurnPluginSource {
   }
 
   /**
-   * Why a server took no part, in one clause a person can act on (D-093).
+   * Why a server took no part, in one clause a person can act on.
    *
    * Written from the STATUS rather than from `lastError`, which holds the
    * server's own words: a note in a transcript is read by somebody who was not
@@ -427,8 +427,8 @@ export class BotPluginsService implements TurnPluginSource {
   }
 
   /**
-   * The same 404 for a bot that is absent and one that is somebody else's
-   * (D-010). Scoped by `userId`, which is what makes this route safe without
+   * The same 404 for a bot that is absent and one that is somebody else's.
+   * Scoped by `userId`, which is what makes this route safe without
    * an `@OwnedResource` marker — there is no `bot` kind for the guard.
    */
   private async findOwnedBot(userId: string, botId: string): Promise<void> {

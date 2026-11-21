@@ -18,7 +18,7 @@ import { vocabularyFor } from './tool-vocabulary.js';
  * which is also why `reach` is surfaced: "asks approval" is the one fact a
  * description is not obliged to state and the operator most wants to know.
  *
- * ⚠️ An MCP tool is NOT here, and that is not an omission. It is
+ * An MCP tool is NOT here, and that is not an omission. It is
  * never registered: it belongs to one user's server, changes when that server
  * is re-listed, and is resolved per turn from the bot's enabled plugins. This
  * route takes no bot and no server, so there is nothing it could resolve —

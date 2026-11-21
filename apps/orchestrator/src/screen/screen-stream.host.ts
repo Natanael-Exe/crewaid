@@ -51,7 +51,7 @@ export class ScreenStreamHost implements OnModuleDestroy {
       noServer: true,
       maxPayload: SCREEN_STREAM_MAX_CLIENT_FRAME_BYTES,
       // Runs during the HTTP Upgrade, so a bad ticket is a real 401 before a
-      // socket exists (D-024's rule for WebSocket, kept here).
+      // socket exists (the rule for WebSocket, kept here).
       verifyClient: (info: { req: IncomingMessage }, done: (ok: boolean, code?: number) => void) =>
         done(this.admit(info.req), 401),
     });

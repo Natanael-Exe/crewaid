@@ -40,8 +40,7 @@ export interface WorkspaceProvisioner {
 }
 
 /**
- * Attach a bot to its user's computer, creating that computer the first time
- * (D-046 §19).
+ * Attach a bot to its user's computer, creating that computer the first time.
  *
  * **One machine per user by default, not per bot.** A second bot joins the
  * first one's machine, which is the entire point: it can read what the first
@@ -89,8 +88,8 @@ export async function attachToComputer(
 
 /**
  * Every browser profile that belongs to this computer now: each attached
- * bot's own, and each named identity's (D-057). A machine brought back from a
- * snapshot keeps these and retires the rest (D-237), so a bot deleted since the
+ * bot's own, and each named identity's. A machine brought back from a
+ * snapshot keeps these and retires the rest, so a bot deleted since the
  * snapshot does not get its logins back.
  *
  * Not an ownership check: the computer id comes from a row already scoped to

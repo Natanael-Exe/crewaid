@@ -16,7 +16,7 @@ export interface ReadyComputer {
 }
 
 /**
- * Ensure-ready: the one path to a running computer (M3-BE-11, D-039 §16).
+ * Ensure-ready: the one path to a running computer.
  *
  * Everything that needs a desktop comes through here — opening the computer
  * from its rail card, starting a recording, beginning a skill or agent tool.
@@ -121,12 +121,12 @@ export class SandboxReadinessService {
   }
 
   /**
-   * Explicitly opening the computer (§16), which is §4.1's start route.
+   * Explicitly opening the computer, which is the start route.
    *
    * The lease covers the wake itself and is released as soon as the desktop
    * is up, because an operator looking at a screen is not work: releasing
    * records final activity, so the ordinary idle period runs from the moment
-   * they opened it and their next keystroke extends it (§8). A viewer that
+   * they opened it and their next keystroke extends it. A viewer that
    * kept a computer alive merely by watching is the thing D-031 forbids.
    */
   async open(userId: string, botId: string): Promise<SandboxStatusResponse> {

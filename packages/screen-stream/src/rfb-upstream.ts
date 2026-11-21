@@ -35,13 +35,13 @@ import { SILENT_SCREEN_LOGGER, type ScreenLogger } from './logger.js';
  * RFB is request/response: the server sends a framebuffer update only when
  * asked. Exactly ONE request is outstanding at a time, and the next is sent
  * when the previous update has been fully received. That is not politeness —
- * it is what bounds memory and lets `stop()` mean something. Pipelining
+ * it is what bounds memory and lets `stop` mean something. Pipelining
  * requests would queue unbounded updates inside a slow link with no way to
  * cancel them.
  *
  * The rate
  *
- * `resume()` takes a MINIMUM interval between requests, which is what §4.3's
+ * `resume` takes a MINIMUM interval between requests, which is what §4.3's
  * "with no subscribers, do not read the framebuffer faster than a 1 fps
  * keepalive" comes down to. The case it exists for is not an idle desktop —
  * it is a BUSY one with the panel closed. The bot keeps working while nobody
@@ -254,7 +254,7 @@ export class RfbUpstream {
     this.socket.destroy();
   }
 
-  // ── receive path ───────────────────────────────────────────────────────────
+  // receive path
 
   private ingest(chunk: Buffer): void {
     if (this.closed) return;

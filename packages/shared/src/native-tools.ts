@@ -208,7 +208,7 @@ export const NativeToolInputs = {
   memory_read: z.object({}).describe('No arguments.'),
   remember: z.object({
     // `fact`, not `text`. The column is `text`; the PARAMETER is part
-    // of D-069's model-facing surface and renaming it buys nothing a
+    // of the model-facing surface and renaming it buys nothing a
     // model can use.
     fact: z
       .string()

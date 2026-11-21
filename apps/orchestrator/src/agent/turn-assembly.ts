@@ -85,20 +85,13 @@ export type TurnAssemblyInput = {
     readonly chainId: string | null;
     readonly hopCount: number;
   };
-  /**
-   * The message an attachment a tool produces claims. The AI SDK path
-   * answers with its draft reply for every call; a TanStack run derives the
-   * canonical tool result row of the call, because it composes no draft.
-   */
+  /** Resolves the canonical tool-result message ID an attachment claims. */
   readonly attachmentHost: (toolCallId: string) => Promise<string>;
   /** Already selected and budgeted by the caller; absent when the read failed. */
   readonly memory?: string | undefined;
   readonly logger: StructuredLogger;
   readonly signal: AbortSignal;
-  /**
-   * How plugin tools reach the model: D-113's two-door bridge (the AI SDK
-   * path), or D-194's deferred tools, which only a TanStack run can load.
-   */
+  /** How plugin tools reach the model: the two-door bridge or deferred tools. */
   readonly pluginSurface?: 'bridge' | 'deferred';
   /** The run's lease, when it has one: it fences the dispatch ledger. */
   readonly lease?: { readonly workerId: string; readonly epoch: number };
@@ -186,7 +179,7 @@ export async function assembleTurn(
     });
   }
 
-  // M5-BE-14/M5-BE-04: created here and disposed by `dispose`, so completion,
+  // Created here and disposed by `dispose`, so completion,
   // cancellation, a refusal and a failure all release the same way.
   const computer = createTurnComputer({
     readiness: services.computers,
@@ -219,7 +212,7 @@ export async function assembleTurn(
       browser: () => browser.page(),
       // Lazy, and it WAKES the computer first: `attachSession` reattaches
       // without starting anything, so a session taken straight from it would
-      // exec against a container that is not running. `ensure()` is memoised,
+      // exec against a container that is not running. `ensure` is memoised,
       // so this costs nothing after the first call.
       session: async () => {
         await computer.ensure();
@@ -301,7 +294,7 @@ export async function assembleTurn(
         })),
       }),
       ...(group !== undefined && { group }),
-      // D-116: the plugins this turn RESOLVED, not the ones enabled. A bot
+      // The plugins this turn RESOLVED, not the ones enabled. A bot
       // told it has a server it cannot reach is told something false.
       ...(pluginTools.servers.length > 0 && {
         plugins: pluginTools.servers,

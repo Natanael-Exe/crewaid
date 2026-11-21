@@ -47,15 +47,10 @@ import { createTokenStore, isTrustedRendererSender, registerTokenIpc } from './t
 /**
  * `@crewaid/desktop` — Electron main process.
  *
- * ⚠️ PRD R1: this app contains ZERO orchestration logic. No agent loop, no
- * model calls, no Docker access, no database. It speaks HTTP and WebSocket
- * only, even in local development. The lint rule `crewaid/r1-electron-is-a-client`
- * enforces the import bans; if you are reaching for dockerode, @prisma/client,
- * or an AI SDK provider in here, you are in the wrong app.
- *
- * M1-FE-01 shell. M1-FE-06 (WS client) and the REST layer arrive later in M1;
- * both live in the renderer and speak to the orchestrator directly — the main
- * process only provides window management and the CC-07 token store.
+ * Contains zero orchestration logic (no agent loop, model calls, Docker, or
+ * database). The lint rule `crewaid/r1-electron-is-a-client` enforces the
+ * import bans; the main process only handles window management, IPC, and
+ * encrypted token storage.
  */
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -136,7 +131,7 @@ function registerIpc(): void {
   // reader below sees that address, and no writer can replace it.
   const store =
     EDITION.edition === 'cloud' ? pinOrchestrator(fileStore, EDITION.orchestratorUrl) : fileStore;
-  // ONE trusted-sender predicate, shared by both registrations. V1-11's four
+  // ONE trusted-sender predicate, shared by both registrations. The four
   // sign-in channels are behind the same fence as the two token channels, from
   // the same call site — not beside it with a copy of the rule.
   const isTrustedSender = (event: unknown): boolean =>
@@ -151,7 +146,7 @@ function registerIpc(): void {
     onChanged: broadcastAuthStatus,
   });
   registerAuthIpc({ ipcMain, controller: signInController, isTrustedSender });
-  // M6-FE-02's one new capability, behind the SAME fence from the SAME call
+  // The one new capability, behind the SAME fence from the SAME call
   // site. An unfenced door beside a fenced one is the one that ends up
   // mattering, and `shell.openExternal` is the widest thing in this
   // app — the scheme check that bounds it lives in the main process, where
@@ -199,7 +194,7 @@ function broadcastUpdateState(state: UpdateState): void {
  * Every window, not the focused one: PRD M1 requires two windows against the
  * same orchestrator to both work, each reading its own credentials, and a
  * sign-in in one of them is a fact about the machine rather than about that
- * window. Sending to `getFocusedWebContents()` — which is what the library's
+ * window. Sending to `getFocusedWebContents` — which is what the library's
  * own bridge does — would leave the other window authenticated as nobody until
  * someone reloaded it.
  */
@@ -209,7 +204,7 @@ function broadcastAuthStatus(status: AuthStatus): void {
   }
 }
 
-// ── V1-11: the sign-in callback ────────────────────────────────────────────
+// The sign-in callback
 
 /**
  * Take the deep link the browser bounced, or leave it alone.
@@ -268,7 +263,7 @@ function promptNewBot(): void {
 /**
  * Register this edition's scheme (`crewaid://` or `crewaid-selfhosted://`) and route what arrives on it.
  *
- * ── THE THREE WAYS A CALLBACK ARRIVES ───────────────────────────────────────
+ * The three ways a callback arrives
  *
  * macOS delivers it to the running app as `open-url`. Windows and Linux launch
  * the app AGAIN with the URL as an argument, so the single-instance lock is
@@ -280,10 +275,10 @@ function promptNewBot(): void {
  * The third way is a cold start — the app was not running when the browser
  * bounced — which arrives as `process.argv`.
  *
- * ── AND WHY THE PASTE FALLBACK IS NOT OPTIONAL ──────────────────────────────
+ * And why the paste fallback is not optional
  *
  * `setAsDefaultProtocolClient` reports whether the OS took the registration,
- * and it will not always take it. Run as plain `electron .` on macOS, the
+ * and it will not always take it. Run as plain `electron.` on macOS, the
  * scheme goes to Electron's shared bundle ID, which every checkout's copy
  * claims (`pnpm dev` avoids that with its own copy: scripts/dev-electron.mjs);
  * a Linux desktop may have no handler for a custom scheme at all. That is why the sign-in page prints
@@ -331,8 +326,7 @@ function createMainWindow(): BrowserWindow {
     minWidth: 980,
     minHeight: 600,
     title: 'Crewaid',
-    // Warm near-white per docs/design/UI-SPEC.md token sheet — avoids the
-    // white flash before the renderer paints.
+    // Warm near-white background to avoid a white flash before the renderer paints.
     backgroundColor: '#F7F6F4',
     show: false,
     ...(process.platform === 'darwin'

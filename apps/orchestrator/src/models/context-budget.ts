@@ -13,9 +13,8 @@ export class ContextBudgetError extends ModelSetupError {
 }
 
 /**
- * The history budget for one call: half the model's window, and never more
- * than the operator's `AGENT_CONTEXT_TRIM_TOKENS` (D-048's number, which the
- * AI SDK path trims at).
+ * History budget for one call: half the model's context window, capped at
+ * `AGENT_CONTEXT_TRIM_TOKENS`.
  */
 export function historyBudget(contextWindow: number, trimTokens: number): number {
   if (!Number.isSafeInteger(contextWindow) || contextWindow <= 0)

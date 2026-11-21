@@ -13,7 +13,7 @@ import { TRANSCRIPT_HEADLINE, searchTranscripts } from '../messages/transcript-s
 const ALL_TYPES: readonly SearchType[] = ['task', 'goal', 'project', 'deliverable', 'message'];
 
 /**
- * D-077's excerpt: at most two fragments, matches wrapped in `<<` and `>>`.
+ * The excerpt: at most two fragments, matches wrapped in `<<` and `>>`.
  * The renderer splits on the markers and never reads the result as HTML.
  */
 const HEADLINE = TRANSCRIPT_HEADLINE;
@@ -31,7 +31,7 @@ const HEADLINE = TRANSCRIPT_HEADLINE;
  * checks the plans use the indexes. Transcripts have no index: their text is
  * sealed at rest, and `messages/transcript-search.ts` ranks it opened.
  *
- * D-077's own-transcript boundary is a bot's: a bot searches its own past.
+ * The own-transcript boundary is a bot's: a bot searches its own past.
  * The user who owns every bot searches all of them.
  */
 @Injectable()
@@ -163,8 +163,8 @@ export class SearchService {
   }
 
   /**
-   * Every one of the user's transcripts — the same search D-077's memory_search
-   * makes for one bot. Message text is sealed at rest (D-236), so this one is
+   * Every one of the user's transcripts — the same search the memory_search
+   * makes for one bot. Message text is sealed at rest, so this one is
    * ranked from opened text rather than from an index.
    */
   private async messages(userId: string, q: string, limit: number, botId: string | undefined) {

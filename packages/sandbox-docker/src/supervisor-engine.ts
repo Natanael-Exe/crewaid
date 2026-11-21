@@ -252,7 +252,7 @@ class SupervisedContainer implements SandboxContainer {
     return fromWireStatus(status);
   }
 
-  /** Through the computer's own bridge, never the daemon (D-200). */
+  /** Through the computer's own bridge, never the daemon. */
   async spawn(spec: ContainerExecSpec): Promise<ContainerProcess> {
     const status = await this.inspect();
     const bridge = status.portBindings[SANDBOX_PORTS.bridge];

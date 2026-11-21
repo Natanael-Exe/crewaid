@@ -29,7 +29,7 @@ export type VoiceEngineFactory = (apiKey: string) => VoiceEngine;
 
 export const VOICE_ENGINE_FACTORY = Symbol('VOICE_ENGINE_FACTORY');
 
-/** The upstream ids a charge is itemised under (D-157's `ModelCharge`). */
+/** The upstream ids a charge is itemised under (the `ModelCharge`). */
 export const TRANSCRIPTION_MODEL = 'scribe_v2';
 /**
  * The newest real-time voice: flash v2.5 speaks 32 languages, and a

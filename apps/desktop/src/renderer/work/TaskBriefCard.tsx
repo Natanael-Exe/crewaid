@@ -16,7 +16,7 @@ export type BriefParts = {
  * or future-format brief still renders rather than disappearing.
  */
 export function parseBrief(text: string): BriefParts {
-  // D-143's closing line is addressed to the bot; the card is for the user.
+  // The closing line is addressed to the bot; the card is for the user.
   const closing = text.lastIndexOf(`\n\n${START_BRIEF_CLOSING_PREFIX}`);
   if (closing !== -1) text = text.slice(0, closing);
   const lines = text.split('\n');

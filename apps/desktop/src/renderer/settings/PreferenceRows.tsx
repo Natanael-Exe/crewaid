@@ -18,7 +18,7 @@ import { SearchSelect } from './SearchSelect';
 import { SettingsRow, SettingsSection } from './SettingsLayout';
 
 /**
- * D-234's three settings. Language and Timezone are the account's — bots read
+ * The three settings. Language and Timezone are the account's — bots read
  * them — and are saved to the server; Microphone is this computer's.
  */
 

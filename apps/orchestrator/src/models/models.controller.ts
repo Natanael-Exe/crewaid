@@ -8,7 +8,7 @@ import { CurrentUser } from '../auth/current-user.decorator.js';
 import { ModelResolutionService } from './model-resolution.service.js';
 
 /**
- * `GET /models` (D-086, replacing D-003's static catalog).
+ * `GET /models` (D-086, replacing the static catalog).
  *
  * The picker's source of truth, now derived from the CALLER's connections
  * rather than from a list compiled into the process. Still not a live fan-out

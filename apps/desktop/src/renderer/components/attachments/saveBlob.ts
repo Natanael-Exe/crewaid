@@ -42,7 +42,7 @@ export const domBlobSaverPorts: BlobSaverPorts = {
 /**
  * Revocation is deferred by a task rather than run in a `finally`.
  *
- * `click()` only *starts* the transfer; a blob URL revoked in the same task can
+ * `click` only *starts* the transfer; a blob URL revoked in the same task can
  * be gone before the download manager reads it, and the failure mode is a
  * silently truncated file rather than an error. A URL leaked by a failed
  * timer costs one blob until the window closes — the cheaper of the two.

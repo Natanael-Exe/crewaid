@@ -27,13 +27,13 @@ import { accountImage, signInPageUrl, type AuthExchange, type SignInUser } from 
  *
  * Left alone, deliberately:
  *
- * - `setupMain()` / `setupRenderer()`. Its preload helper calls
+ * - `setupMain` / `setupRenderer`. Its preload helper calls
  * `contextBridge.exposeInMainWorld` SEVEN times — `window.requestAuth`,
  * `window.signOut`, `window.getUser` and friends as bare globals — and its
  * `ipcMain.handle` callbacks take `(_evt, …)`: no sender check, no frame
- * check. Alongside CC-07's fence that is a second door with a weaker lock on
+ * check. Alongside the fence that is a second door with a weaker lock on
  * it. The four channels this app exposes go through `guardedIpc` instead.
- * - `storage()`, which is the `conf` package writing a JSON file. The session
+ * - `storage`, which is the `conf` package writing a JSON file. The session
  * token belongs in the CC-07 store like every other credential; the map
  * below holds only the cookie jar for one in-flight exchange, and there is
  * nothing in it worth keeping once the token has landed.
@@ -71,7 +71,7 @@ function ephemeralStorage(): {
  *
  * Why the client is built through a cast
  *
- * `electronClient()`'s fetch plugin declares `init()` as returning options
+ * `electronClient`'s fetch plugin declares `init` as returning options
  * whose `credentials` is `RequestCredentials | undefined`, and this workspace
  * compiles with `exactOptionalPropertyTypes`, under which that is not the same
  * type as an optional `credentials`. The plugin therefore does not satisfy

@@ -422,7 +422,7 @@ export class RuntimeSandboxProvider implements HarnessV1SandboxProvider {
     });
 
   /**
-   * D-223: a private address for a port of a running computer, for a viewer
+   * A private address for a port of a running computer, for a viewer
    * to reach directly. The computer's state is read from Runtime on every
    * call, and access is refused unless it is running: a preview visit would
    * wake a paused one. The share itself is reused while its token lasts (see
@@ -443,7 +443,7 @@ export class RuntimeSandboxProvider implements HarnessV1SandboxProvider {
       return { url: url.toString(), expiresAt: shared.tokenExpiresAt };
     });
 
-  // ── snapshots (D-237) ──────────────────────────────────────────────────────
+  // snapshots
 
   readonly snapshots: ComputerSnapshots = {
     inspect: (options) =>
@@ -680,7 +680,7 @@ export class RuntimeSandboxProvider implements HarnessV1SandboxProvider {
     }
   }
 
-  // ── inventory and reconciliation ───────────────────────────────────────────
+  // inventory and reconciliation
 
   listManagedSessions = async (): Promise<readonly ManagedSandboxObservation[]> =>
     this.#mapped(async () =>
@@ -710,7 +710,7 @@ export class RuntimeSandboxProvider implements HarnessV1SandboxProvider {
       await this.#containerFor(machine.id).stop();
     });
 
-  // ── workspaces ─────────────────────────────────────────────────────────────
+  // workspaces
 
   /** Creates the computer's sandbox and pauses it: the workspace exists, nothing runs. */
   provisionWorkspace = async (options: { botId: string }): Promise<void> =>
@@ -725,7 +725,7 @@ export class RuntimeSandboxProvider implements HarnessV1SandboxProvider {
     this.#mapped(async () => {
       const found = await this.#migration.find(options.botId);
       if (found !== null) return { exists: true, ok: true, volumeName: found.id };
-      // D-237: with its machine gone, a ready snapshot is the saved workspace,
+      // With its machine gone, a ready snapshot is the saved workspace,
       // and the next start recreates the machine from it.
       const snapshot = await this.#readySnapshot(options.botId);
       return snapshot === null
@@ -791,7 +791,7 @@ export class RuntimeSandboxProvider implements HarnessV1SandboxProvider {
       const found = await this.#migration.find(options.botId);
       if (found === null) {
         // A computer deleted after its machine was lost has only its snapshot
-        // left, and no machine to keep a retention clock on (D-237).
+        // left, and no machine to keep a retention clock on.
         if (options.orphaned) await this.#deleteSnapshots(options.botId);
         return 'absent';
       }
@@ -840,7 +840,7 @@ export class RuntimeSandboxProvider implements HarnessV1SandboxProvider {
       }
     });
 
-  // ── plumbing ───────────────────────────────────────────────────────────────
+  // plumbing
 
   #containerFor(machineId: string): RuntimeContainer {
     let container = this.#containers.get(machineId);
@@ -917,8 +917,8 @@ export class RuntimeSandboxProvider implements HarnessV1SandboxProvider {
   }
 
   /**
-   * Move a computer onto the configured image when it runs an older one
-   * (D-219). Runs on a start from paused or stopped, with the machine up.
+   * Move a computer onto the configured image when it runs an older one.
+   * Runs on a start from paused or stopped, with the machine up.
    *
    * Everything that stops the move leaves the computer as it was and starts
    * it on its current image: the start a person asked for matters more than
@@ -1008,7 +1008,7 @@ export class RuntimeSandboxProvider implements HarnessV1SandboxProvider {
     await this.#containerFor(machineId).close();
     this.#containers.delete(machineId);
     await this.#api.delete(machineId);
-    // Nothing of a deleted computer stays billed (D-237).
+    // Nothing of a deleted computer stays billed.
     await this.#deleteSnapshots(computerId);
     return 'deleted';
   }
@@ -1135,7 +1135,7 @@ class RuntimeContainer implements SandboxContainer {
       if (machine !== null) {
         // Runtime wakes a paused sandbox when its preview is visited, so a
         // stopped computer keeps no shared port for a stale screen link to wake
-        // it through (D-223). Pausing matters more than this does: if the
+        // it through. Pausing matters more than this does: if the
         // unshare fails, the token a link carries stops admitting within
         // SCREEN_ACCESS_TTL_SECONDS of its grant anyway.
         await this.#api.unshareAllPorts(this.id).catch(() => undefined);
@@ -1246,7 +1246,7 @@ class RuntimeContainer implements SandboxContainer {
       opened.then(
         (tunnel) =>
           // A tunnel the sandbox ended (it paused, or went away) takes its
-          // listeners with it; the next endpoint() opens a fresh one.
+          // listeners with it; the next endpoint opens a fresh one.
           void tunnel.closed.then(() => {
             if (this.#tunnel === opened) {
               this.#tunnel = null;

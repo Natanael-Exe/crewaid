@@ -86,7 +86,7 @@
  * (the write is idempotent, and nothing else writes the field).
  */
 
-/** §6/M4's number, milliseconds. Both endpoints inclusive — 150 is in. */
+/** The number, milliseconds. Both endpoints inclusive — 150 is in. */
 export const CORRELATION_WINDOW_MS = 150;
 
 /**

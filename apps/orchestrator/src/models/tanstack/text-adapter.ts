@@ -38,7 +38,7 @@ export const UpstreamModelIdSchema = z
   .regex(/^[A-Za-z0-9._:/~@+-]+$/, 'not a model id');
 
 export type TextAdapterDeps = {
-  /** D-085's resolver; tests pass one that answers without DNS. */
+  /** The resolver; tests pass one that answers without DNS. */
   readonly resolve?: AddressResolver | undefined;
   /**
    * Where a built-in provider's API is. Tests point it at a loopback stub;
@@ -68,8 +68,7 @@ export function buildTextAdapter(
 
   switch (binding.kind) {
     case 'openai':
-      // The Responses API, as the AI SDK's `languageModel` uses: it is the
-      // one that returns an o-series model's reasoning.
+      // Uses the Responses API so o-series reasoning tokens are returned.
       return {
         kind: 'openai',
         adapter: new OpenAITextAdapter({ apiKey: binding.apiKey, ...baseURL }, catalogModel(model)),
@@ -128,11 +127,9 @@ export function buildTextAdapter(
 }
 
 /**
- * OpenAI's Chat Completions adapter, reading the reasoning OpenAI-compatible
- * servers send. OpenAI's own Chat Completions carries none, so the base reads
- * nothing; DeepSeek, vLLM and llama.cpp put it in `reasoning_content`, and
- * some servers in `reasoning`. The AI SDK's compatible provider reads both,
- * so a custom endpoint keeps its reasoning across the change.
+ * OpenAI Chat Completions adapter that also extracts reasoning tokens from
+ * OpenAI-compatible servers (DeepSeek, vLLM, and llama.cpp emit `reasoning_content`
+ * or `reasoning`).
  */
 class CompatibleChatAdapter extends OpenAIChatCompletionsTextAdapter<OpenAIChatModel> {
   protected override extractReasoning(chunk: unknown): { text: string } | undefined {

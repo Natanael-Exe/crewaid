@@ -41,8 +41,7 @@ import { MemoryService } from '../memory/memory.service.js';
 import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
 
 /**
- * Bot + message domain and the chat turn coordinator
- * (M1-BE-06 / M1-BE-07).
+ * Bot + message domain and the chat turn coordinator.
  *
  * One module because MessagesService depends on bot ownership resolution;
  * splitting them would trade a real dependency for two exports.
@@ -81,9 +80,9 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
     TurnControlService,
     TurnHistoryService,
     // The one place a tool's definition and its out-of-band behavior
-    // descriptor are read from. M5-BE-04's browser built-ins are registered
+    // descriptor are read from. The browser built-ins are registered
     // here because they need nothing this module does not already have.
-    // M5-BE-06's skill tools register from SkillsModule instead, and that is
+    // The skill tools register from SkillsModule instead, and that is
     // the shape the registry was built for rather than a workaround:
     // SkillsModule already imports this one, so it can reach the registry,
     // while this module importing SkillsModule back would be the cycle

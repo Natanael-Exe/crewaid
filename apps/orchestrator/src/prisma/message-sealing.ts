@@ -10,8 +10,8 @@ import {
 import type { Keyring } from '../credentials/keyring.js';
 
 /**
- * Seals message text on its way into the database and opens it on the way out
- * (D-236), as a Prisma client extension on the one client.
+ * Seals message text on its way into the database and opens it on the way out,
+ * as a Prisma client extension on the one client.
  *
  * Why here, and not at each call site
  *

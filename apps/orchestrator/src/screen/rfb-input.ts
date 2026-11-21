@@ -55,7 +55,7 @@ export const KEY_EVENT_BYTES = 8;
 export const POINTER_EVENT_BYTES = 6;
 
 /**
- * The decoded event. Returned rather than discarded because §4.3's tee ("every
+ * The decoded event. Returned rather than discarded because the tee ("every
  * validated inbound event is also written to the recording pipeline") needs the
  * fields, not the bytes, and this is the one place they are already parsed.
  */

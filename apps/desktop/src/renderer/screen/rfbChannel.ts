@@ -126,11 +126,11 @@ export class RfbChannel implements RawChannel {
   }
 
   /**
-   * CONNECTING until `start()`, exactly as a real WebSocket would report.
+   * CONNECTING until `start`, exactly as a real WebSocket would report.
    *
-   * Not cosmetic. noVNC's `_connect` calls `_socketOpen()` ITSELF when the
+   * Not cosmetic. noVNC's `_connect` calls `_socketOpen` ITSELF when the
    * channel it was handed is already open — so a shim that reports OPEN from
-   * construction gets opened twice: once by noVNC, once by `start()`. The
+   * construction gets opened twice: once by noVNC, once by `start`. The
    * second one arrives with the handshake already begun and noVNC fails the
    * connection with "Unexpected server connection while connecting", having
    * never drawn anything.
@@ -291,7 +291,7 @@ export class RfbChannel implements RawChannel {
    * This is the difference between a shim and a socket, and it is not a
    * nicety. Every emit here is a REPLY to something noVNC just sent, so
    * delivering it inline would call noVNC's message handler from inside its
-   * own `send()`. Its receive queue is being mutated by the outer frame at
+   * own `send`. Its receive queue is being mutated by the outer frame at
    * that moment, and the nested read leaves `_rQi`/`_rQlen` inconsistent: the
    * handshake gets exactly as far as the security list and then stops, with no
    * error anywhere — noVNC simply never answers.

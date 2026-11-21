@@ -7,7 +7,7 @@ import { z } from 'zod';
  * or "improve" a field name that appears in the Prisma schema or in §4.
  */
 
-/** Prisma `@default(cuid())`. Kept permissive: we validate shape, not issuer. */
+/** Prisma `@default(cuid)`. Kept permissive: we validate shape, not issuer. */
 export const CuidSchema = z.string().min(1).max(64);
 
 /**
@@ -72,8 +72,7 @@ export const TimezoneSchema = z
   .refine((zone) => zone === 'UTC' || zone.includes('/'), 'must be an IANA timezone');
 
 /**
- * `Identity.name` — the Chrome profile directory a shared identity IS
- * (M5-BE-27 / D-057).
+ * `Identity.name` — the Chrome profile directory a shared identity IS.
  *
  * Deliberately narrower than `SlugSchema`, which it otherwise resembles: this
  * string is interpolated into `--profile-directory=` and used as a path

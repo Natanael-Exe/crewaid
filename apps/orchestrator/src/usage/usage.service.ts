@@ -22,9 +22,9 @@ export function roundToMicroUsd(usd: number): number {
 
 /**
  * One (bot, day) bucket: the four D-009(3) counters summed over the day's
- * turns plus CC-12's money. The wire response projects the counters and the
- * cost; the cache counters are summed here in one place so CC-05's cap
- * arithmetic and CC-12's cost math reuse these totals instead of re-deriving
+ * turns plus the money. The wire response projects the counters and the
+ * cost; the cache counters are summed here in one place so the cap
+ * arithmetic and the cost math reuse these totals instead of re-deriving
  * them from a second query.
  */
 export type UsageDayBucket = {
@@ -77,7 +77,7 @@ function utcMidnight(day: string): Date {
  * The half-open query window for `?from=&to=` — inclusive UTC calendar dates.
  * `from` after `to` is a client bug, not an empty range: answering 200 with
  * `rows: []` would silently look like "no spend" to a caller that swapped its
- * arguments, and the same pair feeds CC-05's cap — a wrong day there halts
+ * arguments, and the same pair feeds the cap — a wrong day there halts
  * the product. It 400s instead.
  */
 export function utcWindowFor(query: UsageQuery): { start: Date; endExclusive: Date } {
@@ -111,7 +111,7 @@ export type TurnCostCounters = Pick<
  * - A recorded key with no catalog entry (an operator can configure any
  * registry-valid model) is null too — a real unknown price, never 0.
  * - Otherwise: the shared cost arithmetic — fresh input, cache reads, cache
- * writes and output at the catalog's rates (cache-aware per D-009(3), so
+ * writes and output at the catalog's rates (cache-aware, so
  * the math stays right once CC-11 populates the cache counters).
  *
  * Unrounded by design; the bucket rounds the day's total once.
@@ -197,8 +197,8 @@ export function bucketTurnsByUtcDay(turns: readonly TurnUsageRow[]): UsageDayBuc
 }
 
 /**
- * CC-04/CC-12 — the daily token-spend rollup behind `GET /usage?from=&to=`
- * (§7.1): the D-009(3) counters per (bot, day) plus the money they cost.
+ * The daily token-spend rollup behind `GET /usage?from=&to=`:
+ * the D-009(3) counters per (bot, day) plus the money they cost.
  *
  * The durable numbers are the counters and the billing identity the turn
  * runner settles onto each AgentTurn row; this service does not recompute

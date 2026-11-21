@@ -413,11 +413,11 @@ function WeekdayToggles({
   );
 }
 
-// ── Ends ─────────────────────────────────────────────────────────────────
+// Ends
 
 /**
  * The form's end date: a switch, and a date picker once it is on. Read in the
- * routine's own timezone (D-127).
+ * routine's own timezone.
  */
 export function EndsField({
   endsOn,
@@ -579,7 +579,7 @@ function EndDatePicker({
   );
 }
 
-// ── Custom Repeat ────────────────────────────────────────────────────────
+// Custom Repeat
 
 type CustomDraft = { readonly parts: ScheduleParts; readonly endsOn: string | null };
 
@@ -766,7 +766,7 @@ function unitHint(unit: RepeatUnit): string {
   }
 }
 
-// ── Timezone ─────────────────────────────────────────────────────────────
+// Timezone
 
 export function TimezonePicker({
   value,

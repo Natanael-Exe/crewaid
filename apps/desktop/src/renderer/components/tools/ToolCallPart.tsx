@@ -155,7 +155,7 @@ function DetailsDisclosure({ row, status }: { row: FoldedToolPart; status: Displ
 /**
  * A routine action — a read, a search, a command — as one quiet line.
  *
- * Cards are for what the user keeps (D-215); everything else a bot does is
+ * Cards are for what the user keeps; everything else a bot does is
  * machinery, and machinery between the bubbles is noise. The line still says
  * what ran and how it ended — in words, since colour is not a state — keeps a
  * failure's sentence on its face, and puts the arguments and the raw result
@@ -237,16 +237,16 @@ export function ToolCallPart({
 }: {
   part: AnyPart;
   context?: PartRenderContext | undefined;
-  /** How many identical runs of this action the row stands in for (D-215). */
+  /** How many identical runs of this action the row stands in for. */
   count?: number | undefined;
 }): ReactNode {
   const t = useT();
   const row = isFoldedToolPart(part) ? part : looseToolPart(part);
   const status = displayStatus(row, context);
-  // D-229: a template Crewaid read is a recommendation the person acts on.
+  // A template Crewaid read is a recommendation the person acts on.
   if (row.toolName === 'read_template' && status === 'ok')
     return <TemplateResultCard input={row.input} output={row.output} />;
-  // D-215: cards are for what the user keeps. Everything else is routine work,
+  // Cards are for what the user keeps. Everything else is routine work,
   // which renders as a quiet line — or, with "Show thinking and actions" off,
   // is filtered out before it ever reaches a renderer.
   if (!isUserOutput(row, context))
@@ -317,8 +317,7 @@ function activityCalls(part: AnyPart): FoldedToolPart[] {
 }
 
 /**
- * Runs of one producing action on one artifact render once, with a count
- * (D-215).
+ * Runs of one producing action on one artifact render once, with a count.
  *
  * A bot that retries a draft creation would otherwise stack two cards for one
  * artifact — the exact noise the cards exist to remove. The signature is the
@@ -369,7 +368,7 @@ function outputRows(
  * collapsed disclosure — open while the reply streams so the work log is
  * live for whoever opted into it, settled and out of the way once the answer
  * lands. With "Show thinking and actions" off only the outputs remain,
- * because a transcript of fetches is machinery, not message (D-215).
+ * because a transcript of fetches is machinery, not message.
  */
 export function ToolActivityPart({
   part,

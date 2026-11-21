@@ -28,7 +28,7 @@ export const GoalStatusSchema = z.enum(['ACTIVE', 'ACHIEVED', 'ABANDONED']);
 export type GoalStatus = z.infer<typeof GoalStatusSchema>;
 
 /**
- * PRD-WORK §3.2. Anyone can set any of these; the statuses mean what
+ * WORK §3.2. Anyone can set any of these; the statuses mean what
  * the user's prompts make them mean, and the app only records who set them.
  */
 export const TaskStatusSchema = z.enum([
@@ -702,7 +702,7 @@ export const ListDeliverablesQuerySchema = z.object({
   kind: DeliverableKindSchema.optional(),
   /** Only deliverables filed under nothing. */
   unfiled: QueryBooleanSchema.optional(),
-  /** Words in the title or summary, any case (D-142). */
+  /** Words in the title or summary, any case. */
   q: z.string().trim().min(1).max(200).optional(),
   /** Cursor: the last id of the previous page. */
   before: CuidSchema.optional(),
@@ -762,7 +762,7 @@ export type UpdateDeliverableBody = z.infer<typeof UpdateDeliverableBodySchema>;
 
 export const DeliverableResponseSchema = DeliverableViewSchema;
 
-// ── Search (D-139) ─────────────────────────────────────────────────────────
+// Search
 
 export const SearchTypeSchema = z.enum(['task', 'goal', 'project', 'deliverable', 'message']);
 export type SearchType = z.infer<typeof SearchTypeSchema>;
@@ -784,7 +784,7 @@ export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 
 /**
  * A `ts_headline` excerpt: at most two fragments, matches wrapped in `<<` and
- * `>>` exactly as D-077's transcript search writes them. Plain text otherwise
+ * `>>` exactly as the transcript search writes them. Plain text otherwise
  * — the renderer splits on the markers and never parses it as HTML.
  */
 const ExcerptSchema = z.string().nullable();
@@ -842,7 +842,7 @@ export const SearchResponseSchema = z.object({
 });
 export type SearchResponse = z.infer<typeof SearchResponseSchema>;
 
-// ── The refusals D-134 names ───────────────────────────────────────────────
+// The refusals D-134 names
 
 export const WorkErrorCodeSchema = z.enum([
   'PROJECT_NOT_EMPTY',

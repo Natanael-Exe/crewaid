@@ -119,9 +119,9 @@ outside that window for four major releases. Since Electron ships a full Chromiu
 app renders remote content and proxies a VNC framebuffer, running an EOL browser engine is
 a live security defect, not a version-currency preference.
 
-Paul's M0 pin of `44.1.1` was correct and stands. Pin the major (`44.x`) exactly, per M0-07.
+The `44.1.1` pin was correct and stands. Pin the major (`44.x`) exactly, per M0-07.
 
-*Raised by Nathan, who caught the conflict between the PRD text and Paul's actual M0 pin.*
+*Caught as a conflict between the PRD text and the actual M0 pin.*
 
 ## D-008 · Streaming-safe markdown rendering is in scope
 **Extends:** M1 frontend. New task **M1-FE-11** (2d).
@@ -142,7 +142,7 @@ VNC thumbnail.
 
 ---
 
-## Verified free-tier component findings (Nathan, M1-FE-02)
+## Verified free-tier component findings (M1-FE-02)
 
 Checked against the installed tree — `@heroui/react@3.2.4`, `react-aria-components@1.21.0` —
 not recalled. Reproducible via `scripts/heroui-mcp-probe.py`.
@@ -159,7 +159,7 @@ not recalled. Reproducible via `scripts/heroui-mcp-probe.py`.
   does not submit mid-composition.
 
 **Open technical risk:** virtualization fights token-by-token streaming in M1-FE-04 (a growing
-last row invalidates measured sizes). Nathan is spiking this before committing to an approach.
+last row invalidates measured sizes). Spiking this before committing to an approach.
 This, not the free tier, is the real threat to the M1 frontend estimate.
 
 ## D-009 · Schema fixes, landed in M0-03
@@ -180,7 +180,7 @@ M0 costs minutes; fixing them later costs a migration against live data.
    Without separating them, CC-12's cost reporting and §7.2's hard spend cap are provably wrong —
    and §7.2 is a hard stop, so wrong numbers mean either false halts or blown budgets.
 
-*Raised by Brian in pre-gate review.*
+*Raised in pre-gate review.*
 
 ## D-010 · The R7 test is an allowlist over ALL Prisma call sites
 **Supersedes:** M1 required test "no Prisma `bot.findMany` or `bot.findFirst` call site lacks a
@@ -206,7 +206,7 @@ each must either scope by `principal.userId` or appear in an explicit, commented
 New unscoped call sites fail CI by default. Paired with **M1-BE-12**: direct-by-id routes resolve
 the resource to its owning `userId` before any handler logic runs.
 
-*Raised by Brian. This is the most valuable finding of the review — a passing test that certifies
+*Raised in review. A passing test that certifies
 a vulnerability is worse than no test.*
 
 ## D-011 · M0-07 pin corrections
@@ -255,26 +255,26 @@ Confirmed still true from the earlier caveat: `setNetworkPolicy?` and `setPorts?
 (lines 128, 151); `restricted()` is required (line 165). Upstream explicitly recommends
 optional-call syntax: `sandboxSession.setNetworkPolicy?.(policy)`.
 
-*Found by Paul while implementing, correcting two errors in the original write-up.*
+*Found during implementation, correcting two errors in the original write-up.*
 
 ## D-013 · Every architectural rule needs a failing probe
-**Extends:** M0 lint rules, CC-06, and Brian's review gates.
+**Extends:** M0 lint rules, CC-06, and review gates.
 
-Paul's `no-restricted-imports` rule for the orchestrator **silently did nothing**: ESLint does not
-merge `no-restricted-imports` across flat-config blocks, so his orchestrator block wordlessly
+The orchestrator `no-restricted-imports` rule **silently did nothing**: ESLint does not
+merge `no-restricted-imports` across flat-config blocks, so the orchestrator block wordlessly
 replaced the global `dockerode` ban (R2). A probe file importing `@ai-sdk/harness` linted clean.
 
-He caught it only because he tests every architectural rule with a probe that **must fail**.
+Caught only by testing every architectural rule with a probe that **must fail**.
 
 **Requirement:** every lint rule or architecture test defending a rule in §2.2 or §7.3 ships with a
 committed probe that the rule must reject. A guard that cannot be demonstrated failing is not
 evidence — this applies to R2, R4, R7 (D-010), §7.3's eval ban (CC-06), and the D-010 allowlist.
-Brian: treat "show me the probe failing" as a gate question, not a nicety.
+Treat "show me the probe failing" as a gate question, not a nicety.
 
 ## D-014 · CI must check migration drift, not just apply migrations
 **Extends:** M0-05 / CI.
 
-`prisma migrate deploy` **exits 0 on schema drift**. Paul had `autoReviewRules` in `schema.prisma`,
+`prisma migrate deploy` **exits 0 on schema drift**. `autoReviewRules` was in `schema.prisma`,
 absent from the database, and deploy reported "no pending migrations."
 
 Benign in M0; in M1 it ships a missing column that first fails at runtime under load. CI now runs
@@ -287,7 +287,7 @@ Benign in M0; in M1 it ships a missing column that first fails at runtime under 
 `McpCredential` — encrypted OAuth tokens with no owner and no cascade. §7.3 requires credentials be
 destroyable; orphaned ciphertext violates that. Relation added with cascade delete.
 
-*Paul's one schema addition beyond D-005/D-009, declared in the schema header rather than buried.*
+*One schema addition beyond D-005/D-009, declared in the schema header rather than buried.*
 
 ## D-016 · Probes lint under their rule's own block — and assert on ruleId
 **Extends:** D-013. The probe harness itself had the failure mode it exists to catch — twice.
@@ -309,7 +309,7 @@ their guards, and `pnpm lint` over real source stays green.
 Until the `workflow`-scope push lands, run it locally: `node tools/guard-probes/run-probes.mjs`.
 
 ## D-017 · CI fails on unannotated skipped tests
-**Raised by Brian at the M0-09 gate; ratified for M1.**
+**Raised at the M0-09 gate; ratified for M1.**
 
 The gate caught the D-016 failure class inside the test suite itself: the skill-versioning
 regression test silently skipped in every CI run because Turbo 2.x strict env mode strips
@@ -317,23 +317,22 @@ undeclared env vars (`DATABASE_URL` absent from `turbo.json` → the test's skip
 nothing and skipped). Green badge, dormant guard. Fixed in M0 by declaring the vars
 (`globalEnv` in `turbo.json`); D-017 generalizes the prevention:
 
-**CI fails when any test reports `skipped` unless the skip is annotated** with an owner and
-reason, e.g. `it.skip // @skip-reason: @slow nightly (Marc)` or a checked-in allowlist file.
+**CI fails when any test reports `skipped` unless the skip is annotated** with a
+reason, e.g. `it.skip // @skip-reason: @slow nightly` or a checked-in allowlist file.
 Nightly `@slow` tests are the expected population; anything else skipping is a guard not
 firing and breaks the build.
 
 *Design note:* the skip-allowlist needs to distinguish per-suite (unit vs `@slow`), which is
-why this is M1-adjacent rather than an M0 blocker. Marc owns the implementation; Brian owns
-the verdict that it catches what F2 caught.
+why this is M1-adjacent rather than an M0 blocker.
 
 ## D-018 · PRD correction — `prisma generate` belongs in the M0 chain
-**Docs fix, raised by Brian.** The M0 acceptance chain (`pnpm install && pnpm build &&
+**Docs fix.** The M0 acceptance chain (`pnpm install && pnpm build &&
 pnpm test && pnpm lint`) omits `prisma generate`; generated-client-dependent tests fail on
 a clean clone without it. CI runs it explicitly between install and migrate. PRD §6/M0 to
 be corrected in the next doc pass.
 
 ## D-019 · `POST /attachments` — the missing creation half
-**Extends:** §4.1. Found by John during M1-BE-03.
+**Extends:** §4.1. Found during M1-BE-03.
 
 §4.1 gives message-send an `attachmentIds` parameter and `GET /attachments/:id/download`,
 but defines **no route that creates Attachment rows** — `attachmentIds` could never reference
@@ -349,7 +348,7 @@ ownership resolved at creation time per D-010. Consumed by M1-FE-08 (composer at
 chips). Lives in M1-BE-03 scope so both halves of the contract land in one PR.
 
 ## D-020 · `Attachment.messageId` is nullable — two-phase attach lifecycle
-**Extends:** §3. Found by John during D-019 implementation; ratified on Paul's escalation.
+**Extends:** §3. Found during D-019 implementation.
 
 D-019 makes attachment **creation** its own route (`POST /attachments`). That forces a
 sequencing reality §3 never addressed: **an upload necessarily happens before the message that
@@ -373,26 +372,26 @@ it is a required acceptance criterion of D-019, not a nice-to-have. Until the re
 **Migration note:** `ALTER TABLE "Attachment" ALTER COLUMN "messageId" DROP NOT NULL;` —
 applies cleanly to both prior migrations.
 
-**Addendum (Paul, ratified):** `DELETE /attachments/:id` returns **409** when the attachment is
+**Addendum (ratified):** `DELETE /attachments/:id` returns **409** when the attachment is
 claimed by a message — the manual fallback exists for the *unclaimed* case only. Message-claimed
 rows belong to the message lifecycle (cascade via conversation delete). Negative test ships with
 the route.
 
-**Known limitation, stated in the M1 PR (Paul):** the route ships in M1, the reaper in M8; until
-then unclaimed uploads are bounded only by user behavior. Paul's interim option — a TTL check on
+**Known limitation, stated in the M1 PR:** the route ships in M1, the reaper in M8; until
+then unclaimed uploads are bounded only by user behavior. The interim option — a TTL check on
 read returning **410 Gone** for unclaimed rows older than 24h — is **ratified**: it's ~10 lines,
 prevents expired uploads from being served, and the 410 is semantically honest. It does not reclaim disk space or bound artifact growth. The
 reaper remains the real fix; D-029 pulls initial cleanup into M2, with recurring-job integration in M8-BE-07.
 
 ## D-022 · Multer upload limits — deliberate config, not library defaults
-**Raised by Paul during PR #12 verification (unbounded Multer defaults vs the ratified "deliberate config" ruling); decided by Ben 2026-09-02.**
+**Raised during PR #12 verification (unbounded Multer defaults vs the ratified "deliberate config" ruling); decided 2026-09-02.**
 
 \`main.ts\` ran Multer with library defaults — no fileSize cap, unlimited files per request. That contradicts the deliberate-config ruling and the six-sandbox capacity budget: an unbounded upload can balloon a 2GB sandbox disk and starve D-019's \`ARTIFACT_DIR\`.
 
 **Ratified limits:** \`{ fileSize: 25 MiB (26_214_400 bytes), files: 5 }\` per request. Oversized/over-count requests return **413** (Payload Too Large), not a raw Multer error. Changes land with the WS gateway lane (M1-BE-04), tests included.
 
 ## D-021 · `Attachment.ownerId` — ownership from creation, not from claiming
-**Found by Brian at review of PR #6; verified in diff by Ben; same migration-now logic as D-005/D-009.**
+**Found during review of PR #6; same migration-now logic as D-005/D-009.**
 
 D-019's upload route stored no owner and the claim query filtered only `{ messageId: null }`.
 The IDOR chain: user B binds user A's unclaimed upload to B's message and downloads A's file
@@ -408,21 +407,21 @@ D-010 class: a vulnerable pattern shipping under a green test, contradicting D-0
 3. `resolveForDownload` gets a second arm: unclaimed rows resolve by `ownerId` directly;
    claimed rows keep the message→conversation→bot→userId path.
 
-**Also from Brian's review of PR #6:**
+**Also from review of PR #6:**
 - **J2 — pagination tiebreak:** `(conversationId, createdAt)` sort with a createdAt cursor
   double-renders or skips same-millisecond messages. Fix: `orderBy [{createdAt desc},{id desc}]`,
   cursor becomes the composite. New test: 3 same-ms messages, page size 2, all pages walked,
   each seen exactly once.
 - **J3 — D-020 fences were never in the diff:** the 409-on-claimed and 410-TTL semantics were
-  ratified but didn't reach the work order. Gap between ruling and work order — Ben's handoff.
+  ratified but didn't reach the initial diff.
   Fences land with J1/J2 in one PR.
-- **Tooling (ratified, assigned to Nathan):** the CDP smoke probe must hard-fail when the
-  answering window's repo path isn't the build under test — Brian's first smoke run verified
+- **Tooling (ratified):** the CDP smoke probe must hard-fail when the
+  answering window's repo path isn't the build under test — an early smoke run verified
   the wrong working tree via a port collision. A verification tool that trusts whichever window
   answers is D-013's class inside the tooling.
 
 ## D-023 · Attachment-only message sends — text OR attachments
-**Decided by Ben on 2026-09-02 in response to Nathan's M1-FE-08 contract flag.**
+**Decided on 2026-09-02 in response to the M1-FE-08 contract flag.**
 
 The §4.1 `POST /bots/:id/messages` body is amended to support a message whose
 payload is carried entirely by uploaded attachments. This is intentionally
@@ -458,7 +457,7 @@ renderer gate, and real-Postgres message integration suite.
 **PR #5 (Electron shell) PASSED outright** — reviewer rebuilt the PR head and reproduced 7/7.
 
 ## D-024 · WS bad-token wire contract — pre-upgrade HTTP 401
-**Decided by Paul during PR #16 blocker closure on 2026-09-02; verified against `@nestjs/platform-ws` 11.2.3 and `ws` 8.21.3.**
+**Decided during PR #16 blocker closure on 2026-09-02; verified against `@nestjs/platform-ws` 11.2.3 and `ws` 8.21.3.**
 
 The §4.2 endpoint is `ws://<host>/ws?token=<ORCH_API_TOKEN>`. Missing, empty, or
 incorrect tokens MUST be rejected during the HTTP Upgrade with **HTTP 401**. No

@@ -108,6 +108,6 @@ export function panesFor(edition: Edition | null): readonly SettingsPane[] {
 export function settingsPane(id: SettingsPaneId): SettingsPane {
   const pane = SETTINGS_PANES.find((candidate) => candidate.id === id);
   // Unreachable via SettingsPaneId, but the array is the source of truth and a
-  // find() is optional by type; falling back beats a non-null assertion.
+  // find is optional by type; falling back beats a non-null assertion.
   return pane ?? { id, label: id, status: 'planned', summary: '' };
 }

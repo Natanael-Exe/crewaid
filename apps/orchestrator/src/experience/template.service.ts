@@ -48,7 +48,7 @@ export class TemplateService {
   ) {}
 
   /**
-   * D-235: the language the person reads templates in. A run already knows it
+   * The language the person reads templates in. A run already knows it
    * and passes it; this is for a request that arrives on its own.
    */
   async languageOf(userId: string): Promise<Locale | null> {

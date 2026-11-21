@@ -3,12 +3,8 @@ import { z } from 'zod';
 import { CuidSchema, EpochMsSchema } from './primitives.js';
 
 /**
- * Seat control (D-163, `docs/plans/MOD-BR-01-SEAT-CONTROL.md` §8): who may
- * send input to a bot's seat, and when the bot itself must wait.
- *
- * `screen.control` is the client's request and `screen.control.state` the
- * server's answer to every subscriber of the seat; both are on the WebSocket
- * registries.
+ * Seat control schemas: who may send input to a bot's seat (`agent`, `draining`,
+ * or `human`) and when the bot must wait.
  */
 
 /** `agent` drives; `draining` waits for in-flight seat actions; `human` drives. */

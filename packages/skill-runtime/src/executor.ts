@@ -7,12 +7,12 @@
  * the bot container (infra/sandbox-image) where the container itself is the
  * trust boundary: the agent-bridge invokes it over `POST /skill/run` and never
  * executes a script in the orchestrator process. `apps/orchestrator` must not
- * import it to run a script locally — CC-06's lint rules keep that door shut.
+ * import it to run a script locally — the lint rules keep that door shut.
  *
  * Everything the executor needs from the outside world arrives through two
  * ports (`SkillHost` and `SkillModuleLoader`). That is what lets it unit-test
  * without a desktop, a container, or a Node import hook — and what keeps the
- * real OS calls (xdotool/scrot) and the real `import()` in one visible place
+ * real OS calls (xdotool/scrot) and the real `import` in one visible place
  * each (host.ts, loader.ts).
  */
 import type { BrowserPage } from './browser.js';
@@ -86,7 +86,7 @@ export const MAX_DETAIL_CHARS = 2_000;
 
 /**
  * Build the `SkillContext` the M3 compiler generates against,
- * with M4-BE-06's browser half.
+ * with the browser half.
  *
  * The mapping is the contract: `click`/`doubleClick`/`type`/`key` drive real
  * input through the host; `screenshot` returns PNG bytes; `waitFor` is the
@@ -95,7 +95,7 @@ export const MAX_DETAIL_CHARS = 2_000;
  *
  * `page` arrives already built rather than being constructed here: the real
  * one needs a CDP connection and a Chrome (composition-root concerns, owned
- * by `runner.ts`), while pure unit contexts get `createUnavailablePage()` —
+ * by `runner.ts`), while pure unit contexts get `createUnavailablePage` —
  * a call that fails loudly beats an undefined property. The same rule as
  * `host` and `loadModule`: everything the executor cannot test is injected.
  */

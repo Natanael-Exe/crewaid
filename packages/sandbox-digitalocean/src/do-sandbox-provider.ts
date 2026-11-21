@@ -161,7 +161,7 @@ export class DigitalOceanSandboxProvider implements HarnessV1SandboxProvider {
     this.#relaunchMs = options.relaunchMs ?? 20_000;
   }
 
-  // ── sessions ───────────────────────────────────────────────────────────────
+  // sessions
 
   createSession = async (
     options?: HarnessV1CreateSessionOptions & { requireExistingWorkspace?: boolean },
@@ -274,7 +274,7 @@ export class DigitalOceanSandboxProvider implements HarnessV1SandboxProvider {
       return { ok: true };
     });
 
-  // ── inventory and reconciliation ───────────────────────────────────────────
+  // inventory and reconciliation
 
   listManagedSessions = async (): Promise<readonly ManagedSandboxObservation[]> =>
     this.#mapped(async () =>
@@ -304,7 +304,7 @@ export class DigitalOceanSandboxProvider implements HarnessV1SandboxProvider {
       await this.#containerFor(session.session_id).stop();
     });
 
-  // ── workspaces ─────────────────────────────────────────────────────────────
+  // workspaces
 
   /** Creates the computer's session and pauses it: the workspace exists, nothing runs. */
   provisionWorkspace = async (options: { botId: string }): Promise<void> =>
@@ -380,7 +380,7 @@ export class DigitalOceanSandboxProvider implements HarnessV1SandboxProvider {
   /**
    * The retention sweep's question, answered without waking a machine in the
    * common case. An in-use computer is `retained` from the API alone. An
-   * orphan's first-seen time lives in a marker inside its workspace (D-039),
+   * orphan's first-seen time lives in a marker inside its workspace,
    * written once through DigitalOcean's exec and then cached here; only a
    * process restart asks the machine again.
    */
@@ -449,7 +449,7 @@ export class DigitalOceanSandboxProvider implements HarnessV1SandboxProvider {
       if (result.exitCode !== 0) throw new Error('Could not persist profile retirement');
     });
 
-  // ── plumbing ───────────────────────────────────────────────────────────────
+  // plumbing
 
   #containerFor(sessionId: string): DigitalOceanContainer {
     let container = this.#containers.get(sessionId);

@@ -8,7 +8,7 @@ import { ChainNoticeService } from './chain-notice.service.js';
 import { deliveryFailedNotice } from './chain.js';
 
 /**
- * The worker for §6/M7's inter-bot delivery.
+ * The worker for the inter-bot delivery.
  *
  * Why concurrency is one
  *

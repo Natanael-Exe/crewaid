@@ -396,7 +396,7 @@ function recordOf(value: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
-/** The code a meter's refusal carries when it surfaces as a `RUN_ERROR` (MOD-AI-11). */
+/** The code a meter's refusal carries when it surfaces as a `RUN_ERROR`. */
 export const ALLOWANCE_EXHAUSTED_CODE = 'crewaid_allowance_exhausted';
 
 /** A `ModelAllowanceExhaustedError`, or one wrapped in `cause` by the SDK. */

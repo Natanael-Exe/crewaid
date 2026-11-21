@@ -5,7 +5,7 @@ import { readIdleStopMs } from './sandbox.config.js';
 import { SandboxIdleService } from './sandbox-idle.service.js';
 
 /**
- * A renewable claim on a running sandbox (M3-BE-11, D-039 §17).
+ * A renewable claim on a running sandbox.
  *
  * `renew` is called on positive progress; `release` on every completion,
  * failure and cancellation path. Neither can shorten the deadline, because the
@@ -39,7 +39,7 @@ export interface KeepRunningLease {
 export type ComputerOwner = 'explicit-open' | 'recording' | 'skill' | 'agent-tool' | 'managed-job';
 
 /**
- * Keep-running leases (M3-BE-11, D-039 §17).
+ * Keep-running leases.
  *
  * §8 already counts an `AgentTurn` and a `Recording` as work, and reads them
  * straight from their own rows — exact across a restart, and impossible for
@@ -211,7 +211,7 @@ export class SandboxLeaseService implements OnModuleDestroy {
     const until = new Date(Date.now() + this.leaseMs);
     const extended = await this.prisma.sandbox.updateMany({
       where: {
-        // D-046: the lease is the machine's, held on behalf of a bot. Scoped
+        // The lease is the machine's, held on behalf of a bot. Scoped
         // through the tenant rather than on the machine's own `userId` so the
         // check still answers "is this caller's bot on this machine", which is
         // the question ownership was asking before the machine had an owner
@@ -225,7 +225,7 @@ export class SandboxLeaseService implements OnModuleDestroy {
   }
 
   /**
-   * The work finished here, so §8's clock starts here (§17).
+   * The work finished here, so the clock starts here.
    *
    * Pinned to `RUNNING` for the same reason the manual-takeover clock is: a
    * stop holds the row as `STARTING`, and bumping the clock underneath it

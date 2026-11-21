@@ -134,7 +134,7 @@ export type ModelProvider = z.infer<typeof ModelProviderSchema>;
 export const MODEL_ID_SEPARATOR = ':' as const;
 
 /**
- * ⚠️ `ModelIdSchema`, `BotModelIdSchema`, `DEFAULT_MODEL_ALIAS`,
+ * `ModelIdSchema`, `BotModelIdSchema`, `DEFAULT_MODEL_ALIAS`,
  * `ModelCatalogEntrySchema` and `ModelCatalogResponseSchema` LIVED HERE AND
  * ARE GONE.
  *
@@ -166,7 +166,7 @@ export type ModelCapabilities = z.infer<typeof ModelCapabilitiesSchema>;
  * shapes; every one of them lands on exactly one of these codes before it
  * reaches the transcript.
  *
- * ⚠️ The rule that gives this teeth: the transcript never renders a raw vendor
+ * The rule that gives this teeth: the transcript never renders a raw vendor
  * error. If a UI layer is regexing a provider message, the normalization is in
  * the wrong place. The raw provider error rides along in a non-displayed
  * `detail` field for logs only; the one vendor sentence a person may read is

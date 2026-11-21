@@ -37,7 +37,7 @@ import { settingsToWire } from './user-preferences.js';
  * and one that is foreign — so a response cannot be used to discover which
  * connection ids exist.
  *
- * ⚠️ NOTHING HERE RETURNS A CREDENTIAL. The row's ciphertext columns are
+ * NOTHING HERE RETURNS A CREDENTIAL. The row's ciphertext columns are
  * dropped by `toWire` before anything leaves this file, and `toWire` is the
  * only way a row becomes a response.
  */
@@ -103,7 +103,7 @@ export class ProviderConnectionsService {
 
     if (input.apiKey !== undefined) {
       // Through the vault, never written here: this service has no business
-      // holding the capability to encrypt (D-083).
+      // holding the capability to encrypt.
       await this.credentials.setCredential(userId, created.id, input.apiKey);
       const withKey = await this.prisma.providerConnection.findFirst({
         where: { id: created.id, userId },
@@ -174,7 +174,7 @@ export class ProviderConnectionsService {
     await this.prisma.providerConnection.deleteMany({ where: { id: connectionId, userId } });
   }
 
-  // ── Credentials ──────────────────────────────────────────────────────────
+  // Credentials
 
   async setCredential(userId: string, connectionId: string, apiKey: string): Promise<void> {
     await this.findUserManaged(userId, connectionId);
@@ -187,7 +187,7 @@ export class ProviderConnectionsService {
    *
    * Unlike deleting a model or a connection, this is the REVOCATION path:
    * someone removing a leaked key must not be told to go and repoint three
-   * bots first. The models stay and become unavailable (D-084).
+   * bots first. The models stay and become unavailable.
    */
   async clearCredential(userId: string, connectionId: string): Promise<void> {
     await this.findUserManaged(userId, connectionId);
@@ -195,7 +195,7 @@ export class ProviderConnectionsService {
     if (!cleared) throw new NotFoundException('provider connection not found');
   }
 
-  // ── Models ───────────────────────────────────────────────────────────────
+  // Models
 
   async createModel(
     userId: string,
@@ -204,7 +204,7 @@ export class ProviderConnectionsService {
   ): Promise<WireModel> {
     const connection = await this.findUserManaged(userId, connectionId);
     if (connection.kind === 'ELEVENLABS') {
-      // D-221: a model here would be offered to bots and fail every turn.
+      // A model here would be offered to bots and fail every turn.
       throw new BadRequestException('an ElevenLabs connection is a voice key — it has no models');
     }
     const duplicate = await this.prisma.providerModel.findFirst({
@@ -265,7 +265,7 @@ export class ProviderConnectionsService {
     });
   }
 
-  // ── Settings ─────────────────────────────────────────────────────────────
+  // Settings
 
   async settings(userId: string): Promise<WireUserSettings> {
     const row = await this.prisma.userSettings.findFirst({ where: { userId } });
@@ -310,7 +310,7 @@ export class ProviderConnectionsService {
     return settingsToWire(row);
   }
 
-  // ── Internals ────────────────────────────────────────────────────────────
+  // Internals
 
   private async admit(endpoint: string): Promise<URL> {
     try {
@@ -348,7 +348,7 @@ export class ProviderConnectionsService {
   }
 
   /**
-   * D-157: the connection, if it is one a person manages.
+   * The connection, if it is one a person manages.
    *
    * The `crewaid` connection is the server's: its models are the plan's list
    * and it has no key, so renaming, disabling, keying, deleting it or editing
@@ -372,7 +372,7 @@ export class ProviderConnectionsService {
    *
    * `Bot.modelId` is a STRING column holding either the literal `default` or a
    * `ProviderModel` id — not a foreign key — because it also has to hold the
-   * alias (D-082). So the database cannot refuse this on its own, and a count
+   * alias. So the database cannot refuse this on its own, and a count
    * here is the only fence. `UserSettings.defaultModelId` IS a foreign key
    * with `onDelete: Restrict`, and it is checked here anyway so the operator
    * gets a sentence rather than a constraint name.
@@ -410,7 +410,7 @@ export class ProviderConnectionsService {
  * The three credential columns are dropped by construction rather than by a
  * `select` somewhere else that a future caller could forget: `hasCredential`
  * is the only thing said about the key, and there is no field on the wire type
- * it could travel in (D-083).
+ * it could travel in.
  */
 function toWire(row: ProviderConnection): WireConnection {
   return {
@@ -447,7 +447,7 @@ function modelToWire(row: ProviderModel): WireModel {
 /**
  * The wire kind is lowercase and the column is an uppercase Prisma enum.
  *
- * Two explicit maps rather than `toUpperCase()`: a cast would compile for any
+ * Two explicit maps rather than `toUpperCase`: a cast would compile for any
  * string, so a kind added on one side and not the other would fail at runtime
  * on a row nobody tested. These fail to compile.
  */

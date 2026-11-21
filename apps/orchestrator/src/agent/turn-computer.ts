@@ -14,16 +14,16 @@ import type { StructuredLogger } from '../logging/structured-logger.js';
  *
  * Most turns are a question and an answer. Waking a container for one is 2 GiB
  * and several seconds of host budget spent on a bot that was never going to
- * touch a screen, and with D-046's shared computer it is spent on behalf of
+ * touch a screen, and with the shared computer it is spent on behalf of
  * every bot attached to it. So readiness is not part of starting a turn: it
  * happens on the FIRST tool that needs it, and a turn where no such tool runs
- * never reaches `SandboxReadinessService` at all. `wasRequested()` is how a
+ * never reaches `SandboxReadinessService` at all. `wasRequested` is how a
  * test states that rather than hopes it.
  *
  * Once per turn, even in parallel
  *
  * A step may call several tools at once and each of them wants the same
- * desktop. The in-flight promise is shared, so five concurrent `ensure()`
+ * desktop. The in-flight promise is shared, so five concurrent `ensure`
  * calls make one readiness request and get one answer. `SandboxService.start`
  * would already collapse them onto its own per-bot lock, but that is a reason
  * not to depend on it: the lease acquired before each call is this layer's,
@@ -35,13 +35,13 @@ import type { StructuredLogger } from '../logging/structured-logger.js';
  * A non-terminal `AgentTurn` already blocks the idle sweep on its own
  * (`sandbox-idle.service.ts` reads the row), so a turn is protected without
  * any lease at all. The explicit lease is still taken and still held to the
- * end of the turn because §17's ordering is what closes the ensure-ready race
+ * end of the turn because the ordering is what closes the ensure-ready race
  * — protection must exist BEFORE the runtime call can race an idle-stop claim
  * — and because the idle sweep ranks an explicit lease above every inference
  * below it. Inference is right until the day a status is added to
  * `TERMINAL_TURN_STATUSES` and a turn silently stops counting as work.
  *
- * `dispose()` is the release, and it runs on completion, failure and
+ * `dispose` is the release, and it runs on completion, failure and
  * cancellation alike. A lease nobody released is what pins a container until
  * its bound expires.
  *
@@ -72,15 +72,15 @@ export interface TurnComputer {
    * the machine open for as long as they took: the lease is an explicit
    * promise about wall-clock time and outranks every inference the idle sweep
    * makes, so a bot parked on one `shell` prompt pinned 2 GiB indefinitely —
-   * and under D-046 it pinned it on behalf of every bot attached to the same
+   * and it pinned it on behalf of every bot attached to the same
    * computer.
    *
-   * NOT `dispose()`: the turn is not over, and it will need a desktop again
+   * NOT `dispose`: the turn is not over, and it will need a desktop again
    * the moment the answer arrives. So the lease goes back and the memoised
-   * status is forgotten, which is the part that matters — `ensure()` caches
+   * status is forgotten, which is the part that matters — `ensure` caches
    * success, and a turn that resumed against a cached `RUNNING` for a machine
    * the sweep has since stopped would hand its tools a container that is not
-   * there. After this, the next `ensure()` is a fresh readiness request and
+   * there. After this, the next `ensure` is a fresh readiness request and
    * starts the machine again if it has to.
    *
    * Idempotent, and safe on a turn that never asked for a desktop.

@@ -50,7 +50,7 @@ export const TelegramBotTokenSchema = z
   .trim()
   .regex(/^\d{1,20}:[A-Za-z0-9_-]{20,128}$/);
 
-/** Zod still runs a refine after `.url()` fails, and `safeParse` must never throw. */
+/** Zod still runs a refine after `.url` fails, and `safeParse` must never throw. */
 function telegramUrl(value: string): URL | null {
   if (!URL.canParse(value)) return null;
   const url = new URL(value);

@@ -5,7 +5,7 @@ import { incompleteReason, type TranscriptMessage } from './viewTypes';
 /**
  * How one message's parts become rows on screen.
  *
- * ⚠️ The rule this file exists for: **a bubble is something the bot SAID.**
+ * The rule this file exists for: **a bubble is something the bot SAID.**
  * Everything else a turn produces — the thinking between two sentences, the
  * twenty actions it took, a part this build does not know about — is work, and
  * work sits outside the bubble as a quiet row.

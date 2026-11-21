@@ -4,14 +4,14 @@ import { partField, type AnyPart } from '../PartRenderer';
 import { t } from '../../i18n/i18n';
 
 /**
- * Turning the AI SDK's tool parts into rows a person can read.
+ * Turns persisted tool parts into readable rows for the transcript.
  *
  * The wire shape and the readable shape disagree about one thing, and it is
  * the whole reason this module exists: **one action is several parts.** A
  * single `browser_navigate` produces a `tool-call`, possibly a
  * `tool-approval-request` and its response, and finally a `tool-result`,
  * `tool-error` or `tool-output-denied` — each a separate entry in
- * `Message.parts`, and under M5-BE-09 the last of them can arrive in a
+ * `Message.parts`, and the last of them can arrive in a
  * different agent round from the first.
  *
  * Rendered one at a time, that reads as four rows for one action, three of
@@ -120,7 +120,7 @@ export function errorTextOf(error: unknown): string {
  *
  * A folded row keeps the POSITION of its `tool-call`, so the text the bot
  * wrote before and after a tool stays where it was said. The settling parts
- * are removed from their own positions — under M5-BE-09 a result can arrive
+ * are removed from their own positions — a result can arrive
  * in a later round, so leaving it where it landed would print the answer
  * after a paragraph that was written before the question.
  *
@@ -154,7 +154,7 @@ function rowFor(
  * side, off the same payload, so the prompt and the transcript cannot describe
  * one call two ways.
  *
- * ⚠️ THE WIRE SHAPE IS UNTOUCHED, and deliberately: the part IS what the model
+ * THE WIRE SHAPE IS UNTOUCHED, and deliberately: the part IS what the model
  * produced, and rewriting it would put a call in the history the SDK never
  * made. This is a view translation, which is what this module is for.
  *
@@ -340,7 +340,7 @@ export function summarizeInput(input: unknown, max = 120): string {
  *
  * First line only, because a `browser_read` of a real page is the whole
  * accessibility tree and a `shell` result is a transcript. §6/M5 caps what
- * reaches the MODEL at 100 KB (M5-BE-12); nothing caps what reaches the
+ * reaches the MODEL at 100 KB; nothing caps what reaches the
  * transcript, so the row has to.
  */
 export function summarizeOutput(output: unknown, max = 120): string {

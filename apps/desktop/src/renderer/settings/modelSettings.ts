@@ -2,7 +2,7 @@ import { t } from '../i18n/i18n';
 /**
  * What the Models pane can honestly say about a model (CC-14, revised V1-06).
  *
- * ⚠️ `PROVIDER_ENV_KEYS` AND `providerEnvKey` ARE GONE. They named the
+ * `PROVIDER_ENV_KEYS` AND `providerEnvKey` ARE GONE. They named the
  * environment variable configuring each provider, which was true while
  * credentials lived in the orchestrator's environment. D-083 moved them into
  * per-user rows and removed the environment fallback, so those names now

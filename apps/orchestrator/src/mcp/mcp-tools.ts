@@ -35,7 +35,7 @@ export class McpProtocolError extends Error {
 export type McpToolDescriptor = {
   /** The server's own name, exactly as it will be called. */
   readonly name: string;
-  /** Empty when the server sent none; §3's column is not nullable. */
+  /** Empty when the server sent none; the column is not nullable. */
   readonly description: string;
   /** The JSON Schema the model will be given, verbatim. */
   readonly inputSchema: Record<string, Json>;

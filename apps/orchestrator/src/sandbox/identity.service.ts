@@ -7,7 +7,7 @@ import type { Prisma } from '@prisma/client';
  * Named shared identities, and which bots may use one.
  *
  * D-056 gave every bot its own Chrome profile, which is the right default and
- * gives up the one thing WORKSPACE §20's shared profile was good at: a session
+ * gives up the one thing WORKSPACE the shared profile was good at: a session
  * somebody has already signed into. An identity is that session back, named —
  * `company-google` is a profile directory like a bot's own, and a bot granted
  * it opens its seat with its own `--user-data-dir` for that named identity.

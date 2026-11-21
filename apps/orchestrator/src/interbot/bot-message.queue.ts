@@ -17,7 +17,7 @@ import { queueRedisUrl, readWorkerEnabled } from '../common/queue-config.js';
  * lifetime, and it is what lets M7-BE-05 drop a hop whose bot is gone without
  * unwinding anything.
  *
- * ── THE PORT IS THE SAME SHAPE `SkillCompileQueue` USES, FOR THE SAME REASON ─
+ * THE PORT IS THE SAME SHAPE `SkillCompileQueue` USES, FOR THE SAME REASON ─
  *
  * The `send_message` tool needs to say "deliver this", and nothing more.
  * Injecting a `Queue` into the tool would put bullmq's types on the agent's
@@ -93,7 +93,7 @@ export const DELIVERY_ATTEMPTS = 3;
 /**
  * The job name, and so the Redis key prefix and the worker's contract.
  *
- * §6/M7 does not name it — unlike §6/M3's `skill.compile`, which is written
+ * §6/M7 does not name it — unlike the `skill.compile`, which is written
  * down. It is named for the thing it delivers rather than for the tool that
  * asks, because M8's routines will enqueue against the same receiving path
  * and "the message send job" would then be a lie about half its callers.

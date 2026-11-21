@@ -9,10 +9,9 @@ import {
 import { parseKeyring, type Keyring } from './keyring.js';
 
 /**
- * The only thing in the orchestrator that can read a provider credential
- * (V1-03, D-083 / D-086).
+ * The only thing in the orchestrator that can read a provider credential.
  *
- * ⚠️ THE CAPABILITY LIVES HERE AND NOWHERE ELSE. Inference code does not
+ * THE CAPABILITY LIVES HERE AND NOWHERE ELSE. Inference code does not
  * decrypt a database column and does not read an environment secret; it asks
  * this service, scoped to an owner. That is what makes the R7 audit surface
  * one file rather than every call site that happens to need a key — and it is

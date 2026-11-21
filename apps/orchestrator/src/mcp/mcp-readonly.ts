@@ -50,7 +50,7 @@ export function isReadOnlyTool(tool: McpToolDescriptor): boolean {
   // name does not say, and a heuristic that overrules it is a heuristic
   // deciding a tool writes nothing when its author said otherwise. (The
   // difference between absent and `false` is why `McpToolDescriptor` carries
-  // `boolean | undefined` rather than a defaulted boolean — .)
+  // `boolean | undefined` rather than a defaulted boolean —.)
   if (tool.readOnlyHint !== undefined) return tool.readOnlyHint;
 
   const name = tool.name.toLowerCase();

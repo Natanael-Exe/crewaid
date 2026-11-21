@@ -12,8 +12,8 @@ import { useT } from '../../i18n/i18n';
  * possible the moment it is: change it, drop it, or push it now.
  *
  * "Send now" is a real choice rather than a shortcut for waiting. The server
- * accepts a message mid-turn and answers it when the current one settles
- * (M5-BE-16), so this is how an operator says "this one goes in whatever
+ * accepts a message mid-turn and answers it when the current one settles,
+ * so this is how an operator says "this one goes in whatever
  * happens next" — while leaving the rest of the queue where it is.
  *
  * Reordering is native HTML5 drag and drop: it is what a list of rows in an

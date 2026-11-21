@@ -2,12 +2,12 @@
  * Preload bridge — the ONLY channel between the sandboxed renderer and the
  * main process. The renderer gets `window.crewaid`; it gets nothing else.
  *
- * Kept deliberately tiny: the CC-07 token store, and V1-11's sign-in. M1-FE-06's
+ * Kept deliberately tiny: the CC-07 token store, and the sign-in. M1-FE-06's
  * WS client does NOT need IPC (the renderer speaks WSS to the orchestrator
  * directly), so this surface should stay small. Add capabilities here only
  * when the renderer genuinely cannot do them itself.
  *
- * ⚠️ ONE NAMESPACE, ON PURPOSE. Everything hangs off `window.crewaid`, and every
+ * ONE NAMESPACE, ON PURPOSE. Everything hangs off `window.crewaid`, and every
  * invoke channel is registered in the main process through `guardedIpc`.
  * `@better-auth/electron`'s own preload helper exposes seven bare globals —
  * `window.requestAuth`, `window.signOut`, `window.getUser` — over handlers

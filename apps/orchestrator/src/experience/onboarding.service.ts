@@ -120,7 +120,7 @@ export class OnboardingService {
   }
 
   /**
-   * D-232: Crewaid says hello in its own thread, as its own messages with no
+   * Crewaid says hello in its own thread, as its own messages with no
    * run: the app wrote them and no model did. Only an open welcome on an empty
    * thread is greeted, inside bootstrap's lock on the user, so two windows
    * opening at once greet once.
@@ -139,9 +139,9 @@ export class OnboardingService {
   }
 
   /**
-   * D-232: a reply the person tapped, stored in their words with Crewaid's
+   * A reply the person tapped, stored in their words with Crewaid's
    * fixed answer. "I have a task" closes the welcome, so only the update that
-   * closes it answers (D-231). The tour keeps it open and is answered once:
+   * closes it answers. The tour keeps it open and is answered once:
    * the lock on the user serialises two clicks, and the second finds the guide.
    */
   private async answer(userId: string, reply: WelcomeReply) {
@@ -190,7 +190,7 @@ export class OnboardingService {
 
   /**
    * Writes lines into the main thread in order, through the one validating
-   * mapper (D-165). The person is on this thread when they arrive, so the
+   * mapper. The person is on this thread when they arrive, so the
    * read mark moves past them and no unread badge appears.
    */
   private async say(

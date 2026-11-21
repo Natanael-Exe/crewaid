@@ -58,7 +58,7 @@ import { CDP_PAYLOAD_LIMITS, type CapturedCdpEvent } from './cdp-events.js';
 /**
  * The two row types this module writes.
  *
- * `navigate` is the trace's own word for a committed document — §3's example
+ * `navigate` is the trace's own word for a committed document — the example
  * vocabulary names it — and `load` is its completion, distinguished from the
  * other layer's rows by the CDP layer it is written under.
  */

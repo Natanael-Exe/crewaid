@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { readIdleStopMs } from './sandbox.config.js';
 
 /**
- * The manual-takeover half of §8's activity clock.
+ * The manual-takeover half of the activity clock.
  *
  * D-039 §8 counts the operator driving the desktop as work, and it is the only
  * kind of work with no durable record of its own: a turn leaves an `AgentTurn`
@@ -110,7 +110,7 @@ export class SandboxActivityService {
     // row reads STARTING, and bumping the clock underneath it would say the
     // sandbox was busy at the moment it was being shut down.
     //
-    // D-046: the clock belongs to the MACHINE, so one bot's input keeps the
+    // The clock belongs to the MACHINE, so one bot's input keeps the
     // machine alive for every bot attached to it. That is the behaviour idle
     // stop needs — a machine is idle only when none of its tenants is working
     // — and it is why this matches through the relation rather than on a key.

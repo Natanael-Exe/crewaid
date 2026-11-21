@@ -13,7 +13,7 @@ import { auth } from './better-auth.js';
  * failure mode of falling behind it is a 404 on a callback URL that an
  * identity provider has already redirected a person to.
  *
- * It does NOT call `next()`. The handler writes the response itself, and
+ * It does NOT call `next`. The handler writes the response itself, and
  * Nest has no controller on these paths — calling through would 404 a request
  * that was already answered.
  *
@@ -21,7 +21,7 @@ import { auth } from './better-auth.js';
  *
  * Better Auth's own NestJS guidance says to boot with `bodyParser: false`,
  * because the classic Express recipe mounts the handler ahead of
- * `express.json()` and a parsed body leaves the raw stream drained. That is a
+ * `express.json` and a parsed body leaves the raw stream drained. That is a
  * real failure on older releases and it is why the community Nest package
  * exists. It does not apply here: `better-call@1.4.0` — the HTTP layer Better
  * Auth builds on — checks whether the stream is still readable and falls back

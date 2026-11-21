@@ -16,7 +16,7 @@ export function sandboxNameFor(computerId: string): string {
   return `${COMPUTER_NAME_PREFIX}${computerId}`;
 }
 
-/** D-237: what a computer's snapshot carries, and the backup a restore discards. */
+/** What a computer's snapshot carries, and the backup a restore discards. */
 export const SNAPSHOT_ROLE = 'snapshot';
 export const RESTORE_DISCARD_LABEL = 'crewaid-restore-discard';
 

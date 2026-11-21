@@ -14,7 +14,7 @@ import {
  *
  * adds the second grant this module speaks, `refresh_token`: the same
  * exchange against the same endpoint, with a different body and no browser in
- * the loop. ⚠️ It does NOT re-discover anything on the way — the endpoint, the
+ * the loop. It does NOT re-discover anything on the way — the endpoint, the
  * client id and the resource arrive from the credential's own `authMetadata`,
  * because the servers that need refreshing are usually the private
  * ones that will not answer an unauthenticated question.
@@ -84,7 +84,7 @@ import {
  * is where a partial success would appear.
  */
 
-/** How long one round trip to a third party may take (§7.4's nearest budget). */
+/** How long one round trip to a third party may take (the nearest budget). */
 const REQUEST_TIMEOUT_MS = 10_000;
 
 /**
@@ -129,7 +129,7 @@ export function oauthCallbackUrl(): string {
 }
 
 export type McpOAuthDeps = {
-  /** Test seam; production uses the guarded fetch (D-085, D-099). */
+  /** Test seam; production uses the guarded fetch. */
   readonly fetch?: typeof fetch;
   /** Test seam for address resolution; used only when `fetch` is not given. */
   readonly resolve?: AddressResolver;
@@ -170,7 +170,7 @@ export type McpOAuthEndpoints = {
   readonly scopes: readonly string[];
 };
 
-// ── PKCE and state ─────────────────────────────────────────────────────────
+// PKCE and state
 
 /** 32 bytes of base64url entropy — RFC 7636's minimum is 43 characters. */
 export function createCodeVerifier(): string {
@@ -193,7 +193,7 @@ export function createOAuthState(): string {
   return randomBytes(32).toString('base64url');
 }
 
-// ── Discovery ──────────────────────────────────────────────────────────────
+// Discovery
 
 export type McpOAuthDiscovery = McpOAuthEndpoints & {
   /** The resource metadata document's own view of the resource. */
@@ -225,7 +225,7 @@ export async function discoverAuthorizationServer(
   }
 
   // Typed `unknown` before the narrowing, not after: `Array.isArray` widens to
-  // `any[]`, and an `any` that reaches `admit()` below would be a value from a
+  // `any[]`, and an `any` that reaches `admit` below would be a value from a
   // third party flowing into a URL without a check anybody wrote.
   const servers: unknown = metadata['authorization_servers'];
   if (!Array.isArray(servers) || servers.length === 0) {
@@ -263,7 +263,7 @@ export async function discoverAuthorizationServer(
 
 /**
  * The same result as `discoverAuthorizationServer`, for a server that does not
- * say where its authorization server is (D-118).
+ * say where its authorization server is.
  *
  * Google's Workspace MCP servers answer `initialize` and `tools/list` without
  * a credential and serve no RFC 9728 metadata — the well-known path 404s and
@@ -497,7 +497,7 @@ function readEndpoints(
   };
 }
 
-// ── Registration ───────────────────────────────────────────────────────────
+// Registration
 
 /**
  * RFC 7591 dynamic client registration, public client, PKCE only.
@@ -571,7 +571,7 @@ export async function registerOAuthClient(
   }
 
   // A secret in the response means a confidential client, which would need a
-  // second encrypted column and a client_secret on every refresh (M6-BE-05).
+  // second encrypted column and a client_secret on every refresh.
   // Refused by name rather than dropped: silently ignoring it fails later, at
   // the token endpoint, with a message nobody can act on.
   const method = document['token_endpoint_auth_method'];
@@ -591,10 +591,10 @@ export async function registerOAuthClient(
   return { clientId };
 }
 
-// ── The authorize URL ──────────────────────────────────────────────────────
+// The authorize URL
 
 /**
- * The URL Electron opens in the system browser (§6/M6).
+ * The URL Electron opens in the system browser.
  *
  * `resource` is RFC 8707's resource indicator — the MCP server URL — and the
  * spec requires it on both this request and the token request so that a token
@@ -611,7 +611,7 @@ export function buildAuthorizeUrl(
     codeChallenge: string;
     resource: string;
     /**
-     * Parameters an authorization server needs beyond the spec's (D-118).
+     * Parameters an authorization server needs beyond the spec's.
      * Google issues no refresh token without `access_type=offline`, and only
      * re-issues one after consent with `prompt=consent` — without them a
      * connection would quietly die an hour after it was made.
@@ -637,7 +637,7 @@ export function buildAuthorizeUrl(
   return url;
 }
 
-// ── The exchange ───────────────────────────────────────────────────────────
+// The exchange
 
 /** A stored credential, as the token endpoint described it. */
 export type McpOAuthTokens = {
@@ -655,7 +655,7 @@ export type McpOAuthExchangeRequest = {
   readonly codeVerifier: string;
   readonly resource: string;
   /**
-   * Present only for a CONFIDENTIAL client the operator registered (D-118).
+   * Present only for a CONFIDENTIAL client the operator registered.
    * A dynamically registered client is public and has none.
    */
   readonly clientSecret?: string | undefined;
@@ -670,7 +670,7 @@ export type McpOAuthExchangeRequest = {
  * it is decided where the HTML is written. There is deliberately no status on
  * the refusal: the route answers 200 whatever happened, so that no proxy
  * between the authorization server and the person's browser can replace the
- * page with an error body of its own (D-101), and `X-Crewaid-Mcp-Connect` is the
+ * page with an error body of its own, and `X-Crewaid-Mcp-Connect` is the
  * channel a caller reads the verdict from.
  */
 export type McpOAuthCallbackOutcome =
@@ -705,7 +705,7 @@ export type McpOAuthCallbackRefusal =
  *
  * The response is read for exactly four fields and the raw body is never
  * quoted into an error — this is the one response in the flow that carries a
- * live access token, and §7.3's "never logged" starts with never building the
+ * live access token, and the "never logged" starts with never building the
  * string that would be logged.
  */
 export async function exchangeAuthorizationCode(
@@ -757,7 +757,7 @@ export async function exchangeAuthorizationCode(
   };
 }
 
-// ── The refresh grant (M6-BE-05) ───────────────────────────────────────────
+// The refresh grant
 
 export type McpOAuthRefreshRequest = {
   /** Where the credential's own `authMetadata` says the grant lives. */
@@ -765,14 +765,14 @@ export type McpOAuthRefreshRequest = {
   readonly clientId: string;
   readonly resource: string;
   readonly refreshToken: string;
-  /** As on the exchange: only for a client the operator registered (D-118). */
+  /** As on the exchange: only for a client the operator registered. */
   readonly clientSecret?: string | undefined;
 };
 
 /**
  * A refreshed grant, as the token endpoint described it.
  *
- * ⚠️ THREE OF THESE FIELDS ARE `undefined` FOR A REASON THAT IS NOT "EMPTY",
+ * THREE OF THESE FIELDS ARE `undefined` FOR A REASON THAT IS NOT "EMPTY",
  * and folding any of them into an empty value loses a fact RFC 6749 states:
  *
  *  - `refreshToken` absent means the server did NOT rotate — the stored one is
@@ -800,7 +800,7 @@ export type McpOAuthRefreshedTokens = {
  * question the expired token cannot authorize.
  *
  * The response body is never quoted into an error. This is the second of the
- * two responses in this module that carry a live token, and §7.3's "never
+ * two responses in this module that carry a live token, and the "never
  * logged" starts with never building the string that would be logged.
  */
 export async function refreshAccessToken(
@@ -847,7 +847,7 @@ export async function refreshAccessToken(
   };
 }
 
-// ── Shared plumbing ────────────────────────────────────────────────────────
+// Shared plumbing
 
 /** The shape half of D-085, with the field named in the refusal. */
 function admit(raw: string, what: string): URL {

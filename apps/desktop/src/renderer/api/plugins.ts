@@ -19,7 +19,7 @@ import type { ApiClient } from './apiClient';
 /**
  * REST MCP surface, and the per-bot half of it.
  *
- * ⚠️ NOTHING HERE RETURNS A CREDENTIAL, AND NOTHING HERE CAN. `connect`
+ * NOTHING HERE RETURNS A CREDENTIAL, AND NOTHING HERE CAN. `connect`
  * answers either an authorize URL — which carries a `state` and a PKCE
  * challenge, both worthless without the verifier that stays in the database
  * — or `{connected: true}`. `McpServerSummarySchema` has no field

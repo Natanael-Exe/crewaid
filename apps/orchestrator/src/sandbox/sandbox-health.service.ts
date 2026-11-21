@@ -36,7 +36,7 @@ import { SANDBOX_PROVIDER, type SandboxHealth, type SandboxProvider } from './sa
  * deliberately and a poll second-guessing them would resurrect a sandbox
  * nobody asked for.
  * 2. Every write is a compare-and-swap pinned to BOTH the state and the
- * exact `lastStartedAt` that were read. `claim()` changes both when it
+ * exact `lastStartedAt` that were read. `claim` changes both when it
  * takes the lock, so a lifecycle operation that started after the probe
  * began reduces this write to zero rows. The lease timestamp is already
  * the fencing token for start and stop; the poll simply joins the scheme
@@ -62,7 +62,7 @@ export class SandboxHealthService implements OnApplicationBootstrap, OnModuleDes
   /**
    * M2-QA-04 asserts UNHEALTHY "within one poll interval", so the interval is
    * the test's tolerance as much as the detection latency. Ten seconds keeps a
-   * killed desktop visible fast enough to act on while leaving §7.4's <2% idle
+   * killed desktop visible fast enough to act on while leaving the <2% idle
    * CPU budget untouched — six sandboxes is six HTTP probes per ten seconds.
    */
   static readonly DEFAULT_INTERVAL_MS = 10_000;
@@ -109,7 +109,7 @@ export class SandboxHealthService implements OnApplicationBootstrap, OnModuleDes
         // Spread: Prisma's `in` takes a mutable array, and the constant is
         // readonly so nothing can quietly add STARTING to it at a call site.
         where: { state: { in: [...SETTLED_LIVE_STATES] }, pausePending: false },
-        // D-046: the frame this sweep emits is addressed to a bot, so the
+        // The frame this sweep emits is addressed to a bot, so the
         // tenants come back with the machine rather than in a second query a
         // concurrent attach could change underneath.
         include: { bots: { select: { id: true } } },
@@ -134,7 +134,7 @@ export class SandboxHealthService implements OnApplicationBootstrap, OnModuleDes
   }
 
   /**
-   * Read-only snapshot for `GET /health` (CC-02).
+   * Read-only snapshot for `GET /health`.
    *
    * The sweep WRITES state; this does not. It answers the same question the
    * poll asks — "is this sandbox serving right now" — without touching the
@@ -147,7 +147,7 @@ export class SandboxHealthService implements OnApplicationBootstrap, OnModuleDes
   async snapshot(
     userId: string,
   ): Promise<{ botId: string; state: SandboxState; healthy: boolean }[]> {
-    // D-046: one machine can carry several bots, and the caller's report is
+    // One machine can carry several bots, and the caller's report is
     // read per bot. Fanning the machine's answer out across its tenants keeps
     // the same probe result appearing more than once — true, and less
     // misleading than reporting a machine under one arbitrary tenant.
@@ -240,7 +240,7 @@ export class SandboxHealthService implements OnApplicationBootstrap, OnModuleDes
  */
 const SETTLED_LIVE_STATES: readonly SandboxState[] = ['RUNNING', 'UNHEALTHY'];
 
-/** `0` disables polling — the tests drive `sweep()` directly. */
+/** `0` disables polling — the tests drive `sweep` directly. */
 function readInterval(raw: string | undefined): number {
   if (raw === undefined || raw.trim() === '') return SandboxHealthService.DEFAULT_INTERVAL_MS;
   const parsed = Number(raw);
@@ -250,7 +250,7 @@ function readInterval(raw: string | undefined): number {
   return parsed;
 }
 
-/** A machine plus the bots attached to it (D-046). */
+/** A machine plus the bots attached to it. */
 type SandboxWithTenants = Sandbox & { readonly bots: readonly { readonly id: string }[] };
 
 function messageOf(error: unknown): string {

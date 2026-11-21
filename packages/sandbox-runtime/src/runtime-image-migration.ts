@@ -174,7 +174,7 @@ export class RuntimeImageMigration {
   }
 
   /**
-   * D-237: replace the computer's machine with a running copy of a snapshot,
+   * Replace the computer's machine with a running copy of a snapshot,
    * through the same journal a migration uses, then delete the old machine.
    * `prepare` runs on the copy after its bridge answers and before it becomes
    * the computer.
@@ -241,7 +241,7 @@ export class RuntimeImageMigration {
    * Stage a replacement, verify it, then swap it in: the source becomes a
    * paused backup and the stage takes the computer's name. Until the first
    * rename the source is still the computer; after it, the ready stage and
-   * the backup are the journal `find()` recovers from.
+   * the backup are the journal `find` recovers from.
    */
   async #replace(
     source: RuntimeMachine,
@@ -338,7 +338,7 @@ export class RuntimeImageMigration {
       [UPGRADE_COMPUTER_LABEL]: computerId,
     })) {
       const since = Number(backup.labels[ORPHANED_AT_LABEL]);
-      // A restore's backup is discarded at once (D-237); an upgrade's waits out retention.
+      // A restore's backup is discarded at once; an upgrade's waits out retention.
       const discard = backup.labels[RESTORE_DISCARD_LABEL] === 'true';
       if (
         !Number.isFinite(since) ||

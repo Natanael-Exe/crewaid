@@ -287,7 +287,7 @@ function useElapsed(since: number | null): number {
 /**
  * Tells the call what the bot's thread shows: what the bot is visibly doing,
  * and approvals waiting on the person. When a request is answered is the
- * server's to say (D-227), so nothing here reads a run's ending. Rendered
+ * server's to say, so nothing here reads a run's ending. Rendered
  * inside the thread, where these are known; renders nothing.
  */
 export function CallBridge({

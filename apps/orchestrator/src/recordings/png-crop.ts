@@ -62,7 +62,7 @@ export interface CropRect {
  * at its center, which is why the origin is recorded on the event: nothing
  * downstream should have to re-derive this arithmetic to locate the click.
  *
- * The coordinates are not assumed to be on-screen. §4.3's validator
+ * The coordinates are not assumed to be on-screen. The validator
  * deliberately does not clamp them — an out-of-range pointer is legal RFB that
  * x11vnc handles — so this is the layer that has the geometry to decide.
  */

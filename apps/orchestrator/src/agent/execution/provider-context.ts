@@ -84,7 +84,7 @@ function userContent(
   ];
 }
 
-/** D-221: what the model is told about a message that was spoken. */
+/** What the model is told about a message that was spoken. */
 export const SPOKEN_NOTE =
   '(The user said this in a voice message. Your reply will be read aloud to them, so answer ' +
   'conversationally and keep code, tables and links to what they asked for.)';
@@ -108,7 +108,7 @@ function fileContent(attachment: ModelAttachment): ContentPart {
 }
 
 /**
- * D-231: the provider's copy starts after any assistant messages that open the
+ * The provider's copy starts after any assistant messages that open the
  * thread. A provider may refuse a conversation that opens on the assistant
  * (Anthropic answers 400), and a thread can open on a question the app stored
  * for its bot. The transcript keeps it; only this copy leaves it out. One
@@ -127,7 +127,7 @@ export function fromFirstUserTurn(messages: readonly ModelMessage[]): ModelMessa
  * `readNotices` hands back the run's pending one-shot notices (a budget
  * wrap-up, a stall warning) to append to THIS call's provider copy: a
  * `user`-role row at the very end, so everything above it — the cached
- * prefix, the memory block, the conversation — stays byte-identical (D-094),
+ * prefix, the memory block, the conversation — stays byte-identical,
  * and the canonical transcript never records a sentence nobody said.
  */
 export function providerContext(

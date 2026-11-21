@@ -24,7 +24,7 @@ const SEAT_REFUSAL_CODES: ReadonlySet<string> = new Set(SeatControlRefusalCodeSc
 /**
  * The single place a WebSocket frame or a REST response becomes renderer state.
  *
- * ⚠️ This exhaustive switch is the point of the file. Ad-hoc
+ * This exhaustive switch is the point of the file. Ad-hoc
  * `if (frame.type === 'message.created')` handling scattered through components
  * is how a streaming UI rots: the same event gets three interpretations, and a
  * new event type added in M2–M8 silently does nothing. `ServerFrame` is a
@@ -141,7 +141,7 @@ export type RecordingView =
  * What a FAILED recording says when nothing more specific is known.
  *
  * Only the WebSocket frame lands here. `recording.state` carries `{recordingId,
- * state}` and nothing else by D-042's deliberate choice, so the frame alone
+ * state}` and nothing else by the deliberate choice, so the frame alone
  * cannot say WHY — the read that follows it can, and `failedFrom` below uses
  * it. Keeping this as the fallback means the card is never empty in the gap
  * between the frame and that read.
@@ -151,10 +151,10 @@ const recordingFailedMessage = (): string => t('recording.failed');
 /**
  * The failed view for a recording that has been READ.
  *
- * §6/M3's acceptance criterion is "a `FAILED` recording with a **readable
+ * The acceptance criterion is "a `FAILED` recording with a **readable
  * error**", and `Recording.error` is where D-044 put it — free text, already
- * normalized server-side so no vendor sentence reaches a user-visible surface
- * (D-006). Dropping it in favour of the constant would leave the operator with
+ * normalized server-side so no vendor sentence reaches a user-visible surface.
+ * Dropping it in favour of the constant would leave the operator with
  * the single word FAILED and no recourse but to re-record a task that will
  * fail the same way, which is the exact situation that decision exists to end.
  */
@@ -702,8 +702,8 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
  * Every phase keeps its shape and gains the reason: a live capture goes on
  * counting, a compile goes on compiling, a ready card goes on offering its
  * draft — the press failed, it did not move the recording anywhere. A FAILED
- * view is the one that ignores it: its message is the compile's own reason
- * (D-044), which is more useful than this one, and the discard button stays on
+ * view is the one that ignores it: its message is the compile's own reason,
+ * which is more useful than this one, and the discard button stays on
  * offer either way.
  */
 function withDiscardFailure(state: ChatState, botId: string, reason: string): ChatState {
@@ -1172,7 +1172,7 @@ function applyFrame(state: ChatState, frame: ServerFrame): ChatState {
       const merged = mergeSandbox(state, botId, { state: sandboxState, widthPx, heightPx });
       // A computer that is up ends any outstanding request for it, including
       // one this window never made — a skill or a recording wakes the same
-      // desktop (D-039 §16), and a stale "the host is full" left over from an
+      // desktop, and a stale "the host is full" left over from an
       // earlier refusal must not reappear the next time it stops.
       // Only RUNNING clears it. Any other state would let a STOPPED frame
       // still in flight from the moment before the click answer the click.
@@ -1187,7 +1187,7 @@ function applyFrame(state: ChatState, frame: ServerFrame): ChatState {
 
     case 'recording.event': {
       // One frame per ~100 ms carries the trace's cumulative length — the
-      // count §6/M3's acceptance means by "a live event counter".
+      // count the acceptance means by "a live event counter".
       const { recordingId, counts, type } = frame.payload;
       const botId = botIdForRecording(state, frame.botId, recordingId);
       if (botId === undefined) return state;

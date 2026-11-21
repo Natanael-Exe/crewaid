@@ -2,7 +2,7 @@
  * What a provider reports about its own runtimes and workspaces.
  *
  * These are the answers the orchestrator's health poll, reconciliation and
- * retention sweeps act on (D-039 §4), so they are provider-neutral: a Docker
+ * retention sweeps act on, so they are provider-neutral: a Docker
  * provider fills them from the daemon, a hosted one from its API. The field
  * names still say `containerId` and `volumeName` because Docker was the first
  * runtime; for another provider they are its runtime id and its durable
@@ -16,7 +16,7 @@
  */
 export type SandboxHealth = { readonly ok: true } | { readonly ok: false; readonly reason: string };
 
-/** A provider-owned runtime as observed directly from the provider (D-039 §4). */
+/** A provider-owned runtime as observed directly from the provider. */
 export interface ManagedSandboxObservation {
   readonly containerId: string;
   readonly sessionId: string | null;

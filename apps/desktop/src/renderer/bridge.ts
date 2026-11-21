@@ -29,7 +29,7 @@ const IPC_WRITE_ERROR: TokenStoreWriteResult = { status: 'error', code: 'IPC_ERR
 
 /**
  * CC-07 accessors. Renderer never touches fs or safeStorage. The compatibility
- * `get()` returns credentials only for a configured store; first-run,
+ * `get` returns credentials only for a configured store; first-run,
  * unavailable, corrupt, and IPC-error states become empty credentials so the
  * WS/model clients fail closed with their normalized configuration state.
  */

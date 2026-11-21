@@ -90,7 +90,7 @@ function parseOffset(offset: string): bigint {
 }
 
 /**
- * One run's delivery log over `RunEvent` (D-159 §3.7, D-165). Reads are owned
+ * One run's delivery log over `RunEvent`. Reads are owned
  * by the bot's principal; writes additionally need the producer's lease, and
  * are fenced by its epoch rather than its liveness, because the terminal event
  * is appended after the closing transaction released the lease. A taken-over
@@ -259,7 +259,7 @@ const WAKEUP_CHANNEL = 'crewaid:run-event-wakeups';
 
 /**
  * Carries wake-ups between workers over Redis pub/sub: a thread id and an
- * offset, never an event (D-159 §3.7). Without Redis a deployment is one
+ * offset, never an event. Without Redis a deployment is one
  * worker and local wake-ups are all there is.
  */
 export async function bridgeRunEventWakeups(

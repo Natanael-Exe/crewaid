@@ -216,7 +216,7 @@ textarea[data-composer-slot='text'] {
  * calls looked, on the face of the thing representing the bot, exactly like a
  * bot doing nothing at all.
  *
- * ── What moves, and why each piece is where it is ───────────────────────────
+ * What moves, and why each piece is where it is:
  *
  * The animation is built from NESTED groups, each owning exactly one
  * transform, because two animations on one element fight over `transform` and

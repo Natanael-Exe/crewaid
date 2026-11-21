@@ -395,7 +395,7 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
 
   const stop = useCallback(() => {
     // The frame is the authority: closing a stream is a disconnect, not
-    // a cancel. `stop()` then ends this window's read of a run that is ending.
+    // a cancel. `stop` then ends this window's read of a run that is ending.
     onCancel();
     stopChat();
   }, [onCancel, stopChat]);

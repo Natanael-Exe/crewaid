@@ -21,7 +21,7 @@ import type { PrismaService } from '../prisma/prisma.service.js';
 /** How many of a scope's most recent spoken messages a search reads. */
 export const TRANSCRIPT_SEARCH_WINDOW = 2000;
 
-/** D-077's excerpt: at most two fragments, matches wrapped in `<<` and `>>`. */
+/** The excerpt: at most two fragments, matches wrapped in `<<` and `>>`. */
 export const TRANSCRIPT_HEADLINE = 'MaxFragments=2,MaxWords=30,MinWords=8,StartSel=<<,StopSel=>>';
 
 export interface TranscriptSearchHit {

@@ -4,16 +4,11 @@ import { StreamingMarkdown } from './markdown/StreamingMarkdown';
 import type { MentionBot } from './composer/botMention';
 
 /**
- * Part-renderer registry — groundwork, seeded.
+ * Part-renderer registry.
  *
- * ⚠️ LOAD-BEARING (PRD M1 acceptance): adding a part type must NOT
- * touch the transcript component. The transcript renders
- * `parts.map(part => renderPart(part))` and knows nothing else. New types
- * register here, from their own feature folders.
- *
- * AI SDK message parts are persisted VERBATIM (PRD M1) — `part.type` is the
- * registry key. Unknown types render the fallback renderer, never throw, never
- * blank the transcript.
+ * Adding a new message part type should register a renderer here from its own
+ * feature folder rather than editing the transcript component. Unknown types
+ * render the fallback renderer without throwing or blanking the transcript.
  */
 
 /** The part shapes the shell knows about. Grows via registration, not edits. */
@@ -31,9 +26,8 @@ export interface UnknownPart {
 export type AnyPart = TextPart | UnknownPart;
 
 /**
- * Text parts are markdown in the AI SDK contract. The same renderer is used by
- * settled history and the in-flight message, so partial WS deltas take the
- * identical safe rendering path.
+ * Renders markdown text parts for both settled history and in-flight streams
+ * through the same sanitized rendering path.
  */
 function TextPartRenderer({
   part,

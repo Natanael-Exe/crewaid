@@ -207,7 +207,7 @@ export function renderDesktopSignInPage(
  * What it does NOT do is look like a different product. Every colour below is
  * the Crewaid theme's own token converted to sRGB — "renderer/styles/themes/crewaid.css" is the source, and the accent, surfaces, border and radii are the
  * same values the desktop shell paints with. Converted rather than written as
- * oklch() because this page is the entry point to the entire product: if a
+ * oklch because this page is the entry point to the entire product: if a
  * colour function does not parse, the operator gets an unstyled form as their
  * first impression of Crewaid.
  *

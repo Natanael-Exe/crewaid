@@ -32,7 +32,7 @@ export interface ScreenCardProps {
   readonly openScreenStream: OpenScreenStream;
   /** How this bot's outstanding wake is going, if there is one. */
   readonly wake: WakeStatus | undefined;
-  /** The operator explicitly asking for this computer (D-039 §16). */
+  /** The operator explicitly asking for this computer. */
   readonly onWake: (botId: string) => void;
   readonly onReleaseIdentity?: (botId: string) => Promise<BotMutation<void>>;
   /** The teaching flow for this bot, as `chatReducer` assembled it. */
@@ -428,7 +428,7 @@ function ScreenViewer({
   // DECLARED FIRST, and the order is load-bearing: React runs cleanups in
   // declaration order, so this one's release messages go out while the
   // `screen.subscribe` below is still in force. Membership IS the authorisation for
-  // `screen.input` (D-036), so a release sent after the unsubscribe would be
+  // `screen.input`, so a release sent after the unsubscribe would be
   // refused — the stuck key would survive, and the refusal would surface as a
   // connection error for an event the operator never knowingly sent.
   useEffect(() => {
@@ -607,7 +607,7 @@ function ScreenViewer({
 }
 
 /**
- * D-169: while this window holds the seat, renew the lease; when the view
+ * While this window holds the seat, renew the lease; when the view
  * closes, hand the seat back rather than leaving the bot waiting for the
  * lease to run out.
  */

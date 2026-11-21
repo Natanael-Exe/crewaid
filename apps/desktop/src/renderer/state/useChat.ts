@@ -453,7 +453,7 @@ export function useChat(selectedBotId: string | null): ChatController {
         ts: Date.now(),
         payload: { botId },
       };
-      // The partial reply STAYS (PRD ): the run's own terminal event
+      // The partial reply STAYS: the run's own terminal event
       // settles it, and clearing it locally would drop text the server kept.
       sendWsFrame(frame);
     },

@@ -214,7 +214,7 @@ export class WorkToolsService {
     const body: { -readonly [K in keyof UpdateTaskBody]: UpdateTaskBody[K] } = {};
     if (input.status !== undefined) body.status = this.status(input.status);
     // The note on a move to BLOCKED is also the reason the card shows: one
-    // field on the definition instead of two (PRD-WORK §8's budget), and a
+    // field on the definition instead of two (PRD-WORK the budget), and a
     // blocked task's reason is exactly what that note says.
     if (body.status === 'BLOCKED' && input.note !== undefined && input.note.trim() !== '') {
       body.blockedReason = input.note.trim();

@@ -26,7 +26,7 @@ import type { BotMessageJobData } from './bot-message.queue.js';
  *
  * A closed union rather than a boolean, because the three outcomes are three
  * different things to an operator — a chain that hit its ceiling is working
- * as designed, a bot that vanished is M7-BE-05's case, and a bot with no
+ * as designed, a bot that vanished is the case, and a bot with no
  * conversation row is a corrupt database — and M7-BE-02 attaches a different
  * system message to the first of them. An unhandled variant should be a
  * compile error at the point that decides what to say.
@@ -39,7 +39,7 @@ export type DeliveryOutcome =
   | { readonly kind: 'bot-gone'; readonly missing: 'sender' | 'receiver' | 'both' };
 
 /**
- * One hop of §6/M7's bot-to-bot delivery: the worker's whole job.
+ * One hop of the bot-to-bot delivery: the worker's whole job.
  *
  * Every authority question is re-asked here
  *
@@ -54,7 +54,7 @@ export type DeliveryOutcome =
  *
  * Returning an outcome rather than throwing. A hop over the ceiling and a
  * deleted bot are both correct, expected endings for a chain — throwing would
- * make BullMQ record a failure, and M7-QA-05's "no stuck jobs" is a claim
+ * make BullMQ record a failure, and the "no stuck jobs" is a claim
  * about exactly this path. The job machinery failing is a different thing and
  * still throws, which is what the processor's `failed` handler is for.
  */
@@ -133,7 +133,7 @@ export class BotMessageDeliveryService {
       return { kind: 'hop-limit', maxHops };
     }
 
-    // §6/M7's per-pair cap. Checked here as well as at send for the reason
+    // The per-pair cap. Checked here as well as at send for the reason
     // every ceiling is: a queue separates the two, and two messages enqueued
     // while the pair was one under the cap must not both land.
     const { maxRepeatSends } = this.limits;

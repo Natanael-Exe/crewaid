@@ -3329,8 +3329,7 @@ describe('contract invariants', () => {
   });
 
   it('normalizes every provider error onto exactly the ratified vocabulary', () => {
-    // Three providers, three error shapes, one vocabulary. Adding a code here
-    // without telling Nathan breaks his transcript switch.
+    // Three providers, three error shapes, one vocabulary shared with the desktop transcript switch.
     expect([...shared.ModelErrorCodeSchema.options].sort()).toEqual(
       [
         'ALLOWANCE_EXHAUSTED',

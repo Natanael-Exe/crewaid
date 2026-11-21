@@ -121,9 +121,8 @@ export function safeCostEstimate(
  * CC-11 prompt caching); cache creation bills at the write premium. Unknown
  * provider/model pairs resolve to null — a real unknown price, never 0.
  *
- * The `mock-provider` entries are the AI SDK test harness's models: they are
- * priced so the production DI path (no injected resolver) is provably
- * exercised by the focused tests without any network call.
+ * The `mock-provider` entries are test-harness models, priced so tests can
+ * exercise the production DI path without any network calls.
  */
 export type ModelPriceRates = {
   input: number;
@@ -148,13 +147,13 @@ const MODEL_PRICES_PER_MILLION_USD: Record<string, ModelPriceRates> = {
   'openrouter:deepseek/deepseek-v4-flash-vision-exp': { input: 0.22, output: 0.66 },
   'openrouter:google/gemini-3.8-flash': { input: 0.75, output: 3.75 },
   'openrouter:qwen/qwen3.8-flash': { input: 0.15, output: 0.47 },
-  // D-157's included models that the rows above do not already price. Every
+  // The included models that the rows above do not already price. Every
   // included model must have a row: it is the charge when OpenRouter reports
   // no cost for a call, and an included model with no price would be free.
   // From OpenRouter's /api/v1/models on 2026-10-02.
   'openrouter:anthropic/claude-haiku-4.5': { input: 1, output: 5 },
   'openrouter:openai/gpt-5-mini': { input: 0.25, output: 2 },
-  // AI SDK test harness models (production-DI-path tests only).
+  // Test-harness models (production-DI-path tests only).
   'mock-provider:mock-model': { input: 2, output: 6 },
   'mock-provider:mock-model-id': { input: 2, output: 6 },
 };
@@ -171,7 +170,7 @@ export function modelKeyOf(provider: string, model: string): string {
 /**
  * The catalog rates for a `provider:model` key, or `undefined` when the
  * model has no entry — a real unknown price, never a fabricated zero. The
- * ONE lookup shared by the per-call telemetry estimate and CC-12's /usage
+ * ONE lookup shared by the per-call telemetry estimate and the /usage
  * cost report, so the two money numbers can never disagree.
  */
 export function catalogPriceForModel(modelKey: string): ModelPriceRates | undefined {
@@ -179,17 +178,15 @@ export function catalogPriceForModel(modelKey: string): ModelPriceRates | undefi
 }
 
 /**
- * CC-12's cost arithmetic: fresh input at the input rate, cache reads at the
+ * The cost arithmetic: fresh input at the input rate, cache reads at the
  * read rate, cache writes at the write rate, output at the output rate. A
  * rate a row omits falls back to the input rate. Pure and UNROUNDED — the
  * callers decide where money rounds (the /usage wire rounds once per bucket;
  * the telemetry event keeps the raw estimate).
  *
- * Fresh input is the input TOTAL minus BOTH cache subsets. The AI SDK's total
- * already counts the tokens written to the cache (Anthropic's adapter reports
- * `total = noCache + cacheWrite + cacheRead`), so subtracting only the reads
- * billed every write twice — once as fresh input, once at the write premium.
- * It cost nothing while nothing cached; CC-11 is what made it a real number.
+ * Fresh input is the total input minus both cache subsets, because Anthropic's
+ * adapter reports `total = noCache + cacheWrite + cacheRead` — subtracting only
+ * cache reads would double-bill cache writes.
  */
 export function usdForTokenCounters(
   price: ModelPriceRates,

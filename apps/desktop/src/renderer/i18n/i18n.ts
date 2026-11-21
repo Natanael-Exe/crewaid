@@ -6,8 +6,8 @@ import { reportLocale } from '../bridge';
 
 /**
  * The app's language at runtime. One active catalog for the window,
- * read by `t()` anywhere — a component, or a plain `.ts` helper that writes
- * copy — and a re-render wherever `useT()` or `useLocale()` is read when it
+ * read by `t` anywhere — a component, or a plain `.ts` helper that writes
+ * copy — and a re-render wherever `useT` or `useLocale` is read when it
  * changes.
  *
  * Changing the language re-renders in place rather than remounting the app,

@@ -8,7 +8,7 @@ import { SettingsController } from './settings.controller.js';
 /**
  * Provider connections and per-user settings.
  *
- * The service is exported because V1-06's model resolution reads connections
+ * The service is exported because the model resolution reads connections
  * through it rather than querying the tables itself: one place that knows how
  * a row becomes a wire type is also one place to audit for R7.
  */

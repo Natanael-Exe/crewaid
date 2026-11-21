@@ -18,8 +18,7 @@ import { createPrismaClient } from './prisma/prisma-client.factory.js';
  * Orchestrator entrypoint.
  *
  * Global prefix: REST mounts everything under /api/v1. `/health` is registered
- * without the prefix (liveness probes target the bare path) and is guard-exempt
- * (§4.4).
+ * without the prefix (liveness probes target the bare path) and is guard-exempt.
  *
  * WS: WebSocket single endpoint at /ws with ?token= — CrewaidWsAdapter's ws
  * verifyClient hook rejects bad/missing credentials with HTTP 401 during the
@@ -30,7 +29,7 @@ import { createPrismaClient } from './prisma/prisma-client.factory.js';
  * config on the FileInterceptor, and MulterErrorFilter maps limit violations
  * to 413 — never the library-default 400.
  *
- * ⚠️ dist/ is the only supported boot path: `tsx src/main.ts` runs esbuild,
+ * dist/ is the only supported boot path: `tsx src/main.ts` runs esbuild,
  * which emits no design:paramtypes, so Nest DI fails at bootstrap (500 on
  * every route). Build with tsc, run `node dist/main.js`.
  */
@@ -47,7 +46,7 @@ async function bootstrap(): Promise<void> {
   // turn yet.
   await app.get(TaskStartService).recoverPendingStarts();
   // A RECORDING row whose tee died with the last process captures nothing
-  // and still counts as work to §8's idle sweep, so it would pin that bot's
+  // and still counts as work to the idle sweep, so it would pin that bot's
   // container open for this process's whole life.
   await app.get(RecordingsService).recoverInterruptedRecordings();
 
@@ -64,7 +63,7 @@ async function bootstrap(): Promise<void> {
   // Keep sweeping: a quick restart can precede the dead worker's lease expiry.
   await app.get(ChatSendService).startRecovery();
 
-  // §6/M3's `skill.compile` queue and worker are wired by `SkillsModule`, and
+  // The `skill.compile` queue and worker are wired by `SkillsModule`, and
   // BullModule closes both through `enableShutdownHooks` above. Said once here
   // rather than discovered per recording: everything else in the orchestrator
   // works without Redis, and an operator should learn that this feature does
@@ -96,7 +95,7 @@ async function bootstrap(): Promise<void> {
       );
     });
 
-  // D-236: new messages are sealed as they are written. Rows from before that,
+  // New messages are sealed as they are written. Rows from before that,
   // or still under a key since rotated out, are sealed here, so the promise
   // holds for what was already stored without an operator step. Not awaited,
   // like the sweep above: it reads the whole backlog once, and each row is

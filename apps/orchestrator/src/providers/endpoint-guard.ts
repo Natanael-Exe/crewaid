@@ -9,7 +9,7 @@ import { classifyAddress } from './ip-classification.js';
  * then makes requests to. That is a server-side request forgery primitive, and
  * without this the orchestrator is a proxy into whatever network it runs in.
  *
- * ⚠️ CHECKED TWICE, AND THE SECOND CHECK IS THE ONE THAT MATTERS. Admission
+ * CHECKED TWICE, AND THE SECOND CHECK IS THE ONE THAT MATTERS. Admission
  * happens when a connection is saved; the name is resolved AGAIN when a
  * request is made, because a host that passes admission and later resolves to
  * 169.254.169.254 is not an edge case, it is the attack. An admission-time
@@ -150,7 +150,7 @@ export async function admitEndpoint(
 /**
  * A `fetch` that re-checks before every request and refuses redirects.
  *
- * Handed to the provider SDK in place of the global `fetch` (V1-06), which is
+ * Handed to the provider SDK in place of the global `fetch`, which is
  * what makes the request-time half of D-085 unavoidable rather than something
  * a call site can forget.
  *

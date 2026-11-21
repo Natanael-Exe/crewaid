@@ -37,11 +37,11 @@ export class MessagesService {
   ) {}
 
   /**
-   * Persist a USER message (the trigger for M1-BE-06's agent turn).
+   * Persist a USER message (the trigger for the agent turn).
    *
    * Content is optional at the schema — an attachment-only send
    * (empty/absent content with ≥1 claimed attachment) is valid and persists
-   * with content `''`. §3's Message.content is NOT NULL, so empty text is
+   * with content `''`. The Message.content is NOT NULL, so empty text is
    * stored as the empty string, not NULL.
    */
   async createUserMessage(
@@ -59,7 +59,7 @@ export class MessagesService {
         select: { id: true },
       });
       if (conversation === null) {
-        // BotsService.create() makes this impossible in practice; the guard
+        // BotsService.create makes this impossible in practice; the guard
         // exists so a hand-migrated DB fails loudly here, not mid-stream.
         throw new NotFoundException('Conversation not found');
       }
@@ -83,7 +83,7 @@ export class MessagesService {
       return tx.message.create({
         data: {
           conversationId: conversation.id,
-          // D-191 §2: this row IS a model message, so it is written through
+          // This row IS a model message, so it is written through
           // the one validating mapper. The product facts — which routine
           // posted it, which files it claims — stay in their columns.
           ...triggerRowColumns(botId, input.content ?? ''),
@@ -101,14 +101,14 @@ export class MessagesService {
   }
 
   /**
-   * §6/M7's delivered message: what one bot said to another, in the
+   * The delivered message: what one bot said to another, in the
    * RECEIVING bot's conversation.
    *
    * `author: BOT` with the SENDER's `fromBotId`, which is the shape §6/M7
    * names. It is deliberately the same shape a bot's own reply has, because
    * the alternative — a fifth author — would mean every consumer that
    * switches on the column (the reducer, the seed, the renderer registry)
-   * gaining a case, and §3's `MessageAuthor` is contractual (§0 rule 2).
+   * gaining a case, and the `MessageAuthor` is contractual (§0 rule 2).
    * What separates the two is whose id is on the row, and every reader that
    * cares reads that.
    *
@@ -130,7 +130,7 @@ export class MessagesService {
     return this.prisma.message.create({
       data: {
         conversationId,
-        // D-191 §2: BOT-authored with the SENDER's id, and a canonical `user`
+        // BOT-authored with the SENDER's id, and a canonical `user`
         // body beside it, because that is what the receiving bot reads it as.
         ...triggerRowColumns(input.toBotId, input.content, input.fromBotId),
         chainId: input.chainId,
@@ -231,7 +231,7 @@ export class MessagesService {
           select: { storageKey: true },
         });
         await tx.message.deleteMany({ where: target });
-        // D-159 §3.7, §3.10: a deleted message must not come back by replay,
+        // A deleted message must not come back by replay,
         // so the event log of every run that wrote or answered it goes with
         // it, and a clear takes the thread's whole log and its open pauses.
         const ownedThread: Prisma.ConversationWhereInput = { botId, bot: { userId } };
@@ -275,7 +275,7 @@ export class MessagesService {
   }
 
   /**
-   * D-147 — `/new`: a boundary the next turn's history starts after. No model
+   * `/new`: a boundary the next turn's history starts after. No model
    * call and no turn, only a SYSTEM row the transcript draws as a divider.
    *
    * Idempotent against itself: when the newest message is already a

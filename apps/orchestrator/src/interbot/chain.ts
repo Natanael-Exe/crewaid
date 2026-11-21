@@ -28,7 +28,7 @@ export type ChainPosition = {
  * than by a freshly minted id. Three things follow, and the third is why:
  *
  * - It needs no new source of identity. There is no cuid generator in this
- * process — ids come from `@default(cuid())` — and `randomUUID()` would
+ * process — ids come from `@default(cuid)` — and `randomUUID` would
  * put a second id format in a column every other value of which is a row
  * id.
  * - It is already unique, because it is already a primary key.
@@ -40,14 +40,14 @@ export type ChainPosition = {
  *
  * Because they share a trigger, a bot that messages two peers in one turn
  * produces two deliveries in the SAME chain. That is the reading loop
- * protection needs: §6/M7's budget is "across all participants", so a
+ * protection needs: the budget is "across all participants", so a
  * delegation that fans out has to accumulate against one total rather than
  * splitting into independent chains that each start from zero.
  *
  * The hop count is the trigger's, plus one
  *
  * Uniform whether the trigger came from a person or from another bot: a USER
- * message sits at hop 0, so the first delivery is hop 1. §6/M7's "`hopCount`
+ * message sits at hop 0, so the first delivery is hop 1. The "`hopCount`
  * increments per delivery" is exactly this and nothing more.
  */
 export function nextHop(trigger: {
@@ -97,9 +97,9 @@ export function hopLimitNotice(maxHops: number): string {
 }
 
 /**
- * The token ceiling that actually binds this hop (M7-BE-03).
+ * The token ceiling that actually binds this hop.
  *
- * ── WHY THIS IS NOT `bot.tokenBudget ?? chainLimit` ─────────────────────────
+ * WHY THIS IS NOT `bot.tokenBudget ?? chainLimit`
  *
  * Because an unset per-bot cap means uncapped only BEFORE inheritance. Read
  * the bot's own field and a bot that declares nothing is unbounded — so one
@@ -130,7 +130,7 @@ export function isWithinTokenBudget(spent: number, budget: number): boolean {
 }
 
 /**
- * §6/M7's acceptance criterion: a chain exhausting its budget "terminates and
+ * The acceptance criterion: a chain exhausting its budget "terminates and
  * reports ACTUAL tokens spent".
  *
  * The number spent, not the number remaining, and both of them rather than
@@ -149,7 +149,7 @@ export function tokenBudgetNotice(spent: number, budget: number): string {
  * Whether one bot may message a particular peer again in this chain.
  *
  * `alreadySent` is how many have already arrived, so the comparison is `<`:
- * with a cap of 3 the fourth is the one refused, which is §6/M7's "may not
+ * with a cap of 3 the fourth is the one refused, which is the "may not
  * send MORE THAN 3".
  */
 export function isWithinRepeatCap(alreadySent: number, cap: number): boolean {
@@ -172,8 +172,7 @@ export function repeatCapNotice(peerName: string, cap: number): string {
 }
 
 /**
- * What the surviving bot is told when the one it messaged is gone
- * (M7-BE-05).
+ * What the surviving bot is told when the one it messaged is gone.
  *
  * §6/M7 wants a chain whose participant is deleted to "terminate cleanly
  * rather than dead-lettering forever", and D-047 keeps clean termination on

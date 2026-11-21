@@ -23,7 +23,7 @@ import { BotPluginsService } from './bot-plugins.service.js';
  * its own `@Controller` path, not by the module it is declared in, so the
  * route is `/bots/:id/plugins` either way.
  *
- * ⚠️ No `@OwnedResource` marker, and that is an entry in
+ * No `@OwnedResource` marker, and that is an entry in
  * `ownership-route-coverage.test.ts`'s exemption list rather than an omission:
  * there is no `bot` kind for the guard to resolve (see the other nine
  * `bots/:id/*` routes), and `BotPluginsService` scopes every query by
@@ -45,7 +45,7 @@ export class BotPluginsController {
    * Replaces the set, and answers with what the bot now has.
    *
    * The whole list rather than 204: the caller just changed the thing it was
-   * displaying, and the counts it needs to redraw (§7.4's budget) are this
+   * displaying, and the counts it needs to redraw (the budget) are this
    * server's arithmetic, not the modal's.
    */
   @Put(':id/plugins')

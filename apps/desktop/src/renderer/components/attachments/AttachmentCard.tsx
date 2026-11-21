@@ -120,7 +120,7 @@ export function AttachmentCard({ attachment }: { attachment: MessageAttachment }
     try {
       const blob = await downloadAttachment(client, attachment.id, controller.signal);
       // Abort is cooperative. A cached/small response can settle just before
-      // cleanup calls abort(), so gate the side effect as well as state writes.
+      // cleanup calls abort, so gate the side effect as well as state writes.
       if (!mounted.current) return;
       saveBlobAs(blob, attachment.filename);
     } catch (caught: unknown) {

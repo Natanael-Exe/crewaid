@@ -35,13 +35,13 @@ import {
 } from '@crewaid/sandbox-core';
 
 /**
- * PRD §5.1's fence, resized by D-063 for a machine whose bots BROWSE.
+ * The fence, resized by D-063 for a machine whose bots BROWSE.
  *
  * The spec's original numbers (2 GiB, 1 CPU, 512 tasks) sized the machine like
  * the per-bot containers it replaced — but every seat desktop and every seat
  * browser draws from this ONE pool now, and a media-heavy Chrome measures ~190
  * tasks on its own. A second browser was refused at 401/512 tasks, correctly,
- * by D-061's admission. Sized for the operator's "more than six browsing
+ * by the admission. Sized for the operator's "more than six browsing
  * bots": ~110 machine tasks + ~52 per desktop + ~190 per browser ≈ 1560 at
  * six, so 2048 tasks; six browsing browsers measured land at ~3-4 GiB, so
  * 8 GiB with swap still disabled; four CPUs so six renderers do not queue on
@@ -96,7 +96,7 @@ export const SANDBOX_LABELS = {
   sessionId: 'crewaid.sessionId',
   managedBy: 'crewaid.managedBy',
   /**
-   * The bot a workspace volume belongs to (D-039 §2).
+   * The bot a workspace volume belongs to.
    *
    * Deliberately NOT the session id, even though the two carry the same string
    * today. The workspace belongs to the bot and has to survive any change of
@@ -112,7 +112,7 @@ export const SANDBOX_IDENTITY_LABEL = 'crewaid.identity';
 export const SANDBOX_MANAGED_BY = 'crewaid-orchestrator';
 
 /**
- * The bot's durable workspace (D-039). One named volume, mounted at `$HOME`.
+ * The bot's durable workspace. One named volume, mounted at `$HOME`.
  *
  * A named volume rather than a bind mount because R5 and §5.1 forbid host
  * paths and D-031 permits storage only where the provider owns it — the daemon
@@ -130,7 +130,7 @@ export interface DockerSandboxProviderOptions {
   readonly screen?: { readonly widthPx: number; readonly heightPx: number };
   /**
    * Seam for tests. Defaults to the sandbox supervisor named by
-   * `SANDBOX_SUPERVISOR_URL` (D-200); how a computer's ports are published is
+   * `SANDBOX_SUPERVISOR_URL`; how a computer's ports are published is
    * the supervisor's configuration, not this process's.
    */
   readonly engine?: ContainerEngine;
@@ -299,7 +299,7 @@ export class DockerSandboxProvider implements HarnessV1SandboxProvider {
         screen: this.#screen,
         name: containerNameFor(sessionId),
         network: this.#network,
-        // D-046 / M5-BE-23: the seat ports travel with the machine's own,
+        // The seat ports travel with the machine's own,
         // because a container publishes its ports at creation and `setPorts`
         // is not implemented — a seat opened later has nowhere to be reached
         // unless its port was published before any seat existed.
@@ -458,7 +458,7 @@ export class DockerSandboxProvider implements HarnessV1SandboxProvider {
   };
 
   /**
-   * Is this sandbox still serving? (M2-BE-05.)
+   * Is this sandbox still serving?
    *
    * Total by design: every sandbox-level fault is an ANSWER, not an exception,
    * because the caller is a health poll whose whole job is to turn "no" into a
@@ -546,7 +546,7 @@ export class DockerSandboxProvider implements HarnessV1SandboxProvider {
       // losing every window the bot had open.
       const status = await container.inspect();
 
-      // D-039 §4: a container that belongs to a BOT but has no workspace
+      // A container that belongs to a BOT but has no workspace
       // mounted is inconsistent, and resuming it would hand that bot a desktop
       // whose files die with the container — indistinguishable, until the day
       // it matters, from a durable one. Every container created before D-039 is
@@ -749,7 +749,7 @@ export class DockerSandboxProvider implements HarnessV1SandboxProvider {
    * anything is listening behind it — the ports resolve, and every one of them
    * refuses the connection. That is worse than a slow start: it hands the
    * caller a session that looks healthy and fails on first use, and it misses
-   * §5's acceptance criterion, which asks for a RUNNING sandbox *with a healthy
+   * The acceptance criterion, which asks for a RUNNING sandbox *with a healthy
    * bridge*. The entrypoint already blocks on the same `/health` before it
    * declares the desktop up; this is the outside of that same gate.
    *

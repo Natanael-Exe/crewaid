@@ -15,7 +15,7 @@ import { COMPUTE_POLICY, type ComputePolicy } from './compute-policy.js';
 import { SandboxService } from './sandbox.service.js';
 
 /**
- * Idle stop (M2-BE-11, D-039 §8).
+ * Idle stop.
  *
  * A running sandbox with nothing happening in it is a desktop, a browser and
  * an X server holding a slot the next bot cannot have. After a configurable
@@ -106,7 +106,7 @@ export class SandboxIdleService implements OnApplicationBootstrap, OnModuleDestr
     this.sweeping = true;
     try {
       // RUNNING only. `UNHEALTHY` also holds a slot, and reclaiming those is
-      // real work — but it is reconciliation's (M2-BE-12): deciding whether a
+      // real work — but it is reconciliation's: deciding whether a
       // sandbox that stopped answering should be stopped, resumed or replaced
       // needs the provider's view of the container, which idle stop never
       // looks at. Stopping one here on a timer would destroy the evidence.
@@ -131,13 +131,13 @@ export class SandboxIdleService implements OnApplicationBootstrap, OnModuleDestr
   }
 
   private async consider(row: SandboxWithTenants): Promise<void> {
-    // D-156: a Pro computer stays on, which is the plan's whole promise. Asked
+    // A Pro computer stays on, which is the plan's whole promise. Asked
     // per pass rather than remembered, so a downgrade starts idle stop again
     // at the next sweep.
     if (this.policy !== undefined && !(await this.policy.idleStops(row.userId))) return;
     if (!(await this.isIdle(row))) return;
 
-    // D-046: a machine's §4.2 frame is announced under a bot, so pick one.
+    // A machine's §4.2 frame is announced under a bot, so pick one.
     // Which one does not matter to the sweep — every tenant's client shows
     // the same machine going down — but there must BE one, and a machine with
     // no tenants left is not something the sweep should stop: deleting the
@@ -168,7 +168,7 @@ export class SandboxIdleService implements OnApplicationBootstrap, OnModuleDestr
   }
 
   /**
-   * §8's question, against durable rows rather than connection state.
+   * The question, against durable rows rather than connection state.
    *
    * D-046 widened it from one bot to every bot on the machine, and the
    * direction matters: a machine is idle only when **none** of its tenants is
@@ -253,16 +253,16 @@ export class SandboxIdleService implements OnApplicationBootstrap, OnModuleDestr
 const TERMINAL_TURN_STATUSES: readonly TurnStatus[] = ['completed', 'failed', 'aborted'];
 
 /**
- * M5-BE-13 — the statuses that do not hold a machine open.
+ * The statuses that do not hold a machine open.
  *
  * `interrupted` is the one addition, and it is not "the turn is over":
  * the turn is very much alive and will want a desktop again the moment
  * somebody answers. What it is not doing is USING one. A suspension lasts as
  * long as the person takes, which may be three seconds or overnight, and
  * until this list existed that whole time held the container — on behalf of
- * every bot attached to the same computer under D-046.
+ * every bot attached to the same computer.
  *
- * Safe only because the other half exists. `TurnComputer.release()` hands the
+ * Safe only because the other half exists. `TurnComputer.release` hands the
  * lease back when the turn suspends and forgets its memoised readiness, so a
  * machine the sweep stops here is genuinely unclaimed, and the turn that
  * resumes asks for it again rather than acting on a container that is no
@@ -279,7 +279,7 @@ const TURN_STATUSES_WITHOUT_A_DESKTOP: readonly TurnStatus[] = [
 ];
 
 /**
- * A machine plus the bots attached to it (D-046).
+ * A machine plus the bots attached to it.
  *
  * The sweep needs both halves in one read: the tenants decide whether the
  * machine is idle, and it would be wrong to ask that question against a list

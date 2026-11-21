@@ -19,7 +19,7 @@ import {
 } from './routine.queue.js';
 
 /**
- * §3's default zone, used when a create names none and the person's settings
+ * The default zone, used when a create names none and the person's settings
  * name none either.
  */
 export const DEFAULT_TIMEZONE = 'America/Port-au-Prince';
@@ -105,7 +105,7 @@ export class RoutinesService {
     }
 
     // A bot's `schedule_routine` usually names no zone, and "at nine" means
-    // the person's nine — so their settings decide before §3's default does.
+    // the person's nine — so their settings decide before the default does.
     const timezone =
       input.timezone ?? userPreferences(bot.user.settings).timezone ?? DEFAULT_TIMEZONE;
     const cron = checkedSchedule(input.cron, timezone).pattern;
@@ -152,7 +152,7 @@ export class RoutinesService {
       skillId: input.skillId === undefined ? current.skillId : input.skillId,
       enabled: input.enabled ?? current.enabled,
     };
-    // §3's invariant is about the ROW, so it is checked on the row this
+    // The invariant is about the ROW, so it is checked on the row this
     // update would produce: switching a prompt routine to a skill has to
     // clear the prompt in the same request.
     if ((merged.prompt === null || merged.prompt === '') === (merged.skillId === null)) {
@@ -233,7 +233,7 @@ export class RoutinesService {
   }
 
   /**
-   * The routines this bot scheduled for itself (D-125) — what its own
+   * The routines this bot scheduled for itself — what its own
    * `cancel_routine` may touch. The operator's routines are never in it: a
    * bot may clear up after itself, not rearrange the operator's schedule.
    */
@@ -251,7 +251,7 @@ export class RoutinesService {
   }
 
   /**
-   * D-133: a routine may work toward one of the user's goals. Another user's
+   * A routine may work toward one of the user's goals. Another user's
    * goal is not found, as every foreign id is.
    */
   private async assertGoalOwned(userId: string, goalId: string): Promise<void> {
@@ -273,7 +273,7 @@ export class RoutinesService {
 
   /**
    * A routine may run this bot's own skills or a global one — the same reach
-   * `run_skill` has (§6/M5). Another bot's skill is not found rather than
+   * `run_skill` has. Another bot's skill is not found rather than
    * refused, so the endpoint does not answer whether a foreign id exists.
    * Approval is not checked here: a routine may be scheduled before its
    * skill is approved, and the run refuses a DRAFT with a readable FAILED.

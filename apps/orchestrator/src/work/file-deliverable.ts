@@ -17,7 +17,7 @@ export type DeliverableFiling = {
 
 /**
  * The FILE deliverable for an attachment a bot's reply just claimed, inside
- * the claim's own transaction. Filed by D-136's rules, attributed to the bot
+ * the claim's own transaction. Filed by the rules, attributed to the bot
  * whose reply it is, and — when it lands on a task — logged on that task as
  * DELIVERABLE_LINKED with a link to the reply.
  */

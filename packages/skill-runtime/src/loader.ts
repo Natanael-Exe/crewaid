@@ -11,7 +11,7 @@
  *
  * Nothing here is a security boundary. The CONTAINER is: this
  * module exists only inside a sandbox, and `apps/orchestrator` importing it
- * would be the exact thing CC-06's lint rules ban.
+ * would be the exact thing the lint rules ban.
  */
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';

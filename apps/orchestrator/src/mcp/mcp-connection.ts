@@ -13,7 +13,7 @@ import { mcpTransportConfig, parseMcpTransport } from './mcp-transport.js';
  *
  * This is the whole of what M6 talks to a plugin server WITH. Installing one,
  * connecting it, encrypting its credential, refreshing it, naming its tools,
- * gating them and surviving its failures are … ; each of them
+ * gating them and surviving its failures are …; each of them
  * needs exactly the three verbs below and none of them needs a second client.
  *
  * Where the credential is, and where it is not
@@ -32,7 +32,7 @@ import { mcpTransportConfig, parseMcpTransport } from './mcp-transport.js';
  * here takes a session, a container, or anything else that could carry the
  * header across that boundary.
  *
- * ⚠️ The fetch is the guarded one by DEFAULT, because an MCP server URL is a
+ * The fetch is the guarded one by DEFAULT, because an MCP server URL is a
  * URL an unprivileged user typed — the same primitive closed for custom
  * model endpoints. A host is therefore admitted by shape (https, no
  * credentials in the URL) and re-resolved at request time, and redirects are

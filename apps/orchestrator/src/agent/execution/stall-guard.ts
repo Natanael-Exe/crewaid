@@ -227,7 +227,7 @@ export function stallToolFailureBlockCopy(tool: string, failures: number): strin
 }
 
 /**
- * What the PERSON is told when a stall stop ended the turn (D-093's split:
+ * What the PERSON is told when a stall stop ended the turn (the split:
  * the operator reads what happened and what to do, not the machinery's name).
  */
 export function stallNoticeCopy(detail: StallDetail): string {

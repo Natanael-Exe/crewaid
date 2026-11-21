@@ -163,7 +163,7 @@ export class SandboxReconciliationService implements OnApplicationBootstrap {
     const machineId = runtime.botId;
     const sessionId = runtime.sessionId;
     if (machineId === null || sessionId === null) return;
-    // D-046: the sweep only groups runtimes whose identity matches a known
+    // The sweep only groups runtimes whose identity matches a known
     // machine, so a null row here is unreachable. It stays typed as nullable
     // because `chooseRuntime` and the diagnostics below still take one, and a
     // silent return is a better answer than creating a machine with no owner.
@@ -267,7 +267,7 @@ export class SandboxReconciliationService implements OnApplicationBootstrap {
   }
 
   /**
-   * §4.2 frames are addressed to a bot, and a machine has several (D-046).
+   * §4.2 frames are addressed to a bot, and a machine has several.
    *
    * Every tenant's client is looking at this machine, so every tenant is told.
    * Announcing under one arbitrary tenant would leave the others showing a
@@ -295,11 +295,11 @@ export class SandboxReconciliationService implements OnApplicationBootstrap {
     reason: string,
     clearContainer = false,
   ): Promise<void> {
-    // D-046: a diagnosis needs a machine to write it on, and one that does not
+    // A diagnosis needs a machine to write it on, and one that does not
     // exist cannot be created here — reconciliation sees a container's
     // identity label, never a user, and a machine with no owner is unreachable
     // through every R7-scoped query. The container was already removed as an
-    // orphan by the caller; the workspace is untouched (D-031).
+    // orphan by the caller; the workspace is untouched.
     if (row === null) {
       this.logger.warn(`computer ${machineId} has no row to record a diagnosis on: ${reason}`);
       return;

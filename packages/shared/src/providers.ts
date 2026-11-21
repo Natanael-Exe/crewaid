@@ -12,7 +12,7 @@ import { ModelCapabilitiesSchema } from './agent.js';
  * beside it. Everything downstream — the catalog, `Bot.modelId`, the agent
  * loop's model resolution — reads from here.
  *
- * ⚠️ NO CREDENTIAL MATERIAL CROSSES THIS FILE. There is deliberately no
+ * NO CREDENTIAL MATERIAL CROSSES THIS FILE. There is deliberately no
  * plaintext key field, no ciphertext field, and no "reveal" body anywhere in
  * the contract: a key is write-only, and its presence is reported as
  * the boolean `hasCredential` plus a timestamp. The absence is the contract,
@@ -227,7 +227,7 @@ export const ModelOptionSchema = z.object({
 export type ModelOption = z.infer<typeof ModelOptionSchema>;
 
 /**
- * `GET /api/v1/models` under D-086.
+ * `GET /api/v1/models`.
  *
  * Replaces `ModelCatalogResponse`'s static list. Still not a live fan-out to
  * the providers' own model endpoints — the entries come from the caller's

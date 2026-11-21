@@ -91,7 +91,7 @@ const BEARER_TEXT = /\bBearer\s+[^\s,;)}\]"'`]+/gi;
 /**
  * `[REDACTED]` leads the alternation so this is IDEMPOTENT.
  *
- * `sanitizeText` runs twice on a Nest message — once in `log()`/`error()` and
+ * `sanitizeText` runs twice on a Nest message — once in `log`/`error` and
  * again when `sanitizeFields` walks the payload — and without this the second
  * pass matched `[REDACTED` (the value alternative stops at `]`) and rebuilt it
  * as `[REDACTED]]`. Cosmetic, but it is also the shape of a redactor eating
@@ -103,7 +103,7 @@ const KEY_ASSIGNMENT_TEXT =
 /**
  * A provider key, wherever it appears — V1-16.
  *
- * ⚠️ THIS IS NOT A BACKSTOP FOR THE ASSIGNMENT RULE. It covers a case that
+ * THIS IS NOT A BACKSTOP FOR THE ASSIGNMENT RULE. It covers a case that
  * rule structurally cannot: a key with no key NAME beside it. The three
  * supported vendors all 401 in exactly that shape, and two of the three leaked
  * before this existed:
@@ -126,7 +126,7 @@ const KEY_ASSIGNMENT_TEXT =
  * webhook secrets `whsec_…`), and a GitHub, Google or Slack token pasted
  * into a plugin or a connection has a prefix of its own.
  *
- * ⚠️ WHAT IT CANNOT DO. A CUSTOM connection's key format is whatever that
+ * WHAT IT CANNOT DO. A CUSTOM connection's key format is whatever that
  * provider chose, and is not guessable from here. This catches the shapes the
  * built-ins issue; the row-level bar stays the primary defence.
  */

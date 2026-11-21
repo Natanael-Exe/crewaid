@@ -204,7 +204,7 @@ export class AttachmentReaperService implements OnApplicationBootstrap, OnModule
     let candidates: { id: string }[];
     try {
       candidates = await this.prisma.attachment.findMany({
-        // D-147: a deliverable's file outlives its message and is not garbage.
+        // A deliverable's file outlives its message and is not garbage.
         where: { messageId: null, deliverable: null, createdAt: { lt: cutoff } },
         select: { id: true },
       });

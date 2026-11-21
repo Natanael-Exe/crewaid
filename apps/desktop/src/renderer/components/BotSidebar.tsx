@@ -42,13 +42,13 @@ import { useT } from '../i18n/i18n';
  * BotSidebar — M1-FE-03 proper.
  *
  * Rows are BOTS (name, role chip, avatarColor, status, preview), NOT chat
- * threads. Composed from free primitives per D-001: ListBox + Button + Avatar
+ * threads. Composed from free primitives: ListBox + Button + Avatar
  * (+ the shared RoleChip/StatusDot/BotAvatar).
  *
  * Search filters by name and role (client-side until the orchestrator grows a
  * query param — REST has none, and a self-hosted operator's list is small
  * enough that a round trip per keystroke would be the slower design).
- * Keyboard: ⌘1..9 switch bots (registered in M1-FE-12's shortcut system; the
+ * Keyboard: ⌘1..9 switch bots (registered in the shortcut system; the
  * Kbd hints render here).
  */
 
@@ -190,7 +190,7 @@ export function BotSidebar({
   /**
    * ⌘-shortcut position, precomputed once per list.
    *
-   * This used to be a `rows.findIndex()` evaluated inside the row map, which
+   * This used to be a `rows.findIndex` evaluated inside the row map, which
    * is O(n²) — and the sidebar re-renders on every pointermove of a pane
    * drag, so the whole scan ran per frame. At a few thousand bots that is
    * millions of comparisons between frames, which is where the drag latency
@@ -263,7 +263,7 @@ export function BotSidebar({
     visibleCount * ROW_HEIGHT + (shownSections?.length ?? 0) * HEADER_HEIGHT,
   );
 
-  // Width is owned by M1-FE-12's pane layout in App; the aside just fills it.
+  // Width is owned by the pane layout in App; the aside just fills it.
   return (
     <aside className="crewaid-crew-dock flex w-full shrink-0 flex-col">
       {/* Native macOS traffic lights occupy the left side of this drag strip. */}
@@ -450,7 +450,7 @@ export function BotSidebar({
               {query.trim() !== ''
                 ? t('sidebar.noMatch', { query })
                 : mainRow
-                  ? // D-229: Crewaid is pinned above, so "no bots" would be untrue.
+                  ? // Crewaid is pinned above, so "no bots" would be untrue.
                     t('sidebar.emptyWithMain')
                   : t('sidebar.empty')}
             </div>
@@ -539,7 +539,7 @@ function BotRow({
   onContextMenu,
 }: {
   view: BotRowView;
-  /** D-131: this bot's unread messages; the row shows a dot, not the number. */
+  /** This bot's unread messages; the row shows a dot, not the number. */
   unread: number;
   onSelect: () => void;
   shortcut: number;
@@ -596,7 +596,7 @@ function BotRow({
 }
 
 /**
- * A group's header in the sidebar list (D-131): the name, which folds the
+ * A group's header in the sidebar list: the name, which folds the
  * group, a chip when something in it wants the operator, and the bot count
  * while folded. Right-click opens the group's menu. Unassigned has only its label and count — it is not
  * a group, so there is nothing to fold, rename or delete.

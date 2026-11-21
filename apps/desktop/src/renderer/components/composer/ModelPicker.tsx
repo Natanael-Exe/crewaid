@@ -275,12 +275,12 @@ export function ModelPicker({
   const summary = selectionSummary(selection, catalog.models);
 
   /**
-   * Choosing a model writes `Bot.modelId` (V1-13).
+   * Choosing a model writes `Bot.modelId`.
    *
    * The id stored is the ProviderModel ROW id, never a composed
    * `provider:model` key — that key stopped being unique the moment a user
    * could hold two custom connections, and nothing in the string says which
-   * endpoint or which credential it meant (D-082).
+   * endpoint or which credential it meant.
    *
    * Optimistic, then reverted on refusal. The revert is the part that matters:
    * a selection that looks saved and was not means every subsequent turn runs
@@ -316,9 +316,9 @@ export function ModelPicker({
       // only rendered surface a static-markup test can assert against — which
       // makes WHICH fields it carries a contract of its own. The row id is
       // deliberately not among them: a cuid identifies nothing to a reader,
-      // and the fields here are the ones a person recognises (D-082).
+      // and the fields here are the ones a person recognises.
       const availability = unavailableReason(model) ?? 'available';
-      // V1-13: whether the `default` alias lands here. A test can see which
+      // Whether the `default` alias lands here. A test can see which
       // option is marked without opening the popover.
       const alias = isDefaultOption(model, catalog.defaultModelId) ? 'default' : '';
       return [
@@ -338,7 +338,7 @@ export function ModelPicker({
       data-model-picker
       data-model-picker-state={catalog.status}
       data-model-picker-selected={selectedId ?? undefined}
-      // V1-13: three states the operator has to be able to tell apart, so the
+      // Three states the operator has to be able to tell apart, so the
       // one attribute carries which rather than a bare boolean.
       data-model-picker-selection={selection.kind}
       data-model-picker-via-default={

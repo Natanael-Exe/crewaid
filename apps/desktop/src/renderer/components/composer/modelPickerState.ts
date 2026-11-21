@@ -171,8 +171,8 @@ export type SelectionAttempt = {
  * a `provider:model` key once; that key stopped being unique the moment a
  * user could hold two custom connections, and nothing in the string said
  * which endpoint or whose credential it meant;
- * - a key that is not in this catalog writes nothing. The list is owner-scoped
- * (D-086), so an id from anywhere else is an id this user cannot resolve;
+ * - a key that is not in this catalog writes nothing. The list is owner-scoped,
+ * so an id from anywhere else is an id this user cannot resolve;
  * - an UNAVAILABLE model cannot be newly chosen. The ListBox already disables
  * it, and this is the same rule where a test can see it. Note the asymmetry:
  * a model that BECOMES unavailable stays selected, because un-selecting it

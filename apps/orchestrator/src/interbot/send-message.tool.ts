@@ -73,7 +73,7 @@ export interface TaskContextPort {
  * Why a name works and not only an id
  *
  * Because the model has no way to know an id. Nothing puts a roster in the
- * prompt — the system prompt is the bot's own role, and CC-32's memory block
+ * prompt — the system prompt is the bot's own role, and the memory block
  * is about what it knows, not who it works with — so a tool that accepts only
  * `cm3x…` is a tool no model can call correctly on its first try. A name is
  * what the operator gave the bot and what its teammates are called in
@@ -160,15 +160,15 @@ export function describePeers(peers: readonly Peer[]): string {
 }
 
 /**
- * M7-BE-01 — `send_message` stops being a stub.
+ * `send_message` stops being a stub.
  *
  * The M5 stub registered the NAME so that a model's plan could reference it
  * and so this task would be "a body swap rather than a new registration".
  * This is that swap. It registers from here rather than from `skill-tools.ts`
  * because a tool group registers itself from wherever its dependencies
- * already live (M5-BE-06's rule), and the queue lives in this module.
+ * already live (the rule), and the queue lives in this module.
  *
- * ── THE TOOL RETURNS WHEN THE MESSAGE IS QUEUED, NOT WHEN IT IS ANSWERED ────
+ * The tool returns when the message is queued, not when it is answered
  *
  * §6/M7 puts a queue between the two bots, so the honest thing to return is
  * that it was sent. Waiting for the reply would rebuild the direct call the
@@ -176,7 +176,7 @@ export function describePeers(peers: readonly Peer[]): string {
  * signal and its container open across the whole of bot B's work, and a
  * three-hop delegation would be three nested turns that one cancel unwinds.
  * The reply arrives as a message in A's own conversation, which starts A's
- * next turn — that is what makes a round trip work at all (M7-QA-02).
+ * next turn — that is what makes a round trip work at all.
  *
  * The description says so explicitly, because a model that believes the reply
  * is the return value will sit and wait for it by sending again.
@@ -235,7 +235,7 @@ export function sendMessageTool(deps: {
             if (resolved.kind === 'unknown') {
               // A result, not a throw: the model named someone who is not
               // there, and the list is what lets it correct itself on the
-              // next step rather than failing the turn (§6/M5).
+              // next step rather than failing the turn.
               return `There is no bot called ${JSON.stringify(input.toBot)}. ${describePeers(peers)}`;
             }
             if (resolved.kind === 'ambiguous') {
@@ -258,12 +258,12 @@ export function sendMessageTool(deps: {
               // message, and a note in its transcript about one that never
               // arrived would be a claim about a conversation it did not
               // have; the delivery path, where a message WAS in flight,
-              // tells both (§6/M7).
+              // tells both.
               if (!announced) {
                 announced = true;
                 const notice = hopLimitNotice(deps.limits.maxHops);
                 await deps.notice.post(context.botId, position.chainId, notice);
-                // §6/M7: "a system message posted to BOTH bots". Both, when
+                // "a system message posted to BOTH bots". Both, when
                 // the other bot is a participant — which is the case the
                 // section is describing, and the one M7-QA-03 drives. A bot
                 // being addressed for the FIRST time at a hop the chain can
@@ -288,7 +288,7 @@ export function sendMessageTool(deps: {
               );
             }
 
-            // §6/M7's per-pair cap, before the chain-wide budget: it is the
+            // The per-pair cap, before the chain-wide budget: it is the
             // cheaper query and the more specific answer, so a bot that has
             // simply been pestering ONE peer is told that rather than being
             // told the whole chain is out of money.
@@ -341,7 +341,7 @@ export function sendMessageTool(deps: {
               }
             }
 
-            // D-138: omitted inherits the task this turn's work came from; null
+            // Omitted inherits the task this turn's work came from; null
             // clears it; a named task must be the user's. Resolved before the
             // enqueue so a foreign id sends nothing rather than a message
             // about nothing.
@@ -361,7 +361,7 @@ export function sendMessageTool(deps: {
               userId: context.userId,
               fromBotId: context.botId,
               toBotId: resolved.peer.id,
-              // M7-BE-05: who the sender addressed, so a delivery that finds
+              // Who the sender addressed, so a delivery that finds
               // the row deleted can still name them.
               toBotName: resolved.peer.name,
               content: input.content,

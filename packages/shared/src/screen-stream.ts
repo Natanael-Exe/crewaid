@@ -31,7 +31,7 @@
  * mark, and the quality the viewer wants. A viewer never sends RFB, so a
  * stream socket cannot type into the desktop by construction.
  *
- * Marks and acks replace WebSocket ping/pong for pacing (D-218's window). A
+ * Marks and acks replace WebSocket ping/pong for pacing (the window). A
  * proxy between viewer and computer may answer pings itself, which would
  * measure the hop to the proxy and let the window over-send; an ack can only
  * come from the viewer.

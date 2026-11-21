@@ -1,7 +1,7 @@
 /**
  * The seeded development account's id.
  *
- * ⚠️ NOT A PRINCIPAL ANY MORE, on either transport. V1-08 made `AuthGuard`
+ * NOT A PRINCIPAL ANY MORE, on either transport. V1-08 made `AuthGuard`
  * resolve a Better Auth session, and V1-09 made the WebSocket handshake resolve one
  * too — so both HTTP requests and socket frames run as whoever signed in.
  * Nothing in `src/` reads this except the seed, and code reaching for it to

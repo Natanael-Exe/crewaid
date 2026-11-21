@@ -24,7 +24,7 @@ export function readMeterIntervalMs(raw: string | undefined): number {
 }
 
 /**
- * Computer time, counted against each owner's plan (D-156).
+ * Computer time, counted against each owner's plan.
  *
  * Runs only where a `ComputePolicy` is registered — a cloud server that bills —
  * so a self-hosted server never meters anything. Once a minute it counts, for
@@ -32,7 +32,7 @@ export function readMeterIntervalMs(raw: string | undefined): number {
  * counted, and stops a running computer whose owner has used their hours or
  * no longer has a plan.
  *
- * ── A SWEEP, NOT A HOOK ON EVERY TRANSITION ─────────────────────────────────
+ * A sweep, not a hook on every transition
  *
  * State moves in four services (lifecycle, leases, reconciliation, idle stop)
  * and a process can die between any two of them. A sweep over `meteredAt`
@@ -42,7 +42,7 @@ export function readMeterIntervalMs(raw: string | undefined): number {
  * minute between the last count and the stop is not charged — which errs in
  * the customer's favour.
  *
- * ── AND THE WATERMARK MOVES BEFORE THE TIME IS RECORDED ─────────────────────
+ * And the watermark moves before the time is recorded
  *
  * A compare-and-swap on `meteredAt` claims each interval exactly once, so two
  * orchestrator processes, or a slow pass overlapping the next, cannot both
@@ -148,7 +148,7 @@ export class SandboxMeterService implements OnApplicationBootstrap, OnModuleDest
   private async stopForPlan(row: MeteredSandbox): Promise<void> {
     const policy = this.policy;
     if (policy === undefined) return;
-    // D-046: a machine's frames are announced under a bot; any tenant will do.
+    // A machine's frames are announced under a bot; any tenant will do.
     const tenant = row.bots[0];
     if (tenant === undefined) return;
     const stopped = await this.sandboxes.stopUncovered(

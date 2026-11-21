@@ -57,7 +57,7 @@ const SkillParamSchema = z.object({
  * Second, a model asked for JSON Schema writes *plausible* JSON Schema:
  * `"type": "str"`, `required` nested inside a property, a `properties` map
  * whose values are bare type strings. Each is a defect that surfaces at run
- * time, in M3-BE-09's runner, long after the compile that caused it.
+ * time, in the runner, long after the compile that caused it.
  *
  * A flat list has neither problem, and `toParamsSchema` below assembles the
  * §3 column from it — one place, no guessing.
@@ -124,7 +124,7 @@ export type SkillParamsSchema = {
 export type SkillParamType = z.infer<typeof SkillParamTypeSchema>;
 
 /**
- * Assemble §3's `Skill.paramsSchema` from the list the model returned.
+ * Assemble the `Skill.paramsSchema` from the list the model returned.
  *
  * Duplicate names are refused rather than merged: two params of the same name
  * means the model described one argument twice, and silently keeping the last
@@ -151,7 +151,7 @@ export function toParamsSchema(params: readonly SkillParam[]): SkillParamsSchema
 }
 
 /**
- * §6/M3's target interface, transcribed verbatim, plus the browser half
+ * The target interface, transcribed verbatim, plus the browser half
  * §6/M4 requires ("emit Playwright calls for them").
  *
  * Sent to the model as source rather than as prose. It is the API the script
@@ -164,11 +164,11 @@ export function toParamsSchema(params: readonly SkillParam[]): SkillParamsSchema
  * depend on a fact it cannot see.
  */
 /**
- * §6's mandatory timing rule — one wording, every prompt that sends
+ * The mandatory timing rule — one wording, every prompt that sends
  * a model at a trace or a script.
  *
  * A compiled skill waits with predicates, never durations. The D-042
- * judgement, the compile, and D-098's revise all read the same evidence, so
+ * judgement, the compile, and the revise all read the same evidence, so
  * the rule is shared here rather than copied — every request's wording is
  * identical by construction, not by three copies that can drift apart.
  */

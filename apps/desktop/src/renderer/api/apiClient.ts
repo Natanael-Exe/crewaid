@@ -271,7 +271,7 @@ export class ApiClient {
     try {
       payload = await response.json();
     } catch (error: unknown) {
-      // The abort can land here rather than at fetch(): headers arrive long
+      // The abort can land here rather than at fetch: headers arrive long
       // before the body does. Re-thrown for the same reason `send` re-throws
       // it — CONTRACT tells the operator the build is wrong about the server,
       // which is a bad thing to say about their own cancel.
@@ -303,7 +303,7 @@ export class ApiClient {
    * *fetched*, whatever it returns; the bytes reach disk afterwards through a
    * blob URL. That also keeps the bearer out of the URL entirely: the §4.2
    * socket carries a query token because a WebSocket handshake cannot send
-   * headers (D-024), which is not a constraint here.
+   * headers, which is not a constraint here.
    *
    * The response ultimately buffers into a Blob rather than writing directly
    * to disk, so the ceiling is enforced rather than assumed. D-022 fences the
@@ -347,7 +347,7 @@ export class ApiClient {
         chunks.push(chunk);
       }
     } catch (error: unknown) {
-      // A cancel usually lands here, not at fetch(): the status line arrives in
+      // A cancel usually lands here, not at fetch: the status line arrives in
       // milliseconds and the megabytes take seconds, so this is the read the
       // operator actually interrupts.
       if (isAbortError(error) || isApiRequestError(error)) throw error;

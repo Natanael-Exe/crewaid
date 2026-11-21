@@ -52,7 +52,7 @@ export class SeatRfbConnector {
     const seat = options.seat ?? (await this.seats.ensureSeat(sessionId, botId, options.geometry));
     const endpoint = await session.getPortEndpoint({ port: seat.rfbPort });
 
-    // D-012: the endpoint may carry headers that must be sent when connecting.
+    // The endpoint may carry headers that must be sent when connecting.
     // RFB is a raw TCP protocol with nowhere to put them, so a provider that
     // returns headers needs a tunnelling transport this connector does not
     // have. Connecting anyway would fail as a refused socket or a hung

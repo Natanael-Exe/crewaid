@@ -11,7 +11,7 @@ export type DispatchReservation =
   | { readonly kind: 'reserved'; readonly id: string }
   | { readonly kind: 'existing'; readonly status: DispatchOutcome | 'DISPATCHED' };
 
-/** D-197's ledger as the policy runtime sees it. */
+/** The ledger as the policy runtime sees it. */
 export type DispatchLedger = {
   /** Insert-if-absent before the tool runs. `existing` means it must not run. */
   readonly reserve: (call: {

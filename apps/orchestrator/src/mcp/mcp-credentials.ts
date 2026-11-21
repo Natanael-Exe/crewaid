@@ -11,7 +11,7 @@ import type { PrismaService } from '../prisma/prisma.service.js';
 /**
  * where a plugin credential is written, and where it is read back.
  *
- * ⚠️ BOTH TOKEN COLUMNS IN HERE ARE CIPHERTEXT BEFORE THEY REACH PRISMA.
+ * BOTH TOKEN COLUMNS IN HERE ARE CIPHERTEXT BEFORE THEY REACH PRISMA.
  * `accessToken` and `refreshToken` are encrypted with AES-256-GCM under
  * `CREDENTIAL_KEY` by the same cipher the provider vault uses, and this
  * module is the ONLY writer and the ONLY reader. The one column that is NOT
@@ -36,7 +36,7 @@ import type { PrismaService } from '../prisma/prisma.service.js';
  *
  * There is deliberately NO in-process cache of a decrypted token.
  * states the same rule for the connection it opens, and the reason is
- * concrete: `DELETE /mcp/servers/:id` is §7.3's revocation path, so a
+ * concrete: `DELETE /mcp/servers/:id` is the revocation path, so a
  * process-wide cache keyed on anything at all would keep a revoked token
  * alive in memory after the row that justified it is gone. The credential
  * table is the cache, and it has a delete.

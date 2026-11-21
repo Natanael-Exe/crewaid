@@ -36,7 +36,7 @@ import { RecordingTeeService } from './recording-tee.service.js';
  * still answers `{identifier}` and the registration is silently never
  * delivered to the renderer — a canary script registered that way ran on
  * no later document at all. With it, every navigation runs the script.
- * 5. `Network.enable`. Not part of §6's injection sentence, but the domain
+ * 5. `Network.enable`. Not part of the injection sentence, but the domain
  * that carries `Network.loadingFinished`; its failure is
  * forgiven in place, because the interactions the recording is really
  * made of do not depend on it (see `armTarget`).
@@ -60,7 +60,7 @@ import { RecordingTeeService } from './recording-tee.service.js';
  *
  * Chrome delivers a page's protocol events to EVERY session attached to its
  * target, so one navigation is one `Page.frameNavigated` per attached session
- * (M4-BE-04's probe saw two sessions receive the same commit). These
+ * (the probe saw two sessions receive the same commit). These
  * listeners live on the connection, which may carry sessions this service
  * does not own, so an event counts only when its sessionId is one this
  * capture armed — otherwise a navigation would reach the trace as many times
@@ -71,7 +71,7 @@ import { RecordingTeeService } from './recording-tee.service.js';
  * Same polarity as the attach: every failure — no connection, a
  * target that died mid-attach, a command that times out — is logged and costs
  * the CDP layer for that page, nothing else. The X11 tee is untouched by any
- * of it, which is what §6/M4's degradation clause asks for.
+ * of it, which is what the degradation clause asks for.
  *
  * Why disarm asks before anything closes
  *
@@ -205,7 +205,7 @@ export class CdpCaptureService implements OnModuleDestroy {
       if (capture.detached || connection.closed) return;
       capture.connection = connection;
 
-      // D-060 — which pages are THIS bot's: all of them, on this connection.
+      // Which pages are THIS bot's: all of them, on this connection.
       //
       // This used to need a filter. A machine is shared and its screen is not,
       // so when every bot's window lived in the machine's one browser, a
@@ -237,7 +237,7 @@ export class CdpCaptureService implements OnModuleDestroy {
           // judge; a navigation from a destroyed target is not evidence.
           if (armed !== null && armed !== undefined) capture.nav.delete(armed.sessionId);
         }),
-        // M4-BE-04's three: the commit that earns a `navigate` row, the
+        // The three: the commit that earns a `navigate` row, the
         // document requests that make later completions recognizable, and the
         // completion that earns a `load` row (see `cdp-nav-events.ts`).
         connection.on('Page.frameNavigated', (event) => {
@@ -299,7 +299,7 @@ export class CdpCaptureService implements OnModuleDestroy {
         return;
       }
 
-      // M4-BE-04: the pairing state exists from here, BEFORE any domain is
+      // The pairing state exists from here, BEFORE any domain is
       // enabled — an event that arrives the instant an enable answers must
       // find somewhere to land, not race this registration.
       capture.nav.set(sessionId, createNavPairingState());
@@ -310,7 +310,7 @@ export class CdpCaptureService implements OnModuleDestroy {
       await connection.send('Runtime.enable', {}, sessionId);
       await connection.send('Runtime.addBinding', { name: CAPTURE_BINDING_NAME }, sessionId);
       await connection.send('Page.enable', {}, sessionId);
-      // M4-BE-04's domain, and the one step of this sequence that is
+      // The domain, and the one step of this sequence that is
       // forgiven rather than fatal. The navigation rows are an addition on
       // top of the page's interaction capture, not a condition of it: a page
       // whose Network domain refuses still contributes its clicks, its
@@ -408,7 +408,7 @@ export class CdpCaptureService implements OnModuleDestroy {
 
   /**
    * A document committed in some frame; a main-frame one earns a `navigate`
-   * row (M4-BE-04). Subframe commits are dropped in the parser, which is the
+   * row. Subframe commits are dropped in the parser, which is the
    * filter the trace's wait conditions want: `waitForLoadState` is a promise
    * about the main frame (`cdp-nav-events.ts`).
    *
@@ -425,7 +425,7 @@ export class CdpCaptureService implements OnModuleDestroy {
 
   /**
    * A request began; the ones that carry documents are remembered so their
-   * completions can be recognized (M4-BE-04). No row comes from this — it is
+   * completions can be recognized. No row comes from this — it is
    * the pairing mechanism, not evidence the compiler reads.
    */
   private documentRequest(capture: ArmedCapture, event: CdpEvent): void {
@@ -435,8 +435,8 @@ export class CdpCaptureService implements OnModuleDestroy {
   }
 
   /**
-   * A request finished; a main-frame document's becomes a `load` row
-   * (M4-BE-04). The event alone cannot be judged — it is identical for the
+   * A request finished; a main-frame document's becomes a `load` row.
+   * The event alone cannot be judged — it is identical for the
    * page's own load and for the hundredth image — so the parser answers only
    * for requests its session watched being documents (see `cdp-nav-events.ts`).
    */

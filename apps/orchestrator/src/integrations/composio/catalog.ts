@@ -40,7 +40,7 @@ function curated(
   return { toolkit, enabledTools: [...readTools, ...writeTools], readTools };
 }
 
-/** D-202's pilots, carried forward verbatim as D-204's overlay. */
+/** The pilots, carried forward verbatim as the overlay. */
 export const COMPOSIO_CURATION: readonly ComposioCuration[] = [
   curated(
     'gmail',

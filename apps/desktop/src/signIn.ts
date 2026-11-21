@@ -41,7 +41,7 @@ import type {
  * here would pin this app to an internal shape that can move in a patch.
  *
  * What is written here is everything the library does NOT do: the callback
- * check below, the IPC surface behind CC-07's existing fence, and putting the
+ * check below, the IPC surface behind the existing fence, and putting the
  * result where the rest of the app already looks for it.
  */
 
@@ -151,7 +151,7 @@ export function isDesktopAuthCallback(url: unknown, edition: Edition): boolean {
  * The page the browser is sent to, derived from the orchestrator's address.
  *
  * Exported because two places need the same string and neither should spell
- * it: `main.ts` configures the auth client with it, and `start()` opens it.
+ * it: `main.ts` configures the auth client with it, and `start` opens it.
  */
 export function signInPageUrl(baseUrl: string): string {
   return `${baseUrl.replace(/\/+$/, '')}${AUTH_BASE_PATH}/electron/sign-in`;
@@ -417,7 +417,7 @@ export type RegisterAuthIpcOptions = {
 };
 
 /**
- * The renderer's four doors into sign-in, behind CC-07's existing fence.
+ * The renderer's four doors into sign-in, behind the existing fence.
  *
  * Registered through `guardedIpc` — the same closure the token channels use,
  * carrying the same trusted-sender predicate from the same call site in

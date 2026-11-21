@@ -1,13 +1,13 @@
 import type { RecordingWarning } from '@crewaid/shared';
 
 /**
- * §6/M3's hard limits, verbatim: "Hard limits: 20 minutes, 5000
+ * The hard limits, verbatim: "Hard limits: 20 minutes, 5000
  * events. Exceeding either auto-stops and marks the recording `READY` with a
  * warning."
  *
  * What the ceilings actually protect
  *
- * Not disk. §8's idle sweep asks whether the bot has a row in state
+ * Not disk. The idle sweep asks whether the bot has a row in state
  * `RECORDING` and refuses to stop its sandbox while one exists, so before
  * these ceilings a recording nobody stopped kept a container running for as
  * long as the orchestrator did — the one way a desktop could stay up

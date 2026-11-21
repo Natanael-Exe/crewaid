@@ -80,8 +80,8 @@ export interface Seat {
  *
  * Generous rather than tight: creating a seat now starts an X server, a session
  * bus, a window manager, a dock, a whole browser and an x11vnc, and waits for
- * CDP to answer on a `--user-data-dir` it may be opening for the first time
- * (D-060). A machine under load can take seconds over that. What this bounds is the pathological case — a socket
+ * CDP to answer on a `--user-data-dir` it may be opening for the first time.
+ * A machine under load can take seconds over that. What this bounds is the pathological case — a socket
  * accepted by a container that has stopped answering — not a slow one.
  */
 const BRIDGE_TIMEOUT_MS = 30_000;
@@ -451,7 +451,7 @@ export class SeatService {
    * Close this bot's seat, resolving its machine from the bot's own row.
    *
    * The session-shaped callers above are given one because they already hold
-   * it; this is for a caller that holds only a bot id — M5-BE-27's identity
+   * it; this is for a caller that holds only a bot id — the identity
    * switch, which runs inside a turn and must close the window the bot has
    * before the next one can open on a different profile.
    *
@@ -469,7 +469,7 @@ export class SeatService {
   }
 
   /**
-   * D-223: tell the machine's screen gateway which key signs its tickets, and
+   * Tell the machine's screen gateway which key signs its tickets, and
    * which computer it is. Not a secret — the key can only verify — and sent
    * before every direct grant, because a machine forgets it when it restarts
    * and this process makes a new key when it does.
@@ -496,7 +496,7 @@ export class SeatService {
     }
     const endpoint = await session.getPortEndpoint({ port: SANDBOX_PORTS.bridge });
 
-    // D-012: an endpoint may carry headers that must be SENT when connecting,
+    // An endpoint may carry headers that must be SENT when connecting,
     // and the decision names the bridge calls specifically. Dropping them does
     // not fail as a missing header — it fails as a refused or hung connection,
     // which reads as a broken sandbox rather than a caller that ignored the

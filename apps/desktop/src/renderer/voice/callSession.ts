@@ -249,7 +249,7 @@ export class CallSession {
   }
 
   /**
-   * `run.settled` for this bot (D-227). Answers the call's requests among the
+   * `run.settled` for this bot. Answers the call's requests among the
    * messages it names; a frame for someone else's message changes nothing.
    */
   runSettled(settled: RunSettledPayload): void {
@@ -532,8 +532,8 @@ function messageOf(failure: unknown): string {
 }
 
 /**
- * Every agent language the server sends for a call in the person's language
- * (D-234), typed against the SDK's own list so a code it would refuse does
+ * Every agent language the server sends for a call in the person's language,
+ * typed against the SDK's own list so a code it would refuse does
  * not compile. English is absent: the agent's default needs no override.
  */
 const CALL_LANGUAGES: readonly Language[] = [

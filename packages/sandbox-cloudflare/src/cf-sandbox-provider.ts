@@ -201,7 +201,7 @@ export class CloudflareSandboxProvider implements HarnessV1SandboxProvider {
       return { ok: true };
     });
 
-  // ── inventory and reconciliation ───────────────────────────────────────────
+  // inventory and reconciliation
 
   /** Running computers. A stopped one has no runtime to observe: its workspace is a saved tar. */
   listManagedSessions = async (): Promise<readonly ManagedSandboxObservation[]> =>
@@ -225,7 +225,7 @@ export class CloudflareSandboxProvider implements HarnessV1SandboxProvider {
       await this.#containerFor(options.containerId).stop();
     });
 
-  // ── workspaces ─────────────────────────────────────────────────────────────
+  // workspaces
 
   /** Records the workspace. Nothing starts: the first start restores an empty one. */
   provisionWorkspace = async (options: { botId: string }): Promise<void> =>
@@ -291,7 +291,7 @@ export class CloudflareSandboxProvider implements HarnessV1SandboxProvider {
       await this.#control.retireProfile(options.computerId, options.botId);
     });
 
-  // ── plumbing ───────────────────────────────────────────────────────────────
+  // plumbing
 
   #containerFor(computerId: string): CloudflareContainer {
     let container = this.#containers.get(computerId);

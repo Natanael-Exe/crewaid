@@ -13,7 +13,7 @@ import { AttachmentSchema, MessageWithAttachmentsSchema } from './models.js';
 /**
  * The WebSocket contract.
  *
- * ⚠️ EVENT NAMES ARE CONTRACTUAL. `message.created` is not `messageCreated`, not
+ * EVENT NAMES ARE CONTRACTUAL. `message.created` is not `messageCreated`, not
  * `message_created`. The orchestrator gateway and the Electron client both
  * discriminate on these exact strings.
  *
@@ -100,7 +100,7 @@ export const BotStatusPayloadSchema = z.object({
 });
 
 /**
- * `run.started` (D-159 §3.8): a conversation run exists, whatever started it.
+ * `run.started`: a conversation run exists, whatever started it.
  * The account's windows join its delivery log (`GET /bots/:id/chat?runId=`);
  * the run's events never travel on this socket.
  */
@@ -236,7 +236,7 @@ export type UsageNoticePayload = z.infer<typeof UsageNoticePayloadSchema>;
  * (envelope validation, unknown type) as well as model errors. Every
  * MODEL-originated error uses a `ModelErrorCode` value from `agent.ts` — that
  * is the set the transcript switches on. `detail` is for logs and is never
- * rendered: PRD M1-BE-11's whole point is that no vendor string reaches the UI.
+ * rendered: PRD the whole point is that no vendor string reaches the UI.
  */
 export const ErrorPayloadSchema = z.object({
   code: z.string().min(1),

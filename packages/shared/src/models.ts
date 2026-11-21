@@ -31,7 +31,7 @@ import { ModelRefSchema } from './providers.js';
 /**
  * PRD §3 data model, one schema per Prisma model.
  *
- * ⚠️ FIELD NAMES ARE CONTRACTUAL. These mirror `prisma/schema.prisma` exactly.
+ * FIELD NAMES ARE CONTRACTUAL. These mirror `prisma/schema.prisma` exactly.
  * If you change a name here you have broken the orchestrator, the Electron
  * client, and every test in the repo simultaneously. Change the PRD first.
  *
@@ -41,10 +41,10 @@ import { ModelRefSchema } from './providers.js';
  */
 
 // User
-// Deviation 7: the four Better Auth columns sit beside §3's three, and
+// Deviation 7: the four Better Auth columns sit beside the three, and
 // `email` is no longer nullable. Every V1 sign-in method — Google, GitHub, a
 // magic link — reaches an account BY EMAIL, so a nullable address describes a
-// row nothing can sign into. §3's version described the seeded singleton,
+// row nothing can sign into. The version described the seeded singleton,
 // which had no way in and therefore needed none.
 
 export const UserSchema = z.object({
@@ -98,7 +98,7 @@ export const BotSchema = z.object({
    * resolves per-user against `UserSettings.defaultModelId`, not against a
    * process-wide environment variable.
    *
-   * ⚠️ NOT PARSEABLE. This was a `provider:model` registry key; anything
+   * NOT PARSEABLE. This was a `provider:model` registry key; anything
    * splitting it on ':' is now reading a cuid.
    */
   modelId: ModelRefSchema,
@@ -189,7 +189,7 @@ export const AttachmentSchema = z.object({
   mimeType: z.string().min(1),
   sizeBytes: z.number().int().nonnegative(),
   storageKey: z.string().min(1),
-  /** Defaulted, like D-131's fields, so a newer app reads an older orchestrator. */
+  /** Defaulted, like the fields, so a newer app reads an older orchestrator. */
   kind: AttachmentKindSchema.default('FILE'),
   /** A voice note's length, when it is known. */
   durationMs: z.number().int().nonnegative().nullable().default(null),
@@ -205,16 +205,16 @@ export const MessageSchema = z.object({
   /** Set when author = BOT. */
   fromBotId: CuidSchema.nullable(),
   content: z.string(),
-  /** AI SDK message parts, persisted verbatim (PRD M1). Never re-modelled. */
+  /** Structured message parts persisted verbatim. */
   parts: JsonSchema.nullable(),
   /** Finish reason, including the durable "interrupted" restart marker. */
   stopReason: z.string().nullable(),
-  /** Inter-bot conversation chain (PRD M7). */
+  /** Inter-bot conversation chain. */
   chainId: CuidSchema.nullable(),
   hopCount: z.number().int().nonnegative(),
   /**
    * The task this message is about — a Start brief, or work another bot
-   * delegated with `send_message({taskId})`. Defaulted, like D-131's fields, so
+   * delegated with `send_message({taskId})`. Defaulted, like the fields, so
    * a newer app reading an older orchestrator gets "no task" rather than a
    * CONTRACT failure on every transcript.
    */
@@ -245,13 +245,13 @@ export const AgentTurnSchema = z.object({
   triggerMessageId: CuidSchema,
   status: TurnStatusSchema,
   stepIndex: z.number().int().nonnegative(),
-  /** Array of completed AI SDK step results. */
+  /** Array of completed turn step results. */
   steps: JsonSchema,
   inputTokens: z.number().int().nonnegative(),
   outputTokens: z.number().int().nonnegative(),
   /**
    * D-009(3). Cached reads bill at a fraction of fresh input once CC-11 lands.
-   * These stay separate from `inputTokens` because §7.2's daily cap is a HARD
+   * These stay separate from `inputTokens` because the daily cap is a HARD
    * stop — conflating them means false halts or blown budgets, and CC-12's
    * per-provider cost table cannot be correct without the split.
    */
@@ -283,7 +283,7 @@ export const SandboxSchema = z.object({
    * bot's side, never this one.
    */
   userId: CuidSchema,
-  /** Harness session id, used for `resumeSession()` (PRD M2). */
+  /** Harness session id, used for `resumeSession`. */
   sessionId: z.string().min(1).nullable(),
   containerId: z.string().min(1).nullable(),
   state: SandboxStateSchema,
@@ -304,7 +304,7 @@ export const SandboxSchema = z.object({
    * `null` means "no evidence", not "never" — see the migration.
    */
   lastActiveAt: DateTimeSchema.nullable(),
-  /** §8's explicit keep-running lease. Past or `null` means no lease held. */
+  /** The explicit keep-running lease. Past or `null` means no lease held. */
   keepRunningUntil: DateTimeSchema.nullable(),
 });
 export type Sandbox = z.infer<typeof SandboxSchema>;
@@ -316,7 +316,7 @@ export const RecordingSchema = z.object({
   botId: CuidSchema,
   state: RecordingStateSchema,
   intent: z.string().nullable(),
-  /** False when Chrome/CDP was unreachable; capture degraded to X11 (PRD M4). */
+  /** False when Chrome/CDP was unreachable; capture degraded to X11. */
   cdpAvailable: z.boolean(),
   /** Why capture ended early; null when it ended when asked. */
   warning: RecordingWarningSchema.nullable(),
@@ -395,7 +395,7 @@ export const McpServerSchema = z
     id: CuidSchema,
     userId: CuidSchema,
     name: z.string().min(1),
-    /** Used for tool namespacing as `<slug>__<toolName>` (PRD M6). */
+    /** Used for tool namespacing as `<slug>__<toolName>`. */
     slug: SlugSchema,
     category: z.string().nullable(),
     iconUrl: z.string().nullable(),
@@ -432,7 +432,7 @@ export type McpServer = z.infer<typeof McpServerSchema>;
  * `McpOAuthFlow` row is deleted as the single-use row it is — so the
  * credential carries them from then on.
  *
- * ⚠️ NOT SECRET, and this is the one column on `McpCredential` that is not
+ * NOT SECRET, and this is the one column on `McpCredential` that is not
  * ciphertext: the client id is a PUBLIC PKCE client's (M6's registration asks
  * for `token_endpoint_auth_method: "none"`), the endpoint is a URL the user's
  * browser has already been sent to, and the resource is the server's own URL.
@@ -449,7 +449,7 @@ export const McpAuthMetadataSchema = z.object({
 export type McpAuthMetadata = z.infer<typeof McpAuthMetadataSchema>;
 
 /**
- * ⚠️ SECURITY. BOTH TOKEN COLUMNS are encrypted at rest with
+ * SECURITY. BOTH TOKEN COLUMNS are encrypted at rest with
  * CREDENTIAL_KEY before they reach Prisma; `authMetadata` is not, because it
  * holds no secret (see the schema above and D-103). This schema exists to
  * validate rows INSIDE the orchestrator only. It must never be used to shape
@@ -476,7 +476,7 @@ export const McpToolSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
   inputSchema: JsonSchemaObjectSchema,
-  /** Classified at list time — see PRD M6 read-only classification. */
+  /** Classified at list time — read-only classification. */
   readOnly: z.boolean(),
   refreshedAt: DateTimeSchema,
 });

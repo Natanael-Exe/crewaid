@@ -25,8 +25,8 @@ import { currentLocale, t } from '../i18n/i18n';
  *
  * The one rule this file is organised around
  *
- * There is no such thing as "the current key". The server never sends one back
- * (D-083), so this pane has nothing to pre-fill, nothing to mask, and nothing
+ * There is no such thing as "the current key". The server never sends one back,
+ * so this pane has nothing to pre-fill, nothing to mask, and nothing
  * to reveal. Everything below says whether a key IS STORED and when it was
  * set; nothing has a field for what it is.
  */

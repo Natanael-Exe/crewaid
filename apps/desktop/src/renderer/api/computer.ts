@@ -6,7 +6,7 @@ import {
 import type { ApiClient } from './apiClient';
 
 /**
- * D-237's snapshot routes: the caller's computer, addressed without an id.
+ * The snapshot routes: the caller's computer, addressed without an id.
  * Both writes answer 202 with the status; the pane reads GET again until
  * `activity` clears.
  */

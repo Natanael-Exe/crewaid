@@ -18,8 +18,8 @@
  *
  * `notion.svg` is the mark for the plugin whose slug is `notion`. That is the
  * whole convention, and it is deliberate: the slug is already on the wire,
- * already unique per user and already the key that namespaces a plugin's tools
- * (D-104), so nothing has to be added to `McpDirectoryEntry` to carry a
+ * already unique per user and already the key that namespaces a plugin's tools,
+ * so nothing has to be added to `McpDirectoryEntry` to carry a
  * filename the orchestrator would then own. A file whose name matches no
  * plugin is simply never drawn.
  *

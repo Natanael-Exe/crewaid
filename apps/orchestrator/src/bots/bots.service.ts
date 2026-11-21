@@ -84,7 +84,7 @@ export class BotsService {
       this.prisma.bot.findMany({
         where: { userId },
         orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
-        // D-191: the thread rides with the bot, so a client can address the
+        // The thread rides with the bot, so a client can address the
         // chat routes without a second lookup per bot.
         include: { sandbox: true, conversation: { select: { id: true } } },
       }),
@@ -100,14 +100,14 @@ export class BotsService {
   }
 
   /**
-   * D-192: the newest thing said in each bot's thread, keyed by bot.
+   * The newest thing said in each bot's thread, keyed by bot.
    *
    * One query for the whole sidebar, for the reason `unreadCounts` gives: the
    * comparison that picks a row crosses rows, so it belongs in the database
    * rather than in a read per bot.
    *
    * `content` is what was SAID. A reply's `parts` also carry the model's
-   * thinking (D-091), and a preview taken from those would put the reasoning
+   * thinking, and a preview taken from those would put the reasoning
    * that opened a turn under the bot's name in the sidebar. USER and BOT only:
    * a system notice and a tool result are not conversation. Blank rows are
    * skipped so a turn that only called tools does not blank the line — the
@@ -131,7 +131,7 @@ export class BotsService {
         // Flattened here rather than in the client: every client wants the
         // same one line, and a newline in the middle of a sidebar row is the
         // kind of thing each of them would otherwise fix differently. Raw SQL
-        // returns the stored value, which is sealed (D-236).
+        // returns the stored value, which is sealed.
         {
           text: openStoredMessageText(row.text).replace(/\s+/g, ' ').trim(),
           createdAt: row.createdAt,
@@ -141,13 +141,13 @@ export class BotsService {
   }
 
   /**
-   * D-131: each bot's messages newer than the user's last read, keyed by bot.
+   * Each bot's messages newer than the user's last read, keyed by bot.
    *
    * One aggregate query, independent of the number of conversations. The
    * timestamp comparison crosses rows, so it belongs in the database rather
    * than in a growing OR filter built from every conversation.
    *
-   * Only `author = BOT` counts, and a run's several rows count once (D-165):
+   * Only `author = BOT` counts, and a run's several rows count once:
    * the user's own words were read as written; a system or tool row said nothing.
    */
   private async unreadCounts(userId: string, botId?: string): Promise<Map<string, number>> {
@@ -190,7 +190,7 @@ export class BotsService {
   }
 
   /**
-   * A group named in a body has to be one of YOURS (D-131). The foreign key
+   * A group named in a body has to be one of YOURS. The foreign key
    * only proves the group exists; the path's bot being yours says nothing
    * about the group the body points it at. One answer for absent and foreign.
    */
@@ -229,7 +229,7 @@ export class BotsService {
             ...(input.approvalMode !== undefined && { approvalMode: input.approvalMode }),
           },
         });
-        // §3: one Conversation per Bot, created with it. Every bot is chatty
+        // One Conversation per Bot, created with it. Every bot is chatty
         // from birth — the conversation is where its messages live.
         await tx.conversation.create({ data: { botId: bot.id } });
         const computerId = await attachToComputer(tx, userId, bot.id, this.sandboxes);
@@ -242,11 +242,11 @@ export class BotsService {
   }
 
   /**
-   * A model reference names a row, and the row has to be one of YOURS (V1-14).
+   * A model reference names a row, and the row has to be one of YOURS.
    *
    * `Bot.modelId` is a plain string column holding either the `default` alias
    * or a `ProviderModel` id — not a foreign key, because it also has to hold
-   * the alias (D-082). So the database cannot refuse a foreign id, and neither
+   * the alias. So the database cannot refuse a foreign id, and neither
    * the ownership guard nor `findOwned` looks at it: the bot in the path is
    * genuinely the caller's, and only the BODY names somebody else's row.
    *
@@ -602,7 +602,7 @@ export class BotsService {
     };
   }
 
-  /** D-134: the open Work views learn which cards and deliverables just changed. */
+  /** The open Work views learn which cards and deliverables just changed. */
   private announceWork(
     userId: string,
     taskIds: readonly string[],

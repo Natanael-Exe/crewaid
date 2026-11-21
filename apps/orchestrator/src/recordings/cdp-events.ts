@@ -1,10 +1,9 @@
 /**
- * The CDP capture vocabulary, and the parser for what the page reports
- * (M4-BE-02).
+ * The CDP capture vocabulary, and the parser for what the page reports.
  *
  * The report crosses a trust boundary
  *
- * §6/M4's capture script is injected into the sandbox's browser, and the
+ * The capture script is injected into the sandbox's browser, and the
  * sandbox is the untrusted side of this process. The binding the
  * script reports over is callable by ANY script on the page: the page's own
  * code can invoke it with whatever JSON it likes, and so can whatever site the
@@ -148,7 +147,7 @@ export type CdpTraceType = CdpEventType | 'navigate' | 'load';
 export interface CapturedCdpEvent {
   readonly type: CdpTraceType;
   /**
-   * Flat, primitive, and sparse — the shape M3-BE-01's rows already use, for
+   * Flat, primitive, and sparse — the shape the rows already use, for
    * the same reasons: the compiler reads this as JSON, and a field that is
    * absent is a fact the event did not carry rather than a null to interpret.
    * The candidates are the one exception: a list of validated records rather

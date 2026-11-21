@@ -12,7 +12,7 @@ import { UsageService } from './usage.service.js';
  * and nothing else. PrismaModule is imported explicitly so an isolated test
  * bootstrap of this module resolves PrismaService without the app root.
  *
- * Reporting only. CC-26 removed §7.2's daily caps, so nothing here refuses a
+ * Reporting only. CC-26 removed the daily caps, so nothing here refuses a
  * turn — what was spent is told, never enforced.
  */
 @Module({

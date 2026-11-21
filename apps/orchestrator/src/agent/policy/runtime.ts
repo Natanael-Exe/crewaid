@@ -367,7 +367,7 @@ export function createPolicyRuntime(deps: {
         const finalArgs = plan.edited
           ? (plan.call.repackArgs?.(plan.call.args) ?? plan.call.args)
           : plan.rawArgs;
-        // D-197: anything but a read reserves its row before it runs, and a
+        // Anything but a read reserves its row before it runs, and a
         // call that already has one is answered from it, never run again.
         const effect = plan.call.behavior?.effect ?? 'unknown';
         let dispatch: string | undefined;

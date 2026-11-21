@@ -26,7 +26,7 @@ import { ModelSetupError } from './model-setup-error.js';
  * reading the caller's own rows, returning the connection, the upstream model
  * id, the capabilities and a callable model together.
  *
- * ⚠️ THERE IS NO GLOBAL AUTHENTICATED REGISTRY ANY MORE, and that is the
+ * THERE IS NO GLOBAL AUTHENTICATED REGISTRY ANY MORE, and that is the
  * point rather than a side effect. A process-wide registry holding three keys
  * cannot be correct on an install with two users: whichever key it holds is
  * somebody's, and every turn bills it.
@@ -242,7 +242,7 @@ export class ModelResolutionService {
    *
    * The fallback is the first model on an ACTIVE connection, ordered the way
    * the picker lists them — the model an operator would have picked if asked,
-   * and the same one `options()` now reports as the default, so the label and
+   * and the same one `options` now reports as the default, so the label and
    * the turn cannot disagree. `null` still means "there is genuinely nothing
    * to run": no model rows, or only ones whose connections need a key. That
    * case keeps `DefaultModelUnsetError`'s sentence, because "add a

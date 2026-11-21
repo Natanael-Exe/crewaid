@@ -65,7 +65,7 @@ export class SkillReviseService {
     const first = await this.ask(model, task, skill.name);
     let revised = first;
     if (!revised.ok) {
-      // The same single corrective retry the compile gives (§6/M3): the
+      // The same single corrective retry the compile gives: the
       // defects are sentences addressed to the model, and the change is still
       // in front of it.
       this.logger.warn(
@@ -117,7 +117,7 @@ ${answerInstructions(CompiledSkillSchema)}`,
       // converted here, where it is still known that a model was involved.
       // 503, not 400: the model or the network failed, and saying "your change
       // was bad" about a provider outage is the same wrong-system sentence
-      // D-044's normalizer exists to avoid.
+      // The normalizer exists to avoid.
       const refused = refuseModelFailure(error, 'revise', this.logger);
       throw new ServiceUnavailableException(refused.message);
     }
@@ -187,7 +187,7 @@ function isVersionWriteConflict(error: unknown): boolean {
  * that make the answer an EDIT rather than a fresh composition.
  *
  * `SKILL_CONTEXT_SOURCE` is the same source the compiler writes scripts
- * against, sent for the same reason (D-097's account of asking with what we
+ * against, sent for the same reason (the account of asking with what we
  * judge by): a paraphrase of the interface is how a revision emits a method
  * the runtime does not have.
  */

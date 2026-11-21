@@ -49,8 +49,8 @@ export interface LayerCounts {
 }
 
 /**
- * Told that capture has stopped itself, so the lifecycle can settle the row
- * (M3-BE-05). Called at most once per recording, from whichever of the two
+ * Told that capture has stopped itself, so the lifecycle can settle the row.
+ * Called at most once per recording, from whichever of the two
  * ceilings is reached first.
  */
 export type RecordingLimitListener = (
@@ -119,7 +119,7 @@ interface ActiveRecording {
 }
 
 /**
- * §4.3's tee: "if the bot has an active `Recording`, every validated
+ * The tee: "if the bot has an active `Recording`, every validated
  * inbound event is *also* written to the recording pipeline before being
  * forwarded. This is the entire recorder."
  *
@@ -134,7 +134,7 @@ interface ActiveRecording {
  * with no entry in this map belongs to a process that no longer exists, and
  * `RecordingsService` settles those on bootstrap. That reconciliation is what
  * lets this map be the authority — without it a crash would leave a row that
- * captures nothing yet still counts as work to §8's idle sweep, pinning a
+ * captures nothing yet still counts as work to the idle sweep, pinning a
  * container open for as long as the orchestrator runs.
  *
  * Why writes are batched and ordered
@@ -183,7 +183,7 @@ export class RecordingTeeService implements OnModuleDestroy {
    * thins the moves but not the clicks and keys, which a fast typist still
    * delivers faster than a UI repaints — on the same socket the desktop is
    * streaming over. One frame per interval carries exact counts and the type
-   * that produced it, which is everything M3-FE-01's live counter renders, at
+   * that produced it, which is everything the live counter renders, at
    * a rate a UI can actually paint.
    */
   static readonly NOTIFY_INTERVAL_MS = 100;
@@ -276,7 +276,7 @@ export class RecordingTeeService implements OnModuleDestroy {
   }
 
   /**
-   * §4.3's tee, on the input path.
+   * The tee, on the input path.
    *
    * Synchronous, unawaited and non-throwing by contract: the caller is
    * forwarding an RFB message to a container, and the recorder must never be
@@ -304,7 +304,7 @@ export class RecordingTeeService implements OnModuleDestroy {
     // is the only moment both masks exist, and a press is the difference
     // between them.
     const press = isClickPress(entry.coalescer, event);
-    // M3-BE-02: a move inside the 100 ms window contributes nothing here and is
+    // A move inside the 100 ms window contributes nothing here and is
     // held instead, so most events on a drag cost one comparison and no row.
     const emitted = coalesceInput(entry.coalescer, event, elapsedMs);
     if (emitted.length === 0) return;
@@ -335,9 +335,9 @@ export class RecordingTeeService implements OnModuleDestroy {
   }
 
   /**
-   * The CDP half of the same trace (M4-BE-02).
+   * The CDP half of the same trace.
    *
-   * ── WHY THIS GOES THROUGH THE X11 WRITER RATHER THAN A SECOND ONE ──────────
+   * Why this goes through the x11 writer rather than a second one
    *
    * `tsOffsetMs` is the trace's only order — §3 indexes on
    * `[recordingId, tsOffsetMs]` and carries no tiebreaker. Two producers
@@ -354,7 +354,7 @@ export class RecordingTeeService implements OnModuleDestroy {
    * at it, and to fail the recording if it cannot be written, exactly as an
    * X11 one does.
    *
-   * ── WHY NO COALESCING ───────────────────────────────────────────────────────
+   * Why no coalescing
    *
    * The X11 coalescers exist because RFB samples are not events: a drag
    * delivers dozens of positions per second and only the endpoints mean
@@ -405,7 +405,7 @@ export class RecordingTeeService implements OnModuleDestroy {
 
   /**
    * Whether this recording has reached a ceiling, stopping capture when it
-   * has (M3-BE-05).
+   * has.
    *
    * Both producers check it on the way in — before a frame is captured, so a
    * recording that ran out of budget captures nothing further — and on the
@@ -468,7 +468,7 @@ export class RecordingTeeService implements OnModuleDestroy {
 
   /**
    * PRD §6/M3: "On every button-down, capture a screenshot via the bridge and
-   * store a 200x200 px crop centered on the click point." (M3-BE-04)
+   * store a 200x200 px crop centered on the click point."
    *
    * Started here and awaited in `drain`, which is what keeps a stored key
    * honest: the row naming a crop is written only once that crop is on disk,

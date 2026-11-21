@@ -33,7 +33,7 @@ export type RoutineRunOutcome =
  * operator started — approvals, limits, memory, waking the computer on demand
  * — is one a scheduled turn needs too. A parallel "routine turn" would be a
  * second copy of all of it. What the row does not yet say is that a schedule
- * sent it; that is §6/M8's provenance, and it lands with the task that
+ * sent it; that is the provenance, and it lands with the task that
  * defines it rather than as a guess here.
  *
  * The job waits for the work
@@ -131,7 +131,7 @@ export class RoutineRunnerService {
    * released on every path by `withComputer`.
    *
    * A skill routine needs none of this: `SkillRunService` already runs every
-   * skill inside `withComputer(..., 'skill', ...)`.
+   * skill inside `withComputer(..., 'skill',...)`.
    */
   private async runPrompt(
     userId: string,

@@ -21,12 +21,12 @@ import { MACHINE_HOME, resolveWorkspacePath } from './workspace-paths.js';
  *
  * Where these sit
  *
- * `shell()` bypasses every path check `fs_read` and `fs_write` make — it
+ * `shell` bypasses every path check `fs_read` and `fs_write` make — it
  * executes as the same uid and can read anything that uid can. So the scoping
  * in `workspace-paths.ts` is a guardrail against a confused model, never a
  * boundary against a determined one. The boundary is the container, and
- * under D-046 it is per user. That is the argument for being strict in the
- * tools that CAN check, not against it: §6/M5's rejection cases are the
+ * it is per user. That is the argument for being strict in the
+ * tools that CAN check, not against it: the rejection cases are the
  * mistakes a model makes, not the attacks a jailbreak mounts.
  *
  * `shell` is also the one tool §6/M5 singles out as "always requires approval
@@ -56,8 +56,8 @@ const MAX_WRITE_BYTES = 1024 * 1024;
  * nothing stopped the command. A `pnpm install` outlived the turn that asked
  * for it, and kept going after the operator had moved on — not for the two
  * minutes the constant suggests, but until it finished on its own. Measured,
- * not assumed: neither `spawn().kill()` nor an aborted `run()` stops a
- * process the sandbox started (M5-QA-06's evidence directory).
+ * not assumed: neither `spawn.kill` nor an aborted `run` stops a
+ * process the sandbox started (the evidence directory).
  */
 const SHELL_TIMEOUT_S = 120;
 const SHELL_TIMEOUT_MS = SHELL_TIMEOUT_S * 1000;
@@ -142,7 +142,7 @@ function failure(action: string, error: unknown): string {
  * Bound what reaches the model, and say what was cut.
  *
  * §6/M5 truncates a tool result at 100 KB before the model sees it, and that
- * general seam is `tool-result-projection.ts` (M5-BE-12): the registry hangs
+ * general seam is `tool-result-projection.ts`: the registry hangs
  * the ceiling on every tool's `toModelOutput` on the way out, so a tool that
  * bounds nothing is still bounded. These two cap lower and locally because
  * they are the ones that can produce arbitrary output on purpose — a `cat` of
@@ -188,7 +188,7 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
             // the orchestrator still needs.
             return { bytes: png.byteLength, base64: png.toString('base64') };
           },
-          // §6/M5: "returns an image part to the model". The SDK's own
+          // "returns an image part to the model". The SDK's own
           // mechanism, so the image reaches the provider as a file part rather
           // than as base64 inside a JSON string no model can see. The shape is
           // `@ai-sdk/provider`'s tagged file data — read off the live V4 union
@@ -208,7 +208,7 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
     },
     {
       name: 'shell',
-      // The one built-in classified `sensitive` (D-092), and not because the
+      // The one built-in classified `sensitive`, and not because the
       // container is precious: a shell is unbounded — it has the network, the
       // package manager and every file the bot can reach — so what it can do
       // is not a property of the tool but of the command. A bot whose rule
@@ -233,7 +233,7 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
           ) => {
             if (command.trim() === '') return 'shell failed: a command is required';
 
-            // The bot's OWN area, which the command starts in (§19). The
+            // The bot's OWN area, which the command starts in. The
             // mkdir + cd ride INSIDE the bash script rather than trusting
             // the exec's workingDirectory alone: a freshly provisioned
             // volume has no per-bot directories yet, and an exec whose
@@ -245,7 +245,7 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
             // M5-BE-31. The handler goes on BEFORE anything is awaited, and
             // that ordering is the whole fix. `addEventListener('abort')`
             // never fires on a signal that has ALREADY aborted, so a listener
-            // registered after `context.session()` — which can take seconds
+            // registered after `context.session` — which can take seconds
             // when the machine has to wake — silently does nothing whenever
             // the cancel lands during that wait. Measured: the listener fired
             // about one run in three, and the first reading of that was
@@ -291,7 +291,7 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
               // means a command that ignores TERM is still gone.
               //
               // `setsid` and the tag are M5-BE-31's, and they are needed
-              // BECAUSE of the bound: an aborted `run()` reaches the process
+              // BECAUSE of the bound: an aborted `run` reaches the process
               // it started, which once the command is wrapped is `timeout` —
               // the shell under it and everything that shell spawned are
               // children that outlive it. So the command gets a session of
@@ -311,7 +311,7 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
               // A machine that cannot hand one over is not a reason to refuse
               // the command: `ls`, `git` and `pnpm` have nothing to do with a
               // display, and the resolution failure that matters (the container
-              // gone) surfaces from `run()` below with its own message.
+              // gone) surfaces from `run` below with its own message.
               let env: Record<string, string>;
               try {
                 env = seatEnv(await deps.machines.ensureSeatFor(context.botId));

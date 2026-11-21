@@ -37,26 +37,11 @@ import { computerOfBot } from '../sandbox/attached-computer.js';
 /** What a compile asks: the run engine's adapter for the bot's model. */
 type TextModel = Pick<ResolvedTextModel, 'adapter'>;
 /**
- * The `skill.compile` job.
+ * Background `skill.compile` job.
  *
- * WHY THIS IS A JOB AND NOT PART OF `stop`
- *
- * REST calls the route "stop and enqueue compilation", and the split is the
- * point: stopping is a keystroke's worth of work and compiling is a model call
- * that §6 gives a bounded model-call budget. A stop that waited would hold an HTTP request
- * open across a provider outage, and the operator has nothing to do with the
- * answer anyway — WebSocket tells them when it lands.
- *
- * Why the job holds no lock
- *
- * `RecordingsService` serialises its transitions per recording, and this
- * deliberately stays outside that chain: holding it across a model call would
- * block every read of the row for the duration. Instead the row's own state IS
- * the claim. Capture already moved it to `COMPILING`, and every write here is
- * a compare-and-set pinned to that state, so a job that runs twice — BullMQ
- * retries, two workers, a redelivery after a crash — settles once and the
- * loser writes nothing. It is the same fencing `SandboxHealthService` uses on
- * `Sandbox.state`, for the same reason.
+ * Runs asynchronously outside `RecordingsService`'s per-recording lock; every
+ * write is fenced by a compare-and-set on `state: 'COMPILING'` so duplicate or
+ * retried deliveries settle cleanly at most once.
  */
 @Injectable()
 export class SkillCompileService {
@@ -134,9 +119,9 @@ export class SkillCompileService {
     try {
       return await this.prisma.recording.findUnique({
         where: { id: recordingId },
-        // V1-06: `userId` too. A model reference means nothing without an
+        // `userId` too. A model reference means nothing without an
         // owner now — which connection serves it, and whose key pays for
-        // it, are properties of the bot's user (D-086).
+        // it, are properties of the bot's user.
         include: { bot: { select: { modelId: true, userId: true } } },
       });
     } catch (error: unknown) {
@@ -160,7 +145,7 @@ export class SkillCompileService {
       this.prisma.recordingEvent.findMany({
         where: { recordingId },
         orderBy: { tsOffsetMs: 'asc' },
-        // `id`/`correlatedWithId` are M4-BE-06's inputs: the fold pairs the
+        // `id`/`correlatedWithId` are the inputs: the fold pairs the
         // rows the correlator proved are one action by their mutual
         // references, and reads each row's own `type` (`pointer` press vs
         // `click` report) to tell the two apart — none of that may be
@@ -184,7 +169,7 @@ export class SkillCompileService {
       throw new CompileRefused('the recording captured no events, so there is nothing to compile');
     }
 
-    // §6/M4's "the compiler must not emit both": every correlated X11+CDP
+    // The "the compiler must not emit both": every correlated X11+CDP
     // pair becomes ONE row before anything else reads the trace — the crops,
     // the model's prompt and the truncation judgement all see the folded
     // form, so "one action, one step" is a property of the input rather than
@@ -198,7 +183,7 @@ export class SkillCompileService {
 
     const resolved = await this.models.resolveText(options.userId, options.modelId);
     const model = resolved;
-    // D-042: a trace a hard limit cut off is decided, never silently compiled.
+    // A trace a hard limit cut off is decided, never silently compiled.
     if (options.warning !== null) {
       await this.judgeTruncated(recordingId, model, intent, screen, folded, options.warning);
     }
@@ -206,7 +191,7 @@ export class SkillCompileService {
     const crops = resolved.capabilities.vision
       ? await this.readCrops(selectCrops(cropCandidatesOf(folded), screen))
       : [];
-    // §6: "screenshots referenced by index" — the index is the position of an
+    // "screenshots referenced by index" — the index is the position of an
     // image this request actually attaches, so a crop whose file could not be
     // read renumbers the rest instead of leaving a reference that points at
     // the wrong picture (or past the end of what was sent).
@@ -220,8 +205,8 @@ export class SkillCompileService {
     const first = validateCompiled(await this.askModel({ model, task, images }));
     if (first.ok) return first.skill;
 
-    // §6's acceptance criteria: "Enforced by a validator that retries once
-    // with a corrective message before failing" (M3-BE-08). The retry is a
+    // The acceptance criteria: "Enforced by a validator that retries once
+    // with a corrective message before failing". The retry is a
     // fresh request — a model has no memory of the rejected answer — so the
     // message names every defect and restates the shape it must return.
     this.logger.warn(
@@ -246,7 +231,7 @@ export class SkillCompileService {
    * Both attempts go through here so the retry carries the same schema, the
    * same system prompt, the same trace and the same images as the first call
    * — only the correction is new. Anything else would make the second attempt
-   * a different question, and §6's rule is about making the model answer the
+   * a different question, and the rule is about making the model answer the
    * SAME question correctly.
    *
    * Each attempt gets its own deadline rather than sharing one across the
@@ -288,7 +273,7 @@ export class SkillCompileService {
   ): Promise<string> {
     // R3: a resolved model, never an endpoint. `Bot.modelId` may be the
     // "default" alias, which resolves against the OWNER's chosen default
-    // (D-086) — not a process-wide environment variable.
+    // — not a process-wide environment variable.
     const reply = await withDeadline(SkillCompileService.DEADLINE_MS, (signal) =>
       askModelText(input.model, {
         system: `${SYSTEM_PROMPT}
@@ -336,7 +321,7 @@ ${answerInstructions(CompilabilitySchema)}`,
           signal,
         }),
       );
-      // A single bounded attempt, per D-042: an answer that cannot be judged
+      // A single bounded attempt: an answer that cannot be judged
       // settles the recording rather than falling through to a compile. The
       // same sentence pattern as the model-failure catch below — the
       // operator reads the truncation context, not just the parse verdict.
@@ -374,11 +359,11 @@ ${answerInstructions(CompilabilitySchema)}`,
   }
 
   /**
-   * §6: "the sandbox resolution".
+   * "the sandbox resolution".
    *
    * Refused rather than defaulted when the row is gone. Every coordinate in
    * the trace is meaningless without the screen it was measured on, and
-   * quietly substituting §5.1's 1280x800 would tell the model something that
+   * quietly substituting the 1280x800 would tell the model something that
    * might not be true about the desktop these clicks landed on.
    */
   private async screenOf(botId: string): Promise<ScreenSize> {
@@ -435,9 +420,9 @@ ${answerInstructions(CompilabilitySchema)}`,
    * was never written is a dead end the UI reports as success; a skill whose
    * recording is still `COMPILING` is work that looks unfinished forever.
    *
-   * `compiled` arrives already validated (M3-BE-08): the name is snake_case
+   * `compiled` arrives already validated: the name is snake_case
    * and `paramsSchema` is assembled, so everything this method writes has
-   * passed §6's output checks exactly once — in the validator, where the
+   * passed the output checks exactly once — in the validator, where the
    * corrective retry can still act on a refusal.
    */
   private async persist(
@@ -471,14 +456,14 @@ ${answerInstructions(CompilabilitySchema)}`,
           name: compiled.name,
           description: compiled.description,
           paramsSchema: compiled.paramsSchema,
-          // D-098's column: the summary a person reviews instead of the
+          // The column: the summary a person reviews instead of the
           // source. A spread, not an assignment — the validated list is
           // readonly and Prisma's Json write input is not.
           steps: [...compiled.steps],
           script: compiled.script,
           version: (latest?.version ?? 0) + 1,
-          // §6: "Stopping produces a DRAFT skill". Approval is a human act
-          // (M3-BE-09), and nothing model-generated may run unreviewed (§7.3).
+          // "Stopping produces a DRAFT skill". Approval is a human act
+          //, and nothing model-generated may run unreviewed.
           status: 'DRAFT',
           sourceRecordingId: recordingId,
         },
@@ -498,7 +483,7 @@ ${answerInstructions(CompilabilitySchema)}`,
   }
 
   /**
-   * Settle a compile that could not produce a skill, with the reason (D-044).
+   * Settle a compile that could not produce a skill, with the reason.
    *
    * The compare-and-set comes first and stands alone: it is the row write
    * everything else exists for, so nothing that only serves the notification
@@ -544,7 +529,7 @@ ${answerInstructions(CompilabilitySchema)}`,
   }
 
   /**
-   * Settle a recording whose job the machinery abandoned (D-044).
+   * Settle a recording whose job the machinery abandoned.
    *
    * Called from the worker's `failed` event by `SkillCompileProcessor` — a
    * stall past its allowance, a worker gone mid-job, a connection lost —
@@ -651,7 +636,7 @@ reason: one sentence naming the evidence that decided it; it is shown to the ope
 the answer is no.`;
 
 /**
- * The user turn: §6's "intent, trace, resolution, crops", in that order.
+ * The user turn: the "intent, trace, resolution, crops", in that order.
  * `warning` adds the truncation note when a hard limit cut the capture short.
  */
 function describeTask(

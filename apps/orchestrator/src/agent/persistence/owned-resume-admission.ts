@@ -23,7 +23,7 @@ import {
  * repeats a possibly committed action. A second admission finds no pending
  * private proposal and is refused, so an approval is answered exactly once.
  *
- * `runId` is the id the client chose for the continuation (D-160 §3.1). The
+ * `runId` is the id the client chose for the continuation. The
  * client's run id IS the run id: a client that streams its answer under one id
  * and receives a run under another cannot tell the reply it is watching from
  * one another window started, and renders both.
@@ -72,7 +72,7 @@ export async function admitOwnedToolResumeBatch(
         });
         if (staged.count !== 1) throw new InterruptStoreError('INVALID_INTERRUPT_BATCH');
       }
-      // D-160's active key is unique across every run: a same-bot owner admits nothing.
+      // The active key is unique across every run: a same-bot owner admits nothing.
       const workerId = randomUUID();
       const continuation = await tx.agentTurn.create({
         data: {

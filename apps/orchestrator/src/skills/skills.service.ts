@@ -23,7 +23,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
  * §3 keys skills `[botId, name, version]`, and M3's acceptance criteria say
  * "editing and saving a script bumps `version` and keeps the previous version
  * queryable" — a single row cannot satisfy both halves, which is exactly what
- * D-009's dropped `sourceRecordingId @unique` was for. So PATCH does not
+ * The dropped `sourceRecordingId @unique` was for. So PATCH does not
  * mutate the row it was given: it writes the NEXT version as a new row and
  * leaves the old one untouched and fetchable by its own id. The response is
  * the new row, and the client switches to its id.
@@ -49,7 +49,7 @@ export class SkillsService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   /**
-   * The latest version of each skill name (M3-BE-09's list contract).
+   * The latest version of each skill name (the list contract).
    *
    * `distinct` is the SQL-side dedupe: ordering by [botId, name, version desc]
    * and keeping the first row per [botId, name] is "the newest version of each
@@ -142,7 +142,7 @@ export class SkillsService {
    * DRAFT only, and a 409 otherwise rather than a quieter fallback. A draft
    * was never runnable (§6: only an APPROVED skill can run), so no run
    * references the row and deleting it leaves nothing dangling — while an
-   * APPROVED version's runs point at it, and M3-BE-09's versioning promise
+   * APPROVED version's runs point at it, and the versioning promise
    * ("the previous version stays queryable") is exactly what a delete must
    * not punch a hole in. The compare-and-set mirrors `approve`: `deleteMany`
    * counts, so a row that moved between the read and the write answers 409
@@ -281,7 +281,7 @@ export class SkillsService {
 }
 
 /**
- * §3's `paramsSchema` column, read back for the next version.
+ * The `paramsSchema` column, read back for the next version.
  *
  * Prisma types a Json READ as `JsonValue` (which admits null) and a Json WRITE
  * as `InputJsonValue` (which does not), so copying a column forward is not an
@@ -307,7 +307,7 @@ function carriedParamsSchema(value: unknown) {
 }
 
 /**
- * D-098's `steps` column, read back for the next version.
+ * The `steps` column, read back for the next version.
  *
  * The same narrow as `carriedParamsSchema` and for the same reason: Prisma
  * types a Json READ as `JsonValue` (which admits null) and a Json WRITE as

@@ -14,7 +14,7 @@ import { MACHINE_HOME } from './workspace-paths.js';
 
 /**
  * The machine-level built-ins: eyes, hands and a camera on the bot's own
- * desktop (§6/M5's `screenshot`/`shell` captured the PAGE and the terminal;
+ * desktop (the `screenshot`/`shell` captured the PAGE and the terminal;
  * these reach the screen a human would see).
  *
  * Every one of them works the same way, and the way matters: they resolve the
@@ -249,7 +249,7 @@ export function machineTools(deps: {
                 // process. `$!` is then genuinely ffmpeg's pid (one backgrounded
                 // simple command, not a `&&` list, where it would name the
                 // wrapping subshell). Output is redirected so no stream is left
-                // open for `run()` to wait behind, and `-t` is ffmpeg's OWN
+                // open for `run` to wait behind, and `-t` is ffmpeg's OWN
                 // bound — a recording the turn never stops still ends, the
                 // same way `timeout` bounds a shell command on the machine.
                 command:
@@ -352,11 +352,11 @@ export function machineTools(deps: {
               const stored = await deps.attachments.storeFromBot({
                 userId: context.userId,
                 // Claims this call's own host, exactly as attach_file does:
-                // the reply being composed, or this call's tool result (D-190).
+                // the reply being composed, or this call's tool result.
                 messageId: await context.attachmentHost(options.toolCallId),
                 filename: video.split('/').pop() ?? 'screen-recording.mp4',
                 bytes: Buffer.from(bytes),
-                // D-136: evidence is a deliverable too, filed like any other.
+                // Evidence is a deliverable too, filed like any other.
                 filing: { triggerMessageId: context.trigger.id, sourcePath: video },
               });
               return (

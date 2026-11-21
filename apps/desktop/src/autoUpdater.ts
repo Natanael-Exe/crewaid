@@ -2,7 +2,7 @@ import electronUpdater from 'electron-updater';
 import type { UpdaterPort } from './updater.js';
 
 /**
- * ⚠️ The only file that imports `electron-updater`.
+ * The only file that imports `electron-updater`.
  *
  * It requires a real Electron main process, so the decisions live in
  * `updater.ts` behind `UpdaterPort` and are tested there with a fake; this

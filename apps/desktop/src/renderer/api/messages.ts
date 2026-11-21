@@ -8,8 +8,8 @@ import {
 import type { ApiClient } from './apiClient';
 
 /**
- * REST message routes that outlived the AI SDK engine: deleting and
- * `/new`. A person's message and the bot's reply travel over the chat route.
+ * REST message helpers for deleting messages and starting a new session (`/new`).
+ * User messages and bot replies travel over the chat route.
  */
 
 /**

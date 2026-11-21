@@ -138,7 +138,7 @@ export class CloudflareControl {
         socket.off('error', onError);
         resolve(socket);
       });
-      // Kept through a refused handshake: terminate() emits an 'error' as it
+      // Kept through a refused handshake: terminate emits an 'error' as it
       // tears the request down, and one with no listener ends the process.
       socket.on('error', onError);
       socket.once('unexpected-response', (_request, response) => {

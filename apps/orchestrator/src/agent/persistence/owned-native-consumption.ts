@@ -13,7 +13,7 @@ import { InterruptStoreError } from './prisma-interrupt-store.js';
 import { RunOwnershipError } from './run-lease.js';
 
 /**
- * D-182's two authorities, applied before a resumed producer dispatches or
+ * The two authorities, applied before a resumed producer dispatches or
  * consumes anything. Both read the decision admission staged on the private
  * proposal row and treat it as the only truth: the runtime's claimed answer is
  * checked against it, never trusted. An approved call is handed the stored

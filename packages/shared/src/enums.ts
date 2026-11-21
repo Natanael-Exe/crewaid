@@ -14,7 +14,7 @@ export const MessageAuthorSchema = z.enum(['USER', 'BOT', 'SYSTEM', 'TOOL']);
 export type MessageAuthor = z.infer<typeof MessageAuthorSchema>;
 
 /**
- * D-159 §3.5: the library's run vocabulary, so a run's status crosses no
+ * The library's run vocabulary, so a run's status crosses no
  * translation. `interrupted` waits for a person and is not terminal; a run
  * whose worker died is `failed`, with `WORKER_LOST` as its error code.
  */
@@ -41,7 +41,7 @@ export type RecordingState = z.infer<typeof RecordingStateSchema>;
 
 /**
  * Why a recording stopped itself, rather than because someone asked it to
- * (§6/M3's hard limits, M3-BE-05).
+ * (the hard limits, M3-BE-05).
  *
  * `READY` alone cannot say this: a recording the user stopped and one the
  * 5000-event ceiling cut off settle to the same state, and the difference is
@@ -51,7 +51,7 @@ export type RecordingState = z.infer<typeof RecordingStateSchema>;
 export const RecordingWarningSchema = z.enum(['EVENT_LIMIT', 'TIME_LIMIT']);
 export type RecordingWarning = z.infer<typeof RecordingWarningSchema>;
 
-/** `ATSPI` exists in v1 but stays unused — see PRD §9. */
+/** `ATSPI` exists in v1 but stays unused — */
 export const CaptureLayerSchema = z.enum(['X11', 'CDP', 'ATSPI']);
 export type CaptureLayer = z.infer<typeof CaptureLayerSchema>;
 
@@ -62,8 +62,8 @@ export const RunStatusSchema = z.enum(['PENDING', 'RUNNING', 'SUCCEEDED', 'FAILE
 export type RunStatus = z.infer<typeof RunStatusSchema>;
 
 /**
- * Who created a `Routine`. A bot may schedule its own follow-ups
- * (M8-BE-08); the operator sees, audits and deletes them beside their own.
+ * Who created a `Routine`. A bot may schedule its own follow-ups;
+ * the operator sees, audits and deletes them beside their own.
  */
 export const RoutineOriginSchema = z.enum(['OPERATOR', 'BOT']);
 export type RoutineOrigin = z.infer<typeof RoutineOriginSchema>;

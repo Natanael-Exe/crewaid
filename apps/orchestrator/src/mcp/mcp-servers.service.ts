@@ -249,7 +249,7 @@ export class McpServersService {
     await this.prisma.mcpServer.deleteMany({ where: { id: serverId, userId } });
   }
 
-  // ── Tool refresh & execution ─────────────────────────────────────────────
+  // Tool refresh & execution
 
   refreshTools(userId: string, serverId: string): Promise<WireServer> {
     // Coalesce concurrent refreshes per (userId, serverId) so rotating grants are not spent twice.
@@ -366,7 +366,7 @@ export class McpServersService {
     }
   }
 
-  // ── GitHub proxy facade ──────────────────────────────────────────────────
+  // GitHub proxy facade
 
   githubAccess(userId: string, botId: string, serverId: string) {
     return resolveGitHubAccess(this.prisma, userId, botId, serverId);
@@ -432,7 +432,7 @@ export class McpServersService {
     );
   }
 
-  // ── Authorized connection & credential renewal ───────────────────────────
+  // Authorized connection & credential renewal
 
   private async credentialFor(
     server: McpServer,
@@ -623,7 +623,7 @@ export class McpServersService {
     throw new ConflictException(message);
   }
 
-  // ── Tool cache & internal helpers ────────────────────────────────────────
+  // Tool cache & internal helpers
 
   private async cacheTools(
     server: McpServer,

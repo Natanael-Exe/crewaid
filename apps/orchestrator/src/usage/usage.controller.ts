@@ -14,7 +14,7 @@ import { UsageService } from './usage.service.js';
  *
  * The controller is the door: shape validation happens in the shared Zod
  * schema (ZodValidationPipe), range semantics and the aggregation live in
- * UsageService, and the principal comes from AuthGuard via `@CurrentUser()`
+ * UsageService, and the principal comes from AuthGuard via `@CurrentUser`
  * like every other route. The response is built to UsageResponseSchema and
  * parsed back through it by the integration suite — wire conformance is
  * proven there, not asserted here.

@@ -622,7 +622,7 @@ function NoteInput({ onAdd }: { onAdd: (text: string) => void }) {
   );
 }
 
-/** "Assign & start": pick the bot, and the same press starts it (D-135). */
+/** "Assign & start": pick the bot, and the same press starts it. */
 function AssignAndStart({
   bots,
   onPick,

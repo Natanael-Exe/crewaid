@@ -28,7 +28,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
  *
  * The turn that STARTED the chain. Its run's trigger is the message whose id
  * IS the chain's, so it is in the sum — and that is the honest reading of
- * §6/M7's "actual tokens spent" for the notice that stops the chain: the
+ * The "actual tokens spent" for the notice that stops the chain: the
  * first bot's work answering the operator is what can push a chain over, and
  * a wall that ignored it would arrive one hop late. Everything from that
  * first answer onwards is in, including the reply each recipient composes.
@@ -38,7 +38,7 @@ export class ChainBudgetService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   /**
-   * §6/M7's "more than 3 messages to the same bot within one chain", counted.
+   * The "more than 3 messages to the same bot within one chain", counted.
    *
    * The delivered rows ARE the count: each is a message in the receiving
    * bot's conversation carrying the chain and the sender's id, so nothing

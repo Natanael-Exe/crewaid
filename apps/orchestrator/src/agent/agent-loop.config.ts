@@ -1,5 +1,5 @@
 /**
- * §6/M5's loop safety limits, read from the environment.
+ * The loop safety limits, read from the environment.
  *
  * Read once, at construction, and a malformed value throws there — the
  * `auth.guard.ts` pattern, for the same reason `sandbox.config.ts` uses it: a
@@ -13,21 +13,10 @@
  * beside them rather than in a second copy somewhere else.
  */
 
-/**
- * "25 tool calls per user turn (`stopWhen`)".
- *
- * This bounds STEPS, which is what `stepCountIs` counts: one step is one
- * model call plus any tools it asked for. A step can carry several tool
- * calls, so 25 steps is an upper bound on model calls and a lower bound on
- * tool calls — the axis `stopWhen` actually controls, and the one an operator
- * raising this number is paying for.
- *
- * The AI SDK's own default is 20, not 25 — which is why this is passed
- * explicitly on every agent rather than left to the framework.
- */
+/** Default per-turn step ceiling (each step is one model call plus its tool calls). */
 export const DEFAULT_MAX_STEPS = 25;
 
-/** `AGENT_MAX_STEPS` — §6/M5's per-turn step ceiling. */
+/** `AGENT_MAX_STEPS` — the per-turn step ceiling. */
 export function readMaxSteps(raw: string | undefined): number {
   if (raw === undefined || raw.trim() === '') return DEFAULT_MAX_STEPS;
   const parsed = Number(raw);
@@ -42,7 +31,7 @@ export function readMaxSteps(raw: string | undefined): number {
 }
 
 /**
- * §6/M5: `prepareStep` trims context. This is the measured size at which it
+ * `prepareStep` trims context. This is the measured size at which it
  * starts.
  *
  * The number is the PREVIOUS step's input tokens as the provider counted
@@ -78,7 +67,7 @@ export function readContextTrimTokens(raw: string | undefined): number {
 }
 
 /**
- * §6/M5: "150,000 accumulated input tokens per turn."
+ * "150,000 accumulated input tokens per turn."
  *
  * The number is written down here because it is the one §6/M5 specifies and
  * an operator who wants the specified behaviour needs something to copy. It
@@ -88,49 +77,24 @@ export function readContextTrimTokens(raw: string | undefined): number {
  * provider counted as input for each. It grows faster than a reader expects,
  * because every step re-sends the history: a turn of twenty steps at a steady
  * 8k of context has accumulated 160k input tokens without ever having sent a
- * large prompt. That is the number this bounds, and the reason D-048's trim
+ * large prompt. That is the number this bounds, and the reason the trim
  * is the thing that keeps a long turn under it.
  */
 export const SPECIFIED_MAX_TURN_TOKENS = 150_000;
 
 /**
- * §6/M5: "10-minute wall-clock timeout per turn." Specified, not default.
+ * "10-minute wall-clock timeout per turn." Specified, not default.
  */
 export const SPECIFIED_MAX_TURN_MS = 600_000;
 
 /**
- * Both token and time ceilings ship OFF (D-047: "the accounting stays, the
- * default stops being a refusal").
- *
- * These two are exactly the shape D-047's argument is about — a wall that
- * refuses work the operator asked for, hit while the bot is doing the job it
- * was given. The accounting runs either way, every stop is logged and named,
- * and an operator who wants the §6/M5 numbers sets the two keys above.
- *
- * The step ceiling is deliberately not in this family and stays on at 25:
- * "off" is not a state the loop has. An agent built with no stop condition
- * runs 20 steps — the AI SDK's own default, measured against ai@7.0.89 — so
- * removing our ceiling does not remove a ceiling, it installs a lower one.
+ * Token and duration ceilings ship disabled (`0`) by default while accounting
+ * remains active; operators can opt in via environment variables. The step
+ * ceiling stays enabled at 25 so a runaway loop always terminates.
  */
+/** Maximum prior messages seeded into a new turn (40 ≈ 20 exchanges). */
 /**
- * How many earlier messages a turn is seeded with (M5-BE-29).
- *
- * A bound is not optional here. `prepareStep`'s trim (M5-BE-02) fires off the
- * PREVIOUS step's reported input tokens, so it cannot protect the FIRST call
- * of a turn — and the first call is the one that carries the whole seeded
- * history. An unbounded seed would send a year of conversation before any
- * measurement exists to trim it.
- *
- * Counted in messages rather than tokens because the seed is text-only (see
- * `conversationSeed`) and a count is the thing an operator can reason about:
- * "the last twenty exchanges". Growth WITHIN a turn is the trim's job, and it
- * has a real token measurement to do it with.
- *
- * 40 is twenty exchanges, which is well past where a chat turns into a new
- * subject and far short of anything a 200k window notices.
- */
-/**
- * How many times a turn stopped by a ceiling may be continued (M5-BE-19).
+ * How many times a turn stopped by a ceiling may be continued.
  *
  * §6/M5 ends a turn that hits a limit with a system message and IDLE, and
  * nothing read that message — so a bot with half a task done stopped until a
@@ -140,12 +104,12 @@ export const SPECIFIED_MAX_TURN_MS = 600_000;
  * can see.
  *
  * It needs a bound of its OWN rather than relying on the ceilings, because
- * two of the three ship off (D-052) — "the limits will stop it" is not true
+ * two of the three ship off — "the limits will stop it" is not true
  * here. Three continuations is four turns, so 100 steps at the default step
  * ceiling: enough for real unattended work, and short enough that a model
  * looping on a bad plan stops being expensive before anyone notices it.
  *
- * `0` disables continuation entirely and restores §6/M5's stop-and-wait.
+ * `0` disables continuation entirely and restores the stop-and-wait.
  */
 export const DEFAULT_MAX_CONTINUATIONS = 3;
 
@@ -179,16 +143,16 @@ export function readHistoryMessages(raw: string | undefined): number {
 }
 
 /**
- * CC-32 — the standing memory's share of every prompt, in CHARACTERS.
+ * The standing memory's share of every prompt, in CHARACTERS.
  *
- * ── WHY THE NUMBER IS SO SMALL ──────────────────────────────────────────────
+ * Why the number is so small
  *
  * Because the multiplier is large. `instructions` is re-sent on EVERY model
  * call of every step, not once per turn, so 2,000 characters on a 25-step turn
  * is roughly 12,500 tokens of memory rather than 500. Anyone reading this
  * bound as stingy has priced it per turn.
  *
- * ── WHY CHARACTERS AND NOT TOKENS ───────────────────────────────────────────
+ * Why characters and not tokens
  *
  * There is no tokenizer in this repo and there should not be one. `js-tiktoken`
  * would be a new pinned dependency AND wrong — Claude's tokenizer is not
@@ -203,7 +167,7 @@ export function readHistoryMessages(raw: string | undefined): number {
  * in characters either way.
  */
 /**
- * CC-33 — the seed's OTHER bound, the one `AGENT_HISTORY_MESSAGES` cannot be.
+ * The seed's OTHER bound, the one `AGENT_HISTORY_MESSAGES` cannot be.
  *
  * A message count says nothing about size. Forty short exchanges and forty
  * pasted stack traces are the same number and nowhere near the same prompt,
@@ -217,7 +181,7 @@ export function readHistoryMessages(raw: string | undefined): number {
  * is useful. `AGENT_HISTORY_MESSAGES` is still the knob for that.
  */
 /**
- * CC-38 / D-078 — how often the extraction sweep runs. **0 disables it, and 0
+ * How often the extraction sweep runs. **0 disables it, and 0
  * is the default.**
  *
  * Shipped off, and not out of caution about cost. D-064 puts `remember` and
@@ -316,12 +280,12 @@ function readOptionalCeiling(key: string, raw: string | undefined, unit: string)
   return parsed;
 }
 
-/** `AGENT_MAX_TURN_TOKENS` — §6/M5's accumulated-input-token ceiling. */
+/** `AGENT_MAX_TURN_TOKENS` — the accumulated-input-token ceiling. */
 export function readMaxTurnTokens(raw: string | undefined): number {
   return readOptionalCeiling('AGENT_MAX_TURN_TOKENS', raw, 'input tokens');
 }
 
-/** `AGENT_MAX_TURN_MS` — §6/M5's per-turn clock, in milliseconds of work. */
+/** `AGENT_MAX_TURN_MS` — the per-turn clock, in milliseconds of work. */
 export function readMaxTurnMs(raw: string | undefined): number {
   return readOptionalCeiling('AGENT_MAX_TURN_MS', raw, 'milliseconds');
 }

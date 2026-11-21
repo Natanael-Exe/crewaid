@@ -25,7 +25,7 @@ import {
 /**
  * What gets remembered without being told.
  *
- * Explicit `remember()` cannot capture "resources consulted": a model rarely
+ * Explicit `remember` cannot capture "resources consulted": a model rarely
  * volunteers it, which is exactly the under-saving failure the memory exists
  * to avoid. This reads recent conversations and proposes facts.
  *
@@ -45,7 +45,7 @@ import {
  * path, for a benefit that turn never sees, is the wrong shape.
  * 3. Tombstone-checked. Without that this re-derives a fact the user erased
  * from the very transcript that established it, and the correction silently
- * undoes itself on the next pass — the defect CC-31's tombstones exist for.
+ * undoes itself on the next pass — the defect the tombstones exist for.
  */
 @Injectable()
 export class MemoryDistillService implements OnApplicationBootstrap, OnModuleDestroy {
@@ -114,7 +114,7 @@ export class MemoryDistillService implements OnApplicationBootstrap, OnModuleDes
    * model without one being constructed at boot: a sweep that is disabled must
    * not resolve a provider, and a sweep under test must not call one.
    *
-   * It takes an OWNER because resolution is owner-scoped (D-086). Called
+   * It takes an OWNER because resolution is owner-scoped. Called
    * inside the per-bot try, so a user whose default model is unset or whose
    * key was removed costs that user's bots this pass and nobody else's — the
    * same containment the extraction call already had.

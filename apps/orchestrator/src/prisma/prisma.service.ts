@@ -17,7 +17,7 @@ import { prismaClientOptions } from './prisma-client.factory.js';
  * of that wiring would fail the same way a missing migration does, in the one
  * place nobody would look.
  *
- * Message text is sealed here: what `new PrismaService()` hands back
+ * Message text is sealed here: what `new PrismaService` hands back
  * is this client with `messageSealing` over it, so every service, and every
  * transaction it opens, writes ciphertext and reads what was said. The
  * extension only intercepts queries, so the client's shape is unchanged; it is

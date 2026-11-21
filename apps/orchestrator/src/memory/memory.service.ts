@@ -210,7 +210,7 @@ export class MemoryService {
     `;
     if (strict.length > 0) return strict;
 
-    // ── CC-39: the ANY fallback, and why it is a fallback ──────────────────
+    // The ANY fallback, and why it is a fallback
     //
     // `websearch_to_tsquery` ANDs its terms. CC-37 measured what that costs:
     // "staging host" against a row reading "Staging lives at
@@ -254,7 +254,7 @@ export class MemoryService {
   }
 
   /**
-   * CC-34 — search THIS BOT's own past conversation.
+   * Search THIS BOT's own past conversation.
    *
    * Deliberately not cross-bot. R7 makes it legal (same user), but a bot
    * reading a sibling's private conversation is a materially larger step than
@@ -263,11 +263,11 @@ export class MemoryService {
    *
    * Excerpts rather than whole messages, via `ts_headline` — a transcript
    * search that returns five full messages has spent the context budget the
-   * answer needed. USER and BOT only, and never empty, for M5-BE-29's reasons:
+   * answer needed. USER and BOT only, and never empty, for the reasons:
    * a SYSTEM row is an operator-facing note and rendering one as speech would
    * have the bot quoting a wall it did not hit.
    *
-   * Message text is sealed at rest (D-236), so there is no index to match:
+   * Message text is sealed at rest, so there is no index to match:
    * `searchTranscripts` reads this bot's recent messages opened and has
    * Postgres rank them, with the same query syntax and excerpts as before.
    */
@@ -308,7 +308,7 @@ export class MemoryService {
   }
 
   /**
-   * CC-36 / D-080 — what this user's bots know, for an operator to read.
+   * What this user's bots know, for an operator to read.
    *
    * Not `liveFor`: this one carries provenance and can include the rows the
    * bot is no longer shown. "What does it believe now" and "since when, and
@@ -433,7 +433,7 @@ export class MemoryService {
    * "remember X" when X exists only as an unconfirmed CANDIDATE should be able
    * to establish it, not be told it is already known.
    *
-   * CC-38's sweep passes CANDIDATE explicitly, and must — writing candidates
+   * The sweep passes CANDIDATE explicitly, and must — writing candidates
    * while deduplicating against actives only means it cannot see its own prior
    * output, so every re-read of a window duplicates everything in it. Found by
    * the idempotency case, which is the one that simulates a crash.
@@ -470,7 +470,7 @@ export class MemoryService {
   ): Promise<{ id: string; botId: string | null; text: string }[]> {
     const target = normalizeClaim(text);
     const rows = await this.prisma.memory.findMany({
-      // CC-39: CANDIDATE too. A wrong guess the sweep proposed is exactly the
+      // CANDIDATE too. A wrong guess the sweep proposed is exactly the
       // thing an operator most wants gone, and `forget` was the only tool for
       // it — with ACTIVE-only matching it answered "that is not in the
       // memory" about a row the bot could plainly find with memory_search.
@@ -481,7 +481,7 @@ export class MemoryService {
   }
 
   /**
-   * CC-39 — a user confirming a guess makes it a fact.
+   * A user confirming a guess makes it a fact.
    *
    * The only promotion path, deliberately. The tempting second one — promote
    * a candidate the sweep re-derived N times — does not work: the sweep
@@ -522,7 +522,7 @@ export class MemoryService {
     detail?: string | undefined;
     messageId?: string | undefined;
   }): Promise<void> {
-    // CC-39 — TASK_STATE REPLACES; every other kind accumulates.
+    // TASK_STATE REPLACES; every other kind accumulates.
     //
     // Two live "where the work stands" rows for one bot is not a richer
     // memory, it is a contradiction the bot has no way to resolve: both were
@@ -640,7 +640,7 @@ export class MemoryService {
   }
 
   /**
-   * D-147 — erase what a set of messages established, when a deletion asks
+   * Erase what a set of messages established, when a deletion asks
    * to forget it. The messages are named by a filter rather than by id, so
    * clearing a long conversation does not build a bind list its size.
    *

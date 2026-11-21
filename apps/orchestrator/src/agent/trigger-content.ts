@@ -41,7 +41,7 @@ export function triggerToUserContent(content: string | undefined): string {
  * and it will address the sender as "you" while talking to a person.
  *
  * The prefix is text rather than a second message, because it has to survive
- * everything that reshapes a prompt: M5-BE-02's trim prunes whole messages
+ * everything that reshapes a prompt: the trim prunes whole messages
  * pairwise, and a separate attribution line is exactly the kind of small
  * message a trim drops while keeping the large one it explained.
  *

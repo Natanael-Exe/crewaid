@@ -65,7 +65,7 @@ export type GeneralPaneProps = {
   readonly writeStore?: (bag: TokenBag) => Promise<TokenStoreWriteResult>;
   readonly probe?: (draft: ConnectionDraft) => Promise<number>;
   readonly reachAddress?: (baseUrl: string) => Promise<'unreachable' | number>;
-  /** V1-11's sign-in, as one injectable port rather than four props. */
+  /** The sign-in, as one injectable port rather than four props. */
   readonly auth?: AuthPort;
   /** Which build this is; read from the main process when not given (tests give it). */
   readonly edition?: Edition | null;
@@ -421,8 +421,8 @@ export function ConversationsSection() {
 }
 
 /**
- * The self-hosted server's release, and a nudge when it is behind the app
- * (D-155). The app updates itself; the server updates when its operator runs
+ * The self-hosted server's release, and a nudge when it is behind the app.
+ * The app updates itself; the server updates when its operator runs
  * the installer, so the two drift — and a newer app can call routes an older
  * server does not have yet.
  */

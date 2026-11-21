@@ -27,14 +27,14 @@ import { KeyringConfigError, type Keyring } from './keyring.js';
  * rather than decorative: a ciphertext re-labelled as another version fails
  * authentication instead of decrypting to something else.
  *
- * ⚠️ THE CONSEQUENCE, STATED RATHER THAN DISCOVERED. Replacing `CREDENTIAL_KEY`
+ * THE CONSEQUENCE, STATED RATHER THAN DISCOVERED. Replacing `CREDENTIAL_KEY`
  * makes every stored MCP credential unreadable, and the recovery is that each
  * user reconnects that server — which is the same recovery as a revoked grant
  * and the same one the read path already names. If a rotation that does NOT
  * force that is ever wanted, it needs a keyring and a version column, and that
  * is a task with its own migration rather than something to half-build here.
  *
- * ⚠️ KEEP THIS OUT OF THE DATABASE AND OUT OF DATABASE BACKUPS. A backup that
+ * KEEP THIS OUT OF THE DATABASE AND OUT OF DATABASE BACKUPS. A backup that
  * holds the ciphertext and the key that opens it is not encryption.
  */
 

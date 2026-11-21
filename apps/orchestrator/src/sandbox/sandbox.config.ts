@@ -1,5 +1,5 @@
 /**
- * The §7/§8 lifecycle knobs (M2-BE-11, D-039 §11).
+ * The §7/§8 lifecycle knobs.
  *
  * Read once, at construction, and a malformed value throws there — the
  * `auth.guard.ts` pattern. A ceiling that silently reads as `NaN` would admit
@@ -12,7 +12,7 @@
  */
 
 /**
- * §7.5's sizing — six concurrent bots on 8 vCPU / 16 GB. A measurement target,
+ * The sizing — six concurrent bots on 8 vCPU / 16 GB. A measurement target,
  * not a proven guarantee; M2-QA-09 records the real numbers and this is
  * expected to move.
  */
@@ -42,7 +42,7 @@ export function readMaxRunning(raw: string | undefined): number {
   return value;
 }
 
-/** `SANDBOX_IDLE_STOP_MS` — how long a sandbox may sit doing nothing (§8). */
+/** `SANDBOX_IDLE_STOP_MS` — how long a sandbox may sit doing nothing. */
 export function readIdleStopMs(raw: string | undefined): number {
   const value = readNumber('SANDBOX_IDLE_STOP_MS', raw, DEFAULT_IDLE_STOP_MS);
   if (!Number.isInteger(value) || value < 0) {
@@ -51,7 +51,7 @@ export function readIdleStopMs(raw: string | undefined): number {
   return value;
 }
 
-/** Where customer computers run (D-150, D-151, D-217). One provider per deployment. */
+/** Where customer computers run. One provider per deployment. */
 export type SandboxProviderConfig =
   | { readonly kind: 'docker' }
   | {

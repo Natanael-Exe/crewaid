@@ -22,7 +22,7 @@ export const SEAT_TOOL_KINDS: Readonly<Record<string, SeatActionKind | 'observat
   keyboard: 'targeted',
   // Acting on the seat without aiming at what is shown.
   browser_navigate: 'untargeted',
-  // A shell can reach the display (D-163 §3).
+  // A shell can reach the display.
   shell: 'untargeted',
   // It replaces the seat's browser.
   use_identity: 'exclusive',

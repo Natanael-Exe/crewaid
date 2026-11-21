@@ -11,8 +11,8 @@ import type { ScreenLogger } from './logger.js';
 import type { ScreenStreamErrorCode } from '@crewaid/shared';
 
 /**
- * One seat's desktop, read once from x11vnc and fanned out to every viewer
- * (§4.3, M2-BE-06). No transcoding: the bytes a viewer receives are the bytes
+ * One seat's desktop, read once from x11vnc and fanned out to every viewer.
+ * No transcoding: the bytes a viewer receives are the bytes
  * x11vnc produced, sliced only at message boundaries.
  *
  * The same class runs wherever a stream is served — on the orchestrator, and
@@ -395,7 +395,7 @@ export class ScreenStream {
    * class comment).
    *
    * Runs inside the upstream's message callback, before it schedules the next
-   * request, so a `pause()` here means that request is never sent — and no
+   * request, so a `pause` here means that request is never sent — and no
    * pause means it is sent at once, before any viewer has this update.
    */
   private awaitDelivery(bytes: number): void {

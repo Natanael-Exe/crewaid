@@ -18,7 +18,7 @@ import { generateSelectorCandidates, type SelectorTarget } from './cdp-selectors
  * tests). So the string cannot be produced by `eval`-ing anything at boot
  * either. What works in both directions: write the script as a completely
  * self-contained function, test it by CALLING it with a stand-in window, and
- * inject `(f.toString())(window, options, selectors)` — the same code,
+ * inject `(f.toString)(window, options, selectors)` — the same code,
  * serialised. The third argument is the selector generator (`cdp-selectors.ts`),
  * itself a self-contained function serialized the same way: the two artifacts
  * are composed into one call rather than one file reaching into the other,
@@ -424,7 +424,7 @@ function captureScriptOptions(): CaptureScriptOptions {
  * exact thing the unit suites exercise through the functions it came from:
  * the script, its options, and the selector generator composed into one call.
  *
- * Both functions are serialized from their own `toString()` — there is no
+ * Both functions are serialized from their own `toString` — there is no
  * second copy of either in this file to drift, and CC-06 keeps the process
  * from ever evaluating either. The structure of this string is what the
  * source-pin tests slice apart; a test asserts the pieces are the three the

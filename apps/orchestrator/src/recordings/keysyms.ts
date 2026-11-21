@@ -1,5 +1,5 @@
 /**
- * X11 keysyms → the vocabulary PRD §6's `SkillContext` replays with.
+ * X11 keysyms → the vocabulary the `SkillContext` replays with.
  *
  * This is the one place in the recorder that stops describing what RFB
  * delivered and starts describing what a skill will do. §6 fixes the target:

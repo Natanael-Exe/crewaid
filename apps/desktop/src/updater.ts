@@ -189,7 +189,7 @@ const UPDATE_FAILED = { status: 'error', code: 'IPC_ERROR' } as const;
 export type UpdateStateResult = UpdateState | typeof UPDATE_REFUSED | typeof UPDATE_FAILED;
 export type UpdateInstallResult = InstallResult | typeof UPDATE_REFUSED | typeof UPDATE_FAILED;
 
-/** Behind the one trusted-sender fence, from the same call site as every other channel (D-088). */
+/** Behind the one trusted-sender fence, from the same call site as every other channel. */
 export function registerUpdateIpc(options: {
   readonly ipcMain: TokenIpcMainLike;
   readonly isTrustedSender: (event: unknown) => boolean;

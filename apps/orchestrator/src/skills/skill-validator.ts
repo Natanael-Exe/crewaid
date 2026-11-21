@@ -12,7 +12,7 @@ import {
 /**
  * The output validator.
  *
- * §6's acceptance criteria: "Generated scripts contain no `sleep(` or
+ * The acceptance criteria: "Generated scripts contain no `sleep(` or
  * `setTimeout(`. Enforced by a validator that retries once with a corrective
  * message before failing." The validator is the thing that decides an answer
  * is unusable, and it exists separately from the compile service so that
@@ -38,14 +38,14 @@ import {
  *
  * Why defects are sentences
  *
- * The same list is shown to two audiences: the model, in the corrective retry
- * (M3-BE-08), and — when the retry cannot fix it — the operator, on
+ * The same list is shown to two audiences: the model, in the corrective retry,
+ * and — when the retry cannot fix it — the operator, on
  * `Recording.error`. Each sentence therefore says what is wrong AND
  * what the correct shape is, so it reads as direction to the model and as a
  * diagnosis to the person who recorded the task.
  */
 
-/** The §6 output, assembled: exactly what would be stored in §3's columns. */
+/** The §6 output, assembled: exactly what would be stored in the columns. */
 export interface ValidatedSkill {
   readonly name: string;
   readonly description: string;
@@ -65,7 +65,7 @@ export type Verdict =
  * `sleep(` is matched anywhere, not only as a bare call: the only thing a
  * model could mean by `ctx.sleep(500)` or `await sleep(500)` is what this bans,
  * and a false positive costs one corrective retry, while a miss ships a script
- * that waits blind. `setTimeout(` is §6's other named way to fake a wait —
+ * that waits blind. `setTimeout(` is the other named way to fake a wait —
  * `await new Promise((resolve) => setTimeout(resolve, 1000))` — and is banned
  * the same way; a plausible-looking timer is exactly the brittleness M3's
  * timing rule exists to keep out.
@@ -83,7 +83,7 @@ const WAIT_DIRECTION =
  * Judge one model answer.
  *
  * Empty defect list = usable. Any defect = retryable (once) by the caller,
- * which is what §6's "retries once with a corrective message" means.
+ * which is what the "retries once with a corrective message" means.
  */
 export function validateCompiled(reply: string): Verdict {
   const parsed = parseJsonAnswer(reply);
@@ -171,9 +171,9 @@ function shapeDefects(issues: readonly z.core.$ZodIssue[]): string[] {
 }
 
 /**
- * §3's `paramsSchema`, or defects explaining why it cannot be assembled.
+ * The `paramsSchema`, or defects explaining why it cannot be assembled.
  *
- * §6's output schema names the field `paramsSchema`; the model is asked for a
+ * The output schema names the field `paramsSchema`; the model is asked for a
  * flat parameter LIST (M3-BE-06 explains why) and this is where the two meet.
  * A missing list is a defect rather than a crash because the validator is a
  * pure function anyone can hand a hand-built answer to (M3-QA-03 does).
@@ -201,8 +201,8 @@ function assembleParams(
     return null;
   }
 
-  // §6: "every param needs a description". The shape asks for one, but an
-  // empty string passes a `z.string()` — a parameter the runner cannot
+  // "every param needs a description". The shape asks for one, but an
+  // empty string passes a `z.string` — a parameter the runner cannot
   // explain is one the person running the skill cannot fill in.
   for (const [param, spec] of Object.entries(schema.properties)) {
     if (spec.description.trim() === '') {
@@ -215,7 +215,7 @@ function assembleParams(
 }
 
 /**
- * The plain-language summary (D-098), or defects explaining why it is unusable.
+ * The plain-language summary, or defects explaining why it is unusable.
  *
  * The schema already bounds the list (≤ 30 entries, each ≤ 300 characters) and
  * maps a missing or mistyped one onto defect sentences through `shapeDefects`;

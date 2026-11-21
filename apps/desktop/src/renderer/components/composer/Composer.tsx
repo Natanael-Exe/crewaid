@@ -61,7 +61,7 @@ import { useT } from '../../i18n/i18n';
  * uploads render as chips above the pill. Ready uploads are claimed by the
  * next send via attachmentIds; failed uploads offer Retry.
  *
- * M1-FE-10's model picker sits in the pill's control cluster, right of the
+ * The model picker sits in the pill's control cluster, right of the
  * draft and left of send/stop.
  *
  * Row layout: one row while the draft fits beside the controls, two rows once
@@ -201,7 +201,7 @@ export function Composer({
   // just applied (see composerLayout.ts).
   const { pillRef, attachRef, controlsRef, stacked } = useComposerLayout(state.draft, taRef);
 
-  // ── The `/` tool and `@` bot palettes ─────────────────────────────────────
+  // The `/` tool and `@` bot palettes
   //
   // Open while the caret sits in a `/token` (see toolMention.ts). The query
   // and its position are kept, not recomputed on every render, so a re-render
@@ -335,7 +335,7 @@ export function Composer({
     [state.draft, taRef],
   );
 
-  // V1-13: the picker has already written `Bot.modelId` by the time this
+  // The picker has already written `Bot.modelId` by the time this
   // fires, so the only thing left to do is let the shell re-read the row.
   // Keeping a copy here is what made two writers possible.
   const handleModelChange = useCallback(() => {
@@ -348,7 +348,7 @@ export function Composer({
     setState(botSwitched(state, streaming));
   }
 
-  // D-022: the send gate accepts text OR ≥1 ready attachment; the shared
+  // The send gate accepts text OR ≥1 ready attachment; the shared
   // schema's refine enforces the same rule server-side. The empty-nothing
   // case never reaches the network.
   const readyIds = claimableIds(Object.fromEntries(pending.map((p) => [p.localId, p])));
@@ -357,7 +357,7 @@ export function Composer({
    * CC-45. While the bot is working, a draft is QUEUED rather than sent.
    *
    * The server would take it — it defers a message that arrives mid-turn and
-   * answers it when the current one settles (M5-BE-16) — and that is exactly
+   * answers it when the current one settles — and that is exactly
    * what makes queueing here worth doing: a posted message is already in the
    * transcript and in the model's next prompt, so "wait, not like that" stops
    * being expressible. Held on this side it can still be edited, dropped or
@@ -542,7 +542,7 @@ export function Composer({
                 }
                 if (shouldSubmitOnEnter(e.nativeEvent)) {
                   e.preventDefault();
-                  // CC-45: Enter during a turn queues instead of doing nothing,
+                  // Enter during a turn queues instead of doing nothing,
                   // which is what it did before — the keystroke was swallowed
                   // and the draft just sat there.
                   if (state.mode === 'idle' || queueing) submit();

@@ -40,7 +40,7 @@
  *
  * The discipline this file shares with the capture script
  *
- * `generateSelectorCandidates` is serialized via `toString()` and evaluated
+ * `generateSelectorCandidates` is serialized via `toString` and evaluated
  * in a page — CC-06 forbids `eval` here, which is exactly why the source is
  * composed rather than evaluated. So its body may reference only its own
  * parameters, its own inner functions and browser built-ins: never a
@@ -316,7 +316,7 @@ export function generateSelectorCandidates(
       // case-insensitive, so the scan below can only be stricter than a
       // matcher, never laxer. The rung is engine syntax the shipped
       // document-level resolver cannot parse (M4-BE-06 fix wave) — it is
-      // still recorded, because §6/M4's ladder says so, and the compile
+      // still recorded, because the ladder says so, and the compile
       // fence sets it aside before any step is emitted from it. The scan
       // walks the root's leaves, which makes it the one unbounded-ish read
       // here; it stops at the second match, and only leaf targets reach it.

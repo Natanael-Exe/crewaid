@@ -35,7 +35,7 @@ import { computerOfBot } from '../sandbox/attached-computer.js';
  * once to the lifecycle — which records it on the row as
  * `Recording.cdpAvailable = false` — and returned as `null` from
  * `connectionFor`. The X11 tee is untouched by any of it, which is what
- * §6/M4's degradation clause asks for, and nothing about the degradation is
+ * The degradation clause asks for, and nothing about the degradation is
  * pushed to the operator: the lifecycle is told, not the user. The inverse
  * — a recording that fails because Chrome was slow, busy or absent — would
  * make the recorder least reliable on exactly the bot that needs recording
@@ -47,7 +47,7 @@ import { computerOfBot } from '../sandbox/attached-computer.js';
  * must travel with the connection that URL was issued for. That rules out
  * assembling an address from `Sandbox.cdpPort` — the resolve goes through
  * `getPortEndpoint` every time. There is nothing to cache: one attach happens
- * per recording, and §8's idle sweep refuses to stop a sandbox whose bot has a
+ * per recording, and the idle sweep refuses to stop a sandbox whose bot has a
  * `RECORDING` row, so the port cannot move while one is open.
  */
 
@@ -240,9 +240,9 @@ export class CdpAttachService implements OnModuleDestroy {
   /**
    * The socket died while the recording was still open. Nothing re-attaches:
    * a replacement connection started from here would race the detach that is
-   * already on its way, and §6/M4's answer is not a reconnect — the
+   * already on its way, and the answer is not a reconnect — the
    * recording continues at the X11 layer, the row is marked
-   * `cdpAvailable = false` through the listener below (M4-BE-07), and the
+   * `cdpAvailable = false` through the listener below, and the
    * operator is told neither.
    */
   private dropped(botId: string, attachment: Attachment, connection: CdpConnection): void {
@@ -258,7 +258,7 @@ export class CdpAttachService implements OnModuleDestroy {
   }
 
   /**
-   * Tell the lifecycle this recording runs X11-only (M4-BE-07).
+   * Tell the lifecycle this recording runs X11-only.
    *
    * Fire-and-forget and exception-proof: the failure paths that call it are
    * documented never to reject into the recording, and a listener that
@@ -279,7 +279,7 @@ export class CdpAttachService implements OnModuleDestroy {
   }
 
   /**
-   * `Sandbox` row → session → this bot's SEAT's CDP port (D-012, D-060).
+   * `Sandbox` row → session → this bot's SEAT's CDP port.
    *
    * The port is the seat's, not the machine's. Under the window seat every bot
    * shared the machine's browser and a capture had to filter targets down to
@@ -305,7 +305,7 @@ export class CdpAttachService implements OnModuleDestroy {
     if (session === null) throw new Error(`no container is attached to session ${sessionId}`);
     const seat = await this.seats.seatFor(sessionId, botId);
     if (seat === null) throw new Error(`bot ${botId} has no seat to capture`);
-    // D-061: and it never STARTS one. A seat's browser is launched on demand,
+    // And it never STARTS one. A seat's browser is launched on demand,
     // and a recording that launched it would change what the bot is running by
     // observing it — the same reason this has never created a seat. A bot that
     // has not browsed has nothing for CDP to capture, which the caller already
@@ -327,7 +327,7 @@ export class CdpAttachService implements OnModuleDestroy {
    * bind, an address this process cannot reach and must not connect to with
    * endpoint-scoped headers in hand. So: keep the path Chrome named, take the
    * address from the endpoint. That is the one address this process can
-   * reach, and the one the headers were issued for (D-012).
+   * reach, and the one the headers were issued for.
    */
   private async debuggerUrl(endpoint: CdpEndpoint): Promise<string> {
     const response = await fetch(`${endpoint.url}/json/version`, {
@@ -348,7 +348,7 @@ export class CdpAttachService implements OnModuleDestroy {
 
 /**
  * Pull `webSocketDebuggerUrl` out of a `/json/version` body. The sandbox is
- * the untrusted side of this connection (§7.3), so the body is a value to
+ * the untrusted side of this connection, so the body is a value to
  * inspect, not a shape to assume.
  */
 function readDebuggerUrl(body: unknown): string | null {

@@ -7,7 +7,7 @@ import { isIPv4, isIPv6 } from 'node:net';
  * network. Everything that decides whether a user-supplied endpoint is
  * reachable comes through here.
  *
- * ⚠️ AN ALLOW-BY-DEFAULT LIST WITH HOLES IS THE WHOLE PROBLEM. This is written
+ * AN ALLOW-BY-DEFAULT LIST WITH HOLES IS THE WHOLE PROBLEM. This is written
  * as "public unless it matches a known non-public range", and the ranges below
  * are enumerated from IANA's special-purpose registries rather than from the
  * three private blocks everyone remembers — because the address that matters
@@ -55,9 +55,9 @@ function ipv4ToInt(address: string): number | undefined {
   let value = 0;
   for (const part of parts) {
     // Reject leading zeros. `0177.0.0.1` is 127.0.0.1 to `inet_aton` (a
-    // leading zero means octal) and 177.0.0.1 to a naive `Number()`, and a
+    // leading zero means octal) and 177.0.0.1 to a naive `Number`, and a
     // disagreement between the checker and the connector is the bypass.
-    // ⚠️ UNREACHABLE FROM `classifyAddress` TODAY, and kept deliberately.
+    // UNREACHABLE FROM `classifyAddress` TODAY, and kept deliberately.
     // `net.isIPv4` is strict — it already rejects `0177.0.0.1`, `0x7f.0.0.1`
     // and the single-integer form — so that gate is what actually enforces
     // this, and the falsification pass has to remove BOTH to make an

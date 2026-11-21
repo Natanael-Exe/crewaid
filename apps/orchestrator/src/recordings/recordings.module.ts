@@ -16,7 +16,7 @@ import { ClickCorrelatorService } from './click-correlator.service.js';
 /**
  * Recording capture and lifecycle.
  *
- * `SandboxModule` for ensure-ready (D-039 §16) and `BotsModule` for
+ * `SandboxModule` for ensure-ready and `BotsModule` for
  * `TurnEventBus`, both already-exported providers rather than second instances.
  *
  * `SkillsModule` for the `skill.compile` queue: REST stop route
@@ -35,7 +35,7 @@ import { ClickCorrelatorService } from './click-correlator.service.js';
  *
  * `CdpAttachService` is NOT exported either. Its caller is the
  * lifecycle below, which is the only thing that knows when a recording
- * begins and ends; the tasks that will talk to the browser (M4-BE-02/04) do
+ * begins and ends; the tasks that will talk to the browser do
  * it through the connection it hands back, not by resolving this service
  * from outside the module.
  *

@@ -68,7 +68,7 @@ import { deriveMcpSlug } from './mcp-slug.js';
  * `tools/call` needs one — and serve no RFC 9728 metadata, which is why they
  * are the entries that carry an `oauth` block.
  *
- * ⚠️ SIX REQUESTED SERVICES ARE DELIBERATELY ABSENT, because probing found no
+ * SIX REQUESTED SERVICES ARE DELIBERATELY ABSENT, because probing found no
  * vendor-hosted remote endpoint: OneDrive (no MCP host answers), 1Password
  * and Clay (404 / no such host),
  * Mobbin (no such host), AWS Core (awslabs' servers are stdio, and v1 is

@@ -13,7 +13,7 @@ import { t } from '../i18n/i18n';
  */
 
 /**
- * D-042's sentences, picked by the RENDERER.
+ * The sentences, picked by the RENDERER.
  *
  * The frame deliberately does not carry the reason (WebSocket `recording.state`
  * stays `{recordingId, state}`), so after a terminal transition the client
@@ -31,7 +31,7 @@ export const RECORDING_LIMIT_SENTENCE: Record<RecordingWarning, string> = {
 };
 
 /**
- * The tee's capture vocabulary (M3-BE-02/03), in words a person reads.
+ * The tee's capture vocabulary, in words a person reads.
  *
  * Deliberately partial: `RecordingEvent.type` is open by design, so
  * an unfamiliar value contributes nothing rather than putting a wire token in
@@ -159,8 +159,8 @@ const DISCARD_QUIET: RecordingCardAction = {
 };
 
 /**
- * The draft a finished recording compiled into, opening the review surface
- * (M3-FE-02). Not gated on the desktop being alive: the skill exists
+ * The draft a finished recording compiled into, opening the review surface.
+ * Not gated on the desktop being alive: the skill exists
  * independently of the computer it was recorded on, and reviewing it — unlike
  * demonstrating one — needs nowhere to type.
  */

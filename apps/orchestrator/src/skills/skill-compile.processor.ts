@@ -11,7 +11,7 @@ export interface SkillCompileJobData {
 }
 
 /**
- * The worker for §6/M3's `skill.compile` job.
+ * The worker for the `skill.compile` job.
  *
  * Why concurrency is one
  *

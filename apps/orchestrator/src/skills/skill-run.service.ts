@@ -20,7 +20,7 @@ import { computerOfBot } from '../sandbox/attached-computer.js';
  *
  * Why the route answers before the run finishes
  *
- * §6/M3's bound on a single run is the runner's own 600 s, so a synchronous
+ * The bound on a single run is the runner's own 600 s, so a synchronous
  * `POST /skills/:id/run` would hold an HTTP request open across an outage of
  * that length. The route creates the `SkillRun` row and answers with its id;
  * the client follows `GET /skills/:id/runs/:runId`, which is what that route
@@ -28,11 +28,11 @@ import { computerOfBot } from '../sandbox/attached-computer.js';
  *
  * Why the run holds a lease
  *
- * A `SkillRun` is not one of the two rows §8's idle sweep counts as work
+ * A `SkillRun` is not one of the two rows the idle sweep counts as work
  * (`AgentTurn`, `Recording`), so the container would be stoppable mid-run
  * unless someone protects it. It is exactly the case D-041 §17 built the
  * keep-running lease for — a managed operation with no §8-recognized row —
- * so the execution holds `withComputer(..., 'skill', ...)` for its whole life
+ * so the execution holds `withComputer(..., 'skill',...)` for its whole life
  * and the lease service renews on its own timer.
  *
  * Where the script runs
@@ -40,7 +40,7 @@ import { computerOfBot } from '../sandbox/attached-computer.js';
  * Never in this process. The orchestrator resolves the bot's bridge
  * endpoint and asks `POST /skill/run`; the executor lives in the sandbox
  * image. This service carries no script-evaluating import
- * and must not grow one — CC-06's lint rules guard the same door.
+ * and must not grow one — the lint rules guard the same door.
  */
 /**
  * The fence on a run's own writes, decided from the RESOLVED skill.
@@ -115,7 +115,7 @@ export class SkillRunService {
   }
 
   /**
-   * §6/M8 — a routine that runs a skill.
+   * A routine that runs a skill.
    *
    * `start` by id, with the same gate, but AWAITED: a routine's firing is the
    * unit of work the scheduler waits on, so it has to last as long as the run
@@ -138,7 +138,7 @@ export class SkillRunService {
   }
 
   /**
-   * M5-BE-06 — `run_skill(name, params)` for the agent loop.
+   * `run_skill(name, params)` for the agent loop.
    *
    * Three things make this a sibling of `start` rather than a caller of it.
    *
@@ -151,7 +151,7 @@ export class SkillRunService {
    * they wrote a bot-local override.
    *
    * IT ALLOWS A GLOBAL SKILL. §6/M5: "only APPROVED skills belonging to that
-   * bot or global". `start` refuses `botId === null` because §4.1's route
+   * bot or global". `start` refuses `botId === null` because the route
    * names no bot to borrow a computer from; a turn always has one, so the
    * refusal does not apply here.
    *
@@ -199,10 +199,10 @@ export class SkillRunService {
   }
 
   /**
-   * One run's current state (§4.1's trailing route).
+   * One run's current state (the trailing route).
    *
    * `skillId` is part of the lookup, not a decoration: the ownership guard
-   * fences the RUN by its own id (D-026), and this is the check that the run
+   * fences the RUN by its own id, and this is the check that the run
    * it found is a run OF the skill the path names — otherwise a run id from
    * any of the caller's skills would be readable through any other.
    */
@@ -263,7 +263,7 @@ export class SkillRunService {
       );
     }
     if (skill.botId === null) {
-      // A global skill has no computer to run on, and §4.1's run route names
+      // A global skill has no computer to run on, and the run route names
       // no bot to borrow. v1 has no way to create one; this refusal is for
       // the day one exists.
       throw new ConflictException(
@@ -458,13 +458,13 @@ export class SkillRunService {
       heightPx: sandbox.heightPx,
     });
     const endpoint = await session.getPortEndpoint({ port: SANDBOX_PORTS.bridge });
-    // D-012: a provider may require headers on its endpoints; this is plain
+    // A provider may require headers on its endpoints; this is plain
     // HTTP, so they are simply sent.
     return { url: endpoint.url, headers: endpoint.headers ?? {} };
   }
 
   /**
-   * One `POST /skill/run` to the bridge (D-040's transport, M3-PK-01's
+   * One `POST /skill/run` to the bridge (the transport, M3-PK-01's
    * executor) and its outcome, reduced to what the row stores.
    */
   private async runOnBridge(
@@ -528,7 +528,7 @@ function stringField(body: unknown, key: 'code' | 'detail'): string | null {
  *
  * The two shapes are `{ok: true, result, logs, durationMs}` and
  * `{ok: false, code, detail, logs, durationMs}`. `result` is deliberately not
- * carried onto the row — §3's `SkillRun` has no column for it, and the run's
+ * carried onto the row — the `SkillRun` has no column for it, and the run's
  * value is for its caller, not for a later status read.
  */
 function parseOutcome(body: unknown): BridgeRunOutcome {

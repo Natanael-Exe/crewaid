@@ -10,7 +10,7 @@ import { SetMetadata } from '@nestjs/common';
  * the build.
  */
 export const OWNED_RESOURCE_KINDS = [
-  // D-159 §3.2: the chat delivery routes name the bot itself.
+  // The chat delivery routes name the bot itself.
   'bot',
   'skill',
   'skillRun',

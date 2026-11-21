@@ -11,7 +11,7 @@ import { connect } from 'node:net';
  * The orchestrator needs exactly one command here, and a client would add a
  * connection lifecycle to leak for a boolean that a health route must be able
  * to answer in bounded time. When the queue work brings a real
- * client, this becomes its `ping()` — the route contract does not change.
+ * client, this becomes its `ping` — the route contract does not change.
  */
 
 /**

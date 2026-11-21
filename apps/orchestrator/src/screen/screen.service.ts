@@ -36,7 +36,7 @@ import { computerOfBot } from '../sandbox/attached-computer.js';
  * Why an unwatched connection is kept
  *
  * Closing the panel does not end the seat. Keeping the connection costs no
- * reads — it requests nothing — and it keeps D-163's first contact a one-off:
+ * reads — it requests nothing — and it keeps the first contact a one-off:
  * the first time this process reaches a display it lets go of anything a
  * holder had down before a restart, and doing that on every reopen would also
  * send the pointer to the corner while the bot works. It goes when its upstream
@@ -193,7 +193,7 @@ export class ScreenService implements OnModuleDestroy {
    * §4.2 `screen.input` (M2-BE-07, R6). One validated RFB client message on
    * its way to one sandbox's x11vnc.
    *
-   * ── WHY THERE IS NO DATABASE READ HERE ──────────────────────────────────
+   * Why there is no database read here
    *
    * `subscribe` already resolved this bot through its owner, and a socket is
    * only among a link's watchers because that check passed. Membership IS the
@@ -219,14 +219,14 @@ export class ScreenService implements OnModuleDestroy {
       throw new ScreenError(`the screen stream for bot ${botId} is not connected`);
     }
 
-    // D-169: watching is not driving. Only the socket holding the seat gets
+    // Watching is not driving. Only the socket holding the seat gets
     // through, and what it holds down is recorded so a hand-back can let go.
     if (this.seatControl === undefined)
       throw new ScreenError('Seat control is unavailable.', 'SEAT_UNAVAILABLE');
     const refused = this.seatControl.seats.input(client, botId, verdict.event, epoch);
     if (refused !== null) throw new ScreenError(refused.message, refused.code);
 
-    // §4.3's tee (M3-BE-01): when the bot has an active Recording, the decoded
+    // The tee: when the bot has an active Recording, the decoded
     // event is written to the recording pipeline BEFORE the forward.
     //
     // The order is the contract's, and it is the safe one of the two. Teeing
@@ -243,7 +243,7 @@ export class ScreenService implements OnModuleDestroy {
       throw new ScreenError(`the screen stream for bot ${botId} is not connected`);
     }
 
-    // Manual takeover is work (§8), and this is the only place it is visible.
+    // Manual takeover is work, and this is the only place it is visible.
     // Note that SUBSCRIBING is deliberately not marked: a rail thumbnail is
     // open for as long as the app is, and D-031 forbids watching from keeping
     // compute alive. Only a message the operator actually sent, and only after
@@ -255,7 +255,7 @@ export class ScreenService implements OnModuleDestroy {
   /** §4.2 `screen.unsubscribe`. */
   unsubscribe(client: WebSocket, botId: string): void {
     this.requests.get(client)?.delete(botId);
-    // A holder that stops watching cannot keep driving (D-163 §4).
+    // A holder that stops watching cannot keep driving.
     this.seatControl?.seats.unsubscribed(client, botId);
     const link = this.links.get(botId);
     if (link === undefined) return;
@@ -318,10 +318,10 @@ export class ScreenService implements OnModuleDestroy {
     // holding the entry would leak one object per bot for the process's life.
     link.onGone(() => {
       this.forget(botId, link);
-      // The seat's display went with its connection: control ends there (D-163).
+      // The seat's display went with its connection: control ends there.
       this.seatControl?.seats.seatEnded(botId);
     });
-    // D-163 §4: the first time this process reaches the display, anything a
+    // The first time this process reaches the display, anything a
     // holder had down before a restart is let go of. Not at subscribe: the
     // connection is still handshaking there, and the key-ups would be dropped.
     link.onConnected(() => this.seatControl?.seats.firstContact(botId));

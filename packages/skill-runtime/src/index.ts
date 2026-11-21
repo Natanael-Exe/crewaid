@@ -8,7 +8,7 @@
  * package's executor to run a script locally.
  *
  * The `SkillContext` interface below is the contract the M3 compiler generates
- * against, extended with the browser half §6/M4's Playwright
+ * against, extended with the browser half the Playwright
  * emission targets (`page`, M4-BE-06). Field names are contractual.
  */
 

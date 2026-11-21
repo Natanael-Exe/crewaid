@@ -138,7 +138,7 @@ export const SCREEN_PIXEL_FORMAT = {
   blueShift: 16,
 } as const;
 
-/** D-169: client input carries the lease epoch before its unchanged RFB bytes. */
+/** Client input carries the lease epoch before its unchanged RFB bytes. */
 export function encodeScreenInputFrame(botId: string, epoch: number, rfb: Uint8Array): Uint8Array {
   if (!Number.isSafeInteger(epoch) || epoch <= 0)
     throw new RangeError('a seat epoch must be a positive safe integer');

@@ -27,7 +27,7 @@ import type { ApiClient } from './apiClient';
  * The three that answer a skill parse through the same shared schema the read
  * does: the response to a write is a wire shape like any other, and letting it
  * skip validation would make an edit the one route where the renderer renders
- * what it did not verify (D-008's rule, applied to REST).
+ * what it did not verify (the rule, applied to REST).
  */
 
 /** `GET /skills/:id` — the skill with its source, as stored. */

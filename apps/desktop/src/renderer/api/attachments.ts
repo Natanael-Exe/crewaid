@@ -32,7 +32,7 @@ export function uploadAttachment(
 }
 
 /**
- * DELETE /attachments/:id — unclaimed rows only (D-020 addendum).
+ * DELETE /attachments/:id — unclaimed rows only.
  * 204 ok · 404 unknown/foreign · 409 claimed · 410 past the 24h TTL.
  */
 export function deleteAttachment(client: ApiClient, id: string): Promise<void> {

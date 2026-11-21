@@ -134,7 +134,7 @@ function ColorChoice({ value, onChange }: { value: string; onChange: (color: str
 
 /**
  * Rename, archive, restore or delete projects. Deleting is refused by the
- * server while a project holds anything (D-134), and the refusal is shown on
+ * server while a project holds anything, and the refusal is shown on
  * that row — archiving is the way to put a finished project away.
  */
 export function ManageProjectsDialog({

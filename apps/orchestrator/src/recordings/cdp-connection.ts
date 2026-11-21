@@ -182,7 +182,7 @@ class SocketCdpConnection implements CdpConnection {
   private outcome: CdpCloseOutcome = null;
   /** The socket-level failure that preceded the close event, if any. */
   private socketError: Error | null = null;
-  /** The in-flight or settled close, so `close()` can be called any number of times. */
+  /** The in-flight or settled close, so `close` can be called any number of times. */
   private closing: Promise<void> | null = null;
 
   constructor(socket: WebSocket, options: OpenCdpConnectionOptions) {

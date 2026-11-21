@@ -6,7 +6,7 @@ import { queueRedisUrl } from '../common/queue-config.js';
 import { readReapIntervalMs } from './attachments.config.js';
 
 /**
- * D-031's reaper on M8's scheduler.
+ * The reaper on M8's scheduler.
  *
  * D-019 always meant the unclaimed-upload reaper to be "a small BullMQ job",
  * deferred to M8 because that is where the scheduling infrastructure landed;

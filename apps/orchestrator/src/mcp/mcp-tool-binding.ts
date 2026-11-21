@@ -67,7 +67,7 @@ export type McpToolCall = {
   readonly toolName: string;
   readonly args: Record<string, unknown>;
   /**
-   * §7.4's ceiling on this call, carried from the descriptor.
+   * The ceiling on this call, carried from the descriptor.
    *
    * Passed rather than looked up, so the number the caller enforces is the
    * number the registry published — one source, and a test can change it in
@@ -111,7 +111,7 @@ export type McpToolBinding =
  * also what `GET /tools` publishes to the operator, where the ratified schema
  * documents `contained` as "does not ask" and `sensitive` as "asks first".
  *
- * ⚠️ `contained` here does NOT mean the tool only touches the bot's own
+ * `contained` here does NOT mean the tool only touches the bot's own
  * container. A read of the operator's mailbox reaches well outside it. What
  * the two values answer — the question wrote them for — is "would a
  * careful person want to be asked about this before it happens", and MCP plugins
@@ -159,7 +159,7 @@ export const MCP_STRIKE_LIMIT = 3;
 /**
  * `McpTool.inputSchema` as the SDK's JSON Schema type.
  *
- * ⚠️ WHAT THIS CHECKS, AND WHAT IT CANNOT. A JSON Schema document is arbitrary
+ * WHAT THIS CHECKS, AND WHAT IT CANNOT. A JSON Schema document is arbitrary
  * JSON by definition, and `JsonSchemaDocument` describes that JSON rather than
  * constraining it in any way this orchestrator could re-derive — validating it
  * properly means implementing the draft-7 metaschema, which the provider is
@@ -343,7 +343,7 @@ export function bindMcpTool(
             } catch (error: unknown) {
               // `isolate-remote` — the model reads a refusal and gets another
               // step; the turn does not end because a third party's server
-              // did. This is the one line §6/M6's "one broken plugin must
+              // did. This is the one line the "one broken plugin must
               // never fail a turn" ultimately rests on, and it is deliberately
               // a `catch (unknown)` rather than a filter: a shape nobody
               // anticipated must not be the one that escapes.

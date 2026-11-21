@@ -50,7 +50,7 @@ import { McpServersService } from './mcp-servers.service.js';
  * the build if a marker goes missing. The two collection routes take no
  * parameter and are fenced by the scoping inside the service.
  *
- * ⚠️ NOTHING HERE RETURNS A CREDENTIAL. `DELETE` is the revocation path and
+ * NOTHING HERE RETURNS A CREDENTIAL. `DELETE` is the revocation path and
  * `GET /mcp/servers` answers summaries whose schema has no field token
  * material could travel in. `connect` is the one route whose answer is
  * a URL that will CARRY the user to a consent screen — it holds a `state` and
@@ -171,7 +171,7 @@ export class McpController {
    * who has no idea what an orchestrator is) and an `X-Crewaid-Mcp-Connect`
    * header for a caller that needs the verdict without parsing prose.
    *
-   * ⚠️ 200 IS THE ANSWER TO EVERY OUTCOME, AND THE HEADER IS THE VERDICT.
+   * 200 IS THE ANSWER TO EVERY OUTCOME, AND THE HEADER IS THE VERDICT.
    * A refusal page served as a 400 or a 502 is a page a reverse proxy
    * or a CDN in front of this orchestrator is entitled to replace with an
    * error body of its own — and then the person who just pressed "authorize"
@@ -214,7 +214,7 @@ export class McpController {
  *
  * `@types/express` is not a dependency of this app (`attachments.controller.ts`
  * says why: a transitive bump must not be able to change what an operator's
- * download looks like), so `@Res()` would arrive as `any` — which the lint
+ * download looks like), so `@Res` would arrive as `any` — which the lint
  * config forbids. Naming the four members this handler calls keeps the
  * narrowing honest and the dependency where it is.
  */

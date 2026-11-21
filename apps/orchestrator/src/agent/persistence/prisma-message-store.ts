@@ -23,7 +23,7 @@ import {
  * same answer as a thread that does not exist.
  *
  * The library's contract says `saveThread` overwrites. Crewaid's says it
- * reconciles and never deletes (D-159 §3.4): a save inserts the messages it
+ * reconciles and never deletes: a save inserts the messages it
  * does not have and updates the ones that changed, and a stored message the
  * save left out is kept and reported. Rows leave a thread only through the
  * D-147 routes, so no history a caller sends, short or empty, can truncate
@@ -75,8 +75,8 @@ export type MessageStoreScope = {
 
 type Store = MessageStore & {
   /**
-   * Take a message's place in the thread's order before its content exists
-   * (D-159 §3.4). A reply's row is inserted when its stream starts and a tool
+   * Take a message's place in the thread's order before its content exists.
+   * A reply's row is inserted when its stream starts and a tool
    * result's when its call does, so a user message admitted mid-run sorts
    * after them, and the next run reads the conversation in the order it
    * happened. The later save fills the row in.
@@ -157,7 +157,7 @@ export function createPrismaMessageStore(
   };
 
   /**
-   * A hydrate: the conversation as the operator reads it (D-192). The notices
+   * A hydrate: the conversation as the operator reads it. The notices
    * and `/new` dividers the model never sees are kept, and every message
    * carries the §3.4 product projection, attachments included. A second select
    * rather than a conditional one, so Prisma types each row as what it is.
@@ -331,7 +331,7 @@ export function createPrismaMessageStore(
         },
       });
       if (left > 0) {
-        // D-159 §3.4: kept, and said. A full-replace save that dropped them
+        // Kept, and said. A full-replace save that dropped them
         // would let any history a caller sent truncate the server's.
         logger?.warn('transcript.save.omitted', {
           threadId,
@@ -484,7 +484,7 @@ function contract(violation: TranscriptViolation, where: string): TranscriptStor
 
 /**
  * The sequence a model's thread starts after: the newest `/new` boundary's,
- * or 0 for a thread with none (D-147).
+ * or 0 for a thread with none.
  */
 async function topicStart(
   client: Pick<Prisma.TransactionClient, 'message'>,

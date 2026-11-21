@@ -28,7 +28,7 @@ export const MAX_CROPS = 8;
 /** The half of a `RecordingEvent` row this needs. Not the Prisma type: the
  * renderer must be drivable from a literal in a test. */
 export interface TraceRow {
-  /** §3's row id; the correlator's `correlatedWithId` names one of these. */
+  /** The row id; the correlator's `correlatedWithId` names one of these. */
   readonly id?: string;
   readonly tsOffsetMs: number;
   readonly type: string;
@@ -37,7 +37,7 @@ export interface TraceRow {
   /** The capture layer the row was written on ("X11" / "CDP"), when known. */
   readonly layer?: string;
   /**
-   * M4-BE-05's correlation: the id of the row this one is the same physical
+   * The correlation: the id of the row this one is the same physical
    * action as. Written on BOTH rows of a correlated click, and it is what
    * `foldCorrelated` consumes — see there for what "the same action" buys.
    */
@@ -165,7 +165,7 @@ export function cropCandidatesOf(rows: readonly TraceRow[]): readonly CropCandid
  *
  * "an X11 click within 150 ms of a CDP click at the same coordinates
  * is the same action. Write `correlatedWithId` on both rows. The compiler
- * must not emit both." M4-BE-05's correlator proved WHICH press and which
+ * must not emit both." the correlator proved WHICH press and which
  * page report are one action; this function is where that proof becomes
  * form. The model is shown the action once, so "never both layers" is a
  * property of what it reads rather than a rule it is trusted to obey — a

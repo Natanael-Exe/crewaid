@@ -50,7 +50,7 @@ export type ApiFailureCode =
   | 'GONE' // 410
   | 'TOO_LARGE' // 413
   | 'STORAGE_FULL' // 507: the account's file storage is full
-  | 'SANDBOX_CAPACITY' // 503 + D-039 §7's code: the host is full, and it is temporary
+  | 'SANDBOX_CAPACITY' // 503: the host is full, and it is temporary
   | 'SERVER_MISCONFIGURED' // 503 + the server naming its own missing configuration
   | 'NETWORK' // fetch rejected — offline, DNS, connection refused
   | 'CONFIGURATION' // no orchestrator URL/token in the CC-07 store
@@ -168,7 +168,7 @@ export function normalizeApiFailure(status: number | undefined, rawBody?: string
 }
 
 /**
- * Whether a 503 body is D-039 §7's capacity refusal.
+ * Whether a 503 body is the capacity refusal.
  *
  * Parsed defensively rather than matched as a substring: the raw text of an
  * unrelated 503 — a proxy's HTML, a stack trace — could contain the word by

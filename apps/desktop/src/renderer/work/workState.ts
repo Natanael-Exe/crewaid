@@ -104,7 +104,7 @@ export function scopeTaskFilter(scope: ProjectScope): Pick<TaskListFilter, 'proj
 /**
  * The Tasks row's badge: cards waiting on someone — in Review or Blocked.
  * Zero draws nothing, which is what keeps Work quiet for someone who never
- * uses it (D-140).
+ * uses it.
  */
 export function attentionCount(cards: readonly Pick<TaskCard, 'status'>[]): number {
   return cards.filter((card) => card.status === 'IN_REVIEW' || card.status === 'BLOCKED').length;
@@ -140,7 +140,7 @@ function compactCount(count: number): string {
 }
 
 /**
- * What a task's or goal's turns cost (D-141), or null when none have run —
+ * What a task's or goal's turns cost, or null when none have run —
  * work nobody started costs nothing, and saying "0 turns" is furniture.
  */
 export function usageText(usage: {
@@ -157,7 +157,7 @@ export function usageText(usage: {
 }
 
 /**
- * A view's search (M10-FE-11): every word of the query appears somewhere in
+ * A view's search: every word of the query appears somewhere in
  * the fields, in any case and any order, so "auth jwt" finds a task titled
  * "API auth" whose brief mentions JWT. An empty query matches everything.
  */

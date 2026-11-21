@@ -15,7 +15,7 @@
  * most likely to be wrong are the ones a real-runtime test is slowest and
  * least precise at exercising.
  *
- * The shapes here are deliberately small. `inspect()` returns a handful of
+ * The shapes here are deliberately small. `inspect` returns a handful of
  * facts rather than a runtime's hundred-field blob, so an upstream API change
  * lands in one adapter method instead of everywhere a caller reached into it.
  */

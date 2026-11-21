@@ -129,7 +129,7 @@ export class AttachmentsService {
       throw new BadRequestException(`Unsupported media type: ${mimeType}`);
     }
 
-    // D-031: judge capacity against live data — reap expired
+    // Judge capacity against live data — reap expired
     // unclaimed uploads first, then refuse (507) if the cumulative quota or
     // the disk-pressure floor is breached. Claimed and unexpired files are
     // never evicted to make room; reaping is the only thing that frees space.
@@ -142,9 +142,9 @@ export class AttachmentsService {
     const stored = await this.reaper.reserveUploadCapacity(owner.userId, buffer.length, (tx) =>
       tx.attachment.create({
         data: {
-          // D-019: unclaimed until a message send references it.
+          // Unclaimed until a message send references it.
           messageId: null,
-          // D-021: ownership from creation, not from claiming.
+          // Ownership from creation, not from claiming.
           ownerId: owner.userId,
           filename,
           mimeType,
@@ -177,7 +177,7 @@ export class AttachmentsService {
   }
 
   /**
-   * Bind an unclaimed upload to a message (M5-BE-06's `attach_file`).
+   * Bind an unclaimed upload to a message (the `attach_file`).
    *
    * The D-021 filter is the same one `MessagesService` applies when a USER
    * message claims its uploads, and for the same reason: the row must be
@@ -202,7 +202,7 @@ export class AttachmentsService {
   /**
    * `GET /attachments/:id/download` — opens the stored object or 404s.
    *
-   * D-021's two ownership arms, matching the two lifecycle states:
+   * The two ownership arms, matching the two lifecycle states:
    *  - CLAIMED rows resolve through message → conversation → bot → userId
    *    (the message lifecycle owns them once bound).
    *  - UNCLAIMED rows resolve by ownerId directly — the uploader may fetch
@@ -237,12 +237,12 @@ export class AttachmentsService {
       throw new NotFoundException('Attachment not found');
     }
 
-    // D-020: expiry is a READ fence too. Check after ownership resolution so
+    // Expiry is a READ fence too. Check after ownership resolution so
     // foreign callers still receive the non-leaking 404, and before the store
     // is asked for anything so expired bytes are never touched. Claimed rows
     // belong to the message lifecycle and are not subject to the unclaimed
     // TTL, and neither is a file a deliverable holds after its message was
-    // deleted (D-147).
+    // deleted.
     if (
       attachment.messageId === null &&
       attachment.deliverable === null &&
@@ -318,7 +318,7 @@ export class AttachmentsService {
     }
     if (attachment.messageId !== null || attachment.deliverable !== null) {
       // J3 fence: claimed rows are not deletable through this route, and a
-      // file a deliverable holds is claimed by it (D-147).
+      // file a deliverable holds is claimed by it.
       throw claimedAttachment();
     }
     // J3 fence (ratified interim): unclaimed rows older than the TTL answer

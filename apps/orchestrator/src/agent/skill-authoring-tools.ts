@@ -18,7 +18,7 @@ import { MACHINE_HOME } from './workspace-paths.js';
  *
  * WHY IT IS `sensitive`, AND WHY THE ROW LANDS APPROVED
  *
- * §7.3's rule is "nothing model-generated may run unreviewed", and a
+ * The rule is "nothing model-generated may run unreviewed", and a
  * bot-written script is model-generated. The approval flow IS the review: the
  * tool is `sensitive`, so the operator is shown the call — name, description,
  * and the whole script among the args — before it runs, and approving the

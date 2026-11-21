@@ -65,7 +65,7 @@ function billingModules() {
  * milestones, which is the point: guard-by-default means a new controller
  * cannot ship unauthenticated by forgetting a decorator. The CurrentUser
  * decorator consumes the `request.principal` the guard attaches. ModelsModule
- * (M1-BE-05/10) rides the same guarantee: `/api/v1/models` is guarded because
+ * rides the same guarantee: `/api/v1/models` is guarded because
  * every route is.
  *
  * MulterErrorFilter is an APP_FILTER so test bootstraps and
@@ -106,7 +106,7 @@ function billingModules() {
     // D-009(3) turn counters is not a feature of any single domain module.
     UsageModule,
     // Provider connections, their models, and the per-user default
-    // (D-082/D-086). Owns the credential vault's only writer.
+    //. Owns the credential vault's only writer.
     ProvidersModule,
     // Bot-to-bot delivery, and the `send_message` tool that feeds it.
     // Imported here rather than from `BotsModule`, which it depends on: the
@@ -114,7 +114,7 @@ function billingModules() {
     // rule), so the arrow runs interbot → bots and not back.
     InterbotModule,
     // The curated plugin directory and installed MCP servers
-    // (M6-BE-02). M6-BE-03 … M6-BE-10 grow inside this module rather than
+    //. M6-BE-03 … M6-BE-10 grow inside this module rather than
     // beside it: they are all facets of one server row.
     McpModule,
     // Routines: the schedule in Redis, and what a firing runs.

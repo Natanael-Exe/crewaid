@@ -33,7 +33,7 @@ import { MemoryService } from './memory.service.js';
  *
  * The door, on the `usage/` shape: shape validation in the shared Zod schema,
  * scoping and projection in MemoryService, the principal from AuthGuard via
- * `@CurrentUser()`. No `@OwnedResource` marker because there is no id in the
+ * `@CurrentUser`. No `@OwnedResource` marker because there is no id in the
  * path — this is a LIST route and its ownership is the `where` clause, which
  * is what the R7 allowlist audits.
  *

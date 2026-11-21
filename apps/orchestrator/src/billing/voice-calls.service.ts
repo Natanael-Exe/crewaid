@@ -95,7 +95,7 @@ const CALL_SELECT = {
 } as const;
 
 /**
- * D-222: calls with a bot on the hosted service, and the minutes they use.
+ * Calls with a bot on the hosted service, and the minutes they use.
  *
  * Minutes are settled from ElevenLabs' own count of each conversation, never
  * from the client: a call reserves what is left of the period when it starts,

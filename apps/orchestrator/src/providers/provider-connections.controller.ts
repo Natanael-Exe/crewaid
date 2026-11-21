@@ -40,7 +40,7 @@ import { ProviderConnectionsService } from './provider-connections.service.js';
  * every query anyway — the two are belt and braces, and
  * `ownership-route-coverage.test.ts` fails the build if the marker is missing.
  *
- * ⚠️ THERE IS NO ROUTE THAT RETURNS A CREDENTIAL, and there must never be.
+ * THERE IS NO ROUTE THAT RETURNS A CREDENTIAL, and there must never be.
  * `PUT.../credential` writes one and answers 204; `DELETE` removes it. The
  * absence of a GET is the contract.
  */

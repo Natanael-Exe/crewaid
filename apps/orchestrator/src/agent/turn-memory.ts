@@ -29,7 +29,7 @@ export type MemoryReader = Pick<MemoryService, 'candidatesForInjection' | 'searc
  * 1. STANDING. The highest-authority live memories, ordered by D-074 and
  * bounded by characters.
  * 2. TRIGGERED. A full-text search on the user's OWN message. This is the
- * answer to D-069's admitted cost — "a bot whose memory of a convention
+ * answer to the admitted cost — "a bot whose memory of a convention
  * was trimmed is exactly the one that does not know there is anything
  * to look for" — because the case that matters most is the one where
  * the user just mentioned the thing. Behind a rank floor, so "are you

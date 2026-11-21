@@ -108,7 +108,7 @@ export class DigitalOceanApi {
     this.#fetch = options.fetch ?? fetch;
   }
 
-  // ── environments (configs on the wire) ─────────────────────────────────────
+  // environments (configs on the wire)
 
   /**
    * The id of the environment named `name`, creating it from `manifestYaml`
@@ -139,7 +139,7 @@ export class DigitalOceanApi {
     return created.config.id;
   }
 
-  // ── sessions ───────────────────────────────────────────────────────────────
+  // sessions
 
   async createSession(name: string, configId: string): Promise<HarnessSession> {
     const created = await this.#request<{ session?: HarnessSession }>(
@@ -247,7 +247,7 @@ export class DigitalOceanApi {
     };
   }
 
-  // ── tunnel ─────────────────────────────────────────────────────────────────
+  // tunnel
 
   /**
    * One port-forward stream to `port` inside the session, open and ready.
@@ -269,7 +269,7 @@ export class DigitalOceanApi {
         socket.off('error', onError);
         resolve(socket);
       });
-      // Kept through a refused handshake: terminate() emits an 'error' as it
+      // Kept through a refused handshake: terminate emits an 'error' as it
       // tears the request down, and one with no listener ends the process.
       // The promise has already settled by then, so the extra reject is inert.
       socket.on('error', onError);
@@ -287,7 +287,7 @@ export class DigitalOceanApi {
     });
   }
 
-  // ── plumbing ───────────────────────────────────────────────────────────────
+  // plumbing
 
   async #request<T = void>(method: string, path: string, body?: unknown): Promise<T> {
     const response = await this.#fetch(this.#apiUrl + path, {

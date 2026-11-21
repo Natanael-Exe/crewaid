@@ -15,7 +15,7 @@ function action(value: unknown): string | null {
 }
 
 /**
- * D-227: what the bot is visibly doing, as one line of plain text for the
+ * What the bot is visibly doing, as one line of plain text for the
  * call's work status. Only the live reply's narration and action labels: never
  * reasoning, and never a tool's arguments or results.
  *

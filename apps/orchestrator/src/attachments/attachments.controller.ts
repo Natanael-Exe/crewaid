@@ -30,8 +30,7 @@ export { UNCLAIMED_TTL_MS } from './attachments.service.js';
  * GET /attachments/:id/download — streams the file from the artifact store
  * (REST, D-220), so R2 bytes never land on this host's disk. Response headers
  * ride on StreamableFile's options, so this module needs no @types/express.
- * Ownership is resolved through message → conversation → bot → userId
- * (R7/D-010).
+ * Ownership is resolved through message → conversation → bot → userId.
  */
 @Controller('attachments')
 export class AttachmentsController {

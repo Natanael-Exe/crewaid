@@ -16,7 +16,7 @@ type RequestWithPrincipal = {
 };
 
 /**
- * Ownership fence for D-010's direct-by-ID routes.
+ * Ownership fence for the direct-by-ID routes.
  *
  * AuthGuard remains the authentication boundary and runs first as APP_GUARD;
  * this one answers a narrower question — may THIS principal touch THIS row.

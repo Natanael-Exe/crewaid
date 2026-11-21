@@ -2,8 +2,8 @@
  * Remote ports as loopback addresses.
  *
  * Every caller of `getPortEndpoint` connects to a plain `host:port`: the
- * screen proxy speaks raw RFB and refuses an endpoint that carries headers
- * (D-012), and the CDP and bridge clients take a URL. A hosted provider
+ * screen proxy speaks raw RFB and refuses an endpoint that carries headers,
+ * and the CDP and bridge clients take a URL. A hosted provider
  * reaches a port inside a machine only through a WebSocket per connection —
  * DigitalOcean's port-forward, or the Cloudflare control Worker's tunnel — so
  * this listens on `127.0.0.1:0` for each remote port a caller asks about and
@@ -144,7 +144,7 @@ export class PortTunnels {
             if (error !== undefined && error !== null) local.destroy();
           });
         });
-        // 'close', not 'end': close() destroys these sockets, which emits
+        // 'close', not 'end': close destroys these sockets, which emits
         // neither 'end' nor 'error', and a stream left open holds a
         // connection to the machine after it has paused.
         local.once('close', () => {

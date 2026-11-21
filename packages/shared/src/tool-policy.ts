@@ -4,13 +4,8 @@ import { z } from 'zod';
 import { JsonSchema, IdentityNameSchema } from './primitives.js';
 
 /**
- * External-effect policy (D-164, `docs/plans/MOD-SE-01-EXTERNAL-EFFECTS.md`):
- * what a tool call does outside, and what an approval of it is bound to.
- *
- * Ratified ahead of the policy service that reads them. The binding is stored
- * with a pending interrupt and read back from there when it is answered, so a
- * client never supplies it; it travels to the client only so the prompt can
- * show what is being approved.
+ * External-effect policy schemas: what a tool call does outside the sandbox
+ * and what an operator approval is bound to.
  */
 
 /**

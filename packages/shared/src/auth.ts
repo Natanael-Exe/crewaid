@@ -35,7 +35,7 @@ export const SCOPE_ALL = '*' as const;
 export const AUTH_BASE_PATH = `${API_PREFIX}/auth`;
 
 /**
- * ── THE DESKTOP SIGN-IN CONTRACT (V1-11, D-088) ─────────────────────────────
+ * The desktop sign-in contract (v1-11, d-088)
  *
  * The strings both halves of the sign-in flow have to agree on, in the one
  * package allowed to be the source of truth for a wire shape. The orchestrator

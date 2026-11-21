@@ -34,7 +34,7 @@ export type SandboxSession = HarnessV1NetworkSandboxSession & {
   readonly screen: { readonly widthPx: number; readonly heightPx: number };
 };
 
-/** Daemon observations used to repair database/runtime disagreement (D-039 §4). */
+/** Daemon observations used to repair database/runtime disagreement. */
 export type SandboxRuntimeObservation = ManagedSandboxObservation;
 export type SandboxWorkspaceObservation = WorkspaceObservation;
 
