@@ -210,8 +210,7 @@ jobs:
           # npm points `latest` at whatever is published unless told otherwise:
           # an older release or a prerelease goes out under its own dist-tag.
           if [ "${{ steps.newest.outputs.value }}" = true ]; then tag=latest; else tag=previous; fi
-          # No --provenance: npm only attests builds from a public source
-          # repository, and this one is private — the publish would fail.
+          # npm Trusted Publishing on a public repo attaches provenance automatically.
           npm publish --access public --tag "$tag"
       - name: Upload install.sh to downloads.crewaid.io
         # The newest release's shim only: an older one must not replace it.

@@ -5,6 +5,11 @@
   "type": "module",
   "license": "AGPL-3.0-only",
   "homepage": "https://crewaid.io/self-host",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Natanael-Exe/crewaid.git",
+    "directory": "packages/selfhost-cli"
+  },
   "bin": {
     "crewaid-selfhost": "bin/crewaid-selfhost.mjs"
   },
