@@ -41,7 +41,14 @@ describe('sealing message text', () => {
   it('stores nothing of what was said, and gives it back', () => {
     const stored = sealText(SAID, 'message.content', ring);
     expect(stored.startsWith(SEALED_PREFIX)).toBe(true);
-    for (const word of SAID.split(' ')) expect(stored).not.toContain(word);
+    // Only words random ciphertext cannot spell by chance. The sealed value is
+    // random base64, and a two-letter word such as "me" turns up somewhere in it
+    // a few percent of the time, failing a correct seal; five or more letters
+    // match by chance about once in ten million.
+    const telling = SAID.split(' ').filter((word) => word.length >= 5);
+    expect(telling.length).toBeGreaterThanOrEqual(3);
+    for (const word of telling) expect(stored).not.toContain(word);
+    expect(stored).not.toContain(SAID);
     expect(openText(stored, 'message.content', ring)).toBe(SAID);
   });
 
