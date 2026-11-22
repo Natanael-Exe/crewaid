@@ -209,7 +209,14 @@ services:
       - orchestrator
 
 networks:
-  default: {}
+  # Named explicitly so it sorts lexicographically before `crewaid-sandboxes`
+  # (`-` precedes `_` in ASCII, so the implicit `crewaid_default` sorts after
+  # `crewaid-sandboxes`). Docker picks the lowest-sorting gateway network as a
+  # multi-network container's default route and published-port DNAT target; if
+  # `crewaid-sandboxes` wins, port 3000 DNATs to the sandbox bridge and the
+  # ingress fence drops external and LAN connections to `:3000`.
+  default:
+    name: crewaid-default
   # The orchestrator and the sandbox supervisor, and nothing else. Internal:
   # no route out, so the supervisor talks to the Docker socket and to its one
   # caller.
