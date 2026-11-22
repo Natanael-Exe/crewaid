@@ -1,0 +1,110 @@
+# Self-hosted Crewaid with Instabox (instabox.sh) computers.
+#
+# Runs only Postgres, Redis and the Orchestrator on a small VPS (1-2 GB RAM)
+# with no Docker socket mount, no sandbox-supervisor, and no host egress daemon:
+# each computer runs in an isolated Instabox Firecracker VM with its own
+# firewall and reaches the orchestrator over an authenticated SSH tunnel.
+#
+# Works out of the box on Instabox's Free plan (1 sandbox, 4 vCPU, 8 GiB RAM,
+# 20 GiB /data, $0/mo): leave SANDBOX_MAX_RUNNING=1 and omit size overrides.
+# Note that Free-plan sandboxes have a fixed 30-minute idle suspend and a
+# continuous run cap (up to 8 hours) followed by a cooldown; they cannot run
+# always-on 24/7.
+#
+# Usage:
+#   cp .env.example .env   # fill secrets + INSTABOX_API_KEY
+#   docker compose -f compose.instabox.yml up -d
+
+name: crewaid
+
+services:
+  postgres:
+    image: postgres:16.10-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: crewaid
+      POSTGRES_DB: crewaid
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD (hex, as it goes into a URL)}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U crewaid -d crewaid']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD (hex, as it goes into a URL)}
+    command: ['sh', '-c', 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  orchestrator:
+    image: ghcr.io/natanael-exe/crewaid-orchestrator:${CREWAID_VERSION:?Set CREWAID_VERSION to a release, e.g. 0.1.4}
+    restart: unless-stopped
+    environment:
+      CREWAID_EDITION: selfhosted
+      SEAT_CONTROL_DRAIN_MS: ${SEAT_CONTROL_DRAIN_MS:-5000}
+      SEAT_CONTROL_LEASE_MS: ${SEAT_CONTROL_LEASE_MS:-30000}
+      SEAT_CONTROL_AGENT_WAIT_MS: ${SEAT_CONTROL_AGENT_WAIT_MS:-120000}
+      NODE_ENV: production
+      PORT: '3000'
+      DATABASE_URL: postgresql://crewaid:${POSTGRES_PASSWORD}@postgres:5432/crewaid?schema=public
+      MIGRATION_DATABASE_URL: postgresql://crewaid:${POSTGRES_PASSWORD}@postgres:5432/crewaid?schema=public
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the address the desktop app will use, e.g. http://localhost:3000}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET}
+      CREWAID_CREDENTIAL_KEYRING: ${CREWAID_CREDENTIAL_KEYRING:?Set CREWAID_CREDENTIAL_KEYRING}
+      CREDENTIAL_KEY: ${CREDENTIAL_KEY:?Set CREDENTIAL_KEY}
+      ARTIFACT_DIR: /var/lib/crewaid/artifacts
+      ARTIFACT_R2_ACCOUNT_ID: ${ARTIFACT_R2_ACCOUNT_ID:-}
+      ARTIFACT_R2_ACCESS_KEY_ID: ${ARTIFACT_R2_ACCESS_KEY_ID:-}
+      ARTIFACT_R2_SECRET_ACCESS_KEY: ${ARTIFACT_R2_SECRET_ACCESS_KEY:-}
+      ARTIFACT_R2_BUCKET: ${ARTIFACT_R2_BUCKET:-}
+      # Fixed rather than read from .env: this file has no local Docker supervisor.
+      SANDBOX_PROVIDER: instabox
+      INSTABOX_API_KEY: ${INSTABOX_API_KEY:?Set an Instabox API key with machines:read, machines:write and machines:delete}
+      SANDBOX_INSTABOX_IMAGE: ${SANDBOX_INSTABOX_IMAGE:-ghcr.io/natanael-exe/crewaid-sandbox:${CREWAID_VERSION}}
+      SANDBOX_INSTABOX_TEMPLATE: ${SANDBOX_INSTABOX_TEMPLATE:-agent-browser}
+      SANDBOX_INSTABOX_VCPU: ${SANDBOX_INSTABOX_VCPU:-}
+      SANDBOX_INSTABOX_MEMORY_MIB: ${SANDBOX_INSTABOX_MEMORY_MIB:-}
+      INSTABOX_API_URL: ${INSTABOX_API_URL:-}
+      # Default to 1 for Instabox Free plan; raise on paid Instabox plans.
+      SANDBOX_MAX_RUNNING: ${SANDBOX_MAX_RUNNING:-1}
+    ports:
+      - ${CREWAID_BIND:-127.0.0.1}:${CREWAID_PORT:-3000}:3000
+    volumes:
+      - artifacts:/var/lib/crewaid/artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2.10-alpine
+    profiles: [https]
+    restart: unless-stopped
+    command:
+      ['caddy', 'reverse-proxy', '--from', '${CREWAID_DOMAIN:-}', '--to', 'orchestrator:3000']
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - caddy-data:/data
+    depends_on:
+      - orchestrator
+
+volumes:
+  postgres-data:
+  redis-data:
+  artifacts:
+  caddy-data:

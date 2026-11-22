@@ -9,6 +9,7 @@ import {
   DigitalOceanSandboxProvider,
   digitalOceanTokenConfigured,
 } from '@crewaid/sandbox-digitalocean';
+import { InstaboxSandboxProvider, instaboxApiKeyConfigured } from '@crewaid/sandbox-instabox';
 import { RuntimeSandboxProvider, runtimeApiKeyConfigured } from '@crewaid/sandbox-runtime';
 import { SANDBOX_PROVIDER, type SandboxProvider } from './sandbox.provider.js';
 import { PrismaModule } from '../prisma/prisma.module.js';
@@ -30,6 +31,7 @@ function createSandboxProvider(): SandboxProvider {
     digitalOceanToken: digitalOceanTokenConfigured(),
     cloudflareControlSecret: cloudflareControlSecretConfigured(),
     runtimeApiKey: runtimeApiKeyConfigured(),
+    instaboxApiKey: instaboxApiKeyConfigured(),
   });
   if (config.kind === 'docker') return new DockerSandboxProvider();
   if (config.kind === 'cloudflare') {
@@ -42,6 +44,17 @@ function createSandboxProvider(): SandboxProvider {
       vcpu: config.vcpu,
       memoryMiB: config.memoryMiB,
       diskMiB: config.diskMiB,
+      log: (message) => logger.warn(message),
+    });
+  }
+  if (config.kind === 'instabox') {
+    const logger = new Logger(InstaboxSandboxProvider.name);
+    return new InstaboxSandboxProvider({
+      image: config.image,
+      template: config.template,
+      ...(config.vcpus !== undefined ? { vcpus: config.vcpus } : {}),
+      ...(config.memoryMiB !== undefined ? { memoryMiB: config.memoryMiB } : {}),
+      ...(config.apiUrl !== undefined ? { apiUrl: config.apiUrl } : {}),
       log: (message) => logger.warn(message),
     });
   }

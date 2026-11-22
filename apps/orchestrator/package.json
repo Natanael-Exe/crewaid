@@ -29,6 +29,7 @@
     "@crewaid/sandbox-core": "workspace:*",
     "@crewaid/sandbox-digitalocean": "workspace:*",
     "@crewaid/sandbox-docker": "workspace:*",
+    "@crewaid/sandbox-instabox": "workspace:*",
     "@crewaid/sandbox-runtime": "workspace:*",
     "@crewaid/screen-stream": "workspace:*",
     "@crewaid/shared": "workspace:*",

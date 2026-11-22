@@ -55,7 +55,7 @@ Don't want to manage Docker, Postgres, Redis, egress firewalls, or API keys? [Cr
 | | [Crewaid Cloud](https://crewaid.io) | Self-hosted (AGPL-3.0) |
 | --- | --- | --- |
 | **Price** | 7-day trial for \$1, then Starter (\$20/mo) or Pro (\$100/mo) | Free, plus your own server and model API costs |
-| **Computers** | Managed Linux computers (100 hrs/mo on Starter, 24/7 on Pro) | Your own Docker host, or your [Runtime](https://withruntime.com) account |
+| **Computers** | Managed Linux computers (100 hrs/mo on Starter, 24/7 on Pro) | Your own Docker host, [Runtime](https://withruntime.com), or [Instabox](https://instabox.sh) (Free tier includes 1 computer) |
 | **AI models** | \$5–\$10/mo included + bring your own key at zero markup | Bring your own OpenRouter, OpenAI, or Anthropic key |
 | **Voice & calls** | Built-in dictation, voice replies, and live bot calls (Pro) | Optional BYOK ElevenLabs for dictation & voice messages |
 | **Sign-in** | Google, GitHub, and email magic links | Email and password (zero external auth services) |
@@ -69,7 +69,7 @@ Crewaid Cloud is this repository running with `CREWAID_EDITION=cloud`, which ena
 Pick whichever topology fits your setup:
 
 1. **Docker host (Recommended — zero third-party sandbox bill):** Runs everything (Orchestrator, Postgres, Redis, egress firewall, and each bot's Linux computer) on one Linux VPS, Mac, or Windows machine.
-2. **One-click PaaS (Railway, Render, Fly.io, DigitalOcean):** Runs the Orchestrator + Postgres + Redis on a managed PaaS and delegates isolated bot computers to [Runtime](https://withruntime.com) (`SANDBOX_PROVIDER=runtime`), since managed PaaS hosts do not expose a Docker socket.
+2. **One-click PaaS (Railway, Render, Fly.io, DigitalOcean):** Runs the Orchestrator + Postgres + Redis on a managed PaaS and delegates isolated bot computers to [Runtime](https://withruntime.com) (`SANDBOX_PROVIDER=runtime`) or [Instabox](https://instabox.sh) (`SANDBOX_PROVIDER=instabox`), since managed PaaS hosts do not expose a Docker socket. Instabox's Free plan includes one 4 vCPU / 8 GiB computer at \$0/mo (pauses after 30 min idle and at most 8 hours continuous run, followed by a cooldown; see `infra/selfhost/compose.instabox.yml`).
 
 ### Option 1: Docker host (VPS, macOS, Windows)
 
@@ -160,6 +160,7 @@ packages/
   sandbox-docker/        Docker provider, through the supervisor
   sandbox-supervisor/    the sole process holding the Docker socket
   sandbox-runtime/       Runtime (withruntime.com) provider
+  sandbox-instabox/      Instabox (instabox.sh) provider
   sandbox-digitalocean/  DigitalOcean provider (deprecated)
   sandbox-cloudflare/    Cloudflare Containers provider (deprecated)
   screen-stream/         RFB screen streaming

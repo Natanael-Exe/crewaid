@@ -67,6 +67,14 @@ export type SandboxProviderConfig =
       readonly vcpu: number;
       readonly memoryMiB: number;
       readonly diskMiB: number;
+    }
+  | {
+      readonly kind: 'instabox';
+      readonly image: string;
+      readonly template: string;
+      readonly vcpus?: number;
+      readonly memoryMiB?: number;
+      readonly apiUrl?: string;
     };
 
 /** What the boot check may know about each provider's credential: whether it is set. */
@@ -74,6 +82,7 @@ export interface ProviderCredentials {
   readonly digitalOceanToken: boolean;
   readonly cloudflareControlSecret: boolean;
   readonly runtimeApiKey: boolean;
+  readonly instaboxApiKey: boolean;
 }
 
 /**
@@ -93,9 +102,10 @@ export function readSandboxProvider(
   if (raw === '' || raw === 'docker') return { kind: 'docker' };
   if (raw === 'cloudflare') return readCloudflare(env, credentials.cloudflareControlSecret);
   if (raw === 'runtime') return readRuntime(env, credentials.runtimeApiKey);
+  if (raw === 'instabox') return readInstabox(env, credentials.instaboxApiKey);
   if (raw !== 'digitalocean') {
     throw new Error(
-      'SANDBOX_PROVIDER must be "docker", "digitalocean", "cloudflare" or "runtime", ' +
+      'SANDBOX_PROVIDER must be "docker", "digitalocean", "cloudflare", "runtime" or "instabox", ' +
         `got ${JSON.stringify(raw)}`,
     );
   }
@@ -174,6 +184,65 @@ function readRuntime(
       8192,
       409_600,
     ),
+  };
+}
+
+function readInstabox(
+  env: Readonly<Record<string, string | undefined>>,
+  hasKey: boolean,
+): SandboxProviderConfig {
+  if (!hasKey) {
+    throw new Error('SANDBOX_PROVIDER=instabox needs INSTABOX_API_KEY');
+  }
+  const image =
+    (env['SANDBOX_INSTABOX_IMAGE'] ?? '').trim() || 'ghcr.io/natanael-exe/crewaid-sandbox:latest';
+  const template = (env['SANDBOX_INSTABOX_TEMPLATE'] ?? '').trim() || 'agent-browser';
+
+  const rawVcpu = (env['SANDBOX_INSTABOX_VCPU'] ?? '').trim();
+  const rawMemory = (env['SANDBOX_INSTABOX_MEMORY_MIB'] ?? '').trim();
+  if ((rawVcpu === '') !== (rawMemory === '')) {
+    throw new Error(
+      'SANDBOX_INSTABOX_VCPU and SANDBOX_INSTABOX_MEMORY_MIB must be set together ' +
+        '(or both omitted to use the Instabox plan default)',
+    );
+  }
+  const size =
+    rawVcpu !== ''
+      ? {
+          vcpus: readBoundedInteger('SANDBOX_INSTABOX_VCPU', rawVcpu, 4, 1, 16),
+          memoryMiB: readBoundedInteger(
+            'SANDBOX_INSTABOX_MEMORY_MIB',
+            rawMemory,
+            8192,
+            1024,
+            65_536,
+          ),
+        }
+      : {};
+
+  const rawApiUrl = (env['INSTABOX_API_URL'] ?? '').trim();
+  let apiUrl: string | undefined;
+  if (rawApiUrl !== '') {
+    let parsed: URL;
+    try {
+      parsed = new URL(rawApiUrl);
+    } catch {
+      throw new Error(
+        `INSTABOX_API_URL must be a valid https:// URL, got ${JSON.stringify(rawApiUrl)}`,
+      );
+    }
+    if (parsed.protocol !== 'https:') {
+      throw new Error('INSTABOX_API_URL must be an https:// URL');
+    }
+    apiUrl = parsed.origin;
+  }
+
+  return {
+    kind: 'instabox',
+    image,
+    template,
+    ...size,
+    ...(apiUrl !== undefined ? { apiUrl } : {}),
   };
 }
 
