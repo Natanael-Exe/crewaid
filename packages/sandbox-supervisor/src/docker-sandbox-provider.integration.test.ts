@@ -2,7 +2,11 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 import { afterAll, describe, expect, it } from 'vitest';
-import { SANDBOX_PORTS, type HarnessV1NetworkSandboxSession } from '@crewaid/sandbox-core';
+import {
+  BROWSER_SANDBOX_SECCOMP,
+  SANDBOX_PORTS,
+  type HarnessV1NetworkSandboxSession,
+} from '@crewaid/sandbox-core';
 
 import {
   DockerSandboxProvider,
@@ -11,7 +15,6 @@ import {
   SANDBOX_MANAGED_BY,
   workspaceVolumeNameFor,
 } from '@crewaid/sandbox-docker';
-import { BROWSER_SANDBOX_SECCOMP } from './seccomp-profile.js';
 import { useTestSupervisor } from './testing.js';
 
 /**

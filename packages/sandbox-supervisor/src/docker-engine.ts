@@ -22,6 +22,7 @@ import { isIP } from 'node:net';
 
 import Docker from 'dockerode';
 import {
+  BROWSER_SANDBOX_SECCOMP,
   HarnessError,
   RUNTIME_MARKER_PROGRAM,
   WORKSPACE_MARKER_PROGRAM,
@@ -41,8 +42,6 @@ import {
   type ContainerLimits,
   type WorkspaceVolume,
 } from '@crewaid/sandbox-docker';
-
-import { BROWSER_SANDBOX_SECCOMP } from './seccomp-profile.js';
 
 /** The daemon named by `DOCKER_HOST`, or the local socket. */
 export function createDockerEngine(options: {

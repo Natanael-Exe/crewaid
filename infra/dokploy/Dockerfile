@@ -14,6 +14,7 @@ COPY packages/sandbox-cloudflare/package.json packages/sandbox-cloudflare/packag
 COPY packages/sandbox-core/package.json packages/sandbox-core/package.json
 COPY packages/sandbox-digitalocean/package.json packages/sandbox-digitalocean/package.json
 COPY packages/sandbox-docker/package.json packages/sandbox-docker/package.json
+COPY packages/sandbox-instabox/package.json packages/sandbox-instabox/package.json
 COPY packages/sandbox-runtime/package.json packages/sandbox-runtime/package.json
 COPY packages/sandbox-supervisor/package.json packages/sandbox-supervisor/package.json
 COPY packages/screen-gateway/package.json packages/screen-gateway/package.json

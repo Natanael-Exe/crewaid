@@ -600,6 +600,7 @@ export default tseslint.config(
       'packages/sandbox-core/**/*.ts',
       'packages/sandbox-digitalocean/**/*.ts',
       'packages/sandbox-docker/**/*.ts',
+      'packages/sandbox-instabox/**/*.ts',
       'packages/sandbox-runtime/**/*.ts',
       'packages/sandbox-supervisor/**/*.ts',
       // Run inside the computer, as the screen gateway (D-223).

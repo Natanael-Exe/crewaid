@@ -24,6 +24,7 @@
     { "path": "../../packages/sandbox-cloudflare/tsconfig.build.json" },
     { "path": "../../packages/sandbox-digitalocean/tsconfig.build.json" },
     { "path": "../../packages/sandbox-docker/tsconfig.build.json" },
+    { "path": "../../packages/sandbox-instabox/tsconfig.build.json" },
     { "path": "../../packages/sandbox-runtime/tsconfig.build.json" },
     { "path": "../../packages/screen-stream/tsconfig.build.json" }
   ]
