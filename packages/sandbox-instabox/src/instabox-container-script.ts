@@ -189,8 +189,32 @@ export async function installHostSetup(
 export interface EnsureContainerResult {
   readonly imageId: string;
   readonly recreated: boolean;
-  readonly skippedUpgradeForDiskSpace: boolean;
+  /**
+   * Why a newer image was left for later: `disk` when `/` lacked room to pull
+   * it, `pull` when the registry could not be reached. The computer keeps
+   * running its current image either way; `null` when nothing was skipped.
+   */
+  readonly skippedUpgrade: 'disk' | 'pull' | null;
 }
+
+/**
+ * How `ensureContainer` treats a container that already exists:
+ *
+ * - `ensure`: keep it while it was started from the configured image name;
+ *   replace it when the configured name changed. Used on create and on a cold
+ *   boot.
+ * - `follow`: pull the configured name and replace the container only if the
+ *   name now points at a different image. A tag a release moves, such as
+ *   `crewaid-sandbox:latest`, keeps the same name while its content changes, so
+ *   comparing names alone would leave a computer on its first image forever.
+ *   Used when a computer wakes from paused or stopped, never under a running
+ *   one. A pull that fails keeps the current container: the start a person
+ *   asked for matters more than the update.
+ * - `keep`: never replace it, only start it; create one only when none exists.
+ *   Used to recover a computer whose bridge does not answer, so a bot that may
+ *   be mid-task is never moved onto another image underneath it.
+ */
+export type EnsureMode = 'ensure' | 'follow' | 'keep';
 
 /**
  * Shell program that ensures `crewaid-sandbox` is running with all hardening,
@@ -218,50 +242,57 @@ export function buildEnsureContainerCommand(): string {
     `NAME=${CONTAINER_NAME}`,
     'IMAGE="$CREWAID_IMAGE"',
     'MEM_MIB="$CREWAID_CONTAINER_MEM_MIB"',
-    'FORCE_PULL="${CREWAID_FORCE_PULL:-0}"',
+    'MODE="${CREWAID_ENSURE_MODE:-ensure}"',
     `MIN_FREE_MIB=${ROOT_MIN_FREE_PULL_MIB}`,
+    '',
+    'emit() {',
+    `  printf '${ENSURE_RESULT_MARKER}{"imageId":"%s","recreated":%s,"skippedUpgrade":"%s"}\\n' "$1" "$2" "$3"`,
+    '}',
+    'start_existing() {',
+    '  if [ "$EXISTING_STATE" != "running" ]; then docker start "$NAME" >/dev/null; fi',
+    '}',
     '',
     'EXISTING_STATE=$(docker inspect -f "{{.State.Status}}" "$NAME" 2>/dev/null || true)',
     'EXISTING_IMAGE_ID=$(docker inspect -f "{{.Image}}" "$NAME" 2>/dev/null || true)',
     'EXISTING_IMAGE_REF=$(docker inspect -f "{{.Config.Image}}" "$NAME" 2>/dev/null || true)',
     '',
-    'if [ "$FORCE_PULL" != "1" ] && [ -n "$EXISTING_STATE" ] && [ "$EXISTING_IMAGE_REF" = "$IMAGE" ]; then',
-    '  if [ "$EXISTING_STATE" != "running" ]; then',
-    '    docker start "$NAME" >/dev/null',
+    'if [ -n "$EXISTING_STATE" ]; then',
+    '  if [ "$MODE" = "keep" ] || { [ "$MODE" = "ensure" ] && [ "$EXISTING_IMAGE_REF" = "$IMAGE" ]; }; then',
+    '    start_existing',
+    '    emit "$EXISTING_IMAGE_ID" false ""',
+    '    exit 0',
     '  fi',
-    `  printf '${ENSURE_RESULT_MARKER}{"imageId":"%s","recreated":false,"skippedUpgradeForDiskSpace":false}\\n' "$EXISTING_IMAGE_ID"`,
-    '  exit 0',
     'fi',
     '',
-    'NEED_PULL=0',
-    'if [ "$FORCE_PULL" = "1" ] || ! docker image inspect "$IMAGE" >/dev/null 2>&1; then',
-    '  NEED_PULL=1',
-    'fi',
-    '',
-    'if [ "$NEED_PULL" = "1" ]; then',
+    'if [ "$MODE" = "follow" ] || ! docker image inspect "$IMAGE" >/dev/null 2>&1; then',
     '  docker image prune -af >/dev/null 2>&1 || true',
     '  FREE_MIB=$(df -Pm / | awk "NR==2 {print \\$4}")',
     '  if [ "${FREE_MIB:-0}" -lt "$MIN_FREE_MIB" ]; then',
     '    if [ -n "$EXISTING_STATE" ]; then',
-    '      if [ "$EXISTING_STATE" != "running" ]; then',
-    '        docker start "$NAME" >/dev/null',
-    '      fi',
-    `      printf '${ENSURE_RESULT_MARKER}{"imageId":"%s","recreated":false,"skippedUpgradeForDiskSpace":true}\\n' "$EXISTING_IMAGE_ID"`,
+    '      start_existing',
+    '      emit "$EXISTING_IMAGE_ID" false disk',
     '      exit 0',
     '    fi',
     '    echo "Insufficient free space on / (${FREE_MIB:-0} MiB < ${MIN_FREE_MIB} MiB) to pull $IMAGE" >&2',
     '    exit 28',
     '  fi',
-    '  docker pull -q "$IMAGE" >/dev/null',
+    '  if ! PULL_ERR=$(timeout 180 docker pull -q "$IMAGE" 2>&1 >/dev/null); then',
+    '    if [ -n "$EXISTING_STATE" ]; then',
+    '      echo "pull of $IMAGE failed, keeping the current image: $PULL_ERR" >&2',
+    '      start_existing',
+    '      emit "$EXISTING_IMAGE_ID" false pull',
+    '      exit 0',
+    '    fi',
+    '    echo "pull of $IMAGE failed: $PULL_ERR" >&2',
+    '    exit 1',
+    '  fi',
     'fi',
     '',
     'TARGET_IMAGE_ID=$(docker image inspect -f "{{.Id}}" "$IMAGE")',
     '',
     'if [ -n "$EXISTING_STATE" ] && [ "$EXISTING_IMAGE_ID" = "$TARGET_IMAGE_ID" ]; then',
-    '  if [ "$EXISTING_STATE" != "running" ]; then',
-    '    docker start "$NAME" >/dev/null',
-    '  fi',
-    `  printf '${ENSURE_RESULT_MARKER}{"imageId":"%s","recreated":false,"skippedUpgradeForDiskSpace":false}\\n' "$TARGET_IMAGE_ID"`,
+    '  start_existing',
+    '  emit "$TARGET_IMAGE_ID" false ""',
     '  exit 0',
     'fi',
     '',
@@ -289,7 +320,7 @@ export function buildEnsureContainerCommand(): string {
     '  "$IMAGE" >/dev/null',
     '',
     'docker image prune -af >/dev/null 2>&1 || true',
-    `printf '${ENSURE_RESULT_MARKER}{"imageId":"%s","recreated":true,"skippedUpgradeForDiskSpace":false}\\n' "$TARGET_IMAGE_ID"`,
+    'emit "$TARGET_IMAGE_ID" true ""',
   ].join('\n');
 }
 
@@ -300,7 +331,7 @@ export async function ensureContainer(
   options: {
     readonly image: string;
     readonly containerMemoryMiB: number;
-    readonly forcePull?: boolean;
+    readonly mode?: EnsureMode;
     readonly abortSignal?: AbortSignal;
   },
 ): Promise<EnsureContainerResult> {
@@ -311,7 +342,7 @@ export async function ensureContainer(
     envs: {
       CREWAID_IMAGE: image,
       CREWAID_CONTAINER_MEM_MIB: String(memMiB),
-      CREWAID_FORCE_PULL: options.forcePull === true ? '1' : '0',
+      CREWAID_ENSURE_MODE: options.mode ?? 'ensure',
     },
     // First pull of the ~3.5 GiB desktop image takes ~25-45 s; allow up to 5 min.
     timeoutMs: 300_000,
@@ -375,13 +406,13 @@ function parseEnsureResult(stdout: string): EnsureContainerResult {
     if (typeof parsed === 'object' && parsed !== null) {
       const imageId: unknown = Reflect.get(parsed, 'imageId');
       const recreated: unknown = Reflect.get(parsed, 'recreated');
-      const skipped: unknown = Reflect.get(parsed, 'skippedUpgradeForDiskSpace');
+      const skipped: unknown = Reflect.get(parsed, 'skippedUpgrade');
       if (
         typeof imageId === 'string' &&
         typeof recreated === 'boolean' &&
-        typeof skipped === 'boolean'
+        (skipped === '' || skipped === 'disk' || skipped === 'pull')
       ) {
-        return { imageId, recreated, skippedUpgradeForDiskSpace: skipped };
+        return { imageId, recreated, skippedUpgrade: skipped === '' ? null : skipped };
       }
     }
   }
