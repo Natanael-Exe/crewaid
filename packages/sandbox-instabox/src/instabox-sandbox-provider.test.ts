@@ -140,7 +140,7 @@ describe('InstaboxSandboxProvider', () => {
     );
   });
 
-  it('resumeSession from suspended preserves the live container when image has not changed', async () => {
+  it('resumeSession from suspended pulls the tag again and keeps the live container when nothing changed', async () => {
     const api = new FakeInstaboxApi();
     api.seed({
       id: 'm_1',
@@ -151,21 +151,53 @@ describe('InstaboxSandboxProvider', () => {
         [FIRST_START_LABEL]: '1000',
         [ORPHANED_AT_LABEL]: '2000',
         [IMAGE_LABEL]: IMAGE,
+        [IMAGE_ID_LABEL]: 'sha256:same',
       },
     });
+    api.ensureResult = { imageId: 'sha256:same', recreated: false, skippedUpgrade: null };
     const provider = makeProvider(api);
 
     await provider.resumeSession({ sessionId: 'c1' });
 
     expect(api.events).toContain('resume:m_1');
-    // Neither host setup nor container recreation ran because the image didn't change and bridge was healthy.
+    // A paused VM keeps its firewall in memory: no host setup is re-sent.
     expect(api.writes).toHaveLength(0);
-    expect(api.execs).toHaveLength(0);
+    // One check of the tag, in follow mode; the script keeps the container when the image is the same.
+    expect(api.execs).toHaveLength(1);
+    expect(api.execs[0]?.envs?.['CREWAID_ENSURE_MODE']).toBe('follow');
+    expect(api.machines.get('m_1')?.metadata[IMAGE_ID_LABEL]).toBe('sha256:same');
     // Orphan clock cleared on resume.
     expect(api.machines.get('m_1')?.metadata[ORPHANED_AT_LABEL]).toBe('none');
   });
 
-  it('resumeSession from suspended upgrades container when image changed, and logs if disk space is too low', async () => {
+  it('follows a moving tag such as :latest: same name, new image, new image ID recorded', async () => {
+    const latest = 'ghcr.io/natanael-exe/crewaid-sandbox:latest';
+    const api = new FakeInstaboxApi();
+    api.seed({
+      id: 'm_1',
+      name: sandboxNameFor('c1'),
+      state: 'suspended',
+      metadata: {
+        [COMPUTER_LABEL.key]: COMPUTER_LABEL.value,
+        [FIRST_START_LABEL]: '1000',
+        [ORPHANED_AT_LABEL]: 'none',
+        [IMAGE_LABEL]: latest,
+        [IMAGE_ID_LABEL]: 'sha256:release-1',
+      },
+    });
+    // The release moved `latest`; the in-VM pull sees a different image and replaces the container.
+    api.ensureResult = { imageId: 'sha256:release-2', recreated: true, skippedUpgrade: null };
+    const provider = makeProvider(api, { image: latest });
+
+    await provider.resumeSession({ sessionId: 'c1' });
+
+    const ensureCall = api.execs.find((e) => e.envs?.['CREWAID_IMAGE'] === latest);
+    expect(ensureCall?.envs?.['CREWAID_ENSURE_MODE']).toBe('follow');
+    expect(api.machines.get('m_1')?.metadata[IMAGE_ID_LABEL]).toBe('sha256:release-2');
+    expect(api.machines.get('m_1')?.metadata[IMAGE_LABEL]).toBe(latest);
+  });
+
+  it('resumeSession moves to a newly configured image, and keeps the current one when disk or registry stop the pull', async () => {
     const newImage = 'ghcr.io/natanael-exe/crewaid-sandbox:0.1.5';
     const api = new FakeInstaboxApi();
     api.seed({
@@ -184,22 +216,56 @@ describe('InstaboxSandboxProvider', () => {
 
     await provider.resumeSession({ sessionId: 'c1' });
     const ensureCall = api.execs.find((e) => e.envs?.['CREWAID_IMAGE'] === newImage);
-    expect(ensureCall?.envs?.['CREWAID_FORCE_PULL']).toBe('1');
+    expect(ensureCall?.envs?.['CREWAID_ENSURE_MODE']).toBe('follow');
     expect(api.machines.get('m_1')?.metadata[IMAGE_LABEL]).toBe(newImage);
     expect(logs).toHaveLength(0);
 
-    // Now simulate low disk space preventing another upgrade: computer still starts cleanly.
+    // Low disk: the computer still starts, on its current image, and says why.
     const newerImage = 'ghcr.io/natanael-exe/crewaid-sandbox:0.1.6';
     api.machines.get('m_1')!.state = 'suspended';
-    api.ensureResult = {
-      imageId: 'sha256:old',
-      recreated: false,
-      skippedUpgradeForDiskSpace: true,
-    };
-    const provider2 = makeProvider(api, { image: newerImage, log: (m) => logs.push(m) });
-    await provider2.resumeSession({ sessionId: 'c1' });
+    api.ensureResult = { imageId: 'sha256:old', recreated: false, skippedUpgrade: 'disk' };
+    await makeProvider(api, { image: newerImage, log: (m) => logs.push(m) }).resumeSession({
+      sessionId: 'c1',
+    });
     expect(logs.some((m) => m.includes('less than 2 GiB free'))).toBe(true);
     expect(api.machines.get('m_1')?.metadata[IMAGE_LABEL]).toBe(newImage);
+
+    // Registry unreachable: same outcome, a different reason.
+    api.machines.get('m_1')!.state = 'suspended';
+    api.ensureResult = { imageId: 'sha256:old', recreated: false, skippedUpgrade: 'pull' };
+    await makeProvider(api, { image: newerImage, log: (m) => logs.push(m) }).resumeSession({
+      sessionId: 'c1',
+    });
+    expect(logs.some((m) => m.includes('could not be pulled'))).toBe(true);
+    expect(api.machines.get('m_1')?.metadata[IMAGE_LABEL]).toBe(newImage);
+  });
+
+  it('recovering an unhealthy bridge restarts the container but never swaps its image', async () => {
+    const api = new FakeInstaboxApi();
+    api.seed({
+      id: 'm_1',
+      name: sandboxNameFor('c1'),
+      state: 'running',
+      metadata: {
+        [COMPUTER_LABEL.key]: COMPUTER_LABEL.value,
+        [FIRST_START_LABEL]: '1000',
+        [ORPHANED_AT_LABEL]: 'none',
+        [IMAGE_LABEL]: IMAGE,
+      },
+    });
+    let probes = 0;
+    const provider = makeProvider(api, {
+      // A configured image newer than the running one must not be applied here.
+      image: 'ghcr.io/natanael-exe/crewaid-sandbox:0.9.0',
+      relaunchMs: 0,
+      bridgeProbe: () => Promise.resolve((probes += 1) > 1),
+    });
+
+    await provider.resumeSession({ sessionId: 'c1' });
+
+    const ensures = api.execs.filter((e) => e.envs?.['CREWAID_ENSURE_MODE'] !== undefined);
+    expect(ensures.length).toBeGreaterThan(0);
+    expect(ensures.every((e) => e.envs?.['CREWAID_ENSURE_MODE'] === 'keep')).toBe(true);
   });
 
   it('resumeSession from stopped re-verifies host setup and container; never recreates while already running', async () => {

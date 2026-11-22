@@ -270,7 +270,6 @@ export class InstaboxSandboxProvider implements HarnessV1SandboxProvider {
 
       const wasNotRunning = found.state !== 'running';
       const wasColdStopped = found.state === 'stopped';
-      const imageChanged = found.metadata[IMAGE_LABEL] !== this.#image;
 
       options.abortSignal?.throwIfAborted();
       const container = this.#containerFor(found.id);
@@ -278,21 +277,26 @@ export class InstaboxSandboxProvider implements HarnessV1SandboxProvider {
         await container.start();
         const live = (await this.#api.get(found.id)) ?? found;
 
-        // Never recreate the container underneath an already-running computer:
-        // a bot may be mid-task on it. On cold boot or when the configured
-        // image ref changed while paused/stopped, reconcile host setup and container.
-        if (wasNotRunning && (wasColdStopped || imageChanged)) {
-          await installHostSetup(this.#api, live.id, options.abortSignal);
+        // A computer follows the configured image, as on Runtime: on a wake
+        // from paused or stopped, the tag is pulled again and the container is
+        // replaced only if the tag now names a different image. Never under a
+        // computer that was already running: a bot may be mid-task on it.
+        if (wasNotRunning) {
+          // The fence's rules live in kernel memory: a paused VM keeps them, a
+          // cold boot reinstalls them from the unit, and this re-checks the unit.
+          if (wasColdStopped) await installHostSetup(this.#api, live.id, options.abortSignal);
           const ensured = await ensureContainer(this.#api, live.id, {
             image: this.#image,
             containerMemoryMiB: containerMemoryFor(live, this.#memoryMiB),
-            forcePull: imageChanged,
+            mode: 'follow',
             ...(options.abortSignal !== undefined ? { abortSignal: options.abortSignal } : {}),
           });
-          if (ensured.skippedUpgradeForDiskSpace) {
-            this.#log(
-              `computer ${sessionId} stays on its current image: less than 2 GiB free on / inside Instabox VM ${live.id}`,
-            );
+          if (ensured.skippedUpgrade !== null) {
+            const why =
+              ensured.skippedUpgrade === 'disk'
+                ? `less than 2 GiB free on / inside Instabox VM ${live.id}`
+                : `${this.#image} could not be pulled inside Instabox VM ${live.id}`;
+            this.#log(`computer ${sessionId} stays on its current image: ${why}`);
           } else {
             const updated: Record<string, string> = {
               ...metadata,
@@ -598,6 +602,9 @@ export class InstaboxSandboxProvider implements HarnessV1SandboxProvider {
         await ensureContainer(this.#api, machine.id, {
           image: this.#image,
           containerMemoryMiB: containerMemoryFor(machine, this.#memoryMiB),
+          // Recovery restarts what is there; it never swaps the image under a
+          // computer that may already be running a bot.
+          mode: 'keep',
           ...(abortSignal !== undefined ? { abortSignal } : {}),
         });
       }

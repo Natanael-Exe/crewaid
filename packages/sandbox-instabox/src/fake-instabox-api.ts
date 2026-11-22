@@ -100,7 +100,7 @@ export class FakeInstaboxApi implements InstaboxApi {
   ensureResult = {
     imageId: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     recreated: true,
-    skippedUpgradeForDiskSpace: false,
+    skippedUpgrade: null as 'disk' | 'pull' | null,
   };
 
   #seq = 0;
@@ -246,7 +246,10 @@ export class FakeInstaboxApi implements InstaboxApi {
     if (command.includes('CREWAID_ENSURE_JSON=')) {
       return Promise.resolve({
         exitCode: 0,
-        stdout: `CREWAID_ENSURE_JSON=${JSON.stringify(this.ensureResult)}\n`,
+        stdout: `CREWAID_ENSURE_JSON=${JSON.stringify({
+          ...this.ensureResult,
+          skippedUpgrade: this.ensureResult.skippedUpgrade ?? '',
+        })}\n`,
         stderr: '',
         timedOut: false,
       });
