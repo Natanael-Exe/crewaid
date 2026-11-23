@@ -98,11 +98,13 @@ async function setUp(page: Page, bots: readonly Record<string, unknown>[]): Prom
   );
   await routeChat(page);
 
-  const saved = await page.evaluate<TokenStoreWriteResult>(() =>
-    (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
-      orchestratorBaseUrl: 'http://127.0.0.1:59997',
-      orchestratorToken: 'computer-wake-token',
-    }),
+  const saved = await page.evaluate<TokenStoreWriteResult, string>(
+    (baseUrl) =>
+      (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
+        orchestratorBaseUrl: baseUrl,
+        orchestratorToken: 'computer-wake-token',
+      }),
+    stubAuth.baseUrl,
   );
   expect(saved.status).toBe('saved');
   await page.reload();
@@ -130,7 +132,7 @@ function countStarts(page: Page): { readonly urls: string[] } {
 let stubAuth: StubAuthServer;
 
 test.beforeAll(async () => {
-  stubAuth = await startStubAuthServer(59997);
+  stubAuth = await startStubAuthServer(0);
 });
 
 test.afterAll(async () => {
