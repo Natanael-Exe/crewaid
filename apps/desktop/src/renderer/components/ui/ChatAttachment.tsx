@@ -12,7 +12,7 @@ import {
   type Icon,
 } from '@tabler/icons-react';
 import { createContext, useContext, type ClipboardEvent, type ComponentPropsWithRef } from 'react';
-import { cx } from './compose';
+import { composeTwRenderProps, cx } from './compose';
 
 /**
  * A file waiting to go out with the next message: a type icon, the name, a
@@ -144,7 +144,7 @@ export function ChatAttachmentRemove({ className, ...props }: CloseButtonProps) 
   return (
     <CloseButton
       data-slot="chat-attachment-remove"
-      className={cx('size-6 min-w-6 shrink-0', className)}
+      className={composeTwRenderProps(className, 'size-6 min-w-6 shrink-0')}
       {...props}
     />
   );
@@ -174,12 +174,24 @@ export const ChatAttachment = Object.assign(ChatAttachmentRoot, {
  * clipboard arrives as an unnamed file, and an upload needs a name.
  */
 export function clipboardImageFiles(event: ClipboardEvent): File[] {
-  const images = Array.from(event.clipboardData.files).filter((file) =>
-    file.type.startsWith('image/'),
-  );
+  const data = event.clipboardData;
+  const images: File[] = [];
+  for (const item of Array.from(data.items ?? [])) {
+    if (item.kind !== 'file' || !item.type.startsWith('image/')) continue;
+    const file = item.getAsFile();
+    if (file !== null) images.push(file);
+  }
+  if (images.length === 0) {
+    for (const file of Array.from(data.files ?? [])) {
+      if (file.type.startsWith('image/')) images.push(file);
+    }
+  }
   return images.map((file, index) => {
     if (file.name !== '') return file;
     const extension = file.type.split('/')[1]?.replace(/\+.*$/, '') || 'png';
-    return new File([file], `pasted-image-${index + 1}.${extension}`, { type: file.type });
+    return new File([file], `pasted-image-${index + 1}.${extension}`, {
+      lastModified: file.lastModified || Date.now(),
+      type: file.type,
+    });
   });
 }

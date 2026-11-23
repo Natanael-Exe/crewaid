@@ -19,6 +19,7 @@ export function TaskCardView({
   selected,
   onOpen,
   onDragStart,
+  onMoveColumn,
 }: {
   card: TaskCard;
   assignee: BotWithSandbox | undefined;
@@ -27,6 +28,7 @@ export function TaskCardView({
   selected: boolean;
   onOpen: () => void;
   onDragStart?: (event: React.DragEvent<HTMLButtonElement>) => void;
+  onMoveColumn?: (delta: -1 | 1) => void;
 }) {
   const t = useT();
   const chip = seriesChip(card);
@@ -38,6 +40,19 @@ export function TaskCardView({
       draggable={onDragStart !== undefined}
       onDragStart={onDragStart}
       onClick={onOpen}
+      onKeyDown={
+        onMoveColumn === undefined
+          ? undefined
+          : (event) => {
+              if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+              event.preventDefault();
+              const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
+              const step: -1 | 1 = event.key === 'ArrowRight' ? (rtl ? -1 : 1) : rtl ? 1 : -1;
+              onMoveColumn(step);
+            }
+      }
+      aria-keyshortcuts={onMoveColumn !== undefined ? 'Alt+ArrowLeft Alt+ArrowRight' : undefined}
       aria-pressed={selected}
       className={`crewaid-task-card group flex w-full flex-col gap-2 rounded-[10px] border bg-surface p-2.5 text-start outline-none transition-colors focus-visible:ring-2 focus-visible:ring-focus/40 ${
         selected ? 'border-accent/60' : 'border-border hover:border-foreground/20'

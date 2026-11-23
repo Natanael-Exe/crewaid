@@ -47,23 +47,6 @@ export const BOT_MENU_ITEMS = (
 
 export type BotMenuAction = keyof typeof BOT_MENU_LABELS;
 
-const MENU_WIDTH = 236;
-const MENU_MARGIN = 8;
-const FLYOUT_WIDTH = 220;
-
-/** Open in reading order, using the other side when the viewport has no room. */
-export function botMoveFlyoutX(menuX: number, viewportWidth: number, rtl: boolean): number {
-  const before = menuX - FLYOUT_WIDTH + 6;
-  const after = menuX + MENU_WIDTH - 6;
-  const preferred = rtl ? before : after;
-  const alternate = rtl ? after : before;
-  const fits = preferred >= MENU_MARGIN && preferred + FLYOUT_WIDTH <= viewportWidth - MENU_MARGIN;
-  return Math.max(
-    MENU_MARGIN,
-    Math.min(fits ? preferred : alternate, viewportWidth - FLYOUT_WIDTH - MENU_MARGIN),
-  );
-}
-
 /**
  * What deleting a bot takes, counted: its deliverables go with it, its tasks
  * stay. `null` while the count is still being read.
@@ -301,10 +284,10 @@ export function BotRowMenu({
                 id="delete"
                 variant="danger"
                 textValue={tr('bots.botRowMenu.delete')}
-                className="rounded-lg"
+                className="rounded-lg text-danger data-[hovered]:text-danger"
               >
-                <IconTrash className="size-4 shrink-0" stroke={1.8} />
-                <span>{tr('bots.botRowMenu.delete')}</span>
+                <IconTrash className="size-4 shrink-0 text-danger" stroke={1.8} />
+                <span className="text-danger">{tr('bots.botRowMenu.delete')}</span>
               </ContextMenu.Item>
             ) : null}
           </ContextMenu.Menu>

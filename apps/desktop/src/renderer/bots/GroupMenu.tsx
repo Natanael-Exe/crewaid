@@ -78,10 +78,10 @@ export function GroupMenu({
             id="delete"
             variant="danger"
             textValue={t('bots.groupDialog.deleteGroup')}
-            className="rounded-lg"
+            className="rounded-lg text-danger data-[hovered]:text-danger"
           >
-            <IconTrash className="size-4 shrink-0" stroke={1.8} />
-            <span>{t('bots.groupDialog.deleteGroup')}</span>
+            <IconTrash className="size-4 shrink-0 text-danger" stroke={1.8} />
+            <span className="text-danger">{t('bots.groupDialog.deleteGroup')}</span>
           </ContextMenu.Item>
         </ContextMenu.Menu>
       </ContextMenu.Popover>

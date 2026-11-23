@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { CrewaidBridge, TokenStoreWriteResult } from '../src/preload.js';
 import { launchDesktop } from './launchDesktop';
+import { tokenColor } from './themeTokens';
 
 /**
  * M10 — Work, end to end in the real app against a real orchestrator
@@ -145,9 +146,10 @@ test('a task is created, assigned, started, moved by the bot’s side, and its d
     await expect(page.getByRole('complementary', { name: 'Task details' })).toBeVisible();
     const details = page.getByRole('complementary', { name: 'Task details' });
     const selectedCard = column(page, 'To do').getByRole('button', { name: /API auth/ });
-    await expect(selectedCard).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    const selectedFill = await tokenColor(page, '--crew-selected');
+    await expect(selectedCard).toHaveCSS('background-color', selectedFill);
     await selectedCard.hover();
-    await expect(selectedCard).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(selectedCard).toHaveCSS('background-color', selectedFill);
     await expect(details).toHaveCSS('border-radius', '24px');
     await expect(details).toHaveCSS('backdrop-filter', 'blur(24px) saturate(1.65)');
     if (process.env['CC79_CAPTURE'] === '1') {
@@ -158,7 +160,7 @@ test('a task is created, assigned, started, moved by the bot’s side, and its d
       await expect(page.getByRole('table')).toBeVisible();
       await expect(page.locator('.crewaid-task-row[aria-selected="true"]')).toHaveCSS(
         'background-color',
-        'rgb(255, 255, 255)',
+        selectedFill,
       );
       await page.screenshot({ path: path.join(evidence, 'task-list-details.png') });
       await page.getByLabel('Board', { exact: true }).click();

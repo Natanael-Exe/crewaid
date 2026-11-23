@@ -135,7 +135,9 @@ export function SearchPalette({
                 className="min-w-0 flex-1 bg-transparent text-body outline-none placeholder:text-muted"
               />
               <Command.InputGroupSuffix className="flex items-center gap-1.5">
-                {query !== '' ? <Command.InputGroupClearButton /> : null}
+                {query !== '' ? (
+                  <Command.InputGroupClearButton aria-label={t('work.viewSearch.clearSearch')} />
+                ) : null}
                 <Segment.Root
                   aria-label={t('work.searchPalette.searchIn')}
                   size="sm"

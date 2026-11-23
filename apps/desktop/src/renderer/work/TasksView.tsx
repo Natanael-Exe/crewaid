@@ -444,7 +444,7 @@ export function Board({
             </h2>
           )}
           <Kanban.Root className="gap-3">
-            {BOARD_COLUMNS.map((status) => {
+            {BOARD_COLUMNS.map((status, columnIndex) => {
               const column = columnCards(lane.cards, status);
               return (
                 <Kanban.Column
@@ -493,6 +493,16 @@ export function Board({
                             event.dataTransfer.effectAllowed = 'move';
                             event.dataTransfer.setData('text/plain', card.id);
                             setDragging(card);
+                          }}
+                          onMoveColumn={(delta) => {
+                            const target = BOARD_COLUMNS[columnIndex + delta];
+                            if (target === undefined) return;
+                            const destination = columnCards(lane.cards, target);
+                            onMove(
+                              card,
+                              target,
+                              rankForDrop(destination, card.id, destination.length),
+                            );
                           }}
                         />
                       </div>

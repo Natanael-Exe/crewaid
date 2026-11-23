@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { CrewaidBridge, TokenStoreWriteResult } from '../src/preload.js';
 import { launchDesktop } from './launchDesktop';
+import { tokenColor } from './themeTokens';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const SERVER_ENTRY = path.join(REPO_ROOT, 'apps/orchestrator/scripts/e2e-server.mjs');
@@ -201,7 +202,11 @@ for (const reloadBeforeApproval of [false, true]) {
       expect(await rememberedTexts(baseUrl, botId)).toEqual([]);
 
       await first.emulateMedia({ colorScheme: 'light' });
-      await expect(prompt(first)).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+      await expect(first.locator('html')).toHaveAttribute('data-theme', 'crewaid');
+      await expect(prompt(first)).toHaveCSS(
+        'background-color',
+        await tokenColor(first, '--approval-pending-background'),
+      );
       const decline = first.getByRole('button', { name: 'Decline remember' });
       await expect(decline).toHaveCSS('color', 'rgb(255, 255, 255)');
       await expect(approve(first)).toHaveCSS('background-color', 'rgb(255, 255, 255)');
@@ -211,7 +216,11 @@ for (const reloadBeforeApproval of [false, true]) {
           path: path.resolve('../../.artifacts/cc79/pending-action-light.png'),
         });
       await first.emulateMedia({ colorScheme: 'dark' });
-      await expect(prompt(first)).toHaveCSS('background-color', 'rgb(16, 20, 48)');
+      await expect(first.locator('html')).toHaveAttribute('data-theme', 'crewaid-dark');
+      await expect(prompt(first)).toHaveCSS(
+        'background-color',
+        await tokenColor(first, '--approval-pending-background'),
+      );
       await expect(decline).toHaveCSS('color', 'rgb(255, 255, 255)');
       if (process.env['CC79_CAPTURE'] === '1')
         await first.screenshot({

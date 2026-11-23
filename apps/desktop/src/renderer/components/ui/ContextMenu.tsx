@@ -9,6 +9,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   type ComponentPropsWithRef,
@@ -60,9 +61,33 @@ export function ContextMenuRoot({
 }: ContextMenuRootProps) {
   const anchor = useRef<HTMLDivElement | null>(null);
   const close = useCallback(() => onOpenChange(false), [onOpenChange]);
+  const isOpen = open && anchorPoint !== null;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    // Close on wheel scrolls outside the menu popover or window resizes so the
+    // menu never floats over scrolled rows, while ignoring capture-phase
+    // `scroll` events from virtualized list focus changes.
+    const onWheel = (event: WheelEvent) => {
+      if (
+        event.target instanceof Element &&
+        event.target.closest('[data-slot="context-menu-popover"]') !== null
+      ) {
+        return;
+      }
+      close();
+    };
+    window.addEventListener('wheel', onWheel, { passive: true });
+    window.addEventListener('resize', close, { passive: true });
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('resize', close);
+    };
+  }, [isOpen, close]);
+
   const value = useMemo(
-    () => ({ anchor, at: anchorPoint, isOpen: open && anchorPoint !== null, close }),
-    [anchorPoint, close, open],
+    () => ({ anchor, at: anchorPoint, isOpen, close }),
+    [anchorPoint, close, isOpen],
   );
   return (
     <ContextMenuContext value={value}>

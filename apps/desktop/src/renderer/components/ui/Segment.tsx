@@ -7,7 +7,7 @@ import {
   type ToggleButtonGroupProps,
   type ToggleButtonProps,
 } from 'react-aria-components/ToggleButtonGroup';
-import { cx } from './compose';
+import { composeTwRenderProps, cx } from './compose';
 
 /**
  * A segmented control: one pill track, one choice raised onto paper. Built on
@@ -64,9 +64,9 @@ export function SegmentRoot({
         {...(selectedKey !== undefined ? { selectedKeys: [selectedKey] } : {})}
         {...(defaultSelectedKey !== undefined ? { defaultSelectedKeys: [defaultSelectedKey] } : {})}
         onSelectionChange={changed}
-        className={cx(
-          'inline-flex w-fit items-center gap-0.5 rounded-full bg-default p-0.5',
+        className={composeTwRenderProps(
           className,
+          'inline-flex w-fit items-center gap-0.5 rounded-full bg-default p-0.5',
         )}
         {...props}
       />
@@ -79,12 +79,14 @@ export function SegmentItem({ children, className, ...props }: ToggleButtonProps
   return (
     <ToggleButton
       data-slot="segment-item"
-      className={cx(
-        'relative isolate inline-flex min-w-0 cursor-[var(--cursor-interactive)] items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-medium text-muted outline-none',
-        'data-[hovered]:text-foreground data-[selected]:text-foreground data-[disabled]:opacity-50',
-        'data-[focus-visible]:outline-2 data-[focus-visible]:outline-offset-1 data-[focus-visible]:outline-focus',
-        itemSize[size],
+      className={composeTwRenderProps(
         className,
+        cx(
+          'relative isolate inline-flex min-w-0 cursor-[var(--cursor-interactive)] items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-medium text-muted outline-none',
+          'data-[hovered]:text-foreground data-[selected]:text-foreground data-[disabled]:opacity-50',
+          'data-[focus-visible]:outline-2 data-[focus-visible]:outline-offset-1 data-[focus-visible]:outline-focus',
+          itemSize[size],
+        ),
       )}
       {...props}
     >

@@ -91,19 +91,25 @@ export function StepperStep({
         className={cx('flex min-w-0 items-start', isLast ? 'flex-none' : 'flex-1', className)}
         {...props}
       >
-        <button
-          type="button"
-          data-slot="stepper-step-button"
-          aria-current={status === 'active' ? 'step' : undefined}
-          tabIndex={clickable ? undefined : -1}
-          onClick={clickable ? () => onStepChange(stepIndex) : undefined}
-          className={cx(
-            'flex shrink-0 flex-col items-center gap-1.5 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
-            clickable ? 'cursor-[var(--cursor-interactive)]' : 'cursor-default',
-          )}
-        >
-          {parts}
-        </button>
+        {clickable ? (
+          <button
+            type="button"
+            data-slot="stepper-step-button"
+            aria-current={status === 'active' ? 'step' : undefined}
+            onClick={() => onStepChange(stepIndex)}
+            className="flex shrink-0 cursor-[var(--cursor-interactive)] flex-col items-center gap-1.5 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          >
+            {parts}
+          </button>
+        ) : (
+          <div
+            data-slot="stepper-step-header"
+            aria-current={status === 'active' ? 'step' : undefined}
+            className="flex shrink-0 flex-col items-center gap-1.5"
+          >
+            {parts}
+          </div>
+        )}
         {separator}
       </li>
     </StepContext>

@@ -1,7 +1,7 @@
 import { Button, type ButtonProps } from '@heroui/react';
 import { IconChevronRight } from '@tabler/icons-react';
 import type { ComponentPropsWithRef, ReactNode } from 'react';
-import { cx } from './compose';
+import { composeTwRenderProps, cx } from './compose';
 
 /**
  * Tappable replies and starting points offered under a message. Each one is a
@@ -44,7 +44,10 @@ export function PromptSuggestionItem({
     <Button
       data-slot="prompt-suggestion-item"
       variant="secondary"
-      className={cx('h-auto min-h-9 max-w-full justify-start rounded-full text-start', className)}
+      className={composeTwRenderProps(
+        className,
+        'h-auto min-h-9 max-w-full justify-start rounded-full text-start',
+      )}
       {...props}
     >
       <span className="min-w-0">{children}</span>

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { I18nProvider } from '@heroui/react';
 import { BotFields } from '../src/renderer/bots/BotFields';
-import { BOT_MENU_ITEMS, BotRowMenu, botMoveFlyoutX } from '../src/renderer/bots/BotRowMenu';
+import { BOT_MENU_ITEMS, BotRowMenu } from '../src/renderer/bots/BotRowMenu';
 import { AVATAR_COLORS, AVATAR_SHAPES, type BotDraft } from '../src/renderer/bots/botProfileForm';
 
 /**
@@ -92,13 +92,6 @@ describe('BotFields', () => {
 });
 
 describe('BotRowMenu', () => {
-  it('opens its Move flyout in reading order and keeps it within the viewport', () => {
-    expect(botMoveFlyoutX(300, 1200, false)).toBe(530);
-    expect(botMoveFlyoutX(300, 1200, true)).toBe(86);
-    expect(botMoveFlyoutX(8, 500, true)).toBe(238);
-    expect(botMoveFlyoutX(400, 650, false)).toBe(186);
-    expect(botMoveFlyoutX(8, 300, true)).toBe(72);
-  });
   function renderMenu(pinned: boolean) {
     return renderToStaticMarkup(
       <I18nProvider>
