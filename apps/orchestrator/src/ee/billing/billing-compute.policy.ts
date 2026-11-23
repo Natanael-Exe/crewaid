@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { COMPUTE_ALLOWANCE_EXHAUSTED_CODE, PLAN_REQUIRED_CODE } from '@crewaid/shared';
-import type { ComputePolicy } from '../sandbox/compute-policy.js';
-import { TurnEventBus } from '../agent/turn-event.bus.js';
+import type { ComputePolicy } from '../../sandbox/compute-policy.js';
+import { TurnEventBus } from '../../agent/turn-event.bus.js';
 import { BillingService } from './billing.service.js';
 import { crossedLevel } from './usage-notice.js';
 

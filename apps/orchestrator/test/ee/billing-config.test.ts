@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readBillingConfig } from '../src/billing/billing.config.js';
+import { readBillingConfig } from '../../src/ee/billing/billing.config.js';
 
 /** D-156 — when a server bills, and what it refuses to boot without. */
 const STRIPE = {

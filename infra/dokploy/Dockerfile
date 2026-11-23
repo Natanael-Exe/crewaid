@@ -31,6 +31,16 @@ RUN apt-get update \
 
 # Prisma Client and the runtime workspace packages are built in the image.
 COPY . .
+
+# D-238: the Enterprise modules (apps/orchestrator/src/ee) are licensed apart
+# from the AGPL core and run only on Crewaid Cloud. Every image is built
+# without them unless asked: the GHCR image and the one-click PaaS templates
+# are pure AGPL builds, and only the hosted Dokploy compose files pass 1.
+# Declared after the dependency layers so both variants share them.
+ARG CREWAID_BUILD_EE=0
+RUN if [ "$CREWAID_BUILD_EE" != "1" ]; then \
+      rm -rf apps/orchestrator/src/ee apps/orchestrator/test/ee; \
+    fi
 RUN pnpm db:generate \
     && pnpm exec turbo run build --filter=@crewaid/orchestrator... --filter=@crewaid/sandbox-supervisor...
 

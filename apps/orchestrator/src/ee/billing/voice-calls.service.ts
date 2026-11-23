@@ -15,7 +15,7 @@ import {
   type UpdateCallBody,
   type VoiceCall,
 } from '@crewaid/shared';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import {
   CALL_AGENT_FACTORY,
   type CallAgent,
@@ -23,13 +23,13 @@ import {
   type CallAgentFactory,
   SIGNED_URL_TTL_MS,
   type SignedConversation,
-} from '../models/voice/elevenlabs-agent.js';
-import { HOUSE_VOICE_ID } from '../models/voice/voice-engine.js';
+} from '../voice/elevenlabs-agent.js';
+import { HOUSE_VOICE_ID } from '../../models/voice/voice-engine.js';
 import {
   languageName,
   USER_PREFERENCES_SELECT,
   userPreferences,
-} from '../providers/user-preferences.js';
+} from '../../providers/user-preferences.js';
 import { callAgentLanguage, callGreeting } from './call-language.js';
 import type { BillingConfig } from './billing.config.js';
 import { BillingService } from './billing.service.js';

@@ -7,7 +7,7 @@ import {
   type BillingResponse,
   type PurchasablePlan,
 } from '@crewaid/shared';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import type { BillingConfig } from './billing.config.js';
 import { BILLING_CONFIG, STRIPE_CLIENT } from './billing.tokens.js';
 import { entitlementFrom, trialEligible, type Entitlement } from './entitlement.js';

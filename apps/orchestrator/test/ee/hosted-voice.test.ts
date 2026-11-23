@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import type { BillingConfig } from '../src/billing/billing.config.js';
-import type { BillingService } from '../src/billing/billing.service.js';
-import type { Entitlement } from '../src/billing/entitlement.js';
-import { HostedVoiceService } from '../src/billing/hosted-voice.service.js';
-import { VoiceAllowanceExhaustedError } from '../src/models/voice/hosted-voice.port.js';
-import { PrismaService } from '../src/prisma/prisma.service.js';
+import type { BillingConfig } from '../../src/ee/billing/billing.config.js';
+import type { BillingService } from '../../src/ee/billing/billing.service.js';
+import type { Entitlement } from '../../src/ee/billing/entitlement.js';
+import { HostedVoiceService } from '../../src/ee/billing/hosted-voice.service.js';
+import { VoiceAllowanceExhaustedError } from '../../src/models/voice/hosted-voice.port.js';
+import { PrismaService } from '../../src/prisma/prisma.service.js';
 
 const DATABASE_URL = process.env['DATABASE_URL'];
 const PERIOD = { start: new Date('2026-10-01'), end: new Date('2026-11-01') };

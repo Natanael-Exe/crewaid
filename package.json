@@ -18,6 +18,7 @@
     "format:check": "prettier --check .",
     "start:supervisor": "pnpm --filter @crewaid/sandbox-supervisor start",
     "orch": "pnpm --filter @crewaid/orchestrator build && node --env-file-if-exists=infra/compose/.env apps/orchestrator/dist/main.js",
+    "orch:cloud": "pnpm --filter @crewaid/orchestrator build && node --env-file-if-exists=infra/compose/.env apps/orchestrator/dist/ee/main.js",
     "pre-review": "node scripts/pre-review-gate.mjs",
     "db:generate": "pnpm --filter @crewaid/orchestrator db:generate",
     "db:migrate": "pnpm --filter @crewaid/orchestrator db:migrate",

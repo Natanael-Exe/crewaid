@@ -6,7 +6,7 @@ import {
   type OnModuleInit,
 } from '@nestjs/common';
 import type Stripe from 'stripe';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import type { BillingConfig } from './billing.config.js';
 import { BILLING_CONFIG, STRIPE_CLIENT } from './billing.tokens.js';
 import { registerStripeEventHandler } from './stripe-events.js';

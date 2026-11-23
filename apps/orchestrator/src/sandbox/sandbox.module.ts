@@ -14,7 +14,6 @@ import { SandboxLeaseService } from './sandbox-lease.service.js';
 import { SandboxReadinessService } from './sandbox-readiness.service.js';
 import { SandboxProviderModule } from './sandbox-provider.module.js';
 import { SandboxRetentionService } from './sandbox-retention.service.js';
-import { SandboxMeterService } from './sandbox-meter.service.js';
 
 /**
  * Sandbox lifecycle.
@@ -62,8 +61,6 @@ import { SandboxMeterService } from './sandbox-meter.service.js';
     SandboxActivityService,
     SandboxReconciliationService,
     SandboxRetentionService,
-    // Counts computer time against a plan; idle where nothing bills.
-    SandboxMeterService,
     // One saved copy of each computer, where the provider can make one.
     ComputerSnapshotService,
   ],

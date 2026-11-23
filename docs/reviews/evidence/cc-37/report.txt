@@ -1,0 +1,49 @@
+CC-37 — memory eval report
+============================================================
+
+generated: 2026-11-23T13:07:04.052Z
+model:     NONE — every number below is measured without a provider
+
+SELECTION (layer 1, the CC-27 corpus)
+------------------------------------------------------------
+scenario                        pass  facts  chars/budget  junk
+scope-leak                      yes       2       68/2000  0.00
+authority-beats-confirmations   yes       1         28/60  0.00
+candidate-isolation             yes       1       34/2000  0.00
+prompt-injection                yes       1       45/2000  0.00
+superseded-and-forgotten        yes       1       42/2000  0.00
+task-state-replacement          yes       1       46/2000  0.00
+budget-overflow                 yes       2        70/120  0.00
+junk-resistance                 yes       7       382/400  0.57
+
+budget respected in every scenario: yes
+
+RETRIEVAL (real Postgres FTS, hand-labelled queries)
+------------------------------------------------------------
+case                  P@8    R@8   returned / relevant
+stemming              1.00  1.00   2 / 2
+two-words-one-absent  1.00  1.00   1 / 1
+paraphrase-lockfile   1.00  1.00   1 / 1
+paraphrase-hard       1.00  1.00   1 / 1
+who-owns              1.00  1.00   1 / 1
+strict-first-when-strict-works 1.00  1.00   1 / 1
+precision-under-fallback 0.50  1.00   2 / 1
+no-answer             0.00  1.00   0 / 0
+
+mean P@8 over answerable queries: 0.93
+mean R@8 over answerable queries: 1.00
+
+NOT MEASURED HERE, AND WHY
+------------------------------------------------------------
+chars-per-token ratio     needs a live provider; AgentTurn.inputTokens is the
+                          source, and nothing here calls a model. The budget is
+                          in CHARACTERS precisely so it does not depend on this.
+tokens with memory on/off same reason. The CHARACTER delta is exact and is the
+                          chars column above; converting it to tokens without a
+                          measured ratio would be arithmetic dressed as evidence.
+knowledge recall          whether a bot USES what it was handed is a question
+                          only a real turn can answer. The mechanical half — that
+                          the fact reaches the prompt — is CC-32.
+
+The retrieval numbers ARE the baseline CC-39 has to beat, and
+`paraphrase-hard` is the gap that would justify a vector index.

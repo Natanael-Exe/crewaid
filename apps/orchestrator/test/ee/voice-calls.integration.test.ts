@@ -2,17 +2,17 @@ import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { HttpException } from '@nestjs/common';
 import { CALL_ALLOWANCE_USED_CODE, CALL_PLAN_REQUIRED_CODE } from '@crewaid/shared';
-import { PrismaService } from '../src/prisma/prisma.service.js';
-import type { BillingConfig } from '../src/billing/billing.config.js';
-import type { BillingService } from '../src/billing/billing.service.js';
-import type { Entitlement } from '../src/billing/entitlement.js';
+import { PrismaService } from '../../src/prisma/prisma.service.js';
+import type { BillingConfig } from '../../src/ee/billing/billing.config.js';
+import type { BillingService } from '../../src/ee/billing/billing.service.js';
+import type { Entitlement } from '../../src/ee/billing/entitlement.js';
 import {
   CALL_CEILING_SECONDS,
   VoiceCallsService,
   relayPrompt,
-} from '../src/billing/voice-calls.service.js';
-import { CallAgentError, type CallAgent } from '../src/models/voice/elevenlabs-agent.js';
-import { HOUSE_VOICE_ID } from '../src/models/voice/voice-engine.js';
+} from '../../src/ee/billing/voice-calls.service.js';
+import { CallAgentError, type CallAgent } from '../../src/ee/voice/elevenlabs-agent.js';
+import { HOUSE_VOICE_ID } from '../../src/models/voice/voice-engine.js';
 
 const DATABASE_URL = process.env['DATABASE_URL'];
 

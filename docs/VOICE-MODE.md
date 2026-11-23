@@ -101,14 +101,14 @@ The spike agent is `agent_3501m4x6c85remd95xgjb1v3apaf`, with tool
 | The ElevenLabs adapter (the only `@tanstack/ai-elevenlabs` import) | `apps/orchestrator/src/models/voice/elevenlabs-voice.ts` |
 | The port, models and prices | `apps/orchestrator/src/models/voice/voice-engine.ts` |
 | Routes and the choice of key | `apps/orchestrator/src/voice/voice.controller.ts`, `voice.service.ts` |
-| Cloud metering | `apps/orchestrator/src/billing/hosted-voice.service.ts` |
+| Cloud metering | `apps/orchestrator/src/ee/billing/hosted-voice.service.ts` |
 | Spoken replies | `apps/orchestrator/src/voice/spoken-reply.service.ts` |
 | Recording | `apps/desktop/src/renderer/voice/recorder.ts` |
 | Composer controls | `apps/desktop/src/renderer/components/composer/VoiceControls.tsx`, `useVoiceCapture.ts` |
 | Playback | `apps/desktop/src/renderer/components/attachments/VoiceNoteBubble.tsx` |
 | Microphone permission | `apps/desktop/src/mediaPermission.ts`, `resources/entitlements.mac.plist` |
-| Calls: routes, minutes and settlement | `apps/orchestrator/src/billing/voice-calls.service.ts`, `voice-calls.controller.ts` |
-| Calls: the agent's REST API (signed URL, duration) | `apps/orchestrator/src/models/voice/elevenlabs-agent.ts` |
+| Calls: routes, minutes and settlement | `apps/orchestrator/src/ee/billing/voice-calls.service.ts`, `voice-calls.controller.ts` |
+| Calls: the agent's REST API (signed URL, duration) | `apps/orchestrator/src/ee/voice/elevenlabs-agent.ts` |
 | Calls: the session (the only `@elevenlabs/client` import) | `apps/desktop/src/renderer/voice/callSession.ts`, `useBotCall.ts` |
 | Calls: the button, bar and thread bridge | `apps/desktop/src/renderer/components/call/CallControls.tsx` |
 

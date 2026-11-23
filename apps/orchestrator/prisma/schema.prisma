@@ -126,8 +126,9 @@ datasource db {
 /// singleton, which had no way in and therefore needed no address.
 ///
 /// This block is GENERATED — `npx @better-auth/cli generate --config
-/// src/auth/better-auth.ts`. Do not hand-edit it, and re-run the CLI after
-/// touching the plugin list in that config.
+/// src/ee/auth/better-auth-schema.config.ts`, which builds
+/// src/auth/better-auth.ts with the cloud plugins too (D-238). Do not
+/// hand-edit it, and re-run the CLI after touching either plugin list.
 model User {
   gitCheckouts    GitCheckout[]
   gitPublications GitPublication[]

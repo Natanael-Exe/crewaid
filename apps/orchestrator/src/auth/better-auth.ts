@@ -1,8 +1,6 @@
 import { electron } from '@better-auth/electron';
-import { stripe } from '@better-auth/stripe';
 import { betterAuth, type BetterAuthPlugin } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { admin } from 'better-auth/plugins/admin';
 import { bearer } from 'better-auth/plugins/bearer';
 import { magicLink } from 'better-auth/plugins/magic-link';
 import { Logger } from '@nestjs/common';
@@ -13,21 +11,20 @@ import {
   desktopAuthOrigin,
   type Edition,
 } from '@crewaid/shared';
-import { processBillingConfig, type BillingConfig } from '../billing/billing.config.js';
-import { createStripeClient } from '../billing/stripe-client.js';
-import { handleStripeEvent } from '../billing/stripe-events.js';
 import { readEdition } from '../common/edition.config.js';
 import { createPrismaClient } from '../prisma/prisma-client.factory.js';
+import { extensionPlugins } from './auth-extensions.js';
 import { desktopSignInPage, type DesktopSignInProvider } from './desktop-sign-in-page.js';
 import { sendMagicLinkEmail } from './magic-link-email.js';
 
 /**
  * The Better Auth instance (V1-08, D-083 adjacent).
  *
- * THIS FILE IS THE SCHEMA'S SOURCE OF TRUTH. Which plugins are enabled here
- * decides which tables exist, so `prisma/schema.prisma`'s auth block is
- * GENERATED from this config with `@better-auth/cli generate` — never written
- * by hand. Adding a plugin and hand-adding its table is how the two drift into
+ * THIS FILE IS THE SCHEMA'S SOURCE OF TRUTH, together with the cloud plugins
+ * registered from `ee/auth` (D-238). Which plugins are enabled decides which
+ * tables exist, so `prisma/schema.prisma`'s auth block is GENERATED with
+ * `@better-auth/cli generate --config src/ee/auth/better-auth-schema.config.ts`,
+ * which builds this config with every plugin — never written by hand. Adding a plugin and hand-adding its table is how the two drift into
  * a runtime "column does not exist" that looks like a migration problem.
  *
  * Crewaid account authentication and provider connection authorization are two
@@ -149,46 +146,6 @@ const magicLinkPlugin: BetterAuthPlugin = magicLink({
 });
 
 /**
- * Operator accounts for the hosted service.
- *
- * An admin is a user whose `role` is `admin`, set by hand in the database —
- * there is no route that grants it to yourself, and the plugin's own routes
- * that change roles answer only to an existing admin. The billing module puts
- * an admin on the `internal` plan: no Stripe, no limits, for running and
- * testing production without paying it. The plugin also brings banning and
- * impersonation, both admin-only; nothing in Crewaid calls either yet.
- */
-const adminPlugin: BetterAuthPlugin = admin({ defaultRole: 'user', adminRoles: ['admin'] });
-
-/**
- * Stripe's webhook, verified.
- *
- * The plugin is here for one thing: `POST /api/v1/auth/stripe/webhook`, which
- * checks Stripe's signature over the raw body and hands each event on. Its own
- * subscription handling is OFF, and that is deliberate. Its handlers trust each
- * event's payload in the order events arrive — which Stripe does not guarantee
- * — so a cancellation delivered before its creation was lost, and an update
- * arriving first could overwrite an older subscription's row with a newer
- * one's. They also log a failed write and answer 200, so Stripe never retried
- * it. The billing module syncs instead (`handleStripeEvent`): it re-reads the
- * subscription from Stripe on every event, so order stops mattering, and a
- * failure throws, which the plugin answers with 400 and Stripe retries.
- *
- * With subscriptions off the plugin adds no table and none of its checkout,
- * cancel or portal routes work; checkout and the portal are the billing
- * module's, because the $1 trial is a charge added to an account's first
- * Starter checkout only.
- */
-function billingPlugin(config: BillingConfig): BetterAuthPlugin {
-  return stripe({
-    stripeClient: createStripeClient(config),
-    stripeWebhookSecret: config.webhookSecret,
-    createCustomerOnSignUp: false,
-    onEvent: handleStripeEvent,
-  });
-}
-
-/**
  * Which sign-in methods an edition offers, decided from the same values that
  * decide what actually works.
  *
@@ -273,7 +230,12 @@ function useSecureCookies(edition: Edition, baseURL: string): boolean {
  */
 export function createAuth(
   edition: Edition,
-  billing: BillingConfig | null = processBillingConfig(edition),
+  /**
+   * Plugins from outside the core: the cloud edition's operator accounts and
+   * Stripe webhook (D-238, `ee/auth`). Read from the registry unless given,
+   * which the schema generator and tests do to build an instance on purpose.
+   */
+  extraPlugins: BetterAuthPlugin[] = extensionPlugins({ edition }),
 ) {
   const methods = signInMethods(edition);
   const { google, github } = methods;
@@ -326,9 +288,9 @@ export function createAuth(
       bearer(),
       // Hosted only: a self-hosted server has no mail service to send a link with.
       ...(methods.magicLink ? [magicLinkPlugin] : []),
-      // Hosted only: operator accounts, then billing once Stripe is configured.
-      ...(edition === 'cloud' ? [adminPlugin] : []),
-      ...(edition === 'cloud' && billing !== null ? [billingPlugin(billing)] : []),
+      // Hosted only, registered from ee/: operator accounts, then billing once
+      // Stripe is configured.
+      ...extraPlugins,
 
       /**
        * Browser sign-in for the desktop app.
