@@ -1,6 +1,10 @@
 # Render Blueprint for self-hosted Crewaid Orchestrator + Postgres + Redis.
-# Managed PaaS hosts do not expose a Docker socket, so bot computers run on
-# Runtime (https://withruntime.com) via SANDBOX_PROVIDER=runtime.
+# Managed PaaS hosts do not expose a Docker socket, so bot computers default to
+# Instabox (https://instabox.sh) via SANDBOX_PROVIDER=instabox. Instabox's Free
+# plan includes 1 sandbox (4 vCPU / 8 GiB / 20 GiB) and pulls the public
+# crewaid-sandbox image automatically (30-min idle pause, up to 8 h continuous
+# run with cooldown). To use Runtime instead, switch SANDBOX_PROVIDER to
+# `runtime` and set RUNTIME_API_KEY + SANDBOX_RUNTIME_IMAGE.
 
 databases:
   - name: crewaid-db
@@ -29,9 +33,11 @@ services:
       - key: CREWAID_EDITION
         value: selfhosted
       - key: SANDBOX_PROVIDER
-        value: runtime
-      - key: SANDBOX_RUNTIME_IMAGE
-        value: crewaid-sandbox:latest
+        value: instabox
+      - key: SANDBOX_INSTABOX_IMAGE
+        value: ghcr.io/natanael-exe/crewaid-sandbox:latest
+      - key: SANDBOX_MAX_RUNNING
+        value: '1'
       - key: ARTIFACT_DIR
         value: /tmp/crewaid-artifacts
       - key: DATABASE_URL
@@ -51,5 +57,5 @@ services:
         sync: false
       - key: CREDENTIAL_KEY
         sync: false
-      - key: RUNTIME_API_KEY
+      - key: INSTABOX_API_KEY
         sync: false
