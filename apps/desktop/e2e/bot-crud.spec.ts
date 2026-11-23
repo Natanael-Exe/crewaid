@@ -62,11 +62,13 @@ async function setUp(
   );
   await routeChat(page);
 
-  const saved = await page.evaluate<TokenStoreWriteResult>(() =>
-    (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
-      orchestratorBaseUrl: 'http://127.0.0.1:59997',
-      orchestratorToken: 'bot-crud-token',
-    }),
+  const saved = await page.evaluate<TokenStoreWriteResult, string>(
+    (baseUrl) =>
+      (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
+        orchestratorBaseUrl: baseUrl,
+        orchestratorToken: 'bot-crud-token',
+      }),
+    stubAuth.baseUrl,
   );
   expect(saved.status).toBe('saved');
   await page.reload();
@@ -93,7 +95,7 @@ async function expectTranscriptOpen(page: Page): Promise<void> {
 let stubAuth: StubAuthServer;
 
 test.beforeAll(async () => {
-  stubAuth = await startStubAuthServer(59997);
+  stubAuth = await startStubAuthServer(0);
 });
 
 test.afterAll(async () => {
@@ -307,11 +309,13 @@ test('deleting a row above others does not blank the window', async () => {
       return route.fulfill({ status: 204, body: '' });
     });
 
-    const saved = await page.evaluate<TokenStoreWriteResult>(() =>
-      (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
-        orchestratorBaseUrl: 'http://127.0.0.1:59997',
-        orchestratorToken: 'bot-crud-token',
-      }),
+    const saved = await page.evaluate<TokenStoreWriteResult, string>(
+      (baseUrl) =>
+        (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
+          orchestratorBaseUrl: baseUrl,
+          orchestratorToken: 'bot-crud-token',
+        }),
+      stubAuth.baseUrl,
     );
     expect(saved.status).toBe('saved');
     await page.reload();

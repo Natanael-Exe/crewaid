@@ -124,11 +124,13 @@ async function setUp(
   await routeChat(page);
   const streams = await routeScreenStream(page, picture);
 
-  const saved = await page.evaluate<TokenStoreWriteResult>(() =>
-    (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
-      orchestratorBaseUrl: 'http://127.0.0.1:59997',
-      orchestratorToken: 'skill-review-token',
-    }),
+  const saved = await page.evaluate<TokenStoreWriteResult, string>(
+    (baseUrl) =>
+      (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
+        orchestratorBaseUrl: baseUrl,
+        orchestratorToken: 'skill-review-token',
+      }),
+    stubAuth.baseUrl,
   );
   expect(saved.status).toBe('saved');
   await page.reload();
@@ -229,7 +231,7 @@ async function compileAndOpenReview(page: Page): Promise<void> {
 let stubAuth: StubAuthServer;
 
 test.beforeAll(async () => {
-  stubAuth = await startStubAuthServer(59997);
+  stubAuth = await startStubAuthServer(0);
 });
 
 test.afterAll(async () => {

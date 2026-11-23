@@ -60,7 +60,7 @@ function botFixture(index: number): Record<string, unknown> {
 let stubAuth: StubAuthServer;
 
 test.beforeAll(async () => {
-  stubAuth = await startStubAuthServer(59998);
+  stubAuth = await startStubAuthServer(0);
 });
 
 test.afterAll(async () => {
@@ -84,11 +84,13 @@ test('renders a 2000-bot sidebar without putting 2000 rows in the DOM', async ()
     );
     await routeChat(page);
 
-    const saved = await page.evaluate<TokenStoreWriteResult>(() =>
-      (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
-        orchestratorBaseUrl: 'http://127.0.0.1:59998',
-        orchestratorToken: 'sidebar-virtualization-token',
-      }),
+    const saved = await page.evaluate<TokenStoreWriteResult, string>(
+      (baseUrl) =>
+        (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
+          orchestratorBaseUrl: baseUrl,
+          orchestratorToken: 'sidebar-virtualization-token',
+        }),
+      stubAuth.baseUrl,
     );
     expect(saved.status).toBe('saved');
     await page.reload();

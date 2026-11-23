@@ -150,7 +150,20 @@ describe('relayThroughChannel', () => {
   }
 
   /** Connects, optionally writes, and resolves with every byte read before the socket closed. */
-  function exchange(port: number, payload?: string): Promise<string> {
+  /**
+   * One client connection through the relay: what came back before it closed.
+   *
+   * `resetIsClose`: when the relay drops a connection whose request bytes it has
+   * not read yet (it pauses the socket until a channel opens), Linux closes it
+   * with a reset rather than a FIN, so the client sees ECONNRESET. macOS, and a
+   * run where Node had already pulled those bytes in, close cleanly instead.
+   * Either way that one connection is closed, which is what such a case asserts.
+   */
+  function exchange(
+    port: number,
+    payload?: string,
+    { resetIsClose = false }: { resetIsClose?: boolean } = {},
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       const socket = connect(port, '127.0.0.1');
       let received = '';
@@ -158,7 +171,10 @@ describe('relayThroughChannel', () => {
         received += chunk.toString('utf8');
         if (payload !== undefined && received === payload) socket.end();
       });
-      socket.on('error', reject);
+      socket.on('error', (error: NodeJS.ErrnoException) => {
+        if (resetIsClose && error.code === 'ECONNRESET') resolve(received);
+        else reject(error);
+      });
       socket.on('close', () => resolve(received));
       if (payload !== undefined) socket.write(payload);
     });
@@ -174,7 +190,9 @@ describe('relayThroughChannel', () => {
       );
     });
     try {
-      await expect(exchange(port, 'GET /health HTTP/1.1\r\n\r\n')).resolves.toBe('');
+      await expect(
+        exchange(port, 'GET /health HTTP/1.1\r\n\r\n', { resetIsClose: true }),
+      ).resolves.toBe('');
       // The listener still serves later connections.
       await expect(exchange(port)).resolves.toBe('');
     } finally {

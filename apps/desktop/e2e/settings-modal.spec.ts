@@ -25,7 +25,7 @@ import { startStubAuthServer, type StubAuthServer } from './stubAuthServer';
 let stubAuth: StubAuthServer;
 
 test.beforeAll(async () => {
-  stubAuth = await startStubAuthServer(59999);
+  stubAuth = await startStubAuthServer(0);
 });
 
 test.afterAll(async () => {
@@ -44,11 +44,13 @@ test('the account menu opens Settings, and each pane renders its own body', asyn
     // none stored the app opens on "Point this app at an orchestrator" and
     // there is no account menu to click. The stub above answers the gate's
     // one question, so this reaches the shell the way a signed-in install does.
-    const saved = await page.evaluate<TokenStoreWriteResult>(() =>
-      (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
-        orchestratorBaseUrl: 'http://127.0.0.1:59999',
-        orchestratorToken: 'settings-modal-token',
-      }),
+    const saved = await page.evaluate<TokenStoreWriteResult, string>(
+      (baseUrl) =>
+        (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
+          orchestratorBaseUrl: baseUrl,
+          orchestratorToken: 'settings-modal-token',
+        }),
+      stubAuth.baseUrl,
     );
     expect(saved.status).toBe('saved');
     await page.reload();
@@ -172,11 +174,13 @@ test('the Connections pane shows that a key is stored, and no field holding it',
       }),
     );
 
-    const saved = await page.evaluate<TokenStoreWriteResult>(() =>
-      (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
-        orchestratorBaseUrl: 'http://127.0.0.1:59999',
-        orchestratorToken: 'connections-pane-token',
-      }),
+    const saved = await page.evaluate<TokenStoreWriteResult, string>(
+      (baseUrl) =>
+        (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
+          orchestratorBaseUrl: baseUrl,
+          orchestratorToken: 'connections-pane-token',
+        }),
+      stubAuth.baseUrl,
     );
     expect(saved.status).toBe('saved');
     // Reload, because the gate (V1-18) resolves the account once on mount and
@@ -337,11 +341,13 @@ test('every switch on the Models pane is pressable, and a provider card collapse
       }),
     );
 
-    const saved = await page.evaluate<TokenStoreWriteResult>(() =>
-      (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
-        orchestratorBaseUrl: 'http://127.0.0.1:59999',
-        orchestratorToken: 'vision-toggle-token',
-      }),
+    const saved = await page.evaluate<TokenStoreWriteResult, string>(
+      (baseUrl) =>
+        (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
+          orchestratorBaseUrl: baseUrl,
+          orchestratorToken: 'vision-toggle-token',
+        }),
+      stubAuth.baseUrl,
     );
     expect(saved.status).toBe('saved');
     await page.reload();
@@ -463,11 +469,13 @@ test('the timezone list holds every zone, and a choice is saved to the account',
       });
     });
 
-    const saved = await page.evaluate<TokenStoreWriteResult>(() =>
-      (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
-        orchestratorBaseUrl: 'http://127.0.0.1:59999',
-        orchestratorToken: 'preferences-token',
-      }),
+    const saved = await page.evaluate<TokenStoreWriteResult, string>(
+      (baseUrl) =>
+        (window as unknown as { crewaid: CrewaidBridge }).crewaid.token.set({
+          orchestratorBaseUrl: baseUrl,
+          orchestratorToken: 'preferences-token',
+        }),
+      stubAuth.baseUrl,
     );
     expect(saved.status).toBe('saved');
     await page.reload();
