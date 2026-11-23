@@ -44,6 +44,14 @@ if [ "${CREWAID_EDITION:-}" = cloud ]; then
   fi
 fi
 
+# The release this image was built as, resolved at build time (see the
+# Dockerfile: `auto` becomes the version in apps/desktop/package.json).
+VERSION_FILE="$(dirname "$0")/../../.crewaid-version"
+if [ -f "$VERSION_FILE" ]; then
+  CREWAID_VERSION="$(cat "$VERSION_FILE")"
+  export CREWAID_VERSION
+fi
+
 echo 'Applying database migrations' >&2
 pnpm --filter @crewaid/orchestrator exec prisma migrate deploy
 

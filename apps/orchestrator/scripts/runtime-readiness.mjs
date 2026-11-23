@@ -7,6 +7,7 @@
 // sign-in, chat and Stripe webhooks too. /health stays a liveness route for the
 // same reason. Without the flag this is the release runbook's full readiness
 // check: every dependency must answer.
+import { readFileSync } from 'node:fs';
 import { SdkRuntimeApi } from '@crewaid/sandbox-runtime';
 import {
   createArtifactStore,
@@ -21,10 +22,26 @@ const deadline = setTimeout(() => {
 const marker = Buffer.from('Crewaid artifact storage readiness v1\n');
 const key = '_crewaid/readiness-v1';
 
+/**
+ * The release the image was built as. The healthcheck runs outside the
+ * entrypoint, so it cannot see the version the entrypoint exported; a
+ * deploy-on-tag build has `auto` in its environment and the real version only
+ * in this file (see infra/dokploy/Dockerfile).
+ */
+function builtVersion() {
+  try {
+    return (
+      readFileSync(new URL('../../../.crewaid-version', import.meta.url), 'utf8').trim() || null
+    );
+  } catch {
+    return null;
+  }
+}
+
 async function checkOrchestrator() {
   const response = await fetch('http://127.0.0.1:3000/health');
   const health = await response.json();
-  const expected = process.env.CREWAID_VERSION;
+  const expected = builtVersion() ?? process.env.CREWAID_VERSION;
   const identified =
     response.ok &&
     Boolean(health.version) &&

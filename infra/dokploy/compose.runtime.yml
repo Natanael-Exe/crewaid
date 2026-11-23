@@ -13,10 +13,12 @@ services:
       context: ../..
       dockerfile: infra/dokploy/Dockerfile
       args:
-        CREWAID_VERSION: ${CREWAID_RELEASE_TAG:?Set the release being deployed}
+        # Unset in production, which deploys on tag: the image then reports the
+        # release in apps/desktop/package.json. Staging sets `staging`.
+        CREWAID_VERSION: ${CREWAID_RELEASE_TAG:-auto}
         # D-238: the hosted cloud is the one build that carries ee/.
         CREWAID_BUILD_EE: '1'
-    image: crewaid/orchestrator:${CREWAID_RELEASE_TAG:?Set the release being deployed}
+    image: crewaid/orchestrator:${CREWAID_RELEASE_TAG:-release}
     restart: unless-stopped
     env_file: .env
     environment:

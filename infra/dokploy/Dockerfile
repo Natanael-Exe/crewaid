@@ -46,8 +46,18 @@ RUN pnpm db:generate \
 
 ENV NODE_ENV=production
 # Reported by GET /health so desktop clients can detect an older server.
-# Set by the release workflow; local builds report `dev`.
+# Set by the release workflow; local builds report `dev`. `auto` takes the
+# release from apps/desktop/package.json, which a deploy-on-tag build needs:
+# nothing passes it the tag, and the release workflow refuses any `v*` tag that
+# differs from that file, so on a tagged commit the two are the same.
+# The resolved value is written to /app/.crewaid-version, which the entrypoint
+# and the healthchecks read, because ENV cannot hold a value computed here.
 ARG CREWAID_VERSION=dev
+RUN if [ "$CREWAID_VERSION" = auto ]; then \
+      node -p "require('./apps/desktop/package.json').version" > .crewaid-version; \
+    else \
+      printf '%s\n' "$CREWAID_VERSION" > .crewaid-version; \
+    fi
 ENV CREWAID_VERSION=${CREWAID_VERSION}
 LABEL org.opencontainers.image.version=${CREWAID_VERSION}
 EXPOSE 3000
