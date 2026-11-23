@@ -1,3 +1,6 @@
+// First: registers the cloud edition's Better Auth plugins (D-238) before
+// anything below can build the auth instance. vi.hoisted still runs earlier.
+import '../../src/ee/auth/register-cloud-auth.js';
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { INestApplication } from '@nestjs/common';
@@ -9,25 +12,25 @@ import {
   CALL_PLAN_REQUIRED_CODE,
   StartCallResponseSchema,
 } from '@crewaid/shared';
-import { CALL_AGENT_FACTORY, type CallAgent } from '../src/models/voice/elevenlabs-agent.js';
-import { PrismaService } from '../src/prisma/prisma.service.js';
-import { STRIPE_CLIENT } from '../src/billing/billing.tokens.js';
-import { COMPUTE_POLICY, type ComputePolicy } from '../src/sandbox/compute-policy.js';
-import { SandboxActivityService } from '../src/sandbox/sandbox-activity.service.js';
-import { SandboxIdleService } from '../src/sandbox/sandbox-idle.service.js';
-import { SandboxMeterService } from '../src/sandbox/sandbox-meter.service.js';
-import { SandboxService } from '../src/sandbox/sandbox.service.js';
-import { SANDBOX_PROVIDER } from '../src/sandbox/sandbox.provider.js';
+import { CALL_AGENT_FACTORY, type CallAgent } from '../../src/ee/voice/elevenlabs-agent.js';
+import { PrismaService } from '../../src/prisma/prisma.service.js';
+import { STRIPE_CLIENT } from '../../src/ee/billing/billing.tokens.js';
+import { COMPUTE_POLICY, type ComputePolicy } from '../../src/sandbox/compute-policy.js';
+import { SandboxActivityService } from '../../src/sandbox/sandbox-activity.service.js';
+import { SandboxIdleService } from '../../src/sandbox/sandbox-idle.service.js';
+import { SandboxMeterService } from '../../src/ee/billing/sandbox-meter.service.js';
+import { SandboxService } from '../../src/sandbox/sandbox.service.js';
+import { SANDBOX_PROVIDER } from '../../src/sandbox/sandbox.provider.js';
 import { EventType, type StreamChunk, type TextOptions } from '@tanstack/ai';
 import { BaseTextAdapter } from '@tanstack/ai/adapters';
-import { TurnEventBus } from '../src/agent/turn-event.bus.js';
-import { IncludedModelsService } from '../src/billing/included-models.service.js';
-import { BillingService } from '../src/billing/billing.service.js';
-import { ModelAllowanceExhaustedError } from '../src/models/included-models.port.js';
-import { ModelResolutionService } from '../src/models/model-resolution.service.js';
-import { signIn, signOutAndDelete, type SignedInUser } from './auth-fixture.js';
-import { privateComputerBot } from './computer-fixtures.js';
-import { FakeProvider } from './sandbox-fakes.js';
+import { TurnEventBus } from '../../src/agent/turn-event.bus.js';
+import { IncludedModelsService } from '../../src/ee/billing/included-models.service.js';
+import { BillingService } from '../../src/ee/billing/billing.service.js';
+import { ModelAllowanceExhaustedError } from '../../src/models/included-models.port.js';
+import { ModelResolutionService } from '../../src/models/model-resolution.service.js';
+import { signIn, signOutAndDelete, type SignedInUser } from '../auth-fixture.js';
+import { privateComputerBot } from '../computer-fixtures.js';
+import { FakeProvider } from '../sandbox-fakes.js';
 
 /**
  * D-156 — the hosted service's plans over the real stack: real HTTP, the real
@@ -364,10 +367,10 @@ describe.skipIf(DATABASE_URL === undefined || DATABASE_URL === '')(
   () => {
     beforeAll(async () => {
       const { Test } = await import('@nestjs/testing');
-      const { AppModule } = await import('../src/app.module.js');
-      const { CrewaidWsAdapter } = await import('../src/ws/crewaid-ws.adapter.js');
+      const { CloudAppModule } = await import('../../src/ee/cloud-app.module.js');
+      const { CrewaidWsAdapter } = await import('../../src/ws/crewaid-ws.adapter.js');
 
-      const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      const moduleRef = await Test.createTestingModule({ imports: [CloudAppModule] })
         .overrideProvider(STRIPE_CLIENT)
         .useValue(fakeStripe)
         .overrideProvider(SANDBOX_PROVIDER)

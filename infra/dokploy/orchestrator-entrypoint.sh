@@ -31,7 +31,20 @@ case "$MIGRATION_DATABASE_URL" in
 esac
 export MIGRATION_DATABASE_URL
 
+# D-238: the cloud edition boots from the Enterprise entrypoint, which exists
+# only in an image built with CREWAID_BUILD_EE=1. Checked before migrating, so
+# a wrong image changes nothing.
+ENTRYPOINT_JS=apps/orchestrator/dist/main.js
+if [ "${CREWAID_EDITION:-}" = cloud ]; then
+  ENTRYPOINT_JS=apps/orchestrator/dist/ee/main.js
+  if [ ! -f "$ENTRYPOINT_JS" ]; then
+    echo 'CREWAID_EDITION=cloud needs the Enterprise modules, and this image was built without ee/.' >&2
+    echo 'Self-hosted servers run CREWAID_EDITION=selfhosted (D-238).' >&2
+    exit 1
+  fi
+fi
+
 echo 'Applying database migrations' >&2
 pnpm --filter @crewaid/orchestrator exec prisma migrate deploy
 
-exec node apps/orchestrator/dist/main.js
+exec node "$ENTRYPOINT_JS"

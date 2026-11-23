@@ -3,7 +3,7 @@ import {
   entitlementFrom,
   trialEligible,
   type SubscriptionFacts,
-} from '../src/billing/entitlement.js';
+} from '../../src/ee/billing/entitlement.js';
 
 /**
  * D-156 — what an account may use, decided from its Stripe subscriptions.

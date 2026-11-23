@@ -7,9 +7,9 @@ import {
   type UpdateCallBody,
   type VoiceCallResponse,
 } from '@crewaid/shared';
-import { CurrentUser } from '../auth/current-user.decorator.js';
-import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
-import { OwnedResource } from '../ownership/owned-resource.decorator.js';
+import { CurrentUser } from '../../auth/current-user.decorator.js';
+import { ZodValidationPipe } from '../../common/zod-validation.pipe.js';
+import { OwnedResource } from '../../ownership/owned-resource.decorator.js';
 import { VoiceCallsService } from './voice-calls.service.js';
 
 /**

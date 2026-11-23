@@ -9968,3 +9968,38 @@ so one per computer is affordable on every plan.
   supervisor helper while the computer is stopped, admitted like the workspace volume (D-200). It
   doubles the computer's disk on the host and restores files and saved logins, not open programs.
   It needs no route or UI change: the provider gains `snapshots`.
+
+## D-238 — Open-core split: cloud-only server code lives in `ee/` (2026-11-23)
+
+**Status:** accepted by the product owner · **Amends:** D-152, D-156, D-157
+
+**Why.** The repository is public under the AGPL, and until now every cloud-only feature (Stripe
+billing, metered computers, included models, hosted voice allowances, bot calls) was AGPL code
+behind `CREWAID_EDITION=cloud`. Anyone could set that variable and run the paid features on their
+own server. Keeping the cloud features in a private fork would mean two repositories to keep in
+sync for a single maintainer. Code already published under the AGPL stays AGPL; this split covers
+what changes from here on.
+
+**Decision.**
+
+- **One repository, two licenses.** Code under `apps/orchestrator/src/ee/` and
+  `apps/orchestrator/test/ee/` is licensed under the Crewaid Enterprise License
+  (`apps/orchestrator/src/ee/LICENSE.md`): source-available, development use allowed, production
+  use reserved for Crewaid Cloud. Everything else stays AGPL-3.0. Contributions to either are taken
+  under the CLA (`CLA.md`), which lets the maintainer license them both ways.
+- **The core never imports `ee/`.** `restrictedImports()` bans `**/ee` and `**/ee/**` unless a block
+  passes `eeSeam`; only `ee/` code does. Probe: `ee-core-import.probe.ts`. Core tests never name
+  `ee/` either, so the core lints, builds and tests with every `ee/` directory deleted.
+- **Ports in the core, bindings in `ee/`.** The core keeps the optional ports it already had
+  (`COMPUTE_POLICY`, `INCLUDED_MODELS`, `HOSTED_VOICE`) and gains one for Better Auth plugins
+  (`auth/auth-extensions.ts`). `ee/` binds them. With nothing bound the core behaves as the
+  self-hosted edition always has: no limits, no billing routes.
+- **A separate composition root.** CC-06 bans dynamic `import()` in the orchestrator, so the core
+  cannot load `ee/` on demand. `ee/main.ts` boots `CloudAppModule` (the core `AppModule` plus the
+  `ee/` modules) through the shared `bootstrap()`. `dist/main.js` refuses `CREWAID_EDITION=cloud`.
+- **Self-hosted artifacts contain no `ee/`.** The orchestrator Dockerfile deletes `ee/` unless built
+  with `CREWAID_BUILD_EE=1`; only the hosted Dokploy compose files pass it. The GHCR image and the
+  one-click PaaS templates are pure AGPL builds.
+- **What stays AGPL.** The desktop app, including its plan, usage and call UI (it does nothing
+  without the server's `ee/` routes); the shared wire contracts; the Prisma schema and migrations
+  (the cloud tables exist, empty, on self-hosted servers); magic-link sign-in; the ports above.

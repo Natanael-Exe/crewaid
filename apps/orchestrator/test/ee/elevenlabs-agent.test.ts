@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CallAgentError, elevenLabsCallAgent } from '../src/models/voice/elevenlabs-agent.js';
+import { CallAgentError, elevenLabsCallAgent } from '../../src/ee/voice/elevenlabs-agent.js';
 
 /** A fetch that answers one canned response and records what it was asked. */
 function fakeFetch(status: number, body: unknown) {

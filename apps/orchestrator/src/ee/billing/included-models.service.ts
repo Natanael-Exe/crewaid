@@ -7,22 +7,22 @@ import {
   type TokenUsage,
 } from '@tanstack/ai';
 import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import {
   ModelAllowanceExhaustedError,
   type IncludedModels,
-} from '../models/included-models.port.js';
+} from '../../models/included-models.port.js';
 import {
   catalogPriceForModel,
   modelKeyOf,
   usdForTokenCounters,
-} from '../telemetry/ai-telemetry.js';
+} from '../../telemetry/ai-telemetry.js';
 import type { BillingConfig } from './billing.config.js';
 import { BillingService } from './billing.service.js';
 import { BILLING_CONFIG } from './billing.tokens.js';
-import { TurnEventBus } from '../agent/turn-event.bus.js';
-import { buildTextAdapter } from '../models/tanstack/text-adapter.js';
-import { isSpecUsage, normalizeUsage } from '../models/tanstack/usage.js';
+import { TurnEventBus } from '../../agent/turn-event.bus.js';
+import { buildTextAdapter } from '../../models/tanstack/text-adapter.js';
+import { isSpecUsage, normalizeUsage } from '../../models/tanstack/usage.js';
 import { crossedLevel } from './usage-notice.js';
 import {
   DEFAULT_INCLUDED_MODEL,

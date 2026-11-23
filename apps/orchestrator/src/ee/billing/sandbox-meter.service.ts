@@ -7,9 +7,9 @@ import {
   type OnModuleDestroy,
 } from '@nestjs/common';
 import type { Sandbox } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { COMPUTE_POLICY, type ComputePolicy } from './compute-policy.js';
-import { OCCUPIES_A_SLOT, SandboxService } from './sandbox.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import { COMPUTE_POLICY, type ComputePolicy } from '../../sandbox/compute-policy.js';
+import { OCCUPIES_A_SLOT, SandboxService } from '../../sandbox/sandbox.service.js';
 
 const DEFAULT_METER_INTERVAL_MS = 60_000;
 

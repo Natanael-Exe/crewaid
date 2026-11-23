@@ -6,8 +6,8 @@ import {
   type BillingResponse,
   type Principal,
 } from '@crewaid/shared';
-import { CurrentUser } from '../auth/current-user.decorator.js';
-import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
+import { CurrentUser } from '../../auth/current-user.decorator.js';
+import { ZodValidationPipe } from '../../common/zod-validation.pipe.js';
 import { BillingService } from './billing.service.js';
 
 /**

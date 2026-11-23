@@ -1,0 +1,181 @@
+{
+  "scenarios": [
+    {
+      "id": "scope-leak",
+      "layer": 1,
+      "passed": true,
+      "injectedFacts": 2,
+      "injectedChars": 68,
+      "budgetChars": 2000,
+      "junkRatio": 0,
+      "detail": "A bot is shown the user-global memory and its own, and never another bot’s or another user’s"
+    },
+    {
+      "id": "authority-beats-confirmations",
+      "layer": 1,
+      "passed": true,
+      "injectedFacts": 1,
+      "injectedChars": 28,
+      "budgetChars": 60,
+      "junkRatio": 0,
+      "detail": "A model inference confirmed repeatedly does not outrank something the user stated once"
+    },
+    {
+      "id": "candidate-isolation",
+      "layer": 1,
+      "passed": true,
+      "injectedFacts": 1,
+      "injectedChars": 34,
+      "budgetChars": 2000,
+      "junkRatio": 0,
+      "detail": "A CANDIDATE is searchable but never injected, which is what lets automatic extraction run without a wrong inference becoming a standing truth"
+    },
+    {
+      "id": "prompt-injection",
+      "layer": 1,
+      "passed": true,
+      "injectedFacts": 1,
+      "injectedChars": 45,
+      "budgetChars": 2000,
+      "junkRatio": 0,
+      "detail": "A claim read off a web page never reaches tier 1, so a sentence on a page cannot become a standing directive in a trim-proof prompt"
+    },
+    {
+      "id": "superseded-and-forgotten",
+      "layer": 1,
+      "passed": true,
+      "injectedFacts": 1,
+      "injectedChars": 42,
+      "budgetChars": 2000,
+      "junkRatio": 0,
+      "detail": "A corrected fact is replaced by its correction, and an erased one is gone from the prompt entirely"
+    },
+    {
+      "id": "task-state-replacement",
+      "layer": 1,
+      "passed": true,
+      "injectedFacts": 1,
+      "injectedChars": 46,
+      "budgetChars": 2000,
+      "junkRatio": 0,
+      "detail": "Working state replaces rather than accumulates"
+    },
+    {
+      "id": "budget-overflow",
+      "layer": 1,
+      "passed": true,
+      "injectedFacts": 2,
+      "injectedChars": 70,
+      "budgetChars": 120,
+      "junkRatio": 0,
+      "detail": "The budget is respected exactly, no fact is half-included, and what survives is chosen by authority rather than by insertion order"
+    },
+    {
+      "id": "junk-resistance",
+      "layer": 1,
+      "passed": true,
+      "injectedFacts": 7,
+      "injectedChars": 382,
+      "budgetChars": 400,
+      "junkRatio": 0.5714285714285714,
+      "detail": "Given a corpus that is mostly worthless, the few real facts still reach the prompt"
+    }
+  ],
+  "retrieval": [
+    {
+      "id": "stemming",
+      "query": "deploying",
+      "precision": 1,
+      "recall": 1,
+      "returned": [
+        "r-deploy-root",
+        "r-deploy-friday"
+      ],
+      "relevant": [
+        "r-deploy-root",
+        "r-deploy-friday"
+      ]
+    },
+    {
+      "id": "two-words-one-absent",
+      "query": "staging host",
+      "precision": 1,
+      "recall": 1,
+      "returned": [
+        "r-staging-host"
+      ],
+      "relevant": [
+        "r-staging-host"
+      ]
+    },
+    {
+      "id": "paraphrase-lockfile",
+      "query": "lockfile corruption",
+      "precision": 1,
+      "recall": 1,
+      "returned": [
+        "r-pnpm"
+      ],
+      "relevant": [
+        "r-pnpm"
+      ]
+    },
+    {
+      "id": "paraphrase-hard",
+      "query": "how should I release a risky change",
+      "precision": 1,
+      "recall": 1,
+      "returned": [
+        "r-flag"
+      ],
+      "relevant": [
+        "r-flag"
+      ]
+    },
+    {
+      "id": "who-owns",
+      "query": "who owns billing",
+      "precision": 1,
+      "recall": 1,
+      "returned": [
+        "r-billing-owner"
+      ],
+      "relevant": [
+        "r-billing-owner"
+      ]
+    },
+    {
+      "id": "strict-first-when-strict-works",
+      "query": "deploy Friday",
+      "precision": 1,
+      "recall": 1,
+      "returned": [
+        "r-deploy-friday"
+      ],
+      "relevant": [
+        "r-deploy-friday"
+      ]
+    },
+    {
+      "id": "precision-under-fallback",
+      "query": "flag release copy",
+      "precision": 0.5,
+      "recall": 1,
+      "returned": [
+        "r-flag",
+        "r-em-dash"
+      ],
+      "relevant": [
+        "r-flag"
+      ]
+    },
+    {
+      "id": "no-answer",
+      "query": "quarterly bandicoot revenue",
+      "precision": 0,
+      "recall": 1,
+      "returned": [],
+      "relevant": []
+    }
+  ]
+}

@@ -62,7 +62,7 @@ Don't want to manage Docker, Postgres, Redis, egress firewalls, or API keys? [Cr
 | **Setup time** | ~2 minutes — download the app and sign in | ~5 minutes with the Docker installer or a PaaS deploy |
 | **Updates & support** | Managed upgrades, backups, and support | Self-managed ([Custom](https://crewaid.io/#pricing) paid setup available) |
 
-Crewaid Cloud is this repository running with `CREWAID_EDITION=cloud`, which enables OAuth/magic-link sign-in, Stripe billing, and included model/voice allowances. Its marketing website lives in a separate repository. Every improvement to the product ships to both editions.
+Crewaid Cloud runs this repository's AGPL core plus a small set of cloud-only modules (billing, metering, included model and voice allowances, and bot calls) that live in `ee/` directories under the [Crewaid Enterprise License](apps/orchestrator/src/ee/LICENSE.md). Self-hosted builds leave `ee/` out entirely. Its marketing website lives in a separate repository. Every improvement to the core ships to both editions.
 
 ## Self-hosting
 
@@ -210,5 +210,7 @@ Please report security vulnerabilities privately rather than opening a public is
 Copyright © 2026 Natanael Exe.
 
 Crewaid is licensed under the [GNU Affero General Public License v3.0](LICENSE). If you run a modified version as a service, you must offer its source to the people who use it.
+
+Code in directories named `ee/` (the cloud-only billing, metering, allowance and call modules) is not covered by the AGPL. It is source-available under the [Crewaid Enterprise License](apps/orchestrator/src/ee/LICENSE.md): you may read, modify and run it for development, but production use is reserved for Crewaid Cloud. The self-hosted build does not include it.
 
 The Crewaid name, logo, and mascots are not covered by that license; see [`packages/brand/LICENSE.md`](packages/brand/LICENSE.md).

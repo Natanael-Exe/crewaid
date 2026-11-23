@@ -14,6 +14,8 @@ services:
       dockerfile: infra/dokploy/Dockerfile
       args:
         CREWAID_VERSION: ${CREWAID_RELEASE_TAG:?Set the release being deployed}
+        # D-238: the hosted cloud is the one build that carries ee/.
+        CREWAID_BUILD_EE: '1'
     image: crewaid/orchestrator:${CREWAID_RELEASE_TAG:?Set the release being deployed}
     restart: unless-stopped
     env_file: .env

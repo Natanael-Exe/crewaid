@@ -33,9 +33,6 @@ import { McpModule } from './mcp/mcp.module.js';
 import { RoutinesModule } from './routines/routines.module.js';
 import { VoiceModule } from './voice/voice.module.js';
 import { TelegramModule } from './telegram/telegram.module.js';
-import { BillingModule } from './billing/billing.module.js';
-import { processBillingConfig } from './billing/billing.config.js';
-import { readEdition } from './common/edition.config.js';
 
 /**
  * Where the auth tree mounts, RELATIVE to the global prefix Nest adds back.
@@ -51,12 +48,6 @@ if (!AUTH_BASE_PATH.startsWith(`${API_PREFIX}/`)) {
     `AUTH_BASE_PATH (${AUTH_BASE_PATH}) must sit under API_PREFIX (${API_PREFIX}) ` +
       'for the Better Auth middleware to mount under the global prefix.',
   );
-}
-
-/** The billing module, for a cloud server with Stripe configured; none otherwise. */
-function billingModules() {
-  const config = processBillingConfig(readEdition(process.env));
-  return config === null ? [] : [BillingModule.register(config)];
 }
 
 /**
@@ -121,10 +112,8 @@ function billingModules() {
     RoutinesModule,
     // Dictation, voice messages and spoken replies, in both editions.
     VoiceModule,
-    // The hosted service's plans: a cloud server with Stripe
-    // configured, and nowhere else. Decided at import, like the auth
-    // instance, so the route table is fixed for the life of the process.
-    ...billingModules(),
+    // The hosted service's plans are not here: they live in ee/ and are
+    // added by CloudAppModule (D-238), which imports this module.
   ],
   providers: [
     WsGateway,

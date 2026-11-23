@@ -2,7 +2,7 @@
   "name": "@crewaid/orchestrator",
   "version": "0.0.0",
   "private": true,
-  "license": "AGPL-3.0-only",
+  "license": "(AGPL-3.0-only AND LicenseRef-Crewaid-Enterprise)",
   "type": "module",
   "scripts": {
     "build": "tsc -b",
@@ -11,6 +11,8 @@
     "test": "vitest run --passWithNoTests --no-file-parallelism",
     "start": "node dist/main.js",
     "dev": "tsc -b && node dist/main.js",
+    "start:cloud": "node dist/ee/main.js",
+    "dev:cloud": "tsc -b && node dist/ee/main.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",

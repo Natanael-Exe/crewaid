@@ -99,7 +99,9 @@ pnpm --filter @crewaid/desktop dev     # or build an installer: pnpm package:sel
 2. **Sign in with browser.** With `CREWAID_EDITION=selfhosted` (the example
    `.env`), the page offers email and password: create an account the first
    time. With `cloud`, it offers only the methods `.env` configures (magic link,
-   Google, GitHub) — run the app with `CREWAID_EDITION=cloud
+   Google, GitHub) — start the orchestrator with `pnpm orch:cloud` (the cloud
+   edition boots from `dist/ee/main.js`, D-238; `pnpm orch` refuses `cloud`) and
+   run the app with `CREWAID_EDITION=cloud
    CREWAID_ORCHESTRATOR_URL=http://localhost:3000` to match. If the OS did not
    register the sign-in scheme — an unpackaged build on macOS registers it to
    the Electron binary — the page prints a code to paste into Settings instead.

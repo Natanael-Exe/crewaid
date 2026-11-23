@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_INCLUDED_MODEL, INCLUDED_MODEL_LIST } from '../src/billing/included-models.js';
-import { costMicroUsd } from '../src/billing/included-models.service.js';
-import { crossedLevel } from '../src/billing/usage-notice.js';
-import { ModelAllowanceExhaustedError } from '../src/models/included-models.port.js';
-import { normalizeModelError } from '../src/models/normalize-error.js';
-import { catalogPriceForModel, modelKeyOf } from '../src/telemetry/ai-telemetry.js';
+import {
+  DEFAULT_INCLUDED_MODEL,
+  INCLUDED_MODEL_LIST,
+} from '../../src/ee/billing/included-models.js';
+import { costMicroUsd } from '../../src/ee/billing/included-models.service.js';
+import { crossedLevel } from '../../src/ee/billing/usage-notice.js';
+import { ModelAllowanceExhaustedError } from '../../src/models/included-models.port.js';
+import { normalizeModelError } from '../../src/models/normalize-error.js';
+import { catalogPriceForModel, modelKeyOf } from '../../src/telemetry/ai-telemetry.js';
 
 /** D-157 — the included models' list, their charge, and the notices. */
 const usage = (input: number, output: number) => ({

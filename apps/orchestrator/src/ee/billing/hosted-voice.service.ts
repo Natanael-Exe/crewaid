@@ -3,8 +3,8 @@ import {
   type HostedVoice,
   VoiceAllowanceExhaustedError,
   type VoiceUsage,
-} from '../models/voice/hosted-voice.port.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+} from '../../models/voice/hosted-voice.port.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import type { BillingConfig } from './billing.config.js';
 import { BillingService } from './billing.service.js';
 import { BILLING_CONFIG } from './billing.tokens.js';

@@ -110,7 +110,7 @@ let processConfig: { readonly value: BillingConfig | null } | undefined;
 /**
  * This process's billing config, read from its environment once.
  *
- * The auth instance and `AppModule` both need the answer at import time, and
+ * The auth instance and `CloudAppModule` both need the answer at import time, and
  * reading twice would say "billing is off" twice at every boot.
  */
 export function processBillingConfig(edition: Edition): BillingConfig | null {
