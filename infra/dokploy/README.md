@@ -184,19 +184,33 @@ Point a desktop build at staging only through an unpackaged or locally
 packaged app (`CREWAID_ORCHESTRATOR_URL`); the released cloud app has the
 production address compiled in.
 
-### Production: only a stable tag that ran on staging
+### Production: deployed by pushing a stable tag that ran on staging
+
+Set the production app's **Autodeploy** on with trigger **On Tag**, and leave
+`CREWAID_RELEASE_TAG` **unset** there. The image then reports the version in
+`apps/desktop/package.json` (`CREWAID_VERSION=auto`, see the Dockerfile), which
+the release workflow requires to equal the tag. A tag is the whole release: no
+environment edit and no Deploy click.
 
 1. Pick a commit on `main` that staging has been running, with no open
    regressions from it.
-2. Bump `apps/desktop/package.json` to the new version, merge, and tag that
-   merge commit `vX.Y.Z` (`git tag vX.Y.Z && git push origin vX.Y.Z`). The tag
-   publishes the desktop apps, the self-hosted images and the installer.
-3. In the production app, set `CREWAID_RELEASE_TAG=vX.Y.Z`, select that same
-   Git revision, and deploy. Then follow the release verification for your
-   topology (for Runtime, "Runtime release verification" below).
-4. To roll back, deploy the previous tag the same way. Migrations only move
-   forward, so a release whose migration is not backwards compatible needs its
-   own rollback plan before it is tagged.
+2. Bump `apps/desktop/package.json` to the new version and merge.
+3. Tag that merge commit `vX.Y.Z` (`git tag vX.Y.Z && git push origin vX.Y.Z`).
+   The tag deploys production, and publishes the desktop apps, the
+   self-hosted images and the installer. If the tag does not match
+   `apps/desktop/package.json`, the release workflow fails: fix the version
+   and tag again rather than letting production run a mislabelled build.
+4. Check `/health` reports `X.Y.Z`, then follow the release verification for
+   your topology (for Runtime, "Runtime release verification" below).
+5. To roll back, redeploy the previous tag's commit from Dokploy's Deployments
+   tab. Migrations only move forward, so a release whose migration is not
+   backwards compatible needs its own rollback plan before it is tagged.
+
+Deploying on tag restarts the orchestrator as soon as the tag lands, which
+interrupts recordings, skill runs and turns in flight, and can put the new
+server live a few minutes before its desktop apps are published. Tag at a quiet
+time; for a release that must drain first, turn Autodeploy off for it and
+deploy by hand after draining.
 
 **Do not push prerelease tags** (`v1.2.0-rc.1` and the like). Every `v*` tag
 triggers the release workflows: it publishes the self-hosted installer to npm,
@@ -326,8 +340,8 @@ one only when retention expires.
 
 ### Runtime release verification
 
-1. Set `CREWAID_RELEASE_TAG` to the immutable release tag and select the matching
-   Git revision in Dokploy. Keep one orchestrator active. Drain recordings,
+1. Deploy the release tag (production deploys on tag, as above; for a manual
+   deploy, select the tagged Git revision in Dokploy). Keep one orchestrator active. Drain recordings,
    skill runs and pending work before replacing it. Use the fixed auth build for
    any fallback release. Reissue outstanding magic links and restart OAuth
    flows begun before the upgrade. Review sessions issued while the affected
