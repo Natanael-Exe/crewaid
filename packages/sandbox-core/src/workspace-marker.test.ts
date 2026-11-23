@@ -5,6 +5,21 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { WORKSPACE_MARKER_PROGRAM, RUNTIME_MARKER_PROGRAM } from './workspace-marker.js';
 
+/**
+ * Every case starts Python several times over, synchronously. Each start costs
+ * about 250 ms on a hosted CI runner, so the first-runtime case (sixteen starts)
+ * takes about four seconds there when it passes: too close to Vitest's
+ * five-second default to be anything but flaky under a loaded runner.
+ */
+const PYTHON_CASE_TIMEOUT_MS = 30_000;
+
+/**
+ * The refusals these cases expect print Python tracebacks on stderr. Captured
+ * rather than inherited, so CI logs show only real failures; `execFileSync`
+ * still throws on a non-zero exit, which is what the cases assert.
+ */
+const QUIET = ['ignore', 'pipe', 'pipe'] as const;
+
 const dirs: string[] = [];
 afterEach(() => {
   for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
@@ -20,13 +35,14 @@ function fixture() {
     run: (now: number, clear = false) =>
       execFileSync('python3', ['-c', program, String(now), clear ? 'clear' : 'mark'], {
         encoding: 'utf8',
+        stdio: [...QUIET],
       })
         .trim()
         .replace(/^crewaid-retention:/, ''),
   };
 }
 
-describe('durable orphan marker', () => {
+describe('durable orphan marker', { timeout: PYTHON_CASE_TIMEOUT_MS }, () => {
   it('keeps the first observation across processes and resets after restore', () => {
     const f = fixture();
     expect(f.run(1000)).toBe('1000');
@@ -51,7 +67,7 @@ describe('durable orphan marker', () => {
   });
 });
 
-describe('first-runtime marker', () => {
+describe('first-runtime marker', { timeout: PYTHON_CASE_TIMEOUT_MS }, () => {
   it('observes absence, preserves first creation, and rejects corrupt or substituted history', () => {
     const f = fixture();
     const program = RUNTIME_MARKER_PROGRAM.replace(
@@ -59,7 +75,10 @@ describe('first-runtime marker', () => {
       f.marker,
     );
     const run = (mode: string) =>
-      execFileSync('python3', ['-I', '-c', program, '2000', mode], { encoding: 'utf8' }).trim();
+      execFileSync('python3', ['-I', '-c', program, '2000', mode], {
+        encoding: 'utf8',
+        stdio: [...QUIET],
+      }).trim();
     expect(run('read')).toBe('crewaid-runtime:none');
     expect(run('write')).toBe('crewaid-runtime:2000');
     expect(run('read')).toBe('crewaid-runtime:2000');

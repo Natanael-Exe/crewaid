@@ -92,6 +92,12 @@ async function fixture() {
     const output: Buffer[] = [];
     backend.stdout.on('data', (chunk: Buffer) => output.push(chunk));
     backend.stderr.resume();
+    // http-backend may exit before reading the whole request body (it answers
+    // from the headers alone, or rejects the request), and writing the rest then
+    // fails with EPIPE. The reply is judged from its output on 'close' below, so
+    // that write error is not the test's to report; unhandled, it would surface
+    // as an uncaught error and fail the whole run at random.
+    backend.stdin.on('error', () => undefined);
     backend.stdin.end(body);
     backend.once('close', () => {
       const bytes = Buffer.concat(output),
