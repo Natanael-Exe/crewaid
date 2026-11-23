@@ -224,7 +224,7 @@ for (const reloadBeforeApproval of [false, true]) {
         await expect(prompt(first)).toHaveCount(1);
       }
 
-      await prompt(first).locator('summary').click();
+      await prompt(first).getByRole('button', { name: 'Details', exact: true }).click();
       await first.getByLabel('Edit arguments before approving').check();
       const input = first.getByLabel('Approval arguments as JSON');
       // The editor opens on the arguments the policy reviewed, so what the

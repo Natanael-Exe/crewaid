@@ -149,7 +149,7 @@ test('a task is created, assigned, started, moved by the bot’s side, and its d
     await selectedCard.hover();
     await expect(selectedCard).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(details).toHaveCSS('border-radius', '24px');
-    await expect(details).toHaveCSS('backdrop-filter', 'blur(24px)');
+    await expect(details).toHaveCSS('backdrop-filter', 'blur(24px) saturate(1.65)');
     if (process.env['CC79_CAPTURE'] === '1') {
       const evidence = path.join(REPO_ROOT, '.artifacts/cc79');
       await mkdir(evidence, { recursive: true });
@@ -207,13 +207,13 @@ test('a task is created, assigned, started, moved by the bot’s side, and its d
     // as you type; a miss says so in the middle of the pane; Esc clears the
     // query, and a second Esc folds the field away.
     await page.getByRole('button', { name: 'Search tasks' }).click();
-    const search = page.getByRole('textbox', { name: 'Search tasks' });
+    const search = page.getByRole('searchbox', { name: 'Search tasks' });
     await search.fill('auth');
     await expect(card).toBeVisible();
     // Each view has its own search: an open field does not follow you.
     await work.getByRole('tab', { name: /Goals/ }).click();
     await expect(page.getByRole('button', { name: 'Search goals' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Search goals' })).toHaveCount(0);
+    await expect(page.getByRole('searchbox', { name: 'Search goals' })).toHaveCount(0);
     await work.getByRole('tab', { name: /Tasks/ }).click();
     await page.getByRole('button', { name: 'Search tasks' }).click();
     await search.fill('auth');
@@ -273,7 +273,7 @@ test('a task is created, assigned, started, moved by the bot’s side, and its d
     await page.getByRole('button', { name: /PRD\.md/ }).click();
     const preview = page.getByRole('complementary', { name: 'Deliverable' });
     await expect(preview).toHaveCSS('border-radius', '24px');
-    await expect(preview).toHaveCSS('backdrop-filter', 'blur(24px)');
+    await expect(preview).toHaveCSS('backdrop-filter', 'blur(24px) saturate(1.65)');
     await expect(
       preview.getByRole('region', { name: 'Preview' }).getByText('Acme PRD'),
     ).toBeVisible();

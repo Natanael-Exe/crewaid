@@ -1,7 +1,8 @@
 import { ListBox, Select } from '@heroui/react';
 import type { ReactNode } from 'react';
+import { InlineSelect } from '../components/ui';
 
-export const FIELD_LABEL = 'mb-1.5 block text-[12px] text-muted';
+export const FIELD_LABEL = 'mb-1.5 block text-caption text-muted';
 
 /** The key a picker uses for "none", since a ListBox key cannot be null. */
 const NONE = '__none__';
@@ -13,9 +14,9 @@ export type PickerOption = {
 };
 
 /**
- * One choice from a list, or none — an assignee, a goal, a project. Built on
- * the app's own Select so it looks and behaves like the routine form's
- * pickers rather than a native control.
+ * One choice from a list, or none — an assignee, a goal, a project.
+ * `variant="inline"` renders the compact InlineSelect for dense detail
+ * rails; `variant="secondary"` (default) uses HeroUI Select.
  */
 export function Picker({
   label,
@@ -24,6 +25,7 @@ export function Picker({
   noneLabel,
   onChange,
   className,
+  appearance = 'default',
 }: {
   label: string;
   value: string | null;
@@ -32,15 +34,52 @@ export function Picker({
   noneLabel?: string;
   onChange: (value: string | null) => void;
   className?: string;
+  appearance?: 'default' | 'inline';
 }) {
+  const allOptions = [
+    ...(noneLabel === undefined ? [] : [{ id: NONE, label: noneLabel }]),
+    ...options,
+  ];
+  const handleChange = (key: unknown) => {
+    if (typeof key !== 'string') return;
+    onChange(key === NONE ? null : key);
+  };
+
+  if (appearance === 'inline') {
+    return (
+      <InlineSelect.Root
+        aria-label={label}
+        value={value ?? NONE}
+        onChange={handleChange}
+        className={className ?? 'min-w-0 w-full'}
+      >
+        <InlineSelect.Trigger className="w-full justify-between">
+          <InlineSelect.Value className="truncate" />
+          <InlineSelect.Indicator />
+        </InlineSelect.Trigger>
+        <InlineSelect.Popover>
+          <ListBox>
+            {allOptions.map((option) => (
+              <ListBox.Item key={option.id} id={option.id} textValue={option.label}>
+                <span className="flex min-w-0 items-center gap-2">
+                  {'adornment' in option ? option.adornment : null}
+                  <span className="truncate">{option.label}</span>
+                </span>
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+            ))}
+          </ListBox>
+        </InlineSelect.Popover>
+      </InlineSelect.Root>
+    );
+  }
+
   return (
     <Select
       aria-label={label}
+      variant="secondary"
       value={value ?? NONE}
-      onChange={(key) => {
-        if (typeof key !== 'string') return;
-        onChange(key === NONE ? null : key);
-      }}
+      onChange={handleChange}
       className={className ?? 'min-w-0 w-full'}
     >
       <Select.Trigger>
@@ -49,17 +88,15 @@ export function Picker({
       </Select.Trigger>
       <Select.Popover>
         <ListBox>
-          {[...(noneLabel === undefined ? [] : [{ id: NONE, label: noneLabel }]), ...options].map(
-            (option) => (
-              <ListBox.Item key={option.id} id={option.id} textValue={option.label}>
-                <span className="flex min-w-0 items-center gap-2">
-                  {'adornment' in option ? option.adornment : null}
-                  <span className="truncate">{option.label}</span>
-                </span>
-                <ListBox.ItemIndicator />
-              </ListBox.Item>
-            ),
-          )}
+          {allOptions.map((option) => (
+            <ListBox.Item key={option.id} id={option.id} textValue={option.label}>
+              <span className="flex min-w-0 items-center gap-2">
+                {'adornment' in option ? option.adornment : null}
+                <span className="truncate">{option.label}</span>
+              </span>
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+          ))}
         </ListBox>
       </Select.Popover>
     </Select>

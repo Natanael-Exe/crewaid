@@ -1,4 +1,3 @@
-import { Button } from '@heroui/react';
 import { IconChevronsRight, IconSettings } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import type { BotWithSandbox, DeliverableView, Edition, ProjectWithCounts } from '@crewaid/shared';
@@ -18,6 +17,7 @@ import type { WorkView } from '../work/workState';
 import { CallButton } from './call/CallControls';
 import { RIGHT_RAIL_BOUNDS } from './layout/paneLayout';
 import { ResizableSash } from './layout/ResizableSash';
+import { IconButtonTooltip } from './ui';
 
 export interface RightRailScreenProps {
   readonly expanded: boolean;
@@ -108,17 +108,14 @@ export function RightRail({
           data-pane-rail-state="collapsed"
           className="crewaid-rail crewaid-rail-collapsed flex w-full flex-col items-center"
         >
-          <Button
-            variant="ghost"
-            isIconOnly
-            size="sm"
-            aria-label={t('app.shell.expandPanel')}
+          <IconButtonTooltip
+            label={t('app.shell.expandPanel')}
             aria-expanded={false}
             onPress={onToggle}
             className="window-no-drag size-8 rounded-[10px] bg-surface text-room-muted"
           >
             <IconChevronsRight className="size-4 rotate-180 rtl:-scale-x-100" stroke={1.8} />
-          </Button>
+          </IconButtonTooltip>
           <CallButton
             call={call.session}
             botName={bot?.name ?? null}
@@ -197,32 +194,26 @@ export function RightRail({
                 onOpenPlan={call.onOpenPlan}
               />
               <span aria-hidden className="flex-1" />
-              <Button
-                variant="ghost"
-                isIconOnly
-                size="sm"
+              <IconButtonTooltip
                 // Scoped to the selected bot's profile; app settings live behind the account menu.
-                aria-label={t('app.shell.botSettings')}
+                label={t('app.shell.botSettings')}
                 isDisabled={bot === null}
                 onPress={profile.onOpen}
                 className="window-no-drag size-7 rounded-lg text-muted"
               >
                 <IconSettings className="size-4" stroke={1.8} />
-              </Button>
-              <Button
-                variant="ghost"
-                isIconOnly
-                size="sm"
-                aria-label={t('app.shell.collapsePanel')}
+              </IconButtonTooltip>
+              <IconButtonTooltip
+                label={t('app.shell.collapsePanel')}
                 aria-expanded={true}
                 onPress={onToggle}
                 className="window-no-drag size-7 rounded-lg text-muted"
               >
                 <IconChevronsRight className="size-4 rtl:-scale-x-100" stroke={1.8} />
-              </Button>
+              </IconButtonTooltip>
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-4">
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4">
               <ScreenCard
                 seatControl={screen.seatControl}
                 controlScreen={screen.controlScreen}

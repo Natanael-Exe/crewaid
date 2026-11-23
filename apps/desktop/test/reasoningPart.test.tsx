@@ -32,11 +32,12 @@ describe('ReasoningPart', () => {
     const settled = render(thinking);
     expect(settled).toContain('data-reasoning="settled"');
     expect(settled).toContain('Thought about this');
-    expect(settled).toContain('<details');
+    expect(settled).toContain('data-slot="chain-of-thought-trigger"');
     // Closed by default: the thinking is evidence to open, not part of the
     // conversation, and a turn's worth of it must not stand between two
     // answers.
-    expect(settled).not.toContain('<details open');
+    expect(settled).toContain('aria-expanded="false"');
+    expect(settled).not.toContain('aria-expanded="true"');
     expect(settled).toContain('Checking the footer first.');
   });
 
@@ -46,8 +47,9 @@ describe('ReasoningPart', () => {
     // A disclosure that can be opened DURING the turn: a reasoning model can
     // think for minutes, and an operator who wants to watch it work must not
     // have to wait for the answer to be able to fold the wall of text away.
-    expect(live).toContain('<details');
-    expect(live).not.toContain('<details open');
+    expect(live).toContain('data-slot="chain-of-thought-trigger"');
+    expect(live).toContain('aria-expanded="false"');
+    expect(live).not.toContain('aria-expanded="true"');
     expect(live).toContain('Thinking');
     expect(live).toContain('Checking the footer first.');
   });

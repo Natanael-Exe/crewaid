@@ -5,6 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { launchDesktop } from './launchDesktop';
+import { tokenColor } from './themeTokens';
 import { chatMessage, routeChat, routeScreenStream, routeSocket } from './stubChat';
 import { startStubAuthServer, type StubAuthServer } from './stubAuthServer';
 import type { CrewaidBridge } from '../src/preload.js';
@@ -260,7 +261,9 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(transcript).toHaveAttribute('aria-busy', 'false');
     await expect(transcript.locator('[data-motion-message]')).toHaveCount(2);
     await expect(transcript.getByText(/Paused after 25 steps/)).toHaveCount(0);
-    await expect(page.locator('[data-screen-surface="rail"] > div:last-child')).toBeHidden();
+    await expect(
+      page.locator('[data-screen-surface="rail"] > [data-screen-slot="controls"]'),
+    ).toBeHidden();
     await expect(page.locator('button[aria-label="Record a voice message"]')).toHaveCSS(
       'color',
       'rgb(255, 255, 255)',
@@ -324,10 +327,13 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     ).toBeLessThanOrEqual(1);
     const pinnedScout = pinned.getByRole('button', { name: 'Open Scout' });
     await pinnedScout.hover();
-    await expect(pinnedScout).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.5)');
+    await expect(pinnedScout).toHaveCSS('background-color', await tokenColor(page, '--crew-hover'));
     const pinnedQuill = pinned.getByRole('button', { name: 'Open Quill' });
     await pinnedQuill.hover();
-    await expect(pinnedQuill).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(pinnedQuill).toHaveCSS(
+      'background-color',
+      await tokenColor(page, '--crew-selected'),
+    );
     await page.mouse.move(700, 90);
     await screenshot('pinned-bots-light');
     await page.route('**/api/v1/bots', (route) => route.fulfill({ json: bots }));
@@ -335,7 +341,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(transcript).toBeVisible();
     const scoutRow = page.getByRole('option', { name: /Scout/ });
     await scoutRow.hover();
-    await expect(scoutRow).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.5)');
+    await expect(scoutRow).toHaveCSS('background-color', await tokenColor(page, '--crew-hover'));
     await page.mouse.move(700, 90);
     const sidebarSash = page.getByRole('separator', { name: 'Resize sidebar' });
     await sidebarSash.press('Home');
@@ -363,7 +369,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(page.getByText('Full access', { exact: true })).toBeVisible();
     await expect(page.locator('button[data-approval-mode]')).toHaveCSS(
       'color',
-      'rgb(110, 110, 115)',
+      await tokenColor(page, '--muted', 'color'),
     );
     await screenshot('approval-menu-light');
     await page.keyboard.press('Escape');
@@ -374,7 +380,9 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
       await botMenu.evaluate((node) => {
         const bounds = node.getBoundingClientRect();
         const point = document.elementFromPoint(bounds.right - 10, bounds.bottom - 10);
-        return node.contains(point) && node.parentElement === document.body;
+        // Rendered in the overlay layer, outside the sidebar that would clip it.
+        const sidebar = document.querySelector('[data-pane="sidebar"]');
+        return node.contains(point) && sidebar !== null && !sidebar.contains(node);
       }),
     ).toBe(true);
     await screenshot('bot-menu-light');
@@ -383,7 +391,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     const newBot = page.getByRole('dialog', { name: 'New Bot' });
     await expect(newBot.getByRole('button', { name: 'Create', exact: true })).toHaveCSS(
       'color',
-      'rgb(255, 255, 255)',
+      await tokenColor(page, '--app-accent-foreground', 'color'),
     );
     await expect(newBot.getByRole('button', { name: 'Create', exact: true })).toHaveCSS(
       'background-color',
@@ -407,12 +415,12 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
         .toBe(color);
       await expect(transcript.locator('[data-message-bubble="user"]')).toHaveCSS(
         'background-color',
-        'rgba(255, 255, 255, 0.58)',
+        await tokenColor(page, '--message-user'),
       );
     }
     await expect(transcript.locator('[data-message-bubble="user"]')).toHaveCSS(
       'color',
-      'rgb(29, 24, 48)',
+      await tokenColor(page, '--message-user-foreground', 'color'),
     );
     await transcript.getByRole('textbox', { name: 'Message Exe' }).fill('Check white send arrow.');
     await expect(transcript.locator('button[aria-label="Send message"]')).toHaveCSS(
@@ -464,7 +472,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await screenshot('settings-night');
     await settings.getByRole('button', { name: 'Close settings' }).click();
     await scoutRow.hover();
-    await expect(scoutRow).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.05)');
+    await expect(scoutRow).toHaveCSS('background-color', await tokenColor(page, '--crew-hover'));
     await page.mouse.move(700, 90);
     await expectReadableMention();
     await screenshot('room-night');
@@ -480,15 +488,15 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
         .toBe(color);
       await expect(transcript.locator('[data-message-bubble="bot"]')).toHaveCSS(
         'background-color',
-        'rgb(30, 35, 70)',
+        await tokenColor(page, '--message-bot'),
       );
       await expect(transcript.locator('[data-message-bubble="user"]')).toHaveCSS(
         'background-color',
-        'rgba(255, 255, 255, 0.12)',
+        await tokenColor(page, '--message-user'),
       );
       await expect(transcript.locator('[data-message-bubble="user"]')).toHaveCSS(
         'color',
-        'rgb(244, 242, 255)',
+        await tokenColor(page, '--message-user-foreground', 'color'),
       );
     }
     await page.reload();
@@ -500,14 +508,14 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     // Opening and dismissing Search returns keyboard focus to the trigger.
     const search = page.getByRole('button', { name: 'Search', exact: true });
     await search.click();
-    await expect(page.getByRole('textbox', { name: 'Search everything' })).toBeFocused();
+    await expect(page.getByRole('searchbox', { name: 'Search everything' })).toBeFocused();
     await screenshot('search-night');
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'Search everything' })).toBeHidden();
     await expect(search).toBeFocused();
     for (let i = 0; i < 3; i++) {
       await page.keyboard.press(process.platform === 'darwin' ? 'Meta+k' : 'Control+k');
-      await expect(page.getByRole('textbox', { name: 'Search everything' })).toBeFocused();
+      await expect(page.getByRole('searchbox', { name: 'Search everything' })).toBeFocused();
       await page.keyboard.press('Escape');
     }
     const createRoutine = page.getByRole('button', { name: 'Create routine', exact: true });
@@ -570,7 +578,12 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
         await page
           .getByRole('region', { name: view, exact: true })
           .evaluate((node) => getComputedStyle(node).getPropertyValue('--accent').trim()),
-      ).toBe('#f4f2ff');
+      ).toBe(
+        // Work belongs to no bot, so it keeps the app's own accent.
+        await page.evaluate(() =>
+          getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim(),
+        ),
+      );
       await expect(page.getByRole('tab', { selected: true })).toHaveCount(1);
       await screenshot(`${view.toLowerCase()}-night`);
     }
@@ -585,7 +598,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await screenshot('room-constrained');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await search.click();
-    await expect(page.getByRole('textbox', { name: 'Search everything' })).toBeFocused();
+    await expect(page.getByRole('searchbox', { name: 'Search everything' })).toBeFocused();
     expect(
       await page
         .locator('.crewaid-search-container')
@@ -619,7 +632,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(page.getByRole('heading', { name: 'Create your first bot' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Create a bot', exact: true })).toHaveCSS(
       'background-color',
-      'rgb(244, 242, 255)',
+      await tokenColor(page, '--app-accent'),
     );
     await screenshot('no-bots-night');
     await page.getByRole('button', { name: 'Create a bot', exact: true }).click();

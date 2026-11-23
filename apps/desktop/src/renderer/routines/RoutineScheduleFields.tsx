@@ -51,7 +51,7 @@ import { weekdayInitials, weekdayName } from '../i18n/dates';
  * form writes one (`scheduleChoices.ts`) and the operator never has to read it.
  */
 
-const LABEL = 'text-[12px] font-medium text-foreground';
+const LABEL = 'text-caption font-medium text-foreground';
 const UNITS: ReadonlyArray<{ readonly id: RepeatUnit; readonly label: string }> = (
   ['minutes', 'hours', 'days', 'weeks', 'months'] as const
 ).map((id) => ({
@@ -121,7 +121,7 @@ export function ScheduleField({
                 ? t('routines.routineScheduleFields.addSchedule')
                 : t('routines.routineScheduleFields.changeSchedule')
             }
-            className="flex h-9 w-fit items-center gap-1.5 rounded-[10px] border border-field-border bg-field px-3 text-[13px] text-field-foreground outline-none data-[hovered]:bg-background-secondary data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40"
+            className="flex h-9 w-fit items-center gap-1.5 rounded-[10px] border border-field-border bg-field px-3 text-footnote text-field-foreground outline-none data-[hovered]:bg-background-secondary data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40"
           >
             {parts.choice === 'none' ? (
               <IconPlus className="size-3.5 text-muted" stroke={2} />
@@ -167,7 +167,7 @@ export function ScheduleField({
         />
       </div>
       {parts.choice === 'monthly' && parts.monthDay > 28 ? (
-        <p className="text-[11px] text-muted">
+        <p className="text-micro text-muted">
           {t('routines.skippedDays', { day: parts.monthDay })}
         </p>
       ) : null}
@@ -216,19 +216,19 @@ function ScheduleDetails({
       return null;
     case 'current':
       return (
-        <p className="basis-full text-[12px] leading-4 text-muted" title={cron}>
+        <p className="basis-full text-caption leading-4 text-muted" title={cron}>
           {t('routines.routineScheduleFields.thisRoutineHasACustom')}
         </p>
       );
     case 'custom':
       return (
         <>
-          <span className="text-[12px] text-foreground">{describeSchedule(cron)}</span>
+          <span className="text-caption text-foreground">{describeSchedule(cron)}</span>
           <Button
             variant="ghost"
             size="sm"
             onPress={onEditCustom}
-            className="h-7 rounded-lg px-2 text-[12px] text-accent"
+            className="h-7 rounded-lg px-2 text-caption text-accent"
           >
             {t('routines.routineScheduleFields.edit')}
           </Button>
@@ -254,7 +254,7 @@ function ScheduleDetails({
     case 'weekly':
       return (
         <>
-          <Part word="on">
+          <Part word={t('routines.label.on')}>
             <WeekdayToggles
               value={parts.weekdays}
               onChange={(weekdays) => onChange({ weekdays })}
@@ -283,7 +283,7 @@ function ScheduleDetails({
 function Part({ word, children }: { readonly word: string; readonly children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="text-[12px] text-muted">{word}</span>
+      <span className="text-caption text-muted">{word}</span>
       {children}
     </span>
   );
@@ -402,7 +402,7 @@ function WeekdayToggles({
             key={index}
             id={String(index)}
             aria-label={weekdayName(index)}
-            className="min-w-9 px-0 text-[12px]"
+            className="min-w-9 px-0 text-caption"
           >
             {index > 0 ? <ToggleButtonGroup.Separator /> : null}
             {weekdayInitials(index)}
@@ -443,7 +443,7 @@ export function EndsField({
             <Switch.Control>
               <Switch.Thumb />
             </Switch.Control>
-            <span className="text-[13px] text-foreground">
+            <span className="text-footnote text-foreground">
               {endsOn === null
                 ? t('routines.routineScheduleFields.neverEnds')
                 : t('routines.routineScheduleFields.endsOn')}
@@ -493,7 +493,7 @@ function EndsRadio({
           <Radio.Control>
             <Radio.Indicator />
           </Radio.Control>
-          <span className="text-[13px] text-foreground">
+          <span className="text-footnote text-foreground">
             {t('routines.routineScheduleFields.neverEnds')}
           </span>
         </Radio.Content>
@@ -504,7 +504,7 @@ function EndsRadio({
             <Radio.Control>
               <Radio.Indicator />
             </Radio.Control>
-            <span className="text-[13px] text-foreground">
+            <span className="text-footnote text-foreground">
               {t('routines.routineScheduleFields.ends')}
             </span>
           </Radio.Content>
@@ -608,15 +608,10 @@ function CustomRepeatDialog({
   return (
     <Modal state={overlay}>
       <Modal.Backdrop>
-        <Modal.Container
-          size="cover"
-          placement="center"
-          className="h-fit sm:w-auto"
-          scroll="inside"
-        >
+        <Modal.Container size="md" placement="center" scroll="inside">
           <Modal.Dialog
             aria-label={t('routines.routineScheduleFields.customRepeat')}
-            className="flex h-fit max-h-[85vh] w-[420px] max-w-[92vw] flex-col gap-5 overflow-y-auto rounded-card bg-surface p-5"
+            className="sm:max-w-[420px]"
           >
             {/* Remounted per opening, so each one starts from the form's schedule. */}
             {draft !== null ? (
@@ -654,86 +649,90 @@ function CustomRepeatBody({
 
   return (
     <>
-      <h2 className="text-[16px] font-semibold text-foreground">
-        {t('routines.routineScheduleFields.customRepeat2')}
-      </h2>
-      <div className="flex flex-col gap-2">
-        <span className="text-[13px] font-medium text-foreground">
-          {t('routines.routineScheduleFields.repetitionFrequency')}
-        </span>
-        <div className="flex items-center gap-2">
-          <NumberField
-            aria-label={t('routines.routineScheduleFields.repeatEvery')}
-            value={parts.frequency}
-            minValue={steps[0] ?? 1}
-            maxValue={steps[steps.length - 1] ?? 1}
-            // A unit with one allowed interval has nothing to step through;
-            // say so rather than offer a stepper that snaps back.
-            isDisabled={steps.length === 1}
-            onChange={(wanted) =>
-              patch({ frequency: snapFrequency(parts.unit, wanted, parts.frequency) })
-            }
-            className="w-[140px]"
-          >
-            <NumberField.Group>
-              <NumberField.DecrementButton />
-              <NumberField.Input className="w-full" />
-              <NumberField.IncrementButton />
-            </NumberField.Group>
-          </NumberField>
-          <Select
-            aria-label={t('routines.routineScheduleFields.repeatUnit')}
-            value={parts.unit}
-            onChange={(unit) => {
-              if (typeof unit === 'string') patch({ unit: unit as RepeatUnit, frequency: 1 });
-            }}
-            className="min-w-0 flex-1"
-          >
-            <Select.Trigger>
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                {UNITS.map((unit) => (
-                  <ListBox.Item key={unit.id} id={unit.id} textValue={unit.label}>
-                    {unit.label}
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
+      <Modal.Header>
+        <Modal.Heading className="text-headline font-semibold text-foreground">
+          {t('routines.routineScheduleFields.customRepeat2')}
+        </Modal.Heading>
+      </Modal.Header>
+      <Modal.Body className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          <span className="text-footnote font-medium text-foreground">
+            {t('routines.routineScheduleFields.repetitionFrequency')}
+          </span>
+          <div className="flex items-center gap-2">
+            <NumberField
+              aria-label={t('routines.routineScheduleFields.repeatEvery')}
+              value={parts.frequency}
+              minValue={steps[0] ?? 1}
+              maxValue={steps[steps.length - 1] ?? 1}
+              // A unit with one allowed interval has nothing to step through;
+              // say so rather than offer a stepper that snaps back.
+              isDisabled={steps.length === 1}
+              onChange={(wanted) =>
+                patch({ frequency: snapFrequency(parts.unit, wanted, parts.frequency) })
+              }
+              className="w-[140px]"
+            >
+              <NumberField.Group>
+                <NumberField.DecrementButton />
+                <NumberField.Input className="w-full" />
+                <NumberField.IncrementButton />
+              </NumberField.Group>
+            </NumberField>
+            <Select
+              aria-label={t('routines.routineScheduleFields.repeatUnit')}
+              value={parts.unit}
+              onChange={(unit) => {
+                if (typeof unit === 'string') patch({ unit: unit as RepeatUnit, frequency: 1 });
+              }}
+              className="min-w-0 flex-1"
+            >
+              <Select.Trigger>
+                <Select.Value />
+                <Select.Indicator />
+              </Select.Trigger>
+              <Select.Popover>
+                <ListBox>
+                  {UNITS.map((unit) => (
+                    <ListBox.Item key={unit.id} id={unit.id} textValue={unit.label}>
+                      {unit.label}
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                  ))}
+                </ListBox>
+              </Select.Popover>
+            </Select>
+          </div>
+          <p className="text-micro leading-4 text-muted">{unitHint(parts.unit)}</p>
         </div>
-        <p className="text-[11px] leading-4 text-muted">{unitHint(parts.unit)}</p>
-      </div>
 
-      {parts.unit === 'weeks' ? (
-        <WeekdayToggles
-          label={t('routines.label.on')}
-          value={parts.weekdays}
-          onChange={(weekdays) => patch({ weekdays })}
-        />
-      ) : null}
-      {parts.unit === 'months' ? (
-        <div className="flex flex-wrap items-end gap-2">
-          <MonthDayField
-            label={t('routines.routineScheduleFields.onDay')}
-            value={parts.monthDay}
-            onChange={(monthDay) => patch({ monthDay })}
+        {parts.unit === 'weeks' ? (
+          <WeekdayToggles
+            label={t('routines.label.on')}
+            value={parts.weekdays}
+            onChange={(weekdays) => patch({ weekdays })}
           />
+        ) : null}
+        {parts.unit === 'months' ? (
+          <div className="flex flex-wrap items-end gap-2">
+            <MonthDayField
+              label={t('routines.routineScheduleFields.onDay')}
+              value={parts.monthDay}
+              onChange={(monthDay) => patch({ monthDay })}
+            />
+            <TimeOfDay label={t('routines.label.at')} parts={parts} onChange={patch} />
+          </div>
+        ) : parts.unit === 'days' || parts.unit === 'weeks' ? (
           <TimeOfDay label={t('routines.label.at')} parts={parts} onChange={patch} />
-        </div>
-      ) : parts.unit === 'days' || parts.unit === 'weeks' ? (
-        <TimeOfDay label={t('routines.label.at')} parts={parts} onChange={patch} />
-      ) : null}
+        ) : null}
 
-      <EndsRadio endsOn={endsOn} timezone={timezone} onChange={setEndsOn} />
+        <EndsRadio endsOn={endsOn} timezone={timezone} onChange={setEndsOn} />
 
-      {written !== null ? (
-        <p className="text-[12px] text-muted">{describeSchedule(written)}</p>
-      ) : null}
-      <div className="flex justify-end gap-2">
+        {written !== null ? (
+          <p className="text-caption text-muted">{describeSchedule(written)}</p>
+        ) : null}
+      </Modal.Body>
+      <Modal.Footer className="gap-2">
         <Button variant="tertiary" size="sm" onPress={onCancel}>
           {t('routines.routineScheduleFields.cancel')}
         </Button>
@@ -745,7 +744,7 @@ function CustomRepeatBody({
         >
           {t('routines.routineScheduleFields.confirm')}
         </Button>
-      </div>
+      </Modal.Footer>
     </>
   );
 }
@@ -803,7 +802,7 @@ export function TimezonePicker({
       }}
     >
       <Label className={LABEL}>{t('routines.routineScheduleFields.timezone')}</Label>
-      <Autocomplete.Trigger className="flex h-9 w-full items-center justify-between gap-2 rounded-[10px] border border-field-border bg-field px-3 text-start text-[13px] text-field-foreground outline-none">
+      <Autocomplete.Trigger className="flex h-9 w-full items-center justify-between gap-2 rounded-[10px] border border-field-border bg-field px-3 text-start text-footnote text-field-foreground outline-none">
         <Autocomplete.Value className="truncate" />
         <Autocomplete.Indicator className="size-3.5 shrink-0" />
       </Autocomplete.Trigger>
@@ -829,7 +828,7 @@ export function TimezonePicker({
               aria-label={t('routines.routineScheduleFields.timezones')}
               items={filtered}
               renderEmptyState={() => (
-                <p className="px-3 py-3 text-[12px] text-muted">
+                <p className="px-3 py-3 text-caption text-muted">
                   {t('routines.routineScheduleFields.noMatchingTimezone')}
                 </p>
               )}
@@ -837,7 +836,7 @@ export function TimezonePicker({
               {(zone) => (
                 <ListBox.Item id={zone.id} textValue={`${zone.label} (${zone.offset})`}>
                   <span className="min-w-0 flex-1 truncate">{zone.label}</span>
-                  <span className="ms-2 shrink-0 text-[12px] text-muted">{zone.offset}</span>
+                  <span className="ms-2 shrink-0 text-caption text-muted">{zone.offset}</span>
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
               )}

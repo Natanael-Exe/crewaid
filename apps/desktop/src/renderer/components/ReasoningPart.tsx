@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { IconChevronRight } from '@tabler/icons-react';
 import {
   partField,
   registerPartRenderer,
@@ -7,6 +6,7 @@ import {
   type PartRenderContext,
 } from './PartRenderer';
 import { StreamingMarkdown } from './markdown/StreamingMarkdown';
+import { ChainOfThought } from './ui';
 import { useT } from '../i18n/i18n';
 
 /**
@@ -122,19 +122,16 @@ export function ReasoningPart({
   const streaming = partField(part, 'state') === 'streaming';
 
   return (
-    <details
+    <ChainOfThought.Root
+      isStreaming={streaming}
+      defaultExpanded={false}
       data-reasoning={streaming ? 'streaming' : 'settled'}
-      className="group/reasoning my-1.5 text-[12px] text-muted"
+      className="my-1.5 text-caption text-muted"
     >
-      <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-md py-1 pe-2 select-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus/60 [&::-webkit-details-marker]:hidden">
-        <IconChevronRight
-          aria-hidden
-          className="size-3.5 transition-transform duration-200 group-open/reasoning:rotate-90 rtl:group-open/reasoning:-rotate-90 motion-reduce:transition-none rtl:-scale-x-100"
-          stroke={1.8}
-        />
-        <span>{streaming ? t('reasoning.thinking') : t('reasoning.thought')}</span>
-      </summary>
-      <div className="mt-1 max-w-[72%] border-s-2 border-current/15 ps-2.5 text-[13px] leading-[19px]">
+      <ChainOfThought.Trigger className="px-1.5 py-1 text-caption text-muted hover:text-foreground">
+        {streaming ? t('reasoning.thinking') : t('reasoning.thought')}
+      </ChainOfThought.Trigger>
+      <ChainOfThought.Content className="mt-1 max-w-[72%] border-s-2 border-current/15 ps-2.5 text-footnote leading-[19px]">
         <div
           data-reasoning-body
           // `overscroll-contain`: the box scrolls, and reaching its end must
@@ -145,8 +142,8 @@ export function ReasoningPart({
         >
           <StreamingMarkdown source={text} streaming={context?.streaming === true} />
         </div>
-      </div>
-    </details>
+      </ChainOfThought.Content>
+    </ChainOfThought.Root>
   );
 }
 

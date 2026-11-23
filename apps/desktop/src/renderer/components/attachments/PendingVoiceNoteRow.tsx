@@ -34,13 +34,13 @@ export function PendingVoiceNoteRow({
         localClip={note.clip}
       />
       {sending ? (
-        <div role="status" className="flex items-center gap-1.5 px-2 text-[12px] text-muted">
+        <div role="status" className="flex items-center gap-1.5 px-2 text-caption text-muted">
           <Spinner size="sm" color="current" aria-hidden />
           {t('attachments.voice.sending')}
         </div>
       ) : (
         <>
-          <p role="alert" className="max-w-72 px-2 text-end text-[12px] text-danger">
+          <p role="alert" className="max-w-72 px-2 text-end text-caption text-danger">
             {note.error}
           </p>
           <div className="flex items-center gap-1">

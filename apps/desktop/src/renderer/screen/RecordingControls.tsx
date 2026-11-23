@@ -3,8 +3,7 @@ import type { RecordingView } from '../state/chatReducer';
 import { recordingCardPresentation, type RecordingCardAction } from './recordingCardState';
 
 /**
- * The recording cluster in the full-screen viewer's footer (M3-FE-01,
- * M3-FE-02).
+ * The recording cluster in the full-screen viewer's footer.
  *
  * Its own module for the same reason as `ScreenPlaceholder`: `ScreenCard`
  * imports noVNC at the top level and noVNC touches `window` on import, so the
@@ -54,20 +53,20 @@ export function RecordingControls({
   return (
     <div
       data-recording-phase={presentation.phase}
-      className="window-no-drag flex min-w-0 items-center gap-2 text-[12px]"
+      className="window-no-drag flex min-w-0 items-center gap-2 text-caption"
     >
       {presentation.indicator ? (
         <span
           data-recording-indicator
           aria-hidden="true"
-          className="size-1.5 shrink-0 animate-pulse rounded-full bg-red-500"
+          className="size-1.5 shrink-0 animate-pulse rounded-full bg-danger"
         />
       ) : null}
       {presentation.label !== null ? (
-        <span className="shrink-0 text-black">{presentation.label}</span>
+        <span className="shrink-0 text-foreground">{presentation.label}</span>
       ) : null}
       {presentation.counter !== null ? (
-        <span data-recording-counter className="shrink-0 text-black tabular-nums">
+        <span data-recording-counter className="shrink-0 text-foreground tabular-nums">
           {presentation.counter}
         </span>
       ) : null}
@@ -84,7 +83,7 @@ export function RecordingControls({
           data-recording-message
           role="status"
           title={presentation.message}
-          className="min-w-0 truncate text-black"
+          className="min-w-0 truncate text-foreground"
         >
           {presentation.message}
         </span>
@@ -97,8 +96,8 @@ export function RecordingControls({
           isDisabled={action.disabled}
           data-recording-action={action.kind}
           onPress={handlers[action.kind]}
-          className={`h-7 shrink-0 rounded-lg px-3 text-[12px] font-medium ${
-            action.emphasis === 'quiet' ? 'text-black' : ''
+          className={`h-7 shrink-0 rounded-lg px-3 text-caption font-medium ${
+            action.emphasis === 'quiet' ? 'text-foreground' : ''
           }`}
         >
           {action.label}

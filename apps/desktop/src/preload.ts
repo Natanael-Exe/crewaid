@@ -2,7 +2,7 @@
  * Preload bridge — the ONLY channel between the sandboxed renderer and the
  * main process. The renderer gets `window.crewaid`; it gets nothing else.
  *
- * Kept deliberately tiny: the CC-07 token store, and the sign-in. M1-FE-06's
+ * Kept deliberately tiny: the token store, and the sign-in. The
  * WS client does NOT need IPC (the renderer speaks WSS to the orchestrator
  * directly), so this surface should stay small. Add capabilities here only
  * when the renderer genuinely cannot do them itself.
@@ -12,10 +12,14 @@
  * `@better-auth/electron`'s own preload helper exposes seven bare globals —
  * `window.requestAuth`, `window.signOut`, `window.getUser` — over handlers
  * that never look at the sender. It is not used here for that reason; these
- * four channels reach the same library through the fence CC-07 already had.
+ * four channels reach the same library through the IPC fence that was already there.
  */
 import { contextBridge, ipcRenderer } from 'electron';
-import { WINDOW_FULLSCREEN_CHANNEL } from './windowPresentation.js';
+import {
+  WINDOW_FULLSCREEN_CHANNEL,
+  WINDOW_THEME_CHANNEL,
+  type WindowThemeSource,
+} from './windowPresentation.js';
 import { LOCALE_CHANNEL, NEW_BOT_CHANNEL } from './applicationMenu.js';
 import { OPEN_EXTERNAL_CHANNEL, type OpenExternalResult } from './openExternal.js';
 import type { AppInfoResult } from './edition';
@@ -64,6 +68,9 @@ const api = {
     info: (): Promise<AppInfoResult> => ipcRenderer.invoke('crewaid:app:info'),
     /** The language this window shows, so the menu bar reads in it too. */
     setLocale: (locale: string): Promise<boolean> => ipcRenderer.invoke(LOCALE_CHANNEL, locale),
+    /** The appearance preference this window shows, so OS chrome and menus match. */
+    setTheme: (theme: WindowThemeSource): Promise<boolean> =>
+      ipcRenderer.invoke(WINDOW_THEME_CHANNEL, theme),
   },
   update: {
     /** Whether an update is downloading, ready, or (unsigned macOS) available. */

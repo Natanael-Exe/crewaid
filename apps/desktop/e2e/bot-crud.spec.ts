@@ -148,11 +148,14 @@ test('a row menu opens from inside the virtualized list and offers the five back
     const row = page.getByRole('option', { name: /bot-02/ });
     await expect(row).toBeVisible();
     await page.getByRole('button', { name: 'Filter bots', exact: true }).click();
-    await expect(page.getByRole('textbox', { name: 'Search bots' })).toBeVisible();
+    await expect(page.getByRole('searchbox', { name: 'Search bots' })).toBeVisible();
     const geometry = await page.evaluate(() => {
-      const search = document.querySelector<HTMLInputElement>('input[aria-label="Search bots"]');
+      // The field's visible box is its group; the input starts after the icon.
+      const search = document
+        .querySelector<HTMLInputElement>('input[aria-label="Search bots"]')
+        ?.closest<HTMLElement>('[data-slot="search-field-group"]');
       const row = document.querySelector<HTMLElement>('[role="listbox"] [role="option"]');
-      if (search === null || row === null) return null;
+      if (search === null || search === undefined || row === null) return null;
       const searchRect = search.getBoundingClientRect();
       const rowRect = row.getBoundingClientRect();
       return {

@@ -1,6 +1,5 @@
-import { Button, Chip, Dropdown, Switch } from '@heroui/react';
+import { Alert, Button, Chip, Dropdown, Input, Switch, Tooltip } from '@heroui/react';
 import {
-  IconAlertTriangle,
   IconChevronDown,
   IconDotsVertical,
   IconKey,
@@ -10,6 +9,7 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import type { ProviderConnectionWithModels, ProviderModel } from '@crewaid/shared';
+import { IconButtonTooltip } from '../components/ui';
 import {
   apiKeyIssue,
   connectionStatus,
@@ -22,7 +22,6 @@ import {
 } from './connectionsState';
 import { capabilityLabels, contextWindowLabel } from './modelSettings';
 import { ModelForm } from './ModelForm';
-import { SETTINGS_INPUT_CLASS } from './SettingsLayout';
 import { t, useT } from '../i18n/i18n';
 
 /**
@@ -219,15 +218,16 @@ export function ConnectionCard({
         <div className="min-w-0 flex-1">
           {renaming ? (
             <div className="flex items-center gap-2">
-              <input
+              <Input
                 id={`conn-name-${id}`}
+                variant="secondary"
                 type="text"
                 autoComplete="off"
                 spellCheck={false}
                 value={name}
                 aria-label={t('settings.connection.nameLabel')}
                 onChange={(event) => setName(event.target.value)}
-                className={SETTINGS_INPUT_CLASS}
+                className="w-full"
               />
               <Button
                 variant="primary"
@@ -237,7 +237,7 @@ export function ConnectionCard({
                   onRename(name.trim());
                   setRenaming(false);
                 }}
-                className="h-9 shrink-0 rounded-[10px] px-3.5 text-[12px] font-medium"
+                className="h-9 shrink-0 rounded-[10px] px-3.5 text-caption font-medium"
               >
                 {t('settings.general.save')}
               </Button>
@@ -248,7 +248,7 @@ export function ConnectionCard({
                   setName(connection.name);
                   setRenaming(false);
                 }}
-                className="h-9 shrink-0 rounded-[10px] px-3 text-[12px] font-medium text-muted"
+                className="h-9 shrink-0 rounded-[10px] px-3 text-caption font-medium text-muted"
               >
                 {t('settings.cancel')}
               </Button>
@@ -258,15 +258,14 @@ export function ConnectionCard({
               {/* The whole header is not the disclosure: it holds a switch, a
                 menu and, while renaming, a text field, and a click target that
                 contains three other controls swallows their presses. */}
-              <Button
+              <IconButtonTooltip
+                label={t('settings.connection.details', { name: connection.name })}
                 variant="ghost"
-                isIconOnly
                 size="sm"
-                aria-label={t('settings.connection.details', { name: connection.name })}
                 aria-expanded={expanded}
                 isDisabled={busy}
                 onPress={() => setExpanded((open) => !open)}
-                className="size-8 shrink-0 rounded-[10px] text-muted me-1"
+                className="me-1 size-8 shrink-0 rounded-[10px] text-muted"
               >
                 <IconChevronDown
                   className={
@@ -277,9 +276,9 @@ export function ConnectionCard({
                   stroke={1.8}
                   aria-hidden
                 />
-              </Button>
+              </IconButtonTooltip>
 
-              <span className="truncate text-[13px] font-medium text-foreground">
+              <span className="truncate text-footnote font-medium text-foreground">
                 {connection.name}
               </span>
               <Chip size="sm" variant="soft" color="default">
@@ -319,12 +318,17 @@ export function ConnectionCard({
             </Switch>
 
             <Dropdown>
-              <Dropdown.Trigger
-                aria-label={t('settings.connection.options', { name: connection.name })}
-                className="grid size-8 shrink-0 place-items-center rounded-[10px] text-muted outline-none data-[hovered]:bg-background-secondary data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40"
-              >
-                <IconDotsVertical className="size-4" stroke={1.8} />
-              </Dropdown.Trigger>
+              <Tooltip delay={400}>
+                <Dropdown.Trigger
+                  aria-label={t('settings.connection.options', { name: connection.name })}
+                  className="button button--ghost button--sm button--icon-only size-8 shrink-0 rounded-full text-muted"
+                >
+                  <IconDotsVertical className="size-4" stroke={1.8} aria-hidden />
+                </Dropdown.Trigger>
+                <Tooltip.Content>
+                  {t('settings.connection.options', { name: connection.name })}
+                </Tooltip.Content>
+              </Tooltip>
               <Dropdown.Popover placement="bottom end" className="min-w-[184px] rounded-xl">
                 <Dropdown.Menu
                   aria-label={t('settings.connection.options', { name: connection.name })}
@@ -366,8 +370,9 @@ export function ConnectionCard({
                   </Dropdown.Item>
                   <Dropdown.Item
                     id="remove"
+                    variant="danger"
                     textValue={t('settings.connection.menu.remove')}
-                    className="rounded-lg"
+                    className="rounded-lg text-danger data-[hovered]:text-danger"
                   >
                     <IconTrash className="size-4 shrink-0 text-danger" stroke={1.8} />
                     <span className="text-danger">{t('settings.connection.menu.remove')}</span>
@@ -392,13 +397,14 @@ export function ConnectionCard({
             <div className="border-t border-separator px-4 py-3">
               <label
                 htmlFor={`conn-endpoint-${id}`}
-                className="mb-1.5 block text-[12px] font-medium text-foreground"
+                className="mb-1.5 block text-caption font-medium text-foreground"
               >
                 {t('settings.connections.baseUrl.label')}
               </label>
               <div className="flex items-center gap-2">
-                <input
+                <Input
                   id={`conn-endpoint-${id}`}
+                  variant="secondary"
                   type="url"
                   inputMode="url"
                   autoComplete="off"
@@ -406,14 +412,14 @@ export function ConnectionCard({
                   placeholder={ENDPOINT_EXAMPLE}
                   value={endpoint}
                   onChange={(event) => setEndpoint(event.target.value)}
-                  className={SETTINGS_INPUT_CLASS}
+                  className="w-full"
                 />
                 <Button
                   variant="tertiary"
                   size="sm"
                   isDisabled={busy || endpoint.trim() === (connection.endpoint ?? '')}
                   onPress={() => onSetEndpoint(endpoint.trim())}
-                  className="h-9 shrink-0 rounded-[10px] px-3.5 text-[12px] font-medium"
+                  className="h-9 shrink-0 rounded-[10px] px-3.5 text-caption font-medium"
                 >
                   {t('settings.general.save')}
                 </Button>
@@ -422,7 +428,7 @@ export function ConnectionCard({
               arrives as a 400 that would otherwise read as a typo: the address
               is re-checked every time a turn runs, and a host that resolves
               onto the deployment's own network is refused then too (D-085). */}
-              <p className="mt-1.5 text-[12px] leading-[17px] text-muted">
+              <p className="mt-1.5 text-caption leading-[17px] text-muted">
                 {t('settings.connection.endpointHint')}
               </p>
             </div>
@@ -432,20 +438,21 @@ export function ConnectionCard({
             <div className="border-t border-separator px-4 py-3">
               <label
                 htmlFor={`conn-key-${id}`}
-                className="mb-1.5 block text-[12px] font-medium text-foreground"
+                className="mb-1.5 block text-caption font-medium text-foreground"
               >
                 {t('settings.connections.apiKey.label')}
               </label>
               <div className="flex items-center gap-2">
-                <input
+                <Input
                   id={`conn-key-${id}`}
+                  variant="secondary"
                   type="password"
                   autoComplete="off"
                   spellCheck={false}
                   placeholder={t('settings.connections.apiKey.placeholder')}
                   value={key}
                   onChange={(event) => setKey(event.target.value)}
-                  className={SETTINGS_INPUT_CLASS}
+                  className="w-full"
                   aria-label={t('settings.connections.apiKey.label')}
                 />
                 <Button
@@ -462,7 +469,7 @@ export function ConnectionCard({
                     setKeyOpen(false);
                     onSetKey(value);
                   }}
-                  className="h-9 shrink-0 rounded-[10px] px-3.5 text-[12px] font-medium"
+                  className="h-9 shrink-0 rounded-[10px] px-3.5 text-caption font-medium"
                 >
                   {t('settings.connection.saveKey')}
                 </Button>
@@ -473,17 +480,17 @@ export function ConnectionCard({
                     setKey('');
                     setKeyOpen(false);
                   }}
-                  className="h-9 shrink-0 rounded-[10px] px-3 text-[12px] font-medium text-muted"
+                  className="h-9 shrink-0 rounded-[10px] px-3 text-caption font-medium text-muted"
                 >
                   {t('settings.cancel')}
                 </Button>
               </div>
-              <p className="mt-1.5 text-[12px] leading-[17px] text-muted">{keyIsWriteOnly()}</p>
+              <p className="mt-1.5 text-caption leading-[17px] text-muted">{keyIsWriteOnly()}</p>
               {keyProblem === null ? null : <CardAlert>{keyProblem}</CardAlert>}
             </div>
           ) : (
             <div className="flex items-center gap-2 border-t border-separator px-4 py-2.5">
-              <span className="text-[12px] text-muted">{credentialSummary(connection)}</span>
+              <span className="text-caption text-muted">{credentialSummary(connection)}</span>
               {/* The guarantee stays on screen rather than only inside the form:
               it is what stops someone hunting for a reveal control, and the
               full sentence is the title so the short chip loses nothing. */}
@@ -495,7 +502,7 @@ export function ConnectionCard({
                 size="sm"
                 isDisabled={busy}
                 onPress={() => setKeyOpen(true)}
-                className="ms-auto h-8 shrink-0 rounded-[10px] px-3 text-[12px] font-medium"
+                className="ms-auto h-8 shrink-0 rounded-[10px] px-3 text-caption font-medium"
               >
                 {connection.hasCredential
                   ? t('settings.connection.replaceKey')
@@ -507,13 +514,13 @@ export function ConnectionCard({
           {connection.kind === 'elevenlabs' ? (
             // A speech key has no models; it is what bots listen and
             // speak with, so the card says that instead of offering a list.
-            <p className="border-t border-separator px-4 py-2.5 text-[12px] text-muted">
+            <p className="border-t border-separator px-4 py-2.5 text-caption text-muted">
               {t('settings.connection.speechKey')}
             </p>
           ) : (
             <div className="border-t border-separator">
               <div className="flex items-center gap-2 px-4 py-2.5">
-                <span className="text-[12px] font-medium text-muted">
+                <span className="text-caption font-medium text-muted tabular-nums">
                   {connection.models.length > 0
                     ? t('settings.connection.modelsCount', { count: connection.models.length })
                     : t('settings.connection.models')}
@@ -523,7 +530,7 @@ export function ConnectionCard({
                   size="sm"
                   isDisabled={busy}
                   onPress={() => setEditing((open) => (open === 'new' ? null : 'new'))}
-                  className="ms-auto h-8 shrink-0 rounded-[10px] px-2.5 text-[12px] font-medium"
+                  className="ms-auto h-8 shrink-0 rounded-[10px] px-2.5 text-caption font-medium"
                 >
                   <IconPlus className="me-1 size-4" stroke={1.8} aria-hidden />
                   {t('settings.connection.addModel')}
@@ -551,7 +558,7 @@ export function ConnectionCard({
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="truncate text-[13px] font-medium text-foreground">
+                        <span className="truncate text-footnote font-medium text-foreground">
                           {definition.label}
                         </span>
                         {capabilityLabels(definition.capabilities).map((capability) => (
@@ -564,44 +571,42 @@ export function ConnectionCard({
                     id (D-082) and a cuid tells an operator nothing — what they
                     check against a provider dashboard is the name the provider
                     knows. */}
-                      <code className="mt-0.5 block truncate text-[11px] text-muted">
+                      <code className="mt-0.5 block truncate text-micro text-muted">
                         {definition.upstreamModelId}
                       </code>
                     </div>
-                    <span className="shrink-0 text-[11px] text-foreground-faint">
+                    <span className="shrink-0 text-micro text-foreground-faint tabular-nums">
                       {contextWindowLabel(definition.contextWindow)}
                     </span>
                     {/* Editing in place rather than delete-and-re-add: re-adding
                   mints a new row id, and every bot pointing at the old one
                   stops resolving (D-082). */}
-                    <Button
+                    <IconButtonTooltip
+                      label={t('settings.connection.editModel', { model: definition.label })}
                       variant="ghost"
-                      isIconOnly
                       size="sm"
-                      aria-label={t('settings.connection.editModel', { model: definition.label })}
                       isDisabled={busy}
                       onPress={() => setEditing(definition.id)}
                       className="size-8 shrink-0 rounded-[10px] text-muted"
                     >
-                      <IconPencil className="size-4" stroke={1.8} />
-                    </Button>
-                    <Button
+                      <IconPencil className="size-4" stroke={1.8} aria-hidden />
+                    </IconButtonTooltip>
+                    <IconButtonTooltip
+                      label={t('settings.connection.removeModel', { model: definition.label })}
                       variant="ghost"
-                      isIconOnly
                       size="sm"
-                      aria-label={t('settings.connection.removeModel', { model: definition.label })}
                       isDisabled={busy}
                       onPress={() => onRemoveModel(definition)}
-                      className="size-8 shrink-0 rounded-[10px] text-muted"
+                      className="size-8 shrink-0 rounded-[10px] text-muted hover:text-danger"
                     >
-                      <IconTrash className="size-4" stroke={1.8} />
-                    </Button>
+                      <IconTrash className="size-4" stroke={1.8} aria-hidden />
+                    </IconButtonTooltip>
                   </div>
                 ),
               )}
 
               {connection.models.length === 0 && editing === null ? (
-                <p className="border-t border-separator px-4 py-2.5 text-[12px] text-muted">
+                <p className="border-t border-separator px-4 py-2.5 text-caption text-muted">
                   {t('settings.connection.noModels')}
                 </p>
               ) : null}
@@ -635,9 +640,11 @@ export function ConnectionCard({
 
 function CardAlert({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-1.5 flex items-start gap-1.5 text-[12px] leading-[17px] text-danger">
-      <IconAlertTriangle className="mt-px size-4 shrink-0" stroke={1.8} aria-hidden />
-      <span>{children}</span>
-    </p>
+    <Alert status="danger" role="alert" className="mt-1.5">
+      <Alert.Indicator />
+      <Alert.Content>
+        <Alert.Description>{children}</Alert.Description>
+      </Alert.Content>
+    </Alert>
   );
 }

@@ -37,7 +37,7 @@ export function WorkNav({
                 {view === 'tasks' && attention > 0 ? (
                   <span
                     aria-label={t('work.nav.attention', { count: attention })}
-                    className="min-w-4 rounded-full bg-warning/15 px-1.5 text-[10px] font-medium leading-4 tabular-nums text-warning"
+                    className="min-w-4 rounded-full bg-warning/15 px-1.5 text-micro font-medium leading-4 tabular-nums text-warning"
                   >
                     {attention > 99 ? '99+' : attention}
                   </span>

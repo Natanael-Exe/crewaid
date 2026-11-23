@@ -74,40 +74,35 @@ export function CreateBotDialog({
   return (
     <Modal state={overlay}>
       <Modal.Backdrop>
-        <Modal.Container
-          size="cover"
-          placement="center"
-          className="sm:w-auto h-fit"
-          scroll="inside"
-        >
+        <Modal.Container size="lg" placement="center" scroll="inside">
           <Modal.Dialog
             aria-label={t('bots.createBotDialog.newBot')}
-            className="crewaid-create-bot-dialog flex h-fit max-h-[80vh] w-[600px] max-w-[92vw] flex-col gap-4 overflow-y-auto rounded-card bg-surface p-5"
+            className="crewaid-create-bot-dialog sm:max-w-[600px]"
           >
-            <h2 className="text-[15px] font-semibold">{t('bots.createBotDialog.newBot')}</h2>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading className="text-body font-semibold">
+                {t('bots.createBotDialog.newBot')}
+              </Modal.Heading>
+            </Modal.Header>
+            <Modal.Body className="flex flex-col gap-4">
+              <BotFields draft={draft} onChange={setDraft} idPrefix="new-bot" promptRows={5} />
 
-            <BotFields draft={draft} onChange={setDraft} idPrefix="new-bot" promptRows={5} />
-
-            {/* Held back until submit: naming the empty fields the moment the
-                dialog opens scolds the operator for not having typed yet. */}
-            {submitted && issue !== null ? (
-              <p role="alert" className="text-[12px] text-danger">
-                {issue}
-              </p>
-            ) : null}
-            {failure === null ? null : (
-              <p role="alert" className="text-[12px] text-danger">
-                {failure}
-              </p>
-            )}
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="tertiary"
-                size="sm"
-                onPress={() => onOpenChange(false)}
-                className="h-8 rounded-[10px] text-[12px] font-medium"
-              >
+              {/* Held back until submit: naming the empty fields the moment the
+                  dialog opens scolds the operator for not having typed yet. */}
+              {submitted && issue !== null ? (
+                <p role="alert" className="text-caption text-danger">
+                  {issue}
+                </p>
+              ) : null}
+              {failure === null ? null : (
+                <p role="alert" className="text-caption text-danger">
+                  {failure}
+                </p>
+              )}
+            </Modal.Body>
+            <Modal.Footer className="gap-2">
+              <Button variant="tertiary" size="sm" onPress={() => onOpenChange(false)}>
                 {t('bots.botRowMenu.cancel')}
               </Button>
               <Button
@@ -115,11 +110,10 @@ export function CreateBotDialog({
                 size="sm"
                 isDisabled={creating}
                 onPress={() => void create()}
-                className="h-8 rounded-[10px] text-[12px] font-medium"
               >
                 {creating ? t('bots.createBotDialog.creating') : t('bots.createBotDialog.create')}
               </Button>
-            </div>
+            </Modal.Footer>
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

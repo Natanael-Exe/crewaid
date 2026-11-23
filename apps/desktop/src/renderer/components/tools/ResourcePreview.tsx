@@ -23,13 +23,13 @@ export function ResourcePreview({
       {preview.body === undefined ? null : (
         <div className="mt-3">
           {preview.bodyIsHtml ? (
-            <p className="mb-1 text-[11px] text-muted">{t('tools.preview.htmlSource')}</p>
+            <p className="mb-1 text-micro text-muted">{t('tools.preview.htmlSource')}</p>
           ) : null}
           <pre className="crewaid-tool-preview crewaid-resource-body">{preview.body}</pre>
         </div>
       )}
       {preview.receipt === undefined ? null : (
-        <p className="mt-3 text-[11px] text-muted" data-resource-receipt>
+        <p className="mt-3 text-micro text-muted" data-resource-receipt>
           {preview.receipt}
         </p>
       )}

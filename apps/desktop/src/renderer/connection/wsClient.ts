@@ -44,7 +44,7 @@ export type WsConnectionState = {
 };
 
 /**
- * `UNSUPPORTED_WIRE_VERSION` is CC-19/D-071's, and it is a separate code
+ * `UNSUPPORTED_WIRE_VERSION` comes from D-071, and it is a separate code
  * rather than another `PROTOCOL_ERROR` because the two mean different things
  * to the person reading them: one says this build is behind the orchestrator
  * and names both versions, which they can act on, and the other says a frame

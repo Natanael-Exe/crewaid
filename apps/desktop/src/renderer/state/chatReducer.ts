@@ -1118,7 +1118,7 @@ function applyFrame(state: ChatState, frame: ServerFrame): ChatState {
           bot.id === frame.payload.botId ? { ...bot, status: frame.payload.status } : bot,
         ),
       };
-      // CC-44. CC-25 makes this the authoritative pair of edges: a turn opens
+      // These status frames are the authoritative pair of edges: a turn opens
       // THINKING and ends IDLE, and the IDLE lands after the reply completed.
       // AWAITING_APPROVAL ends the indicator too — the bot is not working, it
       // is waiting on the operator, and the prompt below is what they should
@@ -1245,7 +1245,7 @@ function applyFrame(state: ChatState, frame: ServerFrame): ChatState {
           };
     }
 
-    // M5-FE-02, now D-192: the question reaches the operator as the run's own
+    // D-192: the question reaches the operator as the run's own
     // interrupt, which the chat client raises and the prompt answers. This
     // frame is the same news on the other channel.
     case 'approval.requested':

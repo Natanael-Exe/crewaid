@@ -1,3 +1,4 @@
+import { Button } from '@heroui/react';
 import { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import PdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker&inline';
@@ -85,24 +86,26 @@ export default function PdfPreview({ file }: { file: Blob }) {
         </Document>
       </div>
       {pages > 1 ? (
-        <div className="flex items-center justify-center gap-3 text-[12px] text-black">
-          <button
-            type="button"
-            className="cursor-pointer rounded px-2 py-0.5 hover:bg-black/10 disabled:cursor-default disabled:opacity-40"
-            disabled={page <= 1}
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
+        <div className="flex items-center justify-center gap-3 text-caption text-foreground">
+          <Button
+            variant="ghost"
+            size="sm"
+            isDisabled={page <= 1}
+            onPress={() => setPage((current) => Math.max(1, current - 1))}
           >
             {t('attachments.pdf.previous')}
-          </button>
-          <span>{t('attachments.pdf.page', { page, pages })}</span>
-          <button
-            type="button"
-            className="cursor-pointer rounded px-2 py-0.5 hover:bg-black/10 disabled:cursor-default disabled:opacity-40"
-            disabled={page >= pages}
-            onClick={() => setPage((current) => Math.min(pages, current + 1))}
+          </Button>
+          <span className="tabular-nums text-muted">
+            {t('attachments.pdf.page', { page, pages })}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            isDisabled={page >= pages}
+            onPress={() => setPage((current) => Math.min(pages, current + 1))}
           >
             {t('attachments.pdf.next')}
-          </button>
+          </Button>
         </div>
       ) : null}
     </div>

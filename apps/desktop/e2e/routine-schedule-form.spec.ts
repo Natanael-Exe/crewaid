@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { launchDesktop } from './launchDesktop';
+import { tokenColor } from './themeTokens';
 import { routeChat } from './stubChat';
 import { startStubAuthServer, type StubAuthServer } from './stubAuthServer';
 import type { CrewaidBridge, TokenStoreWriteResult } from '../src/preload.js';
@@ -104,14 +105,14 @@ test('routine form chooses a schedule, timezone and end date without cron input'
     await expect(custom.getByText('Repetition frequency')).toBeVisible();
     await expect(custom.getByRole('button', { name: 'Confirm' })).toHaveCSS(
       'color',
-      'rgb(255, 255, 255)',
+      await tokenColor(page, '--app-accent-foreground', 'color'),
     );
     expect(
       await custom
         .locator('.radio[data-selected] .radio__indicator')
         .first()
         .evaluate((node) => getComputedStyle(node, '::before').backgroundColor),
-    ).toBe('rgb(255, 255, 255)');
+    ).toBe(await tokenColor(page, '--app-accent-foreground'));
     if (process.env['CC79_CAPTURE'] === '1') {
       await page.evaluate(async () => {
         const finite = document

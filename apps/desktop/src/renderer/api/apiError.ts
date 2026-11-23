@@ -53,7 +53,7 @@ export type ApiFailureCode =
   | 'SANDBOX_CAPACITY' // 503: the host is full, and it is temporary
   | 'SERVER_MISCONFIGURED' // 503 + the server naming its own missing configuration
   | 'NETWORK' // fetch rejected — offline, DNS, connection refused
-  | 'CONFIGURATION' // no orchestrator URL/token in the CC-07 store
+  | 'CONFIGURATION' // no orchestrator URL/token in the token store
   | 'CONTRACT' // 2xx body failed the @crewaid/shared schema
   | 'UNKNOWN'; // anything else, including 5xx — copy stays neutral
 

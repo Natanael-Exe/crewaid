@@ -150,7 +150,7 @@ function MicrophoneRow() {
         >
           <Select.Trigger
             data-search-select={t('settings.microphone.label')}
-            className="max-w-[min(340px,50vw)] items-center gap-1.5 text-[13px]"
+            className="max-w-[min(340px,50vw)] items-center gap-1.5 text-footnote"
           >
             {/* From props, as SearchSelect does, so a static render reads the same. */}
             <span className="min-w-0 truncate">{selectedLabel}</span>
@@ -163,7 +163,7 @@ function MicrophoneRow() {
                   key={option.id}
                   id={option.id}
                   textValue={option.label}
-                  className="flex cursor-default items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-[13px] text-foreground data-[focused]:bg-background-secondary"
+                  className="flex cursor-default items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-footnote text-foreground data-[focused]:bg-background-secondary"
                 >
                   <span className="min-w-0 flex-1 truncate">{option.label}</span>
                   <span className="flex size-4 shrink-0 items-center justify-center">

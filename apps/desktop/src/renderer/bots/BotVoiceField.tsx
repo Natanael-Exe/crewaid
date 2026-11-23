@@ -11,6 +11,7 @@ import { failureOf, listVoices, useApiClient } from '../api';
 import { FIELD_LABEL } from '../work/Fields';
 import { useVoicePreview } from '../voice/useVoicePreview';
 import { useT } from '../i18n/i18n';
+import { IconButtonTooltip } from '../components/ui';
 
 function voiceNameParts(name: string) {
   const divider = name.indexOf(' - ');
@@ -76,29 +77,25 @@ export function BotVoiceField({
 
   function previewButton(voice: VoiceOption | undefined, name: string) {
     const active = voice !== undefined && preview?.id === voice.id;
+    const tip =
+      voice?.previewUrl === undefined
+        ? t('bots.botVoiceField.previewUnavailable')
+        : active
+          ? t('bots.botVoiceField.stopPreview')
+          : t('bots.botVoiceField.previewVoice');
     return (
-      <span
-        className="shrink-0"
-        title={
-          voice?.previewUrl === undefined
-            ? t('bots.botVoiceField.previewUnavailable')
-            : active
-              ? t('bots.botVoiceField.stopPreview')
-              : t('bots.botVoiceField.previewVoice')
-        }
-      >
-        <Button
-          isIconOnly
+      <span className="shrink-0">
+        <IconButtonTooltip
           size="sm"
-          variant="ghost"
-          aria-label={
-            active ? t('bots.voice.stopPreview', { name }) : t('bots.voice.preview', { name })
-          }
+          variant="primary"
+          label={active ? t('bots.voice.stopPreview', { name }) : t('bots.voice.preview', { name })}
+          tooltip={tip}
+          placement="top"
           isDisabled={voice?.previewUrl === undefined}
           onPress={() => {
             if (voice !== undefined) void play(voice);
           }}
-          className="size-8 min-w-8 shrink-0 rounded-full bg-black text-white data-[hovered]:bg-black/80"
+          className="size-8 min-w-8 shrink-0 rounded-full"
         >
           {active && preview.loading ? (
             <Spinner size="sm" color="current" aria-hidden />
@@ -107,7 +104,7 @@ export function BotVoiceField({
           ) : (
             <IconPlayerPlayFilled aria-hidden className="size-3.5" />
           )}
-        </Button>
+        </IconButtonTooltip>
       </span>
     );
   }
@@ -116,7 +113,7 @@ export function BotVoiceField({
     <div data-bot-voice-field>
       <span className={FIELD_LABEL}>{t('bots.botVoiceField.voice')}</span>
       {catalog === 'unavailable' ? (
-        <p className="text-[12px] text-muted">{t('bots.botVoiceField.addAnElevenlabsKeyIn')}</p>
+        <p className="text-caption text-muted">{t('bots.botVoiceField.addAnElevenlabsKeyIn')}</p>
       ) : (
         <Popover
           isOpen={open}
@@ -129,7 +126,7 @@ export function BotVoiceField({
             variant="secondary"
             aria-label={t('bots.voice.label', { name: label })}
             isDisabled={catalog === 'loading'}
-            className="flex min-h-10 w-full items-center justify-between gap-2 rounded-[10px] border border-border bg-background-secondary px-3 py-2 text-[13px] text-foreground outline-none data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40"
+            className="flex min-h-10 w-full items-center justify-between gap-2 rounded-[10px] border border-border bg-background-secondary px-3 py-2 text-footnote text-foreground outline-none data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40"
           >
             <span className="min-w-0 truncate">{voiceNameParts(label).name}</span>
             <IconChevronDown aria-hidden className="size-4 shrink-0 text-muted" stroke={1.8} />
@@ -139,7 +136,7 @@ export function BotVoiceField({
             className="w-[420px] max-w-[calc(100vw-32px)] rounded-xl"
           >
             <Popover.Dialog aria-label={t('bots.botVoiceField.chooseVoice')} className="p-2">
-              <Popover.Heading className="px-2 pt-1 pb-2 text-[12px] font-medium text-muted">
+              <Popover.Heading className="px-2 pt-1 pb-2 text-caption font-medium text-muted">
                 {t('bots.botVoiceField.conversationalVoices')}
               </Popover.Heading>
               <div className="max-h-[min(50vh,360px)] overflow-y-auto overscroll-contain">
@@ -153,11 +150,11 @@ export function BotVoiceField({
                     className="flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-focus/40"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[13px]">
+                      <span className="block text-footnote">
                         {t('bots.botVoiceField.defaultVoice')}
                       </span>
                       {defaultVoice === undefined ? null : (
-                        <span className="block truncate text-[11px] text-muted">
+                        <span className="block truncate text-micro text-muted">
                           {defaultVoice.name}
                         </span>
                       )}
@@ -176,12 +173,12 @@ export function BotVoiceField({
                       aria-label={t('bots.voice.choose', { name: voice.name })}
                       aria-pressed={value === voice.id}
                       onClick={() => choose(voice.id)}
-                      className="flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-start text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-focus/40"
+                      className="flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-start text-footnote outline-none focus-visible:ring-2 focus-visible:ring-focus/40"
                     >
                       <span className="min-w-0 flex-1">
                         <span className="block">{voiceNameParts(voice.name).name}</span>
                         {voiceNameParts(voice.name).tags === '' ? null : (
-                          <span data-voice-tags className="mt-0.5 block text-[11px] text-muted">
+                          <span data-voice-tags className="mt-0.5 block text-micro text-muted">
                             {voiceNameParts(voice.name).tags}
                           </span>
                         )}
@@ -193,7 +190,7 @@ export function BotVoiceField({
                   </div>
                 ))}
                 {voices.length === 0 ? (
-                  <p className="px-2 py-2 text-[12px] text-muted">
+                  <p className="px-2 py-2 text-caption text-muted">
                     {t('bots.botVoiceField.noConversationalVoicesAreAvailable')}
                   </p>
                 ) : null}
@@ -202,11 +199,11 @@ export function BotVoiceField({
           </Popover.Content>
         </Popover>
       )}
-      <p className="mt-1.5 text-[12px] text-muted">
+      <p className="mt-1.5 text-caption text-muted">
         {t('bots.botVoiceField.naturalVoicesForConversationPreview')}
       </p>
       {error === null ? null : (
-        <p role="alert" className="mt-1.5 text-[12px] text-danger">
+        <p role="alert" className="mt-1.5 text-caption text-danger">
           {error}
         </p>
       )}

@@ -1,5 +1,5 @@
 /**
- * The brand mark for a curated plugin (CC-60, revised by CC-61).
+ * The brand mark for a curated plugin.
  *
  * The folder is the registry
  *

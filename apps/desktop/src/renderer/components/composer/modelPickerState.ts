@@ -51,7 +51,7 @@ export type ResolvedSelection =
  * This used to take a THIRD candidate: a model id remembered in localStorage
  * per bot, preferred over the bot's own row. That made sense while selecting a
  * model changed nothing on the server — the choice had nowhere else to live.
- * V1-13 makes selection a `PATCH /bots/:id`, so the row is the answer, and a
+ * Selecting a model is a `PATCH /bots/:id`, so the row is the answer, and a
  * remembered copy on this machine would be a second source of truth that WINS
  * over the first. The failure is quiet and specific: change a bot's model in
  * one window, and the other window keeps sending to the old one forever.
@@ -163,7 +163,7 @@ export type SelectionAttempt = {
 /**
  * Decide what a click on an option means, before anything is written.
  *
- * Extracted from the component because this is the half of V1-13 with a rule
+ * Extracted from the component because this is the half of model selection with a rule
  * in it, and a component that only renders through `renderToStaticMarkup` has
  * no way to be clicked. What it settles:
  *

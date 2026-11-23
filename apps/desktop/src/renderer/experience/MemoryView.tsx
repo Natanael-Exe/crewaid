@@ -1,10 +1,10 @@
-import { Button } from '@heroui/react';
+import { Alert, Button, Input, Spinner } from '@heroui/react';
 import { IconLock } from '@tabler/icons-react';
 import { useCallback, useEffect, useState } from 'react';
 import type { MemoryRow } from '@crewaid/shared';
 import { useApiClient } from '../api';
 import { editMemory, forgetMemory, listMemories } from '../api/experience';
-import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
+import { EmptyState } from '../components/ui';
 import { currentLocale, useT, t } from '../i18n/i18n';
 
 export function provenance(row: MemoryRow, botName: string): string {
@@ -60,24 +60,29 @@ export function MemoryView({ botId, botName }: { botId: string; botName: string 
 
   const list = (items: MemoryRow[], empty: string) =>
     items.length === 0 ? (
-      <p className="py-2 text-[13px] text-muted">{empty}</p>
+      <EmptyState size="sm" className="py-4">
+        <EmptyState.Header>
+          <EmptyState.Description>{empty}</EmptyState.Description>
+        </EmptyState.Header>
+      </EmptyState>
     ) : (
       <ul className="flex flex-col">
         {items.map((row) => (
           <li key={row.id} className="border-b border-separator py-3">
             {editing === row.id ? (
               <div className="crewaid-memory-edit flex flex-col gap-2 rounded-card p-3">
-                <span className="text-[12px] text-muted">
+                <span className="text-caption text-muted">
                   {t('experience.memoryView.editingAMemory')}
                 </span>
-                <input
+                <Input
+                  variant="secondary"
                   aria-label={t('experience.memoryView.correctThisMemory')}
                   maxLength={300}
                   value={text}
                   onChange={(event) => setText(event.target.value)}
-                  className={SETTINGS_INPUT_CLASS}
+                  className="w-full"
                 />
-                <span className="text-[12px] text-muted">{provenance(row, botName)}</span>
+                <span className="text-caption text-muted">{provenance(row, botName)}</span>
                 <div className="flex justify-end gap-2">
                   <Button size="sm" variant="ghost" onPress={() => setEditing(null)}>
                     {t('experience.memoryView.cancel')}
@@ -94,8 +99,8 @@ export function MemoryView({ botId, botName }: { botId: string; botName: string 
             ) : (
               <div className="flex items-start gap-3">
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <p className="text-[14px] leading-5">{row.text}</p>
-                  <span className="text-[12px] text-muted">{provenance(row, botName)}</span>
+                  <p className="text-callout leading-5">{row.text}</p>
+                  <span className="text-caption text-muted">{provenance(row, botName)}</span>
                 </div>
                 <div className="flex shrink-0 gap-1">
                   <Button
@@ -131,41 +136,47 @@ export function MemoryView({ botId, botName }: { botId: string; botName: string 
         <h2 className="crewaid-pane-title">
           {t('experience.memoryView.whatBotKnows', { botName })}
         </h2>
-        <p className="text-[13px] leading-5 text-muted">
+        <p className="text-footnote leading-5 text-muted">
           {t('experience.memoryView.aLittleContextMakesThe')}
         </p>
       </div>
       {rows === null ? (
         error ? null : (
-          <p className="text-[13px] text-muted">{t('experience.memoryView.loading')}</p>
+          <div className="flex items-center gap-2 py-2 text-footnote text-muted">
+            <Spinner size="sm" />
+            <span>{t('experience.memoryView.loading')}</span>
+          </div>
         )
       ) : (
         <>
           <section className="flex flex-col gap-1">
-            <h3 className="text-[14px] font-semibold">
+            <h3 className="text-callout font-semibold">
               {t('experience.memoryView.sharedWithYourCrew')}
             </h3>
             {list(shared, t('experience.memoryView.nothingSharedYet'))}
           </section>
           <section className="flex flex-col gap-1">
-            <h3 className="flex items-center gap-1.5 text-[14px] font-semibold">
+            <h3 className="flex items-center gap-1.5 text-callout font-semibold">
               <IconLock className="size-3.5" aria-hidden />
               {t('experience.memoryView.privateTo', { botName })}
             </h3>
             {list(own, t('experience.memoryView.nothingPrivateYet'))}
           </section>
-          <p className="text-[12px] text-muted">
+          <p className="text-caption text-muted">
             {t('experience.memoryView.everyBotSeesShared', { botName })}
           </p>
         </>
       )}
       {error ? (
-        <div role="alert" className="flex items-center gap-2 text-[13px] text-danger">
-          {error}
+        <Alert status="danger" role="alert">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>{error}</Alert.Description>
+          </Alert.Content>
           <Button size="sm" variant="ghost" onPress={() => void load()}>
             {t('experience.memoryView.retry')}
           </Button>
-        </div>
+        </Alert>
       ) : null}
     </div>
   );

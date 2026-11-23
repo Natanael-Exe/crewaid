@@ -11,7 +11,7 @@ import {
 import { accountImage, signInPageUrl, type AuthExchange, type SignInUser } from './signIn.js';
 
 /**
- * The library half of V1-11, kept in one file away from the decisions.
+ * The library half of session sign-in, kept in one file away from the decisions.
  *
  * `@better-auth/electron/client` refuses to load outside an Electron main
  * process, so everything that touches it lives here and reaches the rest of
@@ -34,7 +34,7 @@ import { accountImage, signInPageUrl, type AuthExchange, type SignInUser } from 
  * check. Alongside the fence that is a second door with a weaker lock on
  * it. The four channels this app exposes go through `guardedIpc` instead.
  * - `storage`, which is the `conf` package writing a JSON file. The session
- * token belongs in the CC-07 store like every other credential; the map
+ * token belongs in the token store like every other credential; the map
  * below holds only the cookie jar for one in-flight exchange, and there is
  * nothing in it worth keeping once the token has landed.
  * - `userImageProxy`, which registers a `user-image://` scheme and fetches
@@ -49,7 +49,7 @@ import { accountImage, signInPageUrl, type AuthExchange, type SignInUser } from 
  *
  * Better Auth's client keeps cookies because a web client would need them.
  * This one does not: what it comes away with is a session token, and §4.4 has
- * accepted `Authorization: Bearer` since V1-08. Persisting the jar would mean
+ * accepted `Authorization: Bearer` for a while now. Persisting the jar would mean
  * a second copy of a live credential in a second file with its own lifetime —
  * the copy that gets forgotten when the first is cleared.
  */

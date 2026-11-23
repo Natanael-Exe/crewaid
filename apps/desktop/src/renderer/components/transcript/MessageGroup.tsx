@@ -1,3 +1,4 @@
+import { Button, Separator } from '@heroui/react';
 import { memo } from 'react';
 import { useT } from '../../i18n/i18n';
 import { isRowVisible, textOfPart, toTranscriptRows } from '../../state/transcriptRows';
@@ -35,11 +36,13 @@ export type TranscriptWork = {
 };
 
 export function DateSeparator({ label }: { label: string }) {
-  return <div className="py-2.5 text-center text-[11px] text-foreground-faint">{label}</div>;
+  return (
+    <div className="py-2.5 text-center text-micro tabular-nums text-foreground-faint">{label}</div>
+  );
 }
 
 export function SystemEvent({ text }: { text: string }) {
-  return <div className="py-1.5 text-center text-[11px] text-muted">{text}</div>;
+  return <div className="py-1.5 text-center text-micro text-muted">{text}</div>;
 }
 
 /** Visual boundary marking where a `/new` topic resets the bot's context window. */
@@ -48,24 +51,25 @@ export function TopicDivider({ onUndo }: { onUndo?: (() => void) | undefined }) 
   return (
     <div
       data-topic-boundary
-      className="group/topic flex items-center gap-3 px-1 py-3 text-[11px] text-muted"
+      className="group/topic flex items-center gap-3 px-1 py-3 text-micro text-muted"
       title={t('transcript.topic.title')}
     >
-      <span aria-hidden className="h-px flex-1 bg-transparent" />
-      <span className="font-medium px-2 py-1 bg-surface/30 drop-shadow-xl rounded-full shadow-xs">
+      <Separator className="flex-1 opacity-40" />
+      <span className="rounded-full border border-glass-border bg-glass px-2.5 py-1 font-medium shadow-surface">
         {t('transcript.topic.new')}
       </span>
       {onUndo === undefined ? null : (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           data-topic-undo
-          onClick={onUndo}
-          className="rounded px-1 text-muted opacity-0 outline-none transition-opacity hover:text-foreground focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-focus/60 group-hover/topic:opacity-100 motion-reduce:transition-none"
+          onPress={onUndo}
+          className="h-6 rounded-md px-1.5 text-micro text-muted opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover/topic:opacity-100 motion-reduce:transition-none"
         >
           {t('transcript.topic.undo')}
-        </button>
+        </Button>
       )}
-      <span aria-hidden className="h-px flex-1 bg-transparent" />
+      <Separator className="flex-1 opacity-40" />
     </div>
   );
 }

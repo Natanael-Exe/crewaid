@@ -1,4 +1,4 @@
-import { Button, Skeleton } from '@heroui/react';
+import { Alert, Button, Skeleton } from '@heroui/react';
 import { IconExternalLink } from '@tabler/icons-react';
 import type { BillingResponse, PurchasablePlan } from '@crewaid/shared';
 import { useCallback, useEffect, useState } from 'react';
@@ -139,7 +139,7 @@ export function PlanView({
             ))}
           </ul>
           {actions.manage ? (
-            <div className="mt-3 flex items-center justify-between gap-4 text-[12px] text-muted">
+            <div className="mt-3 flex items-center justify-between gap-4 text-caption text-muted">
               <span>{t('settings.plan.invoices')}</span>
               {manage}
             </div>
@@ -153,11 +153,11 @@ export function PlanView({
           <div className="crewaid-settings-surface flex items-center justify-between gap-4 rounded-card bg-surface-secondary px-5 py-4">
             <div className="min-w-0">
               <div
-                className={`text-[14px] font-medium ${summary.tone === 'danger' ? 'text-danger' : 'text-foreground'}`}
+                className={`text-callout font-medium ${summary.tone === 'danger' ? 'text-danger' : 'text-foreground'}`}
               >
                 {summary.title}
               </div>
-              <div className="mt-1 text-[13px] leading-[18px] text-muted">{summary.line}</div>
+              <div className="mt-1 text-footnote leading-[18px] text-muted">{summary.line}</div>
             </div>
             {actions.manage ? <div className="shrink-0">{manage}</div> : null}
           </div>
@@ -165,7 +165,7 @@ export function PlanView({
       )}
 
       {sentToStripe ? (
-        <p role="status" className="-mt-4 mb-6 text-[12px] text-muted">
+        <p role="status" className="mb-6 text-caption text-muted">
           {t('settings.plan.finishInBrowser')}
         </p>
       ) : null}
@@ -186,7 +186,14 @@ export function PlanView({
         </PlanSection>
       )}
 
-      {problem === null ? null : <p className="text-[12px] text-danger">{problem}</p>}
+      {problem === null ? null : (
+        <Alert status="danger" role="alert">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>{problem}</Alert.Description>
+          </Alert.Content>
+        </Alert>
+      )}
     </>
   );
 }
@@ -263,9 +270,9 @@ function PlanSection({
 }) {
   return (
     <section className="mb-8">
-      <h3 className="text-[15px] font-semibold text-foreground">{title}</h3>
+      <h3 className="text-body font-semibold text-foreground">{title}</h3>
       {description === undefined ? null : (
-        <p className="mt-1 text-[13px] leading-[18px] text-muted">{description}</p>
+        <p className="mt-1 text-footnote leading-[18px] text-muted">{description}</p>
       )}
       <div className="mt-3">{children}</div>
     </section>
@@ -277,8 +284,8 @@ function MeterRow({ meter }: { meter: Meter }) {
   const empty = meter.fraction === 0;
   return (
     <div className="py-3.5">
-      <div className="text-[13px] font-medium text-foreground">{meter.label}</div>
-      <div className="mt-1 flex items-center justify-between gap-4 text-[12px] text-muted">
+      <div className="text-footnote font-medium text-foreground">{meter.label}</div>
+      <div className="mt-1 flex items-center justify-between gap-4 text-caption text-muted tabular-nums">
         <span>{meter.detail}</span>
         <span className={empty ? 'font-medium text-danger' : undefined}>{meter.remaining}</span>
       </div>
@@ -289,10 +296,12 @@ function MeterRow({ meter }: { meter: Meter }) {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(meter.fraction * 100)}
-          className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-background-tertiary"
+          className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-default"
         >
           <div
-            className={`h-full rounded-full ${meter.fraction <= 0.2 ? 'bg-warning' : 'bg-foreground'}`}
+            className={`h-full rounded-full transition-[width] ${
+              empty ? 'bg-danger' : meter.fraction <= 0.2 ? 'bg-warning' : 'bg-foreground'
+            }`}
             style={{ width: `${meter.fraction * 100}%` }}
           />
         </div>

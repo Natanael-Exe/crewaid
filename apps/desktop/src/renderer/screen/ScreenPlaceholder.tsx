@@ -34,7 +34,7 @@ export function ScreenPlaceholder({
   return (
     <div
       data-screen-state={kind}
-      className="crewaid-screen-ambient grid h-full w-full place-items-center px-4 text-center text-[12px] text-[#507087]"
+      className="crewaid-screen-ambient grid h-full w-full place-items-center px-4 text-center text-caption text-[#507087]"
     >
       <div className="flex flex-col items-center gap-3">
         {kind === 'starting' ? (
@@ -49,7 +49,7 @@ export function ScreenPlaceholder({
             size="sm"
             data-screen-action={action.kind}
             onPress={onAct}
-            className="h-8 rounded-[10px] px-4 text-[12px] font-medium"
+            className="h-8 rounded-[10px] px-4 text-caption font-medium"
           >
             {action.label}
           </Button>

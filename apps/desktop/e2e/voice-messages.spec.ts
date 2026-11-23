@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { TranscriptAttachment } from '@crewaid/shared';
 import { launchDesktop } from './launchDesktop';
+import { tokenColor } from './themeTokens';
 import { chatMessage, routeChat, routeSocket } from './stubChat';
 import { startStubAuthServer } from './stubAuthServer';
 import type { CrewaidBridge } from '../src/preload.js';
@@ -172,14 +173,15 @@ test('voice messages disclose their text in the footer and keep a text fallback 
     await expect(fallback.locator('[data-message-bubble]')).toBeVisible();
     await expect(file.locator('[data-message-bubble]')).toBeVisible();
     await expect(file.locator('[data-voice-note]')).toHaveCount(0);
+    // A voice note the person sent wears the same material as their text.
     await expect(file.locator('[data-audio-attachment] > .card')).toHaveCSS(
-      'backdrop-filter',
-      'blur(16px)',
+      'background-color',
+      await tokenColor(page, '--message-user'),
     );
     expect(downloads).toBe(0);
 
     const track = user.locator('[data-voice-track]');
-    const paint = await track.evaluate((element) => ({
+    const paint = await track.locator('[data-slot="progress-bar-track"]').evaluate((element) => ({
       background: getComputedStyle(element).backgroundColor,
       width: element.getBoundingClientRect().width,
     }));
@@ -274,8 +276,14 @@ test('voice messages disclose their text in the footer and keep a text fallback 
     );
     await expect(rogerChoice.locator('[data-voice-tags]')).toHaveCSS('font-size', '11px');
     const rogerPreview = picker.getByRole('button', { name: `Preview ${roger.name}`, exact: true });
-    await expect(rogerPreview).toHaveCSS('background-color', 'rgb(0, 0, 0)');
-    await expect(rogerPreview).toHaveCSS('color', 'rgb(255, 255, 255)');
+    await expect(rogerPreview).toHaveCSS(
+      'background-color',
+      await tokenColor(page, '--app-accent'),
+    );
+    await expect(rogerPreview).toHaveCSS(
+      'color',
+      await tokenColor(page, '--app-accent-foreground', 'color'),
+    );
     expect((await rogerPreview.boundingBox())!.x).toBeLessThan(
       (await rogerChoice.boundingBox())!.x,
     );

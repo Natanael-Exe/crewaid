@@ -58,7 +58,7 @@
 }
 /* macOS draws its window buttons on the left whatever the app's language, so
    the room they need is physical: the wordmark's side in a left-to-right
-   language, the top bar's far side in a right-to-left one (CC-85). */
+   language, the top bar's far side in a right-to-left one. */
 [data-native-titlebar='mac']:not([data-window-fullscreen='true']):not([dir='rtl'])
   .crewaid-wordmark {
   padding-left: 70px;
@@ -79,7 +79,7 @@
 .crewaid-room-nav .tabs__list-container {
   border-radius: var(--radius-pill);
   background: var(--topbar-surface);
-  backdrop-filter: blur(20px);
+  backdrop-filter: var(--glass-filter-subtle);
 }
 .crewaid-room-nav .tabs__list {
   gap: 2px;
@@ -93,7 +93,7 @@
   gap: 6px;
   border-radius: var(--radius-pill);
   color: var(--room-muted);
-  font-size: 13px;
+  font-size: var(--text-footnote);
   font-weight: 500;
 }
 .crewaid-room-nav .tabs__tab[aria-selected='true'] {
@@ -121,16 +121,16 @@
   padding-inline: 14px;
   background: var(--topbar-surface);
   color: var(--room-muted);
-  font-size: 13px;
+  font-size: var(--text-footnote);
 }
 
 @keyframes crewaid-control-nudge {
   0%,
   100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--app-accent) 0%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--app-accent) 0%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 5px color-mix(in srgb, var(--app-accent) 25%, transparent);
+    box-shadow: 0 0 0 5px color-mix(in oklab, var(--app-accent) 25%, transparent);
   }
 }
 .button[data-control-hint='true'] {
@@ -147,7 +147,10 @@
   border-radius: 50%;
   outline: none;
 }
-.crewaid-account-trigger > span {
+/* The initials sit on the selected-nav ink in both themes. The fallback
+   inherits from here (see AccountAvatar), so HeroUI's grey default fill never
+   paints dark text on the dark disc. */
+.crewaid-account-trigger .avatar {
   background: var(--nav-selected);
   color: var(--nav-selected-foreground);
 }
@@ -167,13 +170,13 @@
   --accent-foreground: var(--bot-accent-foreground, var(--app-accent-foreground));
   --accent-control: var(--bot-accent-control, var(--app-accent));
   --accent-control-foreground: var(--bot-accent-control-foreground, var(--app-accent-foreground));
-  --accent-soft: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  --accent-soft: color-mix(in oklab, var(--accent) 8%, #ffffff);
   --accent-soft-foreground: var(--bot-accent-ink-light, var(--app-accent));
   --focus: var(--accent-soft-foreground);
   --link: var(--accent-soft-foreground);
 }
 [data-theme='crewaid-dark'] .crewaid-bot-context {
-  --accent-soft: color-mix(in srgb, var(--accent) 26%, #101430);
+  --accent-soft: color-mix(in oklab, var(--accent) 26%, #101430);
   --accent-soft-foreground: var(--bot-accent-ink-dark, var(--app-accent));
 }
 /* Sashes occupy the existing gap, keeping their keyboard and pointer seam. */
@@ -183,21 +186,18 @@
   z-index: 1;
 }
 .crewaid-room-panels > [data-pane='sidebar'] {
-  align-self: flex-start;
-  height: auto;
+  height: 100%;
   max-height: 100%;
   display: flex;
 }
+/* Border, blur and shadow come from glass.css; only geometry and fill here. */
 .crewaid-crew-dock,
 .crewaid-rail,
 .crewaid-profile-pane,
 .crewaid-work-detail,
 .crewaid-work-pane {
-  border: 1px solid var(--glass-border);
   border-radius: var(--radius-panel);
   background: var(--glass);
-  backdrop-filter: blur(var(--glass-blur));
-  box-shadow: var(--glass-shadow);
 }
 .crewaid-crew-dock {
   container: crew / inline-size;
@@ -224,7 +224,7 @@
   color: var(--foreground);
 }
 .crewaid-crew-heading .button {
-  background: color-mix(in srgb, var(--room-foreground) 6%, transparent);
+  background: color-mix(in oklab, var(--room-foreground) 6%, transparent);
   color: var(--room-foreground);
   flex-shrink: 0;
 }
@@ -236,46 +236,45 @@
 .crewaid-roster-filter[aria-expanded='true'] {
   opacity: 1;
 }
-/* Roster surfaces use glass rather than the opaque generic field gray. */
+/* Roster surfaces use glass rather than opaque field gray; static hover avoids sluggish feel. */
 .crewaid-bot-row,
 .crewaid-pinned-tile.button {
   background: transparent;
   color: var(--foreground);
-  transition: background-color var(--motion-fast) var(--motion-ease);
 }
 .crewaid-bot-row[data-hovered='true'],
 .crewaid-pinned-tile.button[data-hovered='true'] {
   background: var(--crew-hover);
 }
-.crewaid-bot-row[data-selected='true'],
+/* A selected row lifts onto paper; a pressed pinned tile only brightens. */
+.crewaid-bot-row[data-selected='true'] {
+  background: var(--surface);
+  box-shadow: var(--surface-shadow);
+}
 .crewaid-pinned-tile.button[aria-pressed='true'] {
   background: var(--crew-selected);
 }
 .crewaid-pinned-role > span {
   border-radius: var(--radius-pill);
   background: var(--crew-hover);
-  font-size: 11px;
+  font-size: var(--text-micro);
   line-height: 16px;
   padding-inline: 8px;
 }
 .crewaid-pinned-tile[aria-pressed='true'] .crewaid-pinned-role > span {
-  background: color-mix(in srgb, var(--pinned-accent) 8%, #ffffff);
+  background: color-mix(in oklab, var(--pinned-accent) 8%, #ffffff);
   color: var(--pinned-ink-light);
 }
 [data-theme='crewaid-dark'] .crewaid-pinned-tile[aria-pressed='true'] .crewaid-pinned-role > span {
-  background: color-mix(in srgb, var(--pinned-accent) 26%, #101430);
+  background: color-mix(in oklab, var(--pinned-accent) 26%, #101430);
   color: var(--pinned-ink-dark);
-}
-.crewaid-crew-dock [role='listbox'] {
-  flex: 0 1 auto;
-  padding-inline: 10px;
 }
 .crewaid-bot-filter {
   padding-inline: 10px;
 }
 .button--primary {
   --button-bg: var(--accent-control, var(--accent));
-  --button-bg-hover: color-mix(in srgb, var(--accent-control, var(--accent)) 92%, #1d1830);
+  --button-bg-hover: color-mix(in oklab, var(--accent-control, var(--accent)) 92%, #1d1830);
   --button-bg-pressed: var(--button-bg-hover);
   --button-fg: var(--accent-control-foreground, var(--accent-foreground));
 }
@@ -294,23 +293,6 @@
 .crewaid-compose-action.button[disabled]:not([data-pending='true']) {
   opacity: 0.65;
 }
-.crewaid-crew-dock [role='option'] {
-  border-radius: 16px;
-  padding: 8px 10px;
-  align-items: center;
-  gap: 12px;
-  width: calc(100% - 20px) !important;
-}
-.crewaid-crew-dock [role='option'][data-selected='true'] {
-  background: var(--surface);
-  box-shadow: 0 2px 10px #3c287814;
-}
-.crewaid-crew-dock [role='option'] .font-semibold {
-  font-size: 15px;
-}
-.crewaid-crew-dock [role='option'] .text-muted {
-  color: var(--room-muted);
-}
 .crewaid-rail {
   overflow: hidden;
 }
@@ -327,23 +309,19 @@
      leave its canvas undersized after returning from full screen. */
   animation: crewaid-fade-in var(--motion-enter) var(--motion-ease);
 }
-.crewaid-rail:not(.crewaid-rail-collapsed) > div:last-child {
-  padding-inline: 16px;
-  gap: 16px;
-}
 [data-screen-surface='rail'] {
   border: 0;
   background: transparent;
   border-radius: 16px;
   flex-shrink: 0;
 }
-[data-screen-surface='rail'] > div:first-child {
+[data-screen-surface='rail'] > [data-screen-slot='canvas'] {
   border-radius: 16px;
   overflow: hidden;
 }
-[data-screen-surface='rail'] > div:last-child {
+[data-screen-surface='rail'] > [data-screen-slot='controls'] {
   padding: 16px 4px 0;
-  font-size: 13px;
+  font-size: var(--text-footnote);
   min-height: 56px;
   flex-wrap: wrap;
 }
@@ -359,11 +337,16 @@
   letter-spacing: -0.015em;
 }
 .crewaid-working-pill {
-  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in oklab, var(--accent) 18%, transparent);
   background: var(--accent-soft);
   color: var(--accent-soft-foreground);
-  font-size: 13px;
+  font-size: var(--text-footnote);
+  line-height: 1;
   white-space: nowrap;
 }
 .crewaid-bubble-wrap {
@@ -373,23 +356,22 @@
   max-width: min(88%, 420px);
 }
 [data-message-bubble] {
-  border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 40%, transparent);
   box-shadow: none;
 }
 [data-message-bubble='user'] {
   border-color: var(--message-user-border);
-  backdrop-filter: blur(16px);
 }
 [data-message-bubble='user']:not([data-voice-note]) {
   border-radius: 22px 22px 8px 22px;
 }
 [data-bot-mention] {
   color: var(--mention-ink-light);
-  background: color-mix(in srgb, var(--mention-color) 8%, #ffffff);
+  background: color-mix(in oklab, var(--mention-color) 8%, #ffffff);
 }
 [data-theme='crewaid-dark'] [data-bot-mention] {
   color: var(--mention-ink-dark);
-  background: color-mix(in srgb, var(--mention-color) 26%, #101430);
+  background: color-mix(in oklab, var(--mention-color) 26%, #101430);
 }
 .crewaid-bubble-footer {
   transform: translateY(-2px);
@@ -408,8 +390,8 @@
 [data-transcript-content] > [data-message-enter] {
   animation: crewaid-message-in var(--motion-enter) var(--motion-ease);
 }
-.crewaid-transcript-footer > div {
-  padding-inline: 24px;
+.crewaid-transcript-footer {
+  --transcript-gutter: 24px;
 }
 .crewaid-composer-pill {
   min-height: 56px;
@@ -420,13 +402,12 @@
     transform var(--motion-fast);
 }
 .crewaid-composer-pill:focus-within {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
 }
-.crewaid-composer-pill .button[aria-label='Send message'],
-.crewaid-composer-pill .button[aria-label='Stop generating'] {
-  width: 38px;
-  height: 38px;
-  min-width: 38px;
+.crewaid-composer-pill .crewaid-compose-action.button {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
 }
 .crewaid-compose-action:not(:disabled) > svg {
   animation: crewaid-action-in var(--motion-fast) var(--motion-ease);
@@ -436,14 +417,6 @@
 }
 .crewaid-compose-action[data-pressed='true'] {
   transform: scale(0.94);
-}
-.crewaid-approval-trigger {
-  background: var(--accent-soft);
-  color: var(--accent-soft-foreground);
-}
-.crewaid-approval-trigger[data-approval-mode='FULL'] {
-  background: color-mix(in srgb, var(--warning) 12%, var(--surface));
-  color: var(--warning);
 }
 .crewaid-approval-card {
   width: min(100%, 520px);
@@ -464,7 +437,7 @@
 }
 .crewaid-approval-card[data-approval-answered='approved'] {
   background: var(--accent-soft);
-  border-color: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 18%, transparent);
 }
 .crewaid-approval-card[data-approval-answered='no'] .button--primary {
   --button-bg: #ffffff;
@@ -478,8 +451,8 @@
 }
 .crewaid-create-routine.button {
   color: var(--accent-soft-foreground);
-  background: color-mix(in srgb, var(--accent-soft) 75%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  background: color-mix(in oklab, var(--accent-soft) 75%, transparent);
+  border: 1px solid color-mix(in oklab, var(--accent) 24%, transparent);
 }
 .crewaid-routines [data-routine-id] {
   border: 0;
@@ -511,11 +484,20 @@
   border-radius: 18px;
   animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
 }
+.crewaid-routine-dialog .crewaid-routine-form {
+  border: 0;
+  padding: 0;
+  animation: none;
+}
+.crewaid-routine-dialog .modal__heading {
+  font: 600 28px/34px var(--font-display-room);
+}
 .crewaid-work-pane {
   overflow: hidden;
 }
 .crewaid-work-pane > header {
-  min-height: 86px;
+  flex-wrap: wrap;
+  min-height: 74px;
   border: 0;
   padding: 20px 24px 16px;
 }
@@ -526,13 +508,11 @@
 .crewaid-work-pane > header > svg {
   display: none;
 }
-.crewaid-work-pane [aria-label='To do'],
-.crewaid-work-pane [aria-label='In progress'],
-.crewaid-work-pane [aria-label='Review'],
-.crewaid-work-pane [aria-label='Blocked'],
-.crewaid-work-pane [aria-label='Done'] {
+.crewaid-work-pane [data-kanban-column] {
   background: var(--glass);
+  border: 1px solid var(--glass-border);
   border-radius: 18px;
+  box-shadow: var(--glass-specular);
 }
 .crewaid-profile-pane {
   overflow: hidden;
@@ -541,24 +521,11 @@
   overflow: hidden;
   animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
 }
-.crewaid-work-detail > header {
-  min-height: 64px;
-  padding-inline: 20px;
-}
-.crewaid-work-detail > header > span {
+/* The title of a right-rail pane (work detail, bot profile): the room's
+   display face at a size that still fits beside the pane's controls. */
+.crewaid-rail-title {
   font: 600 22px/28px var(--font-display-room);
   color: var(--foreground);
-}
-.crewaid-work-detail > div {
-  padding-inline: 20px;
-}
-.crewaid-work-detail > div > footer {
-  margin-inline: -20px;
-  padding-inline: 20px;
-  background: var(--surface);
-}
-.crewaid-profile-pane > div:first-child {
-  min-height: 64px;
 }
 /* The dialog floats brighter than the room's side panels: a modal sits over
    dimmed content, and passing that dim through at side-panel opacity read as
@@ -566,14 +533,13 @@
    read, never overridden. Sections divide by hairlines, not tint. */
 .crewaid-settings-dialog.modal__dialog,
 .crewaid-templates-dialog.modal__dialog {
-  --settings-material: color-mix(in srgb, var(--surface) 90%, transparent);
-  --settings-nav: color-mix(in srgb, var(--surface) 55%, transparent);
+  --settings-material: color-mix(in oklab, var(--surface) 90%, transparent);
+  --settings-nav: color-mix(in oklab, var(--surface) 55%, transparent);
   --settings-field: var(--field-background);
   background: var(--settings-material);
   color: var(--room-foreground);
   border-radius: 28px;
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur));
   box-shadow: var(--glass-shadow);
 }
 .crewaid-settings-dialog.modal__dialog {
@@ -603,14 +569,14 @@
   background: var(--surface);
   color: var(--room-foreground);
   font-weight: 500;
-  box-shadow: 0 2px 8px #1d183014;
+  box-shadow: var(--surface-shadow);
 }
 .crewaid-settings-header h2 {
   font: 600 20px/26px var(--font-sans);
   letter-spacing: -0.02em;
 }
 .crewaid-settings-header p {
-  font-size: 13px;
+  font-size: var(--text-footnote);
   line-height: 18px;
   color: var(--room-muted);
 }
@@ -627,19 +593,17 @@
 .crewaid-settings-dialog .crewaid-connection-card {
   background: var(--surface);
   border-radius: 18px;
-  border: 0;
-  box-shadow: 0 2px 10px #1d183010;
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--surface-shadow);
 }
-.crewaid-settings-dialog .crewaid-settings-surface > div {
-  border-width: 0;
-}
-.crewaid-settings-dialog input:not([type='checkbox']) {
+.crewaid-settings-dialog
+  input:not([type='checkbox']):not([type='radio']):not(.input):not(.search-field__input) {
   height: 40px;
-  border-color: transparent;
-  background: var(--settings-field);
+  border-color: var(--field-border);
+  background: var(--field-background);
 }
 .crewaid-settings-dialog .switch {
-  --switch-control-bg: color-mix(in srgb, var(--room-muted) 20%, var(--surface));
+  --switch-control-bg: color-mix(in oklab, var(--room-muted) 20%, var(--surface));
 }
 .crewaid-settings-dialog .crewaid-settings-account-avatar {
   background: var(--nav-selected);
@@ -662,41 +626,10 @@
 .crewaid-settings-preferences .crewaid-settings-section {
   margin-bottom: 0;
 }
-.crewaid-settings-preferences .crewaid-settings-surface > div {
-  padding: 16px;
-  gap: 14px;
-}
 [data-theme='crewaid-dark'] .crewaid-settings-dialog.modal__dialog,
 [data-theme='crewaid-dark'] .crewaid-templates-dialog.modal__dialog {
-  /* Night separates by the app's own elevation: a background-dark material
-     under surface cards, and fields that lift off the card they live in
-     (--field-background equals --surface there, so it cannot inset). */
-  --settings-material: color-mix(in srgb, var(--background) 92%, transparent);
-  --settings-field: color-mix(in srgb, var(--surface-foreground) 4%, transparent);
-}
-.crewaid-theme-segments.toggle-button-group {
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--settings-nav);
-  padding: 3px;
-  gap: 2px;
-}
-.crewaid-theme-segments .toggle-button {
-  min-width: 0;
-  flex: 1;
-  padding-inline: 6px;
-  gap: 4px;
-  height: 32px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--room-muted);
-  font-size: 12px;
-}
-.crewaid-theme-segments .toggle-button[data-selected='true'] {
-  background: var(--surface);
-  color: var(--room-foreground);
-  box-shadow: 0 2px 6px #1d183014;
+  --settings-material: var(--glass-strong);
+  --settings-field: var(--field-background);
 }
 @media (max-width: 800px) {
   .crewaid-settings-dialog .crewaid-settings-nav {
@@ -731,7 +664,7 @@
   animation: crewaid-panel-in var(--motion-exit) var(--motion-ease) reverse;
 }
 .crewaid-search-backdrop.modal__backdrop {
-  background: color-mix(in srgb, var(--background) 12%, transparent);
+  background: color-mix(in oklab, var(--background) 12%, transparent);
   backdrop-filter: blur(18px);
 }
 .crewaid-search-backdrop.modal__backdrop[data-entering='true'] {
@@ -753,8 +686,19 @@
 .crewaid-search-container.modal__container[data-exiting='true'] {
   animation: crewaid-search-in 220ms var(--motion-ease) reverse;
 }
-.crewaid-search-container[data-entering='true'] .crewaid-search-dialog > div {
+.crewaid-search-container[data-entering='true'] .crewaid-search-dialog > * {
   animation: crewaid-fade-in 160ms var(--motion-ease) 80ms backwards;
+}
+/* Menus sit below the 24px panels on the radius scale: 18px outside, 14px
+   items inside the menu's 4px inset, so the corners stay concentric. HeroUI
+   derives both from --radius (x3 and x2), which Crewaid's 14px --radius turned
+   into 32px pills that out-rounded the panels they open over. Context menus
+   wear the same dropdown classes, so this covers them too. */
+.dropdown__popover {
+  border-radius: 18px;
+}
+.dropdown__popover .menu-item {
+  border-radius: 14px;
 }
 .dropdown__popover[data-entering='true'],
 .popover[data-entering='true'] {
@@ -765,14 +709,6 @@
 .popover[data-exiting='true'] {
   animation-duration: var(--motion-exit);
   animation-timing-function: var(--motion-ease);
-}
-.crewaid-room button,
-.crewaid-room [role='option'] {
-  transition:
-    background-color var(--motion-fast),
-    color var(--motion-fast),
-    opacity var(--motion-fast),
-    transform var(--motion-fast) var(--motion-ease);
 }
 .crewaid-room button:focus-visible,
 .crewaid-account-trigger[data-focus-visible='true'] {
@@ -787,7 +723,7 @@
   --accent-foreground: var(--app-accent-foreground);
   --accent-control: var(--app-accent);
   --accent-control-foreground: var(--app-accent-foreground);
-  --accent-soft: color-mix(in srgb, var(--app-accent) 8%, var(--surface));
+  --accent-soft: color-mix(in oklab, var(--app-accent) 8%, var(--surface));
   --accent-soft-foreground: var(--app-accent);
   --focus: var(--app-accent);
   --link: var(--app-accent);
@@ -868,14 +804,17 @@
   [data-transcript-content] {
     padding-inline: 16px;
   }
-  .crewaid-transcript-footer > div {
-    padding-inline: 16px;
+  .crewaid-transcript-footer {
+    --transcript-gutter: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .crewaid-room *,
+  .crewaid-room::before,
+  .crewaid-room::after,
   .modal__backdrop,
   .modal__backdrop *,
+  .modal__dialog,
   .dropdown__popover,
   .popover {
     animation: none !important;
@@ -884,8 +823,11 @@
   }
 }
 [data-reduce-motion='true'] .crewaid-room *,
+[data-reduce-motion='true'] .crewaid-room::before,
+[data-reduce-motion='true'] .crewaid-room::after,
 [data-reduce-motion='true'] .modal__backdrop,
 [data-reduce-motion='true'] .modal__backdrop *,
+[data-reduce-motion='true'] .modal__dialog,
 [data-reduce-motion='true'] .dropdown__popover,
 [data-reduce-motion='true'] .popover {
   animation: none !important;
@@ -920,67 +862,29 @@
 [data-theme='crewaid-dark'] .crewaid-topbar-trigger {
   border: 1px solid var(--glass-border);
 }
-[data-theme='crewaid-dark'] .crewaid-crew-dock [role='option'][data-selected='true'] {
-  background: color-mix(in srgb, var(--bot-accent, var(--app-accent)) 26%, #101430);
+[data-theme='crewaid-dark'] .crewaid-bot-row[data-selected='true'] {
+  background: color-mix(in oklab, var(--bot-accent, var(--app-accent)) 26%, #101430);
   box-shadow: none;
 }
 [data-theme='crewaid-dark'] .crewaid-crew-heading .button {
-  background: #ffffff14;
-}
-[data-theme='crewaid-dark'] .crewaid-account-trigger > span {
-  background: var(--nav-selected);
-  color: var(--nav-selected-foreground);
+  background: var(--default);
 }
 [data-theme='crewaid-dark'] .crewaid-work-pane [role='list'] {
   background: var(--glass);
 }
-.crewaid-room :is(button, input, textarea, select, [role='option'], h1, h2, p),
 .crewaid-crew-dock,
 .crewaid-rail,
 .crewaid-profile-pane,
 .crewaid-work-detail,
-.crewaid-work-pane,
-.crewaid-working-pill,
-.crewaid-composer-pill,
-[data-message-bubble],
-.modal__dialog,
-.dropdown__popover {
+.crewaid-work-pane {
   transition:
     background-color var(--motion-enter) var(--motion-ease),
-    color var(--motion-enter) var(--motion-ease),
-    border-color var(--motion-enter) var(--motion-ease),
-    opacity var(--motion-fast) var(--motion-ease),
-    transform var(--motion-fast) var(--motion-ease);
-}
-@media (prefers-reduced-motion: reduce) {
-  .crewaid-room::before,
-  .crewaid-room::after {
-    transition: none;
-  }
-}
-[data-reduce-motion='true'] .crewaid-room::before,
-[data-reduce-motion='true'] .crewaid-room::after {
-  transition: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .modal__dialog {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-[data-reduce-motion='true'] .modal__dialog {
-  animation: none !important;
-  transition: none !important;
+    border-color var(--motion-enter) var(--motion-ease);
 }
 
 [data-room-view='work'] [data-pane='sidebar'],
 [data-room-view='work'] [data-pane='sidebar'] + .crewaid-pane-sash {
   display: none;
-}
-.crewaid-work-pane > header {
-  flex-wrap: wrap;
-  min-height: 74px;
 }
 .crewaid-work-pane > header .button {
   border-radius: var(--radius-pill);
@@ -995,8 +899,6 @@
   border: 0;
   border-radius: 14px;
   padding: 12px;
-}
-.crewaid-task-card {
   background: var(--crew-selected);
 }
 .crewaid-task-card:hover,
@@ -1008,7 +910,13 @@
   background: var(--crew-selected);
 }
 .crewaid-task-card[aria-pressed='true'] {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--room-foreground) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--room-foreground) 18%, transparent);
+}
+.crewaid-deliverable-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
 }
 .crewaid-deliverable-row[aria-pressed='true'] {
   background: var(--accent-soft);
@@ -1021,19 +929,6 @@
 }
 .crewaid-goal-card[aria-pressed='true'] {
   outline: 2px solid var(--focus);
-}
-.crewaid-deliverable-row {
-  background: var(--surface);
-  border-radius: 14px;
-  padding: 12px 14px;
-}
-.crewaid-routine-dialog .crewaid-routine-form {
-  border: 0;
-  padding: 0;
-  animation: none;
-}
-.crewaid-routine-dialog .modal__heading {
-  font: 600 28px/34px var(--font-display-room);
 }
 [data-theme='crewaid-dark'] .crewaid-screen-ambient:has([data-screen-state]),
 [data-theme='crewaid-dark'] .crewaid-screen-ambient[data-screen-state] {
@@ -1048,30 +943,14 @@
   padding: 36px 40px 32px;
   border-radius: 28px;
   background: var(--glass);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur));
-  box-shadow: var(--glass-shadow);
 }
 .crewaid-welcome-card h1 {
   font: 600 40px/44px var(--font-display-room);
   letter-spacing: -0.02em;
 }
 .crewaid-welcome-card > p {
-  font-size: 15px;
+  font-size: var(--text-body);
   line-height: 22px;
-}
-.crewaid-welcome-card > ul {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-.crewaid-welcome-card > ul > li {
-  background: var(--surface);
-  border-radius: 16px;
-  padding: 14px 16px;
-}
-.crewaid-welcome-card > ul > li > span {
-  display: none;
 }
 .crewaid-welcome-card .button {
   border-radius: var(--radius-pill);
@@ -1084,9 +963,6 @@
 .crewaid-create-bot-dialog h2,
 .crewaid-empty-conversation h2 {
   font: 600 30px/34px var(--font-display-room);
-}
-.crewaid-profile-pane > div:first-child > span {
-  font: 600 22px/28px var(--font-display-room);
 }
 [data-room-view='crew'][data-room-empty='true'] .crewaid-room-panels > main {
   padding-inline-end: 256px;
@@ -1101,9 +977,6 @@
   .crewaid-welcome-card h1 {
     font-size: 32px;
     line-height: 36px;
-  }
-  .crewaid-welcome-card > ul {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -1124,9 +997,6 @@
   padding: 36px 40px 32px;
   border-radius: 28px;
   background: var(--glass);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur));
-  box-shadow: var(--glass-shadow);
   animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
 }
 .crewaid-gate-card h1 {
@@ -1179,7 +1049,7 @@
     padding: 24px;
   }
   .crewaid-gate-card h1 {
-    font-size: 28px;
+    font-size: var(--text-title);
     line-height: 32px;
   }
 }
@@ -1223,9 +1093,9 @@
   }
   .crewaid-crew-dock [role='listbox'] {
     padding-inline: 6px;
+    --crewaid-row-width: calc(100% - 12px);
   }
-  .crewaid-crew-dock [role='option'] {
-    width: calc(100% - 12px) !important;
+  .crewaid-bot-row {
     justify-content: center;
     padding-inline: 4px;
     gap: 0;
@@ -1242,18 +1112,18 @@
     width: 8px;
     height: 8px;
   }
-  .crewaid-pinned > div:first-child,
+  [data-pinned-slot='heading'],
   .crewaid-group-heading > span {
     display: none;
   }
-  .crewaid-pinned > div:last-child {
+  [data-pinned-slot='scroller'] {
     padding-inline: 6px;
   }
-  .crewaid-pinned > div:last-child > div {
+  [data-pinned-slot='row'] {
     flex-direction: column;
     min-width: 0;
   }
-  .crewaid-pinned > div:last-child > div > div {
+  [data-pinned-slot='tile'] {
     flex-basis: auto;
   }
   .crewaid-pinned .button {
@@ -1283,24 +1153,31 @@
 /* Tool activity shares the room's paper surface; preview text is inert and bounded. */
 .crewaid-tool-card.card {
   width: min(100%, 520px);
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 16px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface);
   color: var(--foreground);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--foreground) 3%, transparent);
+  box-shadow: none;
   text-align: start;
+}
+.crewaid-tool-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
 }
 .crewaid-tool-icon {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
-  border-radius: 9px;
-  background: var(--accent-soft);
-  color: var(--accent-soft-foreground);
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
 }
 .crewaid-tool-status {
   display: inline-flex;
@@ -1327,7 +1204,7 @@
 }
 .crewaid-tool-fields dt {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-micro);
 }
 .crewaid-tool-fields dd {
   margin: 0;
@@ -1335,7 +1212,7 @@
   white-space: pre-wrap;
 }
 .crewaid-tool-preview {
-  /* A tool's output (a page, an email, a command) reads in its own direction (CC-85). */
+  /* A tool's output (a page, an email, a command) reads in its own direction. */
   unicode-bidi: plaintext;
   margin-bottom: 0;
   max-height: 180px;
@@ -1345,7 +1222,7 @@
   border-inline-start: 2px solid var(--border);
   padding-inline-start: 10px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--text-caption);
   line-height: 18px;
 }
 .crewaid-tool-preview[data-result-status='error'] {
@@ -1355,7 +1232,7 @@
   width: fit-content;
   cursor: pointer;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-micro);
   border-radius: 4px;
 }
 .crewaid-tool-disclosure:hover {
@@ -1384,7 +1261,6 @@
   background: var(--message-user);
   color: var(--message-user-foreground);
   border-color: var(--message-user-border);
-  backdrop-filter: blur(16px);
 }
 [data-message-attachments='bot'] [data-audio-attachment] > .crewaid-artifact-card.card {
   background: var(--message-bot);
@@ -1397,7 +1273,7 @@
   padding: 6px 8px;
   border-radius: 8px;
   color: var(--foreground);
-  font-size: 12px;
+  font-size: var(--text-caption);
   cursor: pointer;
 }
 .crewaid-artifact-action:hover {
@@ -1414,29 +1290,9 @@
 .crewaid-resource-body {
   max-height: 240px;
   line-height: 20px;
-}
-.crewaid-deliverable-row {
-  border: 1px solid var(--border);
-}
-
-.crewaid-tool-mark {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-}
-.crewaid-tool-icon {
-  background: transparent;
-  color: var(--muted);
-  width: 34px;
-  height: 34px;
-  border-radius: 0;
-}
-.crewaid-tool-card.card {
-  box-shadow: none;
-  gap: 10px;
-  padding: 16px;
+  border: 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--border);
 }
 [data-tool-activity] {
   width: min(100%, 640px);
@@ -1460,11 +1316,6 @@
 .crewaid-output-tile [data-resource-receipt] {
   margin-top: 0;
 }
-.crewaid-resource-body {
-  border: 0;
-  padding: 12px 0 0;
-  border-top: 1px solid var(--border);
-}
 
 /* A routine action is one quiet line; its machinery lives in Details (D-215). */
 .crewaid-tool-line .crewaid-tool-icon,
@@ -1485,29 +1336,30 @@
   line-height: 16px;
 }
 
-/* D-229: the Templates door floats bottom-left, outside the sidebar, on the
-   Crew tab. The sidebar column stops short of it so it never covers a bot. */
+/* Templates is the roster's footer row (D-239), so it reads at the roster's
+   weight: no fill, a muted icon beside foreground text, and the same static
+   hover as a bot row. The 8px inset lines its icon up with the avatars above. */
 .crewaid-templates-trigger.button {
-  position: absolute;
-  inset-inline-start: 14px;
-  bottom: 14px;
-  z-index: 20;
-  height: 42px;
-  border-radius: var(--radius-pill);
-  padding-inline: 16px;
-  gap: 8px;
-  background: var(--topbar-surface);
-  backdrop-filter: blur(20px);
+  height: 40px;
+  gap: 10px;
+  padding-inline: 8px;
+  border-radius: 12px;
+  background: transparent;
   color: var(--foreground);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  font-size: var(--text-callout);
+  font-weight: 500;
+  transition: none;
+}
+.crewaid-templates-trigger.button > svg {
+  color: var(--room-muted);
+}
+.crewaid-templates-trigger.button:is([data-hovered='true'], [data-pressed='true']) {
+  background: var(--crew-hover);
 }
 .crewaid-templates-trigger.button[data-compact='true'] {
-  width: 42px;
+  width: 40px;
   padding-inline: 0;
-}
-.crewaid-room-panels > [data-pane='sidebar'] {
-  max-height: calc(100% - 54px);
+  border-radius: var(--radius-pill);
 }
 
 /* The library's display type is the room's, at the size of a pane title. */
@@ -1535,7 +1387,6 @@
   background: var(--glass);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(var(--glass-blur));
 }
 .crewaid-welcome-title {
   font: 500 34px/42px var(--font-display-room);
@@ -1560,13 +1411,6 @@
   background: var(--surface);
   border: 1px solid var(--glass-border);
 }
-.crewaid-template-search {
-  border: 1px solid var(--border);
-}
-.crewaid-template-search:focus-within {
-  outline: 2px solid var(--focus);
-  outline-offset: 1px;
-}
 .crewaid-template-chip {
   color: var(--muted);
 }
@@ -1582,10 +1426,6 @@
 }
 .crewaid-template-example {
   background: var(--surface-secondary);
-}
-.crewaid-template-failure {
-  border: 1px solid var(--danger);
-  background: var(--surface);
 }
 .crewaid-tool-chip {
   background: var(--field-background);

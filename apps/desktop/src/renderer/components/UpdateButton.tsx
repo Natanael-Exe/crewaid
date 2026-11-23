@@ -40,18 +40,16 @@ export function UpdateButtonView({
   const Icon = offer.kind === 'restart' ? IconRefresh : IconDownload;
   return (
     <Tooltip>
-      <Tooltip.Trigger>
-        <Button
-          variant="ghost"
-          isIconOnly
-          size="sm"
-          aria-label={offer.label}
-          onPress={onPress}
-          className="size-8 shrink-0 rounded-lg text-accent"
-        >
-          <Icon className="size-[18px]" stroke={1.8} />
-        </Button>
-      </Tooltip.Trigger>
+      <Button
+        variant="ghost"
+        isIconOnly
+        size="sm"
+        aria-label={offer.label}
+        onPress={onPress}
+        className="size-8 shrink-0 rounded-lg text-accent"
+      >
+        <Icon className="size-[18px]" stroke={1.8} />
+      </Button>
       <Tooltip.Content>{offer.label}</Tooltip.Content>
     </Tooltip>
   );

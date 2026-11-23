@@ -119,7 +119,7 @@ export function BotAvatar({
   bot: AvatarBot;
   size?: keyof typeof SIZES;
   /**
-   * CC-43. Optional because a form draft has no status — a bot being edited
+   * Optional because a form draft has no status — a bot being edited
    * is not a bot at work, and the preview should hold still.
    */
   status?: BotStatus | null | undefined;

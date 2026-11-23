@@ -1,5 +1,6 @@
-import { Button, Modal, useOverlayState } from '@heroui/react';
+import { Modal, ScrollShadow, useOverlayState } from '@heroui/react';
 import { IconX } from '@tabler/icons-react';
+import { IconButtonTooltip } from '../components/ui';
 import { PluginsPane } from './PluginsPane';
 import { useT } from '../i18n/i18n';
 
@@ -27,25 +28,29 @@ export function PluginsModal({
           >
             <div className="crewaid-settings-header flex shrink-0 items-start justify-between gap-4 px-[30px] pt-[26px] pb-[22px]">
               <div className="min-w-0">
-                <Modal.Heading className="text-[19px] font-semibold text-foreground">
+                <Modal.Heading className="text-heading font-semibold text-foreground">
                   {t('plugins.title')}
                 </Modal.Heading>
-                <p className="mt-1 text-[12px] leading-[17px] text-muted">{t('plugins.summary')}</p>
+                <p className="mt-1 text-caption leading-[17px] text-muted">
+                  {t('plugins.summary')}
+                </p>
               </div>
-              <Button
+              <IconButtonTooltip
+                label={t('plugins.close')}
                 variant="ghost"
-                isIconOnly
                 size="sm"
-                aria-label={t('plugins.close')}
                 onPress={() => onOpenChange(false)}
                 className="crewaid-settings-close size-8 shrink-0 rounded-full text-muted"
               >
                 <IconX className="size-4" stroke={1.8} aria-hidden />
-              </Button>
+              </IconButtonTooltip>
             </div>
-            <div className="crewaid-settings-body min-h-0 flex-1 overflow-y-auto px-[30px] pb-7">
+            <ScrollShadow
+              hideScrollBar={false}
+              className="crewaid-settings-body min-h-0 flex-1 overflow-y-auto px-[30px] pb-7"
+            >
               <PluginsPane botId={botId} botName={botName} />
-            </div>
+            </ScrollShadow>
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

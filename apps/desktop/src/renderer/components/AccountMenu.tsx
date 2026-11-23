@@ -1,4 +1,4 @@
-import { Dropdown } from '@heroui/react';
+import { Dropdown, Separator } from '@heroui/react';
 import {
   IconCreditCard,
   IconGauge,
@@ -20,10 +20,10 @@ import { t, useT } from '../i18n/i18n';
  *
  * Why log out is live now
  *
- * It was disabled because there was nothing to end: pre-V1 the CC-07 bearer
+ * It was disabled because there was nothing to end: originally the stored bearer
  * WAS the whole credential, so the honest form of "log out" was "clear the
  * stored credentials", which belonged in Settings beside where they were
- * typed. V1-11 replaced that with a real session, and V1-15 gave it a sign-out
+ * typed. A real session replaced that, with a sign-out
  * that ends the row at the orchestrator before clearing it locally — so the
  * item now has exactly the thing it was missing, and leaving it greyed out
  * meant the only way to leave an account was to go and delete a token by hand.
@@ -133,13 +133,13 @@ export function AccountMenuHeader({
 }) {
   return (
     <div className="flex items-center gap-2.5 px-3 pt-2.5 pb-2">
-      <AccountAvatar initials={initials} image={image} className="size-8 text-[11px]" />
+      <AccountAvatar initials={initials} image={image} className="size-8 text-micro" />
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[13px] font-medium text-foreground">{name}</div>
+        <div className="truncate text-footnote font-medium text-foreground">{name}</div>
         {/* Not when it is already the name: an account with no name falls back
             to its address, and printing it twice reads as two facts. */}
         {email === '' || email === name ? null : (
-          <div className="truncate text-[12px] text-muted">{email}</div>
+          <div className="truncate text-caption text-muted">{email}</div>
         )}
       </div>
     </div>
@@ -163,7 +163,7 @@ export function AccountUsage({
   const rows = usageGlance(billing, now);
   return (
     <div className="px-3 py-2">
-      <div className="flex items-center gap-2.5 text-[13px]">
+      <div className="flex items-center gap-2.5 text-footnote">
         <IconGauge className="size-4 shrink-0 text-muted" stroke={1.8} aria-hidden />
         <span className="flex-1 font-medium text-foreground">
           {rows.length === 0 ? t('account.plan') : t('account.usageRemaining')}
@@ -173,7 +173,7 @@ export function AccountUsage({
         </span>
       </div>
       {rows.length === 0 ? null : (
-        <dl className="mt-1.5 flex flex-col gap-1 ps-[26px] text-[13px]">
+        <dl className="mt-1.5 flex flex-col gap-1 ps-[26px] text-footnote">
           {rows.map((row) => (
             <div key={row.label} className="flex items-center gap-3">
               <dt className="flex-1 text-foreground">{row.label}</dt>
@@ -234,9 +234,9 @@ export function AccountMenu({
         <AccountAvatar
           initials={initials}
           image={image}
-          className={compact ? 'size-[34px] text-[12px]' : 'size-7 text-[10px]'}
+          className={compact ? 'size-[34px] text-caption' : 'size-7 text-micro'}
         />
-        {compact ? null : <span className="truncate text-[13px] font-medium">{name}</span>}
+        {compact ? null : <span className="truncate text-footnote font-medium">{name}</span>}
       </Dropdown.Trigger>
       <Dropdown.Popover
         placement={compact ? 'bottom end' : 'top start'}
@@ -246,11 +246,11 @@ export function AccountMenu({
             as an item it would take arrow-key focus and be read out as an
             option that cannot be chosen. */}
         <AccountMenuHeader name={name} email={email} initials={initials} image={image} />
-        <div aria-hidden className="mx-3 h-px bg-border" />
+        <Separator className="mx-3" />
         {billing === null ? null : (
           <>
             <AccountUsage billing={billing} />
-            <div aria-hidden className="mx-3 h-px bg-border" />
+            <Separator className="mx-3" />
           </>
         )}
         <Dropdown.Menu

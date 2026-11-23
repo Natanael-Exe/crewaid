@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { BotStatus } from '@crewaid/shared';
 import { BotAvatar, type AvatarBot } from './BotAvatar';
+import { TextShimmer } from './ui';
 import { t, useT } from '../i18n/i18n';
 
 /**
@@ -88,7 +89,7 @@ export function WorkingIndicator({
     <div
       role="status"
       data-working-indicator
-      className="flex items-center gap-2.5 px-1 py-1.5 text-[12px] text-muted"
+      className="flex items-center gap-2.5 px-1 py-1.5 text-caption text-muted"
     >
       {/* `detail` forced on: this avatar is alone on its line with nothing to
           collide with, so it gets the work ring and the thought dots that a
@@ -96,7 +97,9 @@ export function WorkingIndicator({
       <span className="block size-8 shrink-0">
         <BotAvatar bot={bot} size="xs" status={status ?? 'THINKING'} detail />
       </span>
-      <span>{t('working.for', { phase: phaseOf(status), elapsed: formatElapsed(elapsed) })}</span>
+      <TextShimmer className="tabular-nums">
+        {t('working.for', { phase: phaseOf(status), elapsed: formatElapsed(elapsed) })}
+      </TextShimmer>
     </div>
   );
 }

@@ -25,7 +25,7 @@ import type {
  * for. The page bounces back to `crewaid://auth/callback#token=<code>`.
  * 3. This process validates that callback, spends the code together with the
  * verifier it never transmitted, and receives a session token.
- * 4. The token goes into the CC-07 store — the same bag, the same shape the
+ * 4. The token goes into the token store — the same bag, the same shape the
  * renderer has always read. Nothing downstream of it changes.
  *
  * The browser is not an implementation detail. An embedded window would mean
@@ -221,7 +221,7 @@ export function createSignInController(options: SignInControllerOptions): SignIn
   }
 
   /**
-   * Write the session token into the CC-07 bag, keeping the address.
+   * Write the session token into the credential bag, keeping the address.
    *
    * The address is re-read rather than remembered from the start of the flow:
    * the two are one record, and writing a token beside a stale URL is how a
@@ -333,7 +333,7 @@ export function createSignInController(options: SignInControllerOptions): SignIn
      * Ask the orchestrator who this token belongs to.
      *
      * A live question rather than a remembered answer, because the stored
-     * token is not proof of anything: V1-09 made revocation bite at the next
+     * token is not proof of anything: revocation bites at the next
      * frame, and a status read from local state would keep reporting a name
      * for a session that was ended from somewhere else. This is also why
      * nothing about the account is persisted — there is no second copy to go
@@ -399,7 +399,7 @@ export const SIGN_IN_CLIENT_ID = DESKTOP_AUTH_CLIENT_ID;
  * Where the renderer is told a sign-in finished, or ended.
  *
  * One-way, main → renderer. It carries a status and never a credential: the
- * token itself goes to the CC-07 store, which the renderer already reads
+ * token itself goes to the token store, which the renderer already reads
  * through its own guarded channel, so nothing is duplicated onto an event bus
  * where a stale copy could outlive the real one.
  */

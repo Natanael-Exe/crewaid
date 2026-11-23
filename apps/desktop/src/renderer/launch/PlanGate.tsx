@@ -1,5 +1,4 @@
-import { Button } from '@heroui/react';
-import { IconLoader2 } from '@tabler/icons-react';
+import { Alert, Button, Spinner } from '@heroui/react';
 import type { BillingResponse, Edition, PurchasablePlan } from '@crewaid/shared';
 import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
@@ -143,14 +142,14 @@ function HostedPlanGate({
         <GateFrame>
           <div className="text-center">
             <h1>{t('launch.planGate.yourPlanCouldNotBe')}</h1>
-            <p className="mt-2.5 text-[14px] leading-[21px] text-muted">{state.message}</p>
+            <p className="mt-2.5 text-callout leading-[21px] text-muted">{state.message}</p>
             <Button
               variant="primary"
               onPress={() => {
                 setState({ kind: 'checking' });
                 void load();
               }}
-              className="mt-6 h-11 w-full text-[14px] font-medium"
+              className="mt-6 h-11 w-full text-callout font-medium"
             >
               {t('launch.planGate.tryAgain')}
             </Button>
@@ -211,7 +210,7 @@ export function PlanGateView({
           ? t('launch.planGate.chooseYourPlan')
           : t('launch.planGate.yourPlanNeedsAttention')}
       </h1>
-      <p className="mt-2.5 text-[15px] leading-[22px] text-muted">{planSummary(billing).line}</p>
+      <p className="mt-2.5 text-body leading-[22px] text-muted">{planSummary(billing).line}</p>
 
       {offers.length === 0 ? null : (
         <ul className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -226,14 +225,14 @@ export function PlanGateView({
           variant={offers.length === 0 ? 'primary' : 'tertiary'}
           isDisabled={busy}
           onPress={onManage}
-          className="mt-5 h-10 px-5 text-[13px] font-medium"
+          className="mt-5 h-10 px-5 text-footnote font-medium"
         >
           {t('launch.planGate.manageBilling')}
         </Button>
       ) : null}
 
       {sentToStripe ? (
-        <p role="status" className="mt-5 text-[13px] leading-[19px] text-muted">
+        <p role="status" className="mt-5 text-footnote leading-[19px] text-muted">
           {t('launch.planGate.finishInYourBrowser')}{' '}
           <button
             type="button"
@@ -245,7 +244,14 @@ export function PlanGateView({
         </p>
       ) : null}
 
-      {problem === null ? null : <p className="mt-4 text-[12px] text-danger">{problem}</p>}
+      {problem === null ? null : (
+        <Alert status="danger" role="alert" className="mt-4 text-caption">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description className="text-caption">{problem}</Alert.Description>
+          </Alert.Content>
+        </Alert>
+      )}
 
       <SignedInAs
         email={email}
@@ -268,7 +274,7 @@ function SignedInAs({
 }) {
   const t = useT();
   return (
-    <p className={`text-[12px] text-muted ${className}`}>
+    <p className={`text-caption text-muted ${className}`}>
       {t('launch.planGate.signedInAs', { email })}{' '}
       <button
         type="button"
@@ -285,8 +291,8 @@ function Reading({ label }: { readonly label: string }) {
   return (
     <GateFrame>
       <div className="flex items-center justify-center gap-2.5" role="status" aria-live="polite">
-        <IconLoader2 className="size-4 animate-spin text-muted" stroke={2} aria-hidden />
-        <span className="text-[13px] font-medium">{label}</span>
+        <Spinner size="sm" aria-hidden />
+        <span className="text-footnote font-medium">{label}</span>
       </div>
     </GateFrame>
   );

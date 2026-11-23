@@ -219,11 +219,11 @@ export function Transcript({
         <BotAvatar bot={bot} size="header" status={bot.status} />
         <div className="min-w-0">
           <h1>{bot.name}</h1>
-          <p className="truncate text-[13px] text-room-muted">{bot.role}</p>
+          <p className="truncate text-footnote text-room-muted">{bot.role}</p>
         </div>
         <div className="ms-auto flex items-center gap-2">
           {activity === undefined ? (
-            <span className="px-3 py-1.5 rounded-full text-muted border border-divider bg-accent-soft text-[13px] inline-flex items-center gap-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-glass-border bg-glass px-3 py-1.5 text-footnote leading-none text-room-muted backdrop-blur-md">
               <span className="size-1.5 rounded-full bg-muted" />
               {t('transcript.idle')}
             </span>
@@ -338,12 +338,12 @@ export function Transcript({
 
       <footer className="crewaid-transcript-footer shrink-0 pb-4">
         {error ? (
-          <div className="mx-auto w-full max-w-[900px] px-4">
+          <div className="mx-auto w-full max-w-[900px] px-(--transcript-gutter)">
             <ErrorBanner message={error.message} explanation={error.explanation} />
           </div>
         ) : null}
         {aboveComposer}
-        <div className="px-4">
+        <div className="px-(--transcript-gutter)">
           <Composer
             seed={composerSeed}
             placeholder={composerPlaceholder}

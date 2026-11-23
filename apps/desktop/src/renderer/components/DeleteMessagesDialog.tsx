@@ -75,63 +75,52 @@ export function DeleteMessagesDialog({
   return (
     <Modal state={overlay}>
       <Modal.Backdrop>
-        <Modal.Container
-          size="cover"
-          placement="center"
-          className="h-fit sm:w-auto"
-          scroll="inside"
-        >
-          <Modal.Dialog
-            aria-label={copy.title}
-            data-delete-messages={request.kind}
-            className="flex h-fit w-[400px] max-w-[92vw] flex-col gap-3 rounded-card bg-surface p-5"
-          >
-            <h2 className="text-[15px] font-semibold">{copy.title}</h2>
-            <p className="text-[13px] leading-[18px] text-muted">{copy.body}</p>
-            <Checkbox
-              isSelected={forget}
-              onChange={setForget}
-              data-forget-memory
-              className="mt-1 items-start"
-            >
-              <Checkbox.Content className="flex items-start gap-2.5">
-                <Checkbox.Control className="mt-0.5 shrink-0">
-                  {/* Its own checkmark, which draws itself only when selected. A child
-                        replaces it, and an icon child is drawn either way. */}
-                  <Checkbox.Indicator />
-                </Checkbox.Control>
-                <span className="flex flex-col gap-0.5">
-                  <span className="text-[13px] font-medium text-foreground">{copy.forget}</span>
-                  <span className="text-[12px] leading-[17px] text-muted">
-                    {forget ? copy.forgetOn : copy.forgetOff}
-                  </span>
-                </span>
-              </Checkbox.Content>
-            </Checkbox>
-            {failure === null ? null : (
-              <p role="alert" className="text-[12px] leading-[17px] text-danger">
-                {failure}
-              </p>
-            )}
-            <div className="mt-1 flex justify-end gap-2">
-              <Button
-                variant="tertiary"
-                size="sm"
-                onPress={onClose}
-                className="h-8 rounded-[10px] text-[12px] font-medium"
+        <Modal.Container size="sm" placement="center" scroll="inside">
+          <Modal.Dialog aria-label={copy.title} data-delete-messages={request.kind}>
+            <Modal.Header>
+              <Modal.Heading className="text-body font-semibold">{copy.title}</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body className="flex flex-col gap-3">
+              <p className="text-footnote leading-[18px] text-muted">{copy.body}</p>
+              <Checkbox
+                isSelected={forget}
+                onChange={setForget}
+                data-forget-memory
+                className="mt-1 items-start"
               >
+                <Checkbox.Content className="flex items-start gap-2.5">
+                  <Checkbox.Control className="mt-0.5 shrink-0">
+                    {/* Its own checkmark, which draws itself only when selected. A child
+                          replaces it, and an icon child is drawn either way. */}
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <span className="flex flex-col gap-0.5">
+                    <span className="text-footnote font-medium text-foreground">{copy.forget}</span>
+                    <span className="text-caption leading-[17px] text-muted">
+                      {forget ? copy.forgetOn : copy.forgetOff}
+                    </span>
+                  </span>
+                </Checkbox.Content>
+              </Checkbox>
+              {failure === null ? null : (
+                <p role="alert" className="text-caption leading-[17px] text-danger">
+                  {failure}
+                </p>
+              )}
+            </Modal.Body>
+            <Modal.Footer className="gap-2">
+              <Button variant="tertiary" size="sm" onPress={onClose}>
                 {t('delete.cancel')}
               </Button>
               <Button
-                variant="danger"
+                variant="danger-soft"
                 size="sm"
                 isDisabled={working}
                 onPress={() => void confirm(request)}
-                className="h-8 rounded-[10px] text-[12px] font-medium"
               >
                 {copy.action}
               </Button>
-            </div>
+            </Modal.Footer>
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

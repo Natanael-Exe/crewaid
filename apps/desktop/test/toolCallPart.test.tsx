@@ -99,7 +99,7 @@ describe('ToolCallPart', () => {
     expect(html).toContain('data-tool-line');
     expect(html).not.toContain('data-tool-card=');
     // The raw payload is machinery: one disclosure away, never on the face.
-    expect(html.indexOf('<details')).toBeLessThan(html.indexOf('resultSizeEstimate'));
+    expect(html.indexOf('data-slot="disclosure"')).toBeLessThan(html.indexOf('resultSizeEstimate'));
   });
 
   it('shows what the user keeps as a card, and the payload never on its face', () => {
@@ -127,7 +127,7 @@ describe('ToolCallPart', () => {
     expect(html).toContain('Email sent');
     // A successful action's raw result is machinery, not message (D-215).
     expect(html).not.toContain('data-result-status');
-    expect(html.indexOf('<details')).toBeLessThan(html.indexOf('draft-9'));
+    expect(html.indexOf('data-slot="disclosure"')).toBeLessThan(html.indexOf('draft-9'));
   });
 
   it('shows a failure as the failure text, never as [object Object]', () => {
@@ -191,10 +191,9 @@ describe('ToolCallPart', () => {
         },
       ]),
     );
-    // A native <details>: no component state, no re-render, and it survives
-    // renderToStaticMarkup — which is the only renderer this suite has.
-    expect(html).toContain('<details');
-    expect(html).toContain('<summary');
+    // HeroUI Disclosure: collapsed by default, keeping its payload inspectable.
+    expect(html).toContain('data-slot="disclosure"');
+    expect(html).toContain('aria-expanded="false"');
     expect(html).toContain('Details');
     expect(html).toContain(`${ESC.quot}title${ESC.quot}: ${ESC.quot}Example Domain${ESC.quot}`);
   });
@@ -298,7 +297,7 @@ describe('ToolActivityPart', () => {
     expect(html).toContain('data-tool-line');
     expect(html).toContain('2 actions');
     expect(html).toContain('Fetch emails');
-    expect(html).not.toContain('<details open=""');
+    expect(html).toMatch(/data-slot="chat-tool-group-trigger"[^>]*aria-expanded="false"/);
   });
 
   it('opens the action log while the reply streams, for whoever opted into it', () => {
@@ -308,7 +307,7 @@ describe('ToolActivityPart', () => {
         context={{ showWork: true, streaming: true }}
       />,
     );
-    expect(html).toMatch(/<details[^>]*open=""/);
+    expect(html).toMatch(/data-slot="chat-tool-group-trigger"[^>]*aria-expanded="true"/);
   });
 
   it('surfaces a failure of something the user keeps, in words', () => {
@@ -334,7 +333,7 @@ describe('ToolActivityPart', () => {
     expect(html).toContain('What went wrong');
     expect(html).toContain('the provider refused the send');
     // The face comes before the details: the failure is the message.
-    expect(html.indexOf('data-tool-call')).toBeLessThan(html.indexOf('<details'));
+    expect(html.indexOf('data-tool-call')).toBeLessThan(html.indexOf('data-slot="disclosure"'));
     expect(html).not.toContain('Finished with 1 issue');
     expect(html).toContain('data-tool-activity-status="issue"');
   });
@@ -481,6 +480,6 @@ describe('recoverable tool cards', () => {
     });
     expect(html).toContain('data-tool-card="file"');
     expect(html).toContain('update.md');
-    expect(html.indexOf('<details')).toBeLessThan(html.indexOf('Plan'));
+    expect(html.indexOf('data-slot="disclosure"')).toBeLessThan(html.indexOf('Plan'));
   });
 });

@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
-import { IconChevronRight, IconArrowUpRight } from '@tabler/icons-react';
-import { Button } from '@heroui/react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { IconArrowUpRight } from '@tabler/icons-react';
+import { Button, Disclosure } from '@heroui/react';
+import { ChatToolGroup } from '../ui';
 import { toolMark, fileMark } from '../attachments/artifactMarks';
 import { systemBrowser } from '../../bridge';
 import { TemplateResultCard } from '../../experience/TemplateResultCard';
@@ -43,7 +44,7 @@ function DetailBlock({
 }): ReactNode {
   return (
     <div className="mt-2">
-      <div className="text-[11px] text-muted">{label}</div>
+      <div className="text-micro text-muted">{label}</div>
       <pre className={`crewaid-tool-preview mt-1 ${code ? 'crewaid-code' : ''}`}>{body}</pre>
     </div>
   );
@@ -119,36 +120,45 @@ function DetailsDisclosure({ row, status }: { row: FoldedToolPart; status: Displ
   const preview = filePreview(row);
   if (inputBody === '' && outputBody === '' && preview === undefined) return null;
   return (
-    <details className="crewaid-tool-details min-w-0 flex-1">
-      <summary className="crewaid-tool-disclosure">{t('tools.details')}</summary>
-      {inputBody === '' ? null : (
-        <DetailBlock
-          label={t('tools.detail.arguments')}
-          code
-          body={truncateForDisplay(inputBody, DETAIL_CHARS)}
-        />
-      )}
-      {preview === undefined ? null : (
-        <DetailBlock
-          label={
-            row.toolName === 'fs_write'
-              ? status === 'ok'
-                ? t('tools.detail.fileWritten')
-                : t('tools.detail.filePreview')
-              : t('tools.detail.fileContents')
-          }
-          body={preview}
-        />
-      )}
-      {outputBody === '' ? null : (
-        <DetailBlock
-          label={t('tools.detail.result')}
-          code={row.toolName === 'shell' || typeof row.output !== 'string'}
-          body={truncateForDisplay(outputBody, DETAIL_CHARS)}
-        />
-      )}
-      <DetailBlock label={t('tools.detail.tool')} body={row.toolName} code />
-    </details>
+    <Disclosure defaultExpanded={false} className="crewaid-tool-details min-w-0 flex-1">
+      <Disclosure.Heading>
+        <Disclosure.Trigger className="crewaid-tool-disclosure inline-flex items-center gap-1 rounded-md py-0.5 text-caption text-muted hover:text-foreground">
+          {t('tools.details')}
+          <Disclosure.Indicator className="size-3.5 text-muted" />
+        </Disclosure.Trigger>
+      </Disclosure.Heading>
+      <Disclosure.Content>
+        <Disclosure.Body>
+          {inputBody === '' ? null : (
+            <DetailBlock
+              label={t('tools.detail.arguments')}
+              code
+              body={truncateForDisplay(inputBody, DETAIL_CHARS)}
+            />
+          )}
+          {preview === undefined ? null : (
+            <DetailBlock
+              label={
+                row.toolName === 'fs_write'
+                  ? status === 'ok'
+                    ? t('tools.detail.fileWritten')
+                    : t('tools.detail.filePreview')
+                  : t('tools.detail.fileContents')
+              }
+              body={preview}
+            />
+          )}
+          {outputBody === '' ? null : (
+            <DetailBlock
+              label={t('tools.detail.result')}
+              code={row.toolName === 'shell' || typeof row.output !== 'string'}
+              body={truncateForDisplay(outputBody, DETAIL_CHARS)}
+            />
+          )}
+          <DetailBlock label={t('tools.detail.tool')} body={row.toolName} code />
+        </Disclosure.Body>
+      </Disclosure.Content>
+    </Disclosure>
   );
 }
 
@@ -193,7 +203,7 @@ function ToolCallLine({
     >
       <div className="flex min-w-0 items-center gap-2">
         <ToolMark kind={presentation.kind} mark={mark} variant="line" />
-        <span className="min-w-0 flex-1 truncate text-[12px] leading-5" title={presentation.title}>
+        <span className="min-w-0 flex-1 truncate text-caption leading-5" title={presentation.title}>
           {presentation.title}
         </span>
         {presentation.kind === 'computer' && context?.onViewComputer !== undefined ? (
@@ -204,13 +214,11 @@ function ToolCallLine({
         <ToolStatusTag status={status} count={count} />
       </div>
       {failure === undefined ? null : (
-        <p className="crewaid-tool-line-note mt-1 ps-[30px] text-[11px] leading-4 text-muted">
+        <p className="crewaid-tool-line-note mt-1 ps-[30px] text-micro leading-4 text-muted">
           {failure}
         </p>
       )}
-      {asked === undefined ? null : (
-        <p className="mt-1 ps-[30px] text-[11px] text-muted">{asked}</p>
-      )}
+      {asked === undefined ? null : <p className="mt-1 ps-[30px] text-micro text-muted">{asked}</p>}
       <DetailsDisclosure row={row} status={status} />
     </div>
   );
@@ -281,7 +289,7 @@ export function ToolCallPart({
         {resource !== undefined || fields.length === 0 ? null : <ToolFields fields={fields} />}
         {failure === undefined ? null : (
           <div className="mt-2" data-tool-result-preview>
-            <div className="mb-1 text-[11px] text-muted">
+            <div className="mb-1 text-micro text-muted">
               {status === 'error' ? t('tools.whatWentWrong') : t('tools.detail.result')}
             </div>
             <pre className="crewaid-tool-preview" data-result-status={status}>
@@ -289,7 +297,7 @@ export function ToolCallPart({
             </pre>
           </div>
         )}
-        {asked === undefined ? null : <p className="mt-2 text-[11px] text-muted">{asked}</p>}
+        {asked === undefined ? null : <p className="mt-2 text-micro text-muted">{asked}</p>}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border/70 pt-2">
           <DetailsDisclosure row={row} status={status} />
           {resource?.url === undefined ? null : (
@@ -361,6 +369,49 @@ function outputRows(
   return order.map((signature) => merged.get(signature)!);
 }
 
+function RoutineActivityDisclosure({
+  routine,
+  streaming,
+  context,
+}: {
+  routine: readonly FoldedToolPart[];
+  streaming: boolean;
+  context?: PartRenderContext | undefined;
+}) {
+  const t = useT();
+  const [expanded, setExpanded] = useState(streaming);
+  const wasStreaming = useRef(streaming);
+
+  // Open while streaming, then auto-collapse cleanly when the turn settles
+  // (avoiding native `<details open={undefined}>` getting stuck open).
+  useEffect(() => {
+    if (streaming && !wasStreaming.current) {
+      setExpanded(true);
+    } else if (!streaming && wasStreaming.current) {
+      setExpanded(false);
+    }
+    wasStreaming.current = streaming;
+  }, [streaming]);
+
+  return (
+    <ChatToolGroup.Root
+      active={streaming}
+      isExpanded={expanded}
+      onExpandedChange={setExpanded}
+      className="my-2 text-caption text-muted"
+    >
+      <ChatToolGroup.Trigger className="crewaid-tool-disclosure">
+        {t('tools.actions', { count: routine.length })}
+      </ChatToolGroup.Trigger>
+      <ChatToolGroup.Content>
+        {routine.map((call) => (
+          <ToolCallPart key={call.toolCallId} part={call} context={context} />
+        ))}
+      </ChatToolGroup.Content>
+    </ChatToolGroup.Root>
+  );
+}
+
 /**
  * A turn's actions, placed the way a person reads them.
  *
@@ -377,7 +428,6 @@ export function ToolActivityPart({
   part: AnyPart;
   context?: PartRenderContext | undefined;
 }): ReactNode {
-  const t = useT();
   const calls = activityCalls(part);
   if (calls.length === 0) return null;
   const outputs = calls.filter((call) => isUserOutput(call, context));
@@ -418,21 +468,11 @@ export function ToolActivityPart({
         </div>
       )}
       {routine.length === 0 ? null : (
-        <details
-          className="group/activity my-2 text-[12px] text-muted"
-          open={context?.streaming === true ? true : undefined}
-        >
-          <summary className="crewaid-tool-disclosure flex items-center gap-1.5">
-            <IconChevronRight
-              aria-hidden
-              className="size-3.5 group-open/activity:rotate-90 rtl:group-open/activity:-rotate-90 rtl:-scale-x-100"
-            />
-            {t('tools.actions', { count: routine.length })}
-          </summary>
-          {routine.map((call) => (
-            <ToolCallPart key={call.toolCallId} part={call} context={context} />
-          ))}
-        </details>
+        <RoutineActivityDisclosure
+          routine={routine}
+          streaming={context?.streaming === true}
+          context={context}
+        />
       )}
     </div>
   );

@@ -1,11 +1,10 @@
 import type { ReactNode } from 'react';
-import { Card } from '@heroui/react';
+import { Card, Spinner } from '@heroui/react';
 import {
   IconCheck,
   IconCircleCheckFilled,
   IconCircleX,
   IconFileText,
-  IconLoader2,
   IconPlugConnected,
   IconScreenShare,
   IconShieldCheck,
@@ -93,14 +92,14 @@ export function ToolStatusTag({
   const t = useT();
   const label = LABEL.get(status);
   return (
-    <span className="crewaid-tool-status text-[11px]" data-status={status}>
+    <span className="crewaid-tool-status text-micro" data-status={status}>
       {count === undefined || count < 2 ? null : (
-        <span className="crewaid-tool-count" title={t('tools.ranTimes', { count })}>
+        <span className="crewaid-tool-count tabular-nums" title={t('tools.ranTimes', { count })}>
           ×{count}
         </span>
       )}
       {status === 'running' ? (
-        <IconLoader2 aria-hidden className="size-3 animate-spin motion-reduce:animate-none" />
+        <Spinner size="sm" color="current" aria-hidden className="size-3" />
       ) : status === 'ok' && dense ? (
         <IconCircleCheckFilled aria-hidden className="size-[18px] text-success" />
       ) : status === 'ok' ? (
@@ -145,10 +144,10 @@ export function ToolCard({
         <>
           <Card.Header className="flex-row items-center justify-between gap-3">
             <ToolMark kind={kind} mark={mark} />
-            <Card.Description className="text-[11px]">{source}</Card.Description>
+            <Card.Description className="text-micro">{source}</Card.Description>
           </Card.Header>
           <div className="flex items-start justify-between gap-2">
-            <Card.Title className="text-[14px] font-medium leading-5">{title}</Card.Title>
+            <Card.Title className="text-callout font-medium leading-5">{title}</Card.Title>
             <ToolStatusTag status={status} dense count={count} />
           </div>
         </>
@@ -156,13 +155,13 @@ export function ToolCard({
         <Card.Header className="flex-row items-start gap-3">
           <ToolMark kind={kind} mark={mark} />
           <div className="min-w-0 flex-1">
-            <Card.Description className="mb-1 text-[11px]">{source}</Card.Description>
-            <Card.Title className="text-[14px] font-medium leading-5">{title}</Card.Title>
+            <Card.Description className="mb-1 text-micro">{source}</Card.Description>
+            <Card.Title className="text-callout font-medium leading-5">{title}</Card.Title>
           </div>
           <ToolStatusTag status={status} dense={compact} count={count} />
         </Card.Header>
       )}
-      <Card.Content className="text-[12px] leading-[18px]">{children}</Card.Content>
+      <Card.Content className="text-caption leading-[18px]">{children}</Card.Content>
     </Card>
   );
 }

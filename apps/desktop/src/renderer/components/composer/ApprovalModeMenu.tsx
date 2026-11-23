@@ -102,25 +102,24 @@ export function ApprovalModeMenu({
   return (
     <Dropdown>
       <Tooltip>
-        <Tooltip.Trigger>
-          <Dropdown.Trigger
-            aria-label={t('composer.approval.label', { mode: option.label })}
-            data-approval-mode={current}
-            className={`ms-1 flex h-8 shrink-0 items-center gap-0.5 rounded-full px-1.5 outline-none data-[hovered]:bg-background-secondary data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40 ${
-              option.warns ? 'text-warning' : 'text-muted'
-            }`}
-          >
-            <Glyph className="size-4" stroke={1.8} />
-            {/* <IconChevronDown className="size-2.5" stroke={1.8} /> */}
-          </Dropdown.Trigger>
-        </Tooltip.Trigger>
+        <Dropdown.Trigger
+          aria-label={t('composer.approval.label', { mode: option.label })}
+          data-approval-mode={current}
+          className={`ms-1 mb-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-background-secondary outline-none transition-colors hover:bg-default data-[hovered]:bg-default data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40 ${
+            option.warns ? 'text-warning' : 'text-muted'
+          }`}
+        >
+          <Glyph className="size-4" stroke={1.8} />
+        </Dropdown.Trigger>
         <Tooltip.Content>{option.label}</Tooltip.Content>
       </Tooltip>
       <Dropdown.Popover
         placement="top start"
         className="crewaid-bot-context w-[340px] rounded-xl p-1"
       >
-        <p className="px-2 pt-1.5 pb-1 text-[12px] text-muted">{t('composer.approval.question')}</p>
+        <p className="px-2 pt-1.5 pb-1 text-caption text-muted">
+          {t('composer.approval.question')}
+        </p>
         <Dropdown.Menu
           aria-label={t('composer.approval.question')}
           selectionMode="single"
@@ -146,12 +145,12 @@ export function ApprovalModeMenu({
                 />
                 <span className="min-w-0 flex-1">
                   <span
-                    className={`block text-[13px] font-medium ${candidate.warns ? 'text-warning' : 'text-foreground'}`}
+                    className={`block text-footnote font-medium ${candidate.warns ? 'text-warning' : 'text-foreground'}`}
                   >
                     {candidate.label}
                   </span>
                   <span
-                    className={`block text-[12px] leading-[17px] ${
+                    className={`block text-caption leading-[17px] ${
                       candidate.warns ? 'text-warning/85' : 'text-muted'
                     }`}
                   >
@@ -169,7 +168,7 @@ export function ApprovalModeMenu({
             );
           })}
         </Dropdown.Menu>
-        <p className="border-t border-separator px-2 pt-1.5 pb-1 text-[11px] text-muted">
+        <p className="border-t border-separator px-2 pt-1.5 pb-1 text-micro text-muted">
           {t('composer.approval.applies')}
         </p>
       </Dropdown.Popover>

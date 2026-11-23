@@ -245,7 +245,7 @@ export function statusView(server: McpServerSummary | null): PluginStatusView {
       // browser gets sent back to the browser; a server holding a bearer has
       // no sign-in to repeat — D-114 made pasting a new token ITS ladder, so
       // offering "Reconnect" would be offering the one thing that cannot fix
-      // it. The whole of M6-FE-03 is that the sentence names the real action.
+      // it. The point is that the sentence names the real action.
       return server.authType === 'HEADER'
         ? {
             label: t('plugins.status.tokenRejected'),

@@ -3,26 +3,28 @@ import { IconArrowLeft, IconArrowRight, IconCheck, IconChevronRight } from '@tab
 import { useState, type ReactNode } from 'react';
 import type { Template } from '@crewaid/shared';
 import { BotAvatar } from '../components/BotAvatar';
+import { Stepper } from '../components/ui';
 import { TOOL_STATE_LABEL, toolState, type Connections } from './templateView';
 import { useT } from '../i18n/i18n';
 
 export function BackLink({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onPress}
-      className="flex items-center gap-2 self-start text-[13px] text-muted hover:text-foreground"
+    <Button
+      size="sm"
+      variant="ghost"
+      onPress={onPress}
+      className="self-start -ms-2 text-footnote text-muted hover:text-foreground"
     >
       <IconArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden />
       {label}
-    </button>
+    </Button>
   );
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-[14px] font-semibold">{title}</h3>
+      <h3 className="text-callout font-semibold">{title}</h3>
       {children}
     </section>
   );
@@ -37,25 +39,26 @@ function ExampleBand({ example }: { example: Template['examples'][number] | unde
     <section className="crewaid-template-example flex flex-col gap-2 px-8 py-5">
       <div className="flex items-start justify-between gap-6">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-[13px] text-muted">
+          <span className="text-footnote text-muted">
             {t('experience.templateDetail.illustrativeExample')}
           </span>
-          <p className="text-[15px] font-medium">{example.title}</p>
+          <p className="text-body font-medium">{example.title}</p>
         </div>
-        <button
-          type="button"
+        <Button
+          size="sm"
+          variant="ghost"
           aria-expanded={open}
-          onClick={() => setOpen((value) => !value)}
-          className="flex shrink-0 items-center gap-1 text-[13px]"
+          onPress={() => setOpen((value) => !value)}
+          className="shrink-0 text-footnote"
         >
           {open
             ? t('experience.templateDetail.hideExample')
             : t('experience.templateDetail.seeExample')}
           <IconArrowRight className="size-3.5 rtl:-scale-x-100" aria-hidden />
-        </button>
+        </Button>
       </div>
       {open ? (
-        <p className="whitespace-pre-wrap text-[14px] leading-[22px] text-muted">
+        <p className="whitespace-pre-wrap text-callout leading-[22px] text-muted">
           {example.content}
         </p>
       ) : null}
@@ -73,7 +76,7 @@ function ToolChips({ template, connections }: { template: Template; connections:
           <span
             key={tool.slug}
             data-tool-state={state}
-            className="crewaid-tool-chip flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px]"
+            className="crewaid-tool-chip flex items-center gap-1.5 rounded-full px-2.5 py-1 text-caption"
             title={TOOL_STATE_LABEL[state]}
           >
             {state === 'connected' ? <IconCheck className="size-3" aria-hidden /> : null}
@@ -108,7 +111,7 @@ export function CrewDetail({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex max-w-[620px] flex-col gap-2">
             <h2 className="crewaid-template-title">{template.title}</h2>
-            <p className="text-[14px] leading-[22px] text-muted">{template.summary}</p>
+            <p className="text-callout leading-[22px] text-muted">{template.summary}</p>
           </div>
           <Button onPress={onAdd}>{t('experience.templateDetail.addCrew')}</Button>
         </div>
@@ -129,10 +132,10 @@ export function CrewDetail({
                     <BotAvatar bot={bot} size="sm" />
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="flex flex-wrap items-baseline gap-2">
-                        <span className="text-[14px] font-semibold">{bot.name}</span>
-                        <span className="text-[12px] text-muted">{bot.role}</span>
+                        <span className="text-callout font-semibold">{bot.name}</span>
+                        <span className="text-caption text-muted">{bot.role}</span>
                       </span>
-                      <span className="text-[13px] text-muted">{bot.summary}</span>
+                      <span className="text-footnote text-muted">{bot.summary}</span>
                     </span>
                     <IconChevronRight
                       className="size-4 shrink-0 text-muted rtl:-scale-x-100"
@@ -145,20 +148,21 @@ export function CrewDetail({
           </Section>
           {template.handoff.length > 0 ? (
             <Section title={t('experience.templateDetail.howTheyWorkTogether')}>
-              <ol className="crewaid-template-handoff flex flex-wrap items-center gap-x-3 gap-y-2 rounded-card px-4 py-3 text-[13px]">
+              <Stepper
+                currentStep={template.handoff.length}
+                className="crewaid-template-handoff rounded-card px-4 py-3.5"
+              >
                 {template.handoff.map((step, index) => (
-                  <li key={step} className="flex items-center gap-3">
-                    {index > 0 ? (
-                      <IconArrowRight
-                        className="size-3.5 text-muted rtl:-scale-x-100"
-                        aria-hidden
-                      />
-                    ) : null}
-                    {step}
-                  </li>
+                  <Stepper.Step key={step}>
+                    <Stepper.Indicator>
+                      <span className="tabular-nums">{index + 1}</span>
+                    </Stepper.Indicator>
+                    <Stepper.Title>{step}</Stepper.Title>
+                    <Stepper.Separator />
+                  </Stepper.Step>
                 ))}
-              </ol>
-              <p className="text-[12px] text-muted">
+              </Stepper>
+              <p className="text-caption text-muted">
                 {t('experience.templateDetail.eachStepStartsWhenSomeone')}
               </p>
             </Section>
@@ -166,23 +170,23 @@ export function CrewDetail({
         </div>
         <div className="flex min-w-0 flex-col gap-6">
           <Section title={t('experience.templateDetail.whatYouLlGet')}>
-            <ul className="flex flex-col gap-1 text-[14px] text-muted">
+            <ul className="flex flex-col gap-1 text-callout text-muted">
               {template.outcomes.map((outcome) => (
                 <li key={outcome}>{outcome}</li>
               ))}
             </ul>
           </Section>
           <Section title={t('experience.templateDetail.bringALittleContext')}>
-            <p className="text-[14px] leading-[22px] text-muted">{template.inputs.join(' · ')}</p>
+            <p className="text-callout leading-[22px] text-muted">{template.inputs.join(' · ')}</p>
           </Section>
           <Section title={t('experience.templateBrowse.supportedTools')}>
             <ToolChips template={template} connections={connections} />
-            <p className="text-[12px] text-muted">
+            <p className="text-caption text-muted">
               {t('experience.templateDetail.connectionsAreOptionalYouCan')}
             </p>
           </Section>
           <Section title={t('experience.templateDetail.routines')}>
-            <p className="text-[13px] leading-5 text-muted">{template.routineSuggestion}</p>
+            <p className="text-footnote leading-5 text-muted">{template.routineSuggestion}</p>
           </Section>
         </div>
       </div>
@@ -216,7 +220,7 @@ export function BotDetail({
             <BotAvatar bot={bot} size="lg" />
             <div className="flex flex-col gap-1">
               <h2 className="crewaid-template-title">{bot.name}</h2>
-              <p className="text-[14px] text-muted">{bot.role}</p>
+              <p className="text-callout text-muted">{bot.role}</p>
             </div>
           </div>
           <Button onPress={onAdd}>{t('experience.templateDetail.addBot')}</Button>
@@ -226,7 +230,7 @@ export function BotDetail({
         <div className="flex min-w-0 flex-col gap-5">
           <Section title={bot.summary}>
             {template.memberOf.length > 0 ? (
-              <p className="text-[13px] text-muted">
+              <p className="text-footnote text-muted">
                 {t('experience.templateDetail.worksOnItsOwnAndIn', {
                   list: template.memberOf.join(', '),
                 })}
@@ -234,24 +238,24 @@ export function BotDetail({
             ) : null}
           </Section>
           <Section title={t('experience.templateDetail.howBotWorks', { botName: bot.name })}>
-            <p className="crewaid-template-brief whitespace-pre-wrap rounded-card px-4 py-3 text-[13px] leading-[21px] text-muted">
+            <p className="crewaid-template-brief whitespace-pre-wrap rounded-card px-4 py-3 text-footnote leading-[21px] text-muted">
               {bot.systemPrompt}
             </p>
-            <p className="text-[12px] text-muted">
+            <p className="text-caption text-muted">
               {t('experience.templateDetail.thisBecomesDescription', { botName: bot.name })}
             </p>
           </Section>
         </div>
         <div className="flex min-w-0 flex-col gap-6">
           <Section title={t('experience.templateDetail.whatToBring')}>
-            <ul className="flex flex-col gap-1 text-[14px] text-muted">
+            <ul className="flex flex-col gap-1 text-callout text-muted">
               {template.inputs.map((input) => (
                 <li key={input}>{input}</li>
               ))}
             </ul>
           </Section>
           <Section title={t('experience.templateDetail.toolsBotCanUse', { botName: bot.name })}>
-            <ul className="flex flex-col gap-1.5 text-[13px]">
+            <ul className="flex flex-col gap-1.5 text-footnote">
               {template.tools.map((tool) => {
                 const state = toolState(tool.slug, connections);
                 return (
@@ -267,14 +271,14 @@ export function BotDetail({
                 );
               })}
             </ul>
-            <p className="text-[12px] text-muted">
+            <p className="text-caption text-muted">
               {t('experience.templateDetail.optionalPastedNotesWorkToo')}
             </p>
           </Section>
         </div>
       </div>
       <ExampleBand example={template.examples[0]} />
-      <p className="px-8 py-4 text-[13px] text-muted">
+      <p className="px-8 py-4 text-footnote text-muted">
         {t('experience.templateDetail.addingOpensProfile', { botName: bot.name })}
       </p>
     </>

@@ -72,7 +72,7 @@ export function useWsConnection(options: UseWsConnectionOptions = {}): {
   /**
    * Reopen now, with whatever credentials the store holds at this instant.
    *
-   * The socket already re-reads the CC-07 bag on every attempt, so a save
+   * The socket already re-reads the credential bag on every attempt, so a save
    * eventually takes hold on its own — but "eventually" is up to the 30s
    * ceiling of the reconnect backoff, which reads as a save that did nothing.
    * `stop` clears the pending timer and resets the attempt counter, so the

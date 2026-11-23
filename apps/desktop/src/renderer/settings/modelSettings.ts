@@ -1,6 +1,6 @@
 import { t } from '../i18n/i18n';
 /**
- * What the Models pane can honestly say about a model (CC-14, revised V1-06).
+ * What the Models pane can honestly say about a model.
  *
  * `PROVIDER_ENV_KEYS` AND `providerEnvKey` ARE GONE. They named the
  * environment variable configuring each provider, which was true while

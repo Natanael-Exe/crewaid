@@ -1,10 +1,11 @@
 /*
- * Crewaid's Paper day and night themes, expressed through HeroUI v3 semantic tokens.
+ * Crewaid's Day and Night themes, expressed through HeroUI v3 semantic tokens
+ * in the perceptual oklch color space.
  *
- * Product-specific roles (message bubbles and faint metadata) extend the
- * HeroUI vocabulary through Tailwind's theme bridge below. All general UI
- * colors continue to use HeroUI tokens such as background, surface, muted,
- * border, field, accent, warning, and danger.
+ * Preserves Crewaid's signature dawn/twilight wallpapers, Fraunces editorial
+ * display typography, and per-bot accent context while unifying all surfaces
+ * onto a four-tier translucent glass material ladder with Apple vibrancy
+ * saturation and specular hairline rim highlights.
  */
 @layer base {
   [data-theme='crewaid'],
@@ -12,78 +13,110 @@
     color-scheme: light;
     --radius: 0.875rem;
     --field-radius: 10px;
+    --border-width-field: 1px;
     --field-border-width: 1px;
-    --background: #ffffff;
-    --foreground: #141414;
-    --surface: #ffffff;
+
+    /* Base canvas & inks */
+    --background: oklch(97.4% 0.008 258);
+    --foreground: oklch(19.5% 0.006 285);
+    --room-foreground: oklch(21.5% 0.044 290);
+    --muted: oklch(53% 0.016 285);
+    --room-muted: oklch(50.5% 0.042 290);
+    --foreground-faint: oklch(64% 0.012 285);
+    --crewaid-muted-foreground: var(--muted);
+
+    /* Four-tier Liquid Glass material ladder (Day) */
+    --glass-blur: 24px;
+    --glass-blur-subtle: 16px;
+    --glass-saturate: 1.65;
+    --glass-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    --glass-filter-subtle: blur(var(--glass-blur-subtle)) saturate(1.45);
+    --glass: oklch(100% 0 0 / 0.72);
+    --glass-strong: oklch(100% 0 0 / 0.86);
+    --glass-border: oklch(100% 0 0 / 0.68);
+    --glass-border-subtle: oklch(21.5% 0.044 290 / 0.08);
+    --glass-specular:
+      inset 0 1px 0 oklch(100% 0 0 / 0.82), inset 0 0 0 0.5px oklch(100% 0 0 / 0.36);
+    --glass-shadow:
+      var(--glass-specular), 0 1px 2px oklch(21.5% 0.044 290 / 0.05),
+      0 10px 32px -4px oklch(21.5% 0.044 290 / 0.09);
+
+    --surface: oklch(100% 0 0 / 0.88);
     --surface-foreground: var(--foreground);
-    --surface-secondary: #fafafb;
+    --surface-secondary: oklch(98.4% 0.005 268 / 0.72);
     --surface-secondary-foreground: var(--foreground);
-    --surface-tertiary: #f4f4f6;
+    --surface-tertiary: oklch(95.8% 0.008 268 / 0.76);
     --surface-tertiary-foreground: var(--foreground);
-    --overlay: var(--surface);
+    --overlay: oklch(100% 0 0 / 0.86);
     --overlay-foreground: var(--foreground);
-    --muted: #6e6e73;
-    --default: var(--surface-secondary);
+    --default: oklch(21.5% 0.044 290 / 0.06);
     --default-foreground: var(--foreground);
+    --backdrop: oklch(21.5% 0.044 290 / 0.22);
+
+    /* Accent & status semantic roles (Day keeps exact #000000 primary ink) */
     --app-accent: #000000;
-    --app-accent-foreground: #ffffff;
+    --app-accent-foreground: oklch(100% 0 0);
     --accent: var(--app-accent);
     --accent-foreground: var(--app-accent-foreground);
     --accent-control: var(--accent);
     --accent-control-foreground: var(--accent-foreground);
-    --accent-soft: color-mix(in srgb, var(--accent) 8%, #ffffff);
+    --accent-soft: color-mix(in oklab, var(--accent) 8%, oklch(100% 0 0));
     --accent-soft-foreground: var(--app-accent);
-    --warning: #b5770a;
+    --warning: oklch(63% 0.145 72);
     --warning-foreground: var(--foreground);
-    --danger: #c2410c;
-    --danger-foreground: #ffffff;
-    --success: #1f8a4c;
-    --success-foreground: #ffffff;
-    --field-background: #f4f4f6;
+    --danger: oklch(54% 0.185 35);
+    --danger-foreground: oklch(100% 0 0);
+    --success: oklch(56% 0.155 151);
+    --success-foreground: oklch(100% 0 0);
+
+    /* Form fields, segments & structural borders */
+    --field-background: oklch(21.5% 0.044 290 / 0.055);
     --field-foreground: var(--foreground);
     --field-placeholder: var(--foreground-faint);
-    --field-border: var(--border);
-    --segment: var(--surface);
-    --segment-foreground: var(--foreground);
-    --border: #e2e2e6;
-    --separator: #ececee;
+    --field-border: oklch(21.5% 0.044 290 / 0.09);
+    --field-shadow: inset 0 1px 1px oklch(21.5% 0.044 290 / 0.03);
+    --segment: oklch(100% 0 0 / 0.94);
+    --segment-foreground: var(--room-foreground);
+    --border: oklch(21.5% 0.044 290 / 0.11);
+    --separator: oklch(21.5% 0.044 290 / 0.085);
     --focus: var(--accent-soft-foreground);
     --link: var(--accent-soft-foreground);
     --background-inverse: var(--foreground);
-    --surface-shadow: none;
-    --field-shadow: none;
-    --foreground-faint: #8e8e93;
-    /* Component styles in B+ override the original B message tokens. */
-    --approval-pending-background: #000000;
+
+    /* Calibrated elevation shadows */
+    --surface-shadow:
+      inset 0 1px 0 oklch(100% 0 0 / 0.72), 0 1px 2px oklch(21.5% 0.044 290 / 0.04),
+      0 4px 14px -2px oklch(21.5% 0.044 290 / 0.06);
+    --overlay-shadow:
+      var(--glass-specular), 0 2px 8px oklch(21.5% 0.044 290 / 0.07),
+      0 18px 44px -6px oklch(21.5% 0.044 290 / 0.15);
+
+    /* Native scrollbars (3:1 thumb contrast over light glass) */
+    --scrollbar-thumb: oklch(30% 0.03 285 / 0.28);
+    --scrollbar-track: transparent;
+    --scrollbar-width: thin;
+    --scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+
+    /* Product-specific message & room tokens */
+    --approval-pending-background: oklch(16% 0.01 285);
     --message-bot: var(--surface);
     --message-bot-foreground: var(--foreground);
-    --message-user: rgb(255 255 255 / 58%);
+    --message-user: oklch(100% 0 0 / 0.62);
     --message-user-foreground: var(--room-foreground);
-    --message-user-border: rgb(255 255 255 / 55%);
+    --message-user-border: oklch(100% 0 0 / 0.68);
     --crewaid-sidebar-background: var(--glass);
-    --crewaid-muted-foreground: var(--muted);
     --crewaid-card-radius: 14px;
     --crewaid-message-radius: 18px;
-    --glass: rgb(255 255 255 / 72%);
-    --topbar-surface: #ffffff9e;
-    --crew-hover: #ffffff80;
-    --crew-selected: #ffffff;
-    --nav-selected: #1d1830;
-    --nav-selected-foreground: #ffffff;
-    --room-wallpaper: url('../../assets/room/wallpaper.png');
-    --glass-border: #ffffff66;
-    --glass-blur: 24px;
-    --glass-shadow: 0 8px 30px #1d18300d;
-    --room-foreground: #1d1830;
-    --room-muted: #6b6480;
-    --needs-you: #b8306f;
+    --topbar-surface: oklch(100% 0 0 / 0.66);
+    --crew-hover: oklch(100% 0 0 / 0.56);
+    --crew-selected: oklch(100% 0 0 / 0.94);
+    --nav-selected: oklch(21.5% 0.044 290);
+    --nav-selected-foreground: oklch(100% 0 0);
+    --needs-you: oklch(52% 0.19 354);
+
+    /* Typography, geometry & motion tokens (the type scale lives in @theme below) */
     --font-sans: 'Inter', system-ui, sans-serif;
     --font-display-room: 'Fraunces', Georgia, serif;
-    --text-caption: 13px;
-    --text-body: 15px;
-    --text-title: 28px;
-    --text-display: 40px;
     --radius-panel: 24px;
     --radius-pill: 999px;
     --motion-fast: 120ms;
@@ -111,6 +144,8 @@
 
 @theme inline {
   --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-glass-border: var(--glass-border);
   --color-room-foreground: var(--room-foreground);
   --color-room-muted: var(--room-muted);
   --color-needs-you: var(--needs-you);
@@ -118,43 +153,93 @@
   --color-accent-soft-foreground: var(--accent-soft-foreground);
 }
 
+/*
+ * The product type scale, as Tailwind utilities (`text-caption`, `text-body`…).
+ * Sizes only: line height stays with the element (or an explicit `leading-*`),
+ * because the virtualized roster and the composer measure fixed row heights.
+ * 11px is the floor; nothing in the app reads smaller.
+ */
+@theme static {
+  --text-micro: 11px;
+  --text-caption: 12px;
+  --text-footnote: 13px;
+  --text-callout: 14px;
+  --text-body: 15px;
+  --text-headline: 17px;
+  --text-heading: 20px;
+  --text-title: 28px;
+  --text-display: 40px;
+}
+
 @layer base {
   [data-theme='crewaid-dark'] {
     color-scheme: dark;
-    --app-accent: #f4f2ff;
-    --app-accent-foreground: #101430;
-    --background: #0b1033;
-    --approval-pending-background: #101430;
-    --foreground: #f4f2ff;
-    --surface: #1e2346;
-    --surface-secondary: #202649;
-    --surface-tertiary: #2a3058;
-    --muted: #a9add1;
-    --foreground-faint: #9298be;
-    --field-background: #1e2346;
-    --border: #ffffff14;
-    --separator: #ffffff14;
-    --glass: rgb(16 20 48 / 62%);
-    --glass-border: #ffffff14;
-    --glass-shadow: 0 10px 40px #00000059;
-    --topbar-surface: rgb(16 20 48 / 62%);
-    --crew-hover: #ffffff0d;
-    --crew-selected: #ffffff14;
-    --nav-selected: #f4f2ff;
-    --nav-selected-foreground: #101430;
-    --room-foreground: #f4f2ff;
-    --room-muted: #a9add1;
-    --message-user: rgb(255 255 255 / 12%);
-    --message-user-border: rgb(255 255 255 / 18%);
-    --needs-you: #f39ccb;
-    --warning: #f2b233;
-    --warning-foreground: #101430;
-    --danger: #ff9d87;
-    --danger-foreground: #1d1830;
-    --success: #74d69a;
-    --success-foreground: #101430;
-    --accent-soft: color-mix(in srgb, var(--accent) 26%, #101430);
+
+    /* Base canvas & inks */
+    --background: oklch(17.5% 0.072 271);
+    --foreground: oklch(96.3% 0.016 289);
+    --room-foreground: oklch(96.3% 0.016 289);
+    --muted: oklch(75% 0.045 278);
+    --room-muted: oklch(75% 0.045 278);
+    --foreground-faint: oklch(67% 0.045 278);
+
+    /* Four-tier Liquid Glass material ladder (Night) */
+    --glass-blur: 32px;
+    --glass-blur-subtle: 20px;
+    --glass-saturate: 1.45;
+    --glass: oklch(20% 0.062 273 / 0.6);
+    --glass-strong: oklch(21.5% 0.058 273 / 0.86);
+    --glass-border: oklch(100% 0 0 / 0.12);
+    --glass-border-subtle: oklch(100% 0 0 / 0.08);
+    --glass-specular:
+      inset 0 1px 0 oklch(100% 0 0 / 0.14), inset 0 0 0 0.5px oklch(100% 0 0 / 0.06);
+    --glass-shadow:
+      var(--glass-specular), 0 1px 2px oklch(0% 0 0 / 0.28), 0 14px 44px -4px oklch(0% 0 0 / 0.45);
+
+    --surface: oklch(25.5% 0.058 274 / 0.88);
+    --surface-secondary: oklch(28.5% 0.055 274 / 0.74);
+    --surface-tertiary: oklch(32% 0.055 274 / 0.78);
+    --overlay: oklch(23% 0.058 274 / 0.9);
+    --default: oklch(100% 0 0 / 0.085);
+    --backdrop: oklch(8% 0.03 274 / 0.54);
+
+    /* Distinct inset field luminance over dark glass cards */
+    --field-background: oklch(100% 0 0 / 0.075);
+    --field-border: oklch(100% 0 0 / 0.11);
+    --field-shadow: inset 0 1px 1px oklch(0% 0 0 / 0.18);
+    --segment: oklch(31% 0.055 274 / 0.92);
+    --segment-foreground: var(--room-foreground);
+    --border: oklch(100% 0 0 / 0.11);
+    --separator: oklch(100% 0 0 / 0.09);
+
+    --surface-shadow:
+      inset 0 1px 0 oklch(100% 0 0 / 0.1), 0 1px 3px oklch(0% 0 0 / 0.24),
+      0 6px 18px -4px oklch(0% 0 0 / 0.3);
+    --overlay-shadow:
+      var(--glass-specular), 0 4px 12px oklch(0% 0 0 / 0.32), 0 22px 56px -6px oklch(0% 0 0 / 0.55);
+
+    --scrollbar-thumb: oklch(90% 0.025 280 / 0.28);
+
+    /* Accent & status semantic roles */
+    --app-accent: oklch(96.3% 0.016 289);
+    --app-accent-foreground: oklch(19.5% 0.062 273);
+    --approval-pending-background: oklch(19.5% 0.062 273);
+    --accent-soft: color-mix(in oklab, var(--accent) 24%, oklch(19.5% 0.062 273));
     --accent-soft-foreground: var(--app-accent);
-    --room-wallpaper: url('../../assets/room/wallpaper-night.png');
+    --needs-you: oklch(78% 0.13 347);
+    --warning: oklch(80% 0.155 78);
+    --warning-foreground: oklch(19.5% 0.062 273);
+    --danger: oklch(78% 0.13 28);
+    --danger-foreground: oklch(21.5% 0.044 290);
+    --success: oklch(80% 0.135 152);
+    --success-foreground: oklch(19.5% 0.062 273);
+
+    --topbar-surface: oklch(20% 0.062 273 / 0.64);
+    --crew-hover: oklch(100% 0 0 / 0.06);
+    --crew-selected: oklch(100% 0 0 / 0.11);
+    --nav-selected: oklch(96.3% 0.016 289);
+    --nav-selected-foreground: oklch(19.5% 0.062 273);
+    --message-user: oklch(100% 0 0 / 0.12);
+    --message-user-border: oklch(100% 0 0 / 0.2);
   }
 }

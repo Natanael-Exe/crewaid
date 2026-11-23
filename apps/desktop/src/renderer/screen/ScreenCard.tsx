@@ -1,9 +1,10 @@
-import { Button } from '@heroui/react';
-import { IconArrowsDiagonal, IconLoader2, IconX } from '@tabler/icons-react';
+import { Button, Spinner } from '@heroui/react';
+import { IconArrowsDiagonal, IconX } from '@tabler/icons-react';
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { FocusScope } from 'react-aria';
 import type { BotWithSandbox, ScreenControlStatePayload } from '@crewaid/shared';
 import RFB from '@novnc/novnc';
+import { IconButtonTooltip } from '../components/ui';
 import type { RecordingView, WakeStatus } from '../state/chatReducer';
 import type { BotMutation, OpenScreenStream, SeatControlRequest } from '../state/useChat';
 import type { ScreenStreamHandle } from './screenStreamClient';
@@ -52,7 +53,7 @@ export interface ScreenCardProps {
 }
 
 /**
- * The bot's live desktop (M2-FE-01 thumbnail, M2-FE-02 full-screen viewer).
+ * The bot's live desktop: a thumbnail in the rail and a full-screen viewer.
  *
  * noVNC decodes; this component only owns the lifecycle around it —
  * subscribe, feed, tear down — and the states where there is nothing to show.
@@ -208,6 +209,7 @@ export function ScreenCard({
         }
       >
         <div
+          data-screen-slot="canvas"
           onPointerDownCapture={(event) => {
             if (
               expanded &&
@@ -278,7 +280,7 @@ export function ScreenCard({
             >
               <span
                 data-screen-open-label="true"
-                className="flex translate-y-1 items-center gap-2 rounded-full border border-white/15 bg-[#17191d]/90 px-4 py-2.5 text-[13px] font-medium opacity-0 shadow-[0_8px_24px_rgb(11_28_48_/_22%)] backdrop-blur-md transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 group-active:opacity-80"
+                className="flex translate-y-1 items-center gap-2 rounded-full border border-white/15 bg-[#17191d]/90 px-4 py-2.5 text-footnote font-medium opacity-0 shadow-[0_8px_24px_rgb(11_28_48_/_22%)] backdrop-blur-md transition duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 group-active:opacity-80"
               >
                 <IconArrowsDiagonal className="size-4" stroke={1.8} />
                 {t('screen.screenCard.open')}
@@ -289,18 +291,19 @@ export function ScreenCard({
             <div
               role="status"
               data-screen-control-notice
-              className="pointer-events-none absolute bottom-6 left-1/2 z-30 w-max max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl border border-border bg-surface px-4 py-3 text-center text-[13px] text-foreground shadow-lg"
+              className="pointer-events-none absolute bottom-6 left-1/2 z-30 w-max max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl border border-border bg-surface px-4 py-3 text-center text-footnote text-foreground shadow-lg"
             >
               {controlNotice.message}
             </div>
           ) : null}
         </div>
         <div
+          data-screen-slot="controls"
           hidden={!expanded && control.kind !== 'taken'}
           className={
             expanded
-              ? 'crewaid-screen-toolbar window-drag flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-2 py-2 pl-[88px] pe-3 text-[13px] text-foreground'
-              : 'flex items-center justify-between gap-2 px-3 py-2 text-[11px] text-muted'
+              ? 'crewaid-screen-toolbar window-drag flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-2 py-2 pl-[88px] pe-3 text-footnote text-foreground'
+              : 'flex items-center justify-between gap-2 px-3 py-2 text-micro text-muted'
           }
         >
           <span className="truncate" hidden={!expanded && control.kind !== 'taken'}>
@@ -309,7 +312,7 @@ export function ScreenCard({
               : caption}
           </span>
           <div className={`flex min-w-0 flex-wrap items-center gap-2 ${expanded ? '' : 'ms-auto'}`}>
-            {/* M3-FE-01: the teaching flow lives on THIS surface — D-038 makes
+            {/* The teaching flow lives on THIS surface — D-038 makes
                 the full-screen view the only one that takes input, so it is
                 the only one where a demonstration can happen. */}
             {expanded && botId !== null && view.kind === 'live' ? (
@@ -346,17 +349,14 @@ export function ScreenCard({
               />
             ) : null}
             {expanded ? (
-              <Button
-                variant="ghost"
-                isIconOnly
-                size="sm"
+              <IconButtonTooltip
                 ref={closeRef}
-                aria-label={t('screen.screenCard.closeFullScreen')}
+                label={t('screen.screenCard.closeFullScreen')}
                 onPress={() => onExpandedChange(false)}
                 className="window-no-drag size-7 shrink-0 rounded-lg text-foreground"
               >
                 <IconX className="size-4" stroke={1.8} />
-              </Button>
+              </IconButtonTooltip>
             ) : null}
           </div>
         </div>
@@ -583,17 +583,17 @@ function ScreenViewer({
           data-screen-loading="true"
           className="crewaid-screen-ambient absolute inset-0 z-10 grid place-items-center px-4 text-center"
         >
-          <div className="flex flex-col items-center gap-3 text-[#3d617b]">
-            <span className="grid size-10 place-items-center rounded-2xl border border-white/55 bg-white/45 shadow-[0_8px_28px_rgb(48_112_158_/_14%)] backdrop-blur-md">
-              <IconLoader2 className="size-5 animate-spin" stroke={1.8} />
+          <div className="flex flex-col items-center gap-3 text-muted">
+            <span className="grid size-10 place-items-center rounded-2xl border border-border bg-surface/80 shadow-surface backdrop-blur-md">
+              <Spinner size="sm" color="current" aria-hidden />
             </span>
-            <span className="text-[12px] font-medium">
+            <span className="text-caption font-medium">
               {t('screen.screenCard.connectingToDisplay')}
             </span>
           </div>
         </div>
       ) : failure === null ? null : (
-        <div className="absolute inset-0 z-10 grid place-items-center bg-surface-secondary px-4 text-center text-[12px] text-muted">
+        <div className="absolute inset-0 z-10 grid place-items-center bg-surface-secondary px-4 text-center text-caption text-muted">
           <div className="flex flex-col items-center gap-3">
             <span role="status">{failure}</span>
             <Button size="sm" onPress={() => setAttempt((value) => value + 1)}>
@@ -665,7 +665,7 @@ function SeatControlBar({
       className="window-no-drag flex min-w-0 items-center gap-2"
     >
       {control.kind === 'taking' || control.kind === 'taken' ? (
-        <span role="status" className="truncate text-[12px] text-muted">
+        <span role="status" className="truncate text-caption text-muted">
           {SEAT_CONTROL_LABELS[control.kind]}
         </span>
       ) : null}

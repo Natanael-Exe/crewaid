@@ -1,4 +1,4 @@
-import { Button, Modal, useOverlayState } from '@heroui/react';
+import { Button, Modal, ScrollShadow, useOverlayState } from '@heroui/react';
 import {
   IconCreditCard,
   IconDeviceDesktop,
@@ -8,6 +8,7 @@ import {
   IconBrandTelegram,
 } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
+import { IconButtonTooltip } from '../components/ui';
 import { ConnectionsPane } from './ConnectionsPane';
 import { GeneralPane } from './GeneralPane';
 import { PlanPane } from './PlanPane';
@@ -94,7 +95,7 @@ export function SettingsModal({
                     fullWidth
                     {...(selected ? { 'aria-current': 'true' as const } : {})}
                     onPress={() => setActive(entry.id)}
-                    className="crewaid-settings-nav-item flex h-[38px] items-center justify-start gap-2.5 rounded-xl px-3 text-[14px] font-normal"
+                    className="crewaid-settings-nav-item flex h-[38px] items-center justify-start gap-2.5 rounded-xl px-3 text-callout font-normal"
                   >
                     <Icon className="size-4 shrink-0" stroke={1.8} />
                     {entry.label}
@@ -106,23 +107,25 @@ export function SettingsModal({
             <div className="crewaid-settings-content flex min-w-0 flex-1 flex-col">
               <div className="crewaid-settings-header flex shrink-0 items-start justify-between gap-4 px-[30px] pb-[22px] pt-[26px]">
                 <div className="min-w-0">
-                  <h2 className="text-[19px] font-semibold text-foreground">{pane.label}</h2>
-                  <p className="mt-1 text-[12px] leading-[17px] text-muted">{pane.summary}</p>
+                  <h2 className="text-heading font-semibold text-foreground">{pane.label}</h2>
+                  <p className="mt-1 text-caption leading-[17px] text-muted">{pane.summary}</p>
                 </div>
-                <Button
+                <IconButtonTooltip
+                  label={t('settings.close')}
                   variant="ghost"
-                  isIconOnly
                   size="sm"
-                  aria-label={t('settings.close')}
                   onPress={() => onOpenChange(false)}
                   className="crewaid-settings-close size-8 shrink-0 rounded-full text-muted"
                 >
-                  <IconX className="size-4" stroke={1.8} />
-                </Button>
+                  <IconX className="size-4" stroke={1.8} aria-hidden />
+                </IconButtonTooltip>
               </div>
-              <div className="crewaid-settings-body min-h-0 flex-1 overflow-y-auto px-[30px] pb-7">
+              <ScrollShadow
+                hideScrollBar={false}
+                className="crewaid-settings-body min-h-0 flex-1 overflow-y-auto px-[30px] pb-7"
+              >
                 <SettingsPaneBody id={active} onCredentialsSaved={onCredentialsSaved} />
-              </div>
+              </ScrollShadow>
             </div>
           </Modal.Dialog>
         </Modal.Container>

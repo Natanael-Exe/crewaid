@@ -71,7 +71,7 @@ function InlineImage({
       type="button"
       onClick={onOpenFull}
       aria-label={t('attachments.showFullSize', { name: attachment.filename })}
-      className="cursor-zoom-in self-start overflow-hidden rounded-card border border-divider"
+      className="cursor-zoom-in self-start overflow-hidden rounded-card border border-border"
     >
       <img
         alt={attachment.filename}
@@ -159,17 +159,17 @@ export function AttachmentCard({ attachment }: { attachment: MessageAttachment }
             )}
           </span>
           <div className="min-w-0 flex-1">
-            <Card.Description className="mb-1 text-[11px]">
+            <Card.Description className="mb-1 text-micro">
               {identity.label} · {formatFileSize(attachment.sizeBytes)}
             </Card.Description>
-            <Card.Title className="break-words text-[13px] font-medium">
+            <Card.Title className="break-words text-footnote font-medium">
               {attachment.filename}
             </Card.Title>
           </div>
         </Card.Header>
         {failure === null ? null : (
           <Card.Content>
-            <p role="alert" className="text-[12px] text-danger">
+            <p role="alert" className="text-caption text-danger">
               {failure.message}
             </p>
           </Card.Content>
@@ -189,7 +189,7 @@ export function AttachmentCard({ attachment }: { attachment: MessageAttachment }
             </button>
           )}
           {permanent ? (
-            <span className="text-[12px] text-warning">{t('attachments.unavailable')}</span>
+            <span className="text-caption text-warning">{t('attachments.unavailable')}</span>
           ) : (
             <button
               type="button"
@@ -243,7 +243,7 @@ export function AttachmentCardRow({
               <button
                 type="button"
                 onClick={() => onOpenTask(task.taskId)}
-                className="self-start px-1 text-[11px]! text-muted hover:text-foreground"
+                className="self-start px-1 text-micro text-muted hover:text-foreground"
               >
                 → {task.title}
               </button>

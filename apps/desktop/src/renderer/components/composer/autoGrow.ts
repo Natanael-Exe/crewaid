@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 /**
  * Auto-grow behavior for the composer textarea.
  *
- * HeroUI v3's TextArea has NO auto-grow (verified M1-FE-02: the props are
+ * HeroUI v3's TextArea has NO auto-grow (verified against the installed tree: the props are
  * rows/cols/value/defaultValue/onChange/placeholder/disabled/readOnly), so the
  * composer hand-rolls it. This hook is the hand-roll, extracted so it can be
  * unit-tested without rendering.

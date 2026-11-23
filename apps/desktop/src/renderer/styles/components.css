@@ -1,0 +1,45 @@
+/*
+ * The few component styles Tailwind utilities do not express well. Everything
+ * else lives on the components in components/ui.
+ */
+
+/* A highlight sweeps across text while a bot is working. The glyphs keep the
+   element's own (usually muted) colour and a band of the foreground passes
+   over them, so a still frame still reads. */
+.crewaid-shimmer {
+  background: linear-gradient(
+      100deg,
+      currentColor 0%,
+      currentColor 42%,
+      var(--foreground) 50%,
+      currentColor 58%,
+      currentColor 100%
+    )
+    0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: crewaid-shimmer 2.2s linear infinite;
+}
+
+@keyframes crewaid-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crewaid-shimmer {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+[data-reduce-motion='true'] .crewaid-shimmer {
+  animation: none;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}

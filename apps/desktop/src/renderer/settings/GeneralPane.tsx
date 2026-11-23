@@ -1,4 +1,4 @@
-import { Button, Switch, ToggleButton, ToggleButtonGroup } from '@heroui/react';
+import { Alert, Button, Input, Switch } from '@heroui/react';
 import {
   IconCheck,
   IconAlertTriangle,
@@ -17,6 +17,7 @@ import type {
 } from '../../preload';
 import { ApiClient, failureOf, fetchModelCatalog } from '../api';
 import { appInfo, authBridge, tokenStore, type AuthPort } from '../bridge';
+import { Segment } from '../components/ui';
 import { fetchServerVersion, serverIsOlder } from './serverVersion';
 import { AccountSection } from './AccountSection';
 import { signInProblem } from './accountState';
@@ -36,7 +37,7 @@ import {
 import { setShowBotWork, useShowBotWork } from '../state/transcriptPrefs';
 import { setThemePreference, useThemePreference } from '../styles/themePreference';
 import { useAppEdition } from '../state/useAppEdition';
-import { SettingsRow, SettingsSection, SETTINGS_INPUT_CLASS } from './SettingsLayout';
+import { SettingsRow, SettingsSection } from './SettingsLayout';
 import { BotsSection, LanguageRow, SystemSection } from './PreferenceRows';
 import { useT } from '../i18n/i18n';
 import { rich } from '../i18n/rich';
@@ -45,7 +46,7 @@ import { rich } from '../i18n/rich';
  * General — the orchestrator connection.
  *
  * This pane is the reason the modal exists. `ApiClient` and `WsClient` both
- * fail closed on an empty CC-07 store rather than guessing at localhost, which
+ * fail closed on an empty token store rather than guessing at localhost, which
  * is the right behaviour and was also, until now, a dead end: nothing in the
  * renderer ever called `tokenStore.set`, so a fresh install could not be
  * pointed at anything.
@@ -60,7 +61,7 @@ import { rich } from '../i18n/rich';
 export type GeneralPaneProps = {
   /** Called after credentials are stored, so the shell can reconnect. */
   readonly onSaved?: () => void;
-  /** Seams for tests; production uses the CC-07 bridge and the real catalog. */
+  /** Seams for tests; production uses the token-store bridge and the real catalog. */
   readonly readStore?: () => Promise<TokenStoreReadResult>;
   readonly writeStore?: (bag: TokenBag) => Promise<TokenStoreWriteResult>;
   readonly probe?: (draft: ConnectionDraft) => Promise<number>;
@@ -130,7 +131,7 @@ export function GeneralPane({
   /**
    * Pull the form back to what is actually stored.
    *
-   * Called on mount AND after every sign-in, because V1-11 gave the store a
+   * Called on mount AND after every sign-in, because session sign-in gave the store a
    * second writer: the main process puts the session token in it when a
    * browser hands one back. Without this, the form keeps the token it read at
    * mount and Save quietly writes that stale one back over the new session —
@@ -331,8 +332,9 @@ export function GeneralPane({
             description={t('settings.general.address.description')}
             stacked
             control={
-              <input
+              <Input
                 id="settings-base-url"
+                variant="secondary"
                 type="url"
                 inputMode="url"
                 autoComplete="off"
@@ -340,7 +342,7 @@ export function GeneralPane({
                 placeholder={ADDRESS_EXAMPLE}
                 value={draft.baseUrl}
                 onChange={(event) => edit({ baseUrl: event.target.value })}
-                className={SETTINGS_INPUT_CLASS}
+                className="w-full"
               />
             }
           />
@@ -353,7 +355,7 @@ export function GeneralPane({
               size="sm"
               isDisabled={result.kind === 'checking'}
               onPress={() => void runCheck()}
-              className="h-8 rounded-[10px] px-3.5 text-[12px] font-medium"
+              className="h-8 rounded-[10px] px-3.5 text-caption font-medium"
             >
               {result.kind === 'checking'
                 ? t('settings.general.checking')
@@ -364,7 +366,7 @@ export function GeneralPane({
               size="sm"
               isDisabled={!dirty}
               onPress={() => void save()}
-              className="h-8 rounded-[10px] px-3.5 text-[12px] font-medium"
+              className="h-8 rounded-[10px] px-3.5 text-caption font-medium"
             >
               {t('settings.general.save')}
             </Button>
@@ -375,7 +377,9 @@ export function GeneralPane({
 
       {saveProblem === null ? null : <PaneAlert>{saveProblem}</PaneAlert>}
       {justSaved && !dirty ? (
-        <p className="-mt-3 mb-6 px-1 text-[12px] text-muted">{t('settings.general.saved')}</p>
+        <p role="status" className="mb-5 px-1 text-caption text-muted">
+          {t('settings.general.saved')}
+        </p>
       ) : null}
 
       <div className="crewaid-settings-preferences">
@@ -430,7 +434,7 @@ export function ServerVersionNote({ server, app }: { server: string; app: string
   const t = useT();
   const behind = app !== null && serverIsOlder(server, app);
   return (
-    <div className="px-4 pb-1 text-[12px] text-muted">
+    <div className="px-4 pb-1 text-caption text-muted">
       <p>{t('settings.general.serverVersion', { version: server })}</p>
       {behind ? (
         <p className="mt-1 text-warning">
@@ -448,7 +452,7 @@ function CheckResult({ result }: { result: ConnectionCheck }) {
   if (result.kind === 'idle' || result.kind === 'checking') return null;
   if (result.kind === 'reachable') {
     return (
-      <span className="flex items-center gap-1.5 text-[12px] text-muted">
+      <span className="flex items-center gap-1.5 text-caption text-muted">
         <IconCheck className="size-4 shrink-0 text-accent" stroke={2.2} />
         {t('settings.general.reachable')}
       </span>
@@ -456,14 +460,14 @@ function CheckResult({ result }: { result: ConnectionCheck }) {
   }
   if (result.kind === 'ok') {
     return (
-      <span className="flex items-center gap-1.5 text-[12px] text-muted">
+      <span className="flex items-center gap-1.5 text-caption text-muted">
         <IconCheck className="size-4 shrink-0 text-accent" stroke={2.2} />
         {t('settings.general.connected', { count: result.modelCount })}
       </span>
     );
   }
   return (
-    <span className="flex items-start gap-1.5 text-[12px] text-danger">
+    <span className="flex items-start gap-1.5 text-caption text-danger">
       <IconAlertTriangle className="mt-px size-4 shrink-0" stroke={1.8} />
       {result.message}
     </span>
@@ -472,10 +476,12 @@ function CheckResult({ result }: { result: ConnectionCheck }) {
 
 function PaneAlert({ children }: { children: ReactNode }) {
   return (
-    <div className="mb-6 flex items-start gap-2 rounded-card border border-danger/25 bg-danger/5 px-3.5 py-3 text-[12px] leading-[17px] text-danger">
-      <IconAlertTriangle className="mt-px size-4 shrink-0" stroke={1.8} />
-      <span>{children}</span>
-    </div>
+    <Alert status="danger" role="alert" className="mb-6">
+      <Alert.Indicator />
+      <Alert.Content>
+        <Alert.Description>{children}</Alert.Description>
+      </Alert.Content>
+    </Alert>
   );
 }
 
@@ -488,33 +494,41 @@ export function AppearanceSection() {
         label={t('settings.theme.label')}
         description={t('settings.theme.description')}
         control={
-          <ToggleButtonGroup
+          <Segment
             aria-label={t('settings.theme.label')}
-            selectionMode="single"
-            disallowEmptySelection
-            selectedKeys={new Set([theme])}
-            onSelectionChange={(keys) => {
-              const [value] = keys;
+            selectedKey={theme}
+            onSelectionChange={(value) => {
               if (value === 'light' || value === 'dark' || value === 'system')
                 setThemePreference(value);
             }}
-            fullWidth
             size="sm"
-            className="crewaid-theme-segments w-[264px]"
+            className="w-[264px]"
           >
-            <ToggleButton id="light" aria-label={t('settings.theme.light')}>
-              <IconSun className="size-3.5" stroke={1.6} aria-hidden />
+            <Segment.Item
+              id="light"
+              aria-label={t('settings.theme.light')}
+              className="flex-1 justify-center gap-1.5"
+            >
+              <IconSun className="size-3.5 shrink-0" stroke={1.6} aria-hidden />
               {t('settings.theme.light')}
-            </ToggleButton>
-            <ToggleButton id="dark" aria-label={t('settings.theme.night')}>
-              <IconMoon className="size-3.5" stroke={1.6} aria-hidden />
+            </Segment.Item>
+            <Segment.Item
+              id="dark"
+              aria-label={t('settings.theme.night')}
+              className="flex-1 justify-center gap-1.5"
+            >
+              <IconMoon className="size-3.5 shrink-0" stroke={1.6} aria-hidden />
               {t('settings.theme.night')}
-            </ToggleButton>
-            <ToggleButton id="system" aria-label={t('settings.theme.system')}>
-              <IconDeviceDesktop className="size-3.5" stroke={1.6} aria-hidden />
+            </Segment.Item>
+            <Segment.Item
+              id="system"
+              aria-label={t('settings.theme.system')}
+              className="flex-1 justify-center gap-1.5"
+            >
+              <IconDeviceDesktop className="size-3.5 shrink-0" stroke={1.6} aria-hidden />
               {t('settings.theme.system')}
-            </ToggleButton>
-          </ToggleButtonGroup>
+            </Segment.Item>
+          </Segment>
         }
       />
       <LanguageRow />

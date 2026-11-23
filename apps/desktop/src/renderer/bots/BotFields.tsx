@@ -1,7 +1,7 @@
+import { Input, TextArea } from '@heroui/react';
 import { IconLock } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { BotAvatar, MascotFace } from '../components/BotAvatar';
-import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
 import { AVATAR_COLORS, AVATAR_SHAPES, type BotDraft } from './botProfileForm';
 import { useT, t } from '../i18n/i18n';
 
@@ -109,29 +109,31 @@ export function BotFields({
       </div>
 
       {mainAssistant ? (
-        <dl className="flex flex-col gap-2 text-[13px]">
+        <dl className="flex flex-col gap-2 text-footnote">
           <LockedRow label={t('bots.botFields.name')} value={draft.name} />
           <LockedRow label={t('bots.botFields.label')} value={draft.role} />
         </dl>
       ) : (
         <>
           <Field id={nameId} label={t('bots.botFields.name')}>
-            <input
+            <Input
               id={nameId}
+              variant="secondary"
               value={draft.name}
               onChange={(event) => onChange({ ...draft, name: event.target.value })}
-              className={SETTINGS_INPUT_CLASS}
+              className="w-full"
             />
           </Field>
 
           {/* "Label" is the reference app's word for what PRD §3 calls `role`. The
               reference marks it optional; the column is not, so neither is this. */}
           <Field id={roleId} label={t('bots.botFields.label')}>
-            <input
+            <Input
               id={roleId}
+              variant="secondary"
               value={draft.role}
               onChange={(event) => onChange({ ...draft, role: event.target.value })}
-              className={SETTINGS_INPUT_CLASS}
+              className="w-full"
             />
           </Field>
         </>
@@ -141,7 +143,7 @@ export function BotFields({
           the friendlier one — but this text is what the model is told, not a
           note about the bot, so the placeholder says so.
 
-          CC-50: it used to ask what the bot is FOR, and got job descriptions
+          It used to ask what the bot is FOR, and got job descriptions
           back. A brief that names a function produces a bot that reads like a
           function; the same field asked for a person produces a colleague, and
           it is the single largest lever this product has over how its bots
@@ -155,8 +157,9 @@ export function BotFields({
             : t('bots.botFields.description')
         }
       >
-        <textarea
+        <TextArea
           id={promptId}
+          variant="secondary"
           rows={promptRows}
           placeholder={
             mainAssistant
@@ -165,10 +168,10 @@ export function BotFields({
           }
           value={draft.systemPrompt}
           onChange={(event) => onChange({ ...draft, systemPrompt: event.target.value })}
-          className={`${SETTINGS_INPUT_CLASS} h-auto resize-none py-2 leading-[18px]`}
+          className="w-full resize-none"
         />
         {mainAssistant ? (
-          <p className="mt-1.5 text-[12px] text-muted">
+          <p className="mt-1.5 text-caption text-muted">
             {t('bots.mainPromptPrivate', { name: draft.name })}
           </p>
         ) : null}
@@ -180,7 +183,7 @@ export function BotFields({
 function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-[12px] text-muted">
+      <label htmlFor={id} className="mb-1.5 block text-caption text-muted">
         {label}
       </label>
       {children}

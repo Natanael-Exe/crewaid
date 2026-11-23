@@ -1,4 +1,4 @@
-import { Button, Modal, Skeleton, Spinner, useOverlayState } from '@heroui/react';
+import { Alert, Button, Modal, Skeleton, Spinner, useOverlayState } from '@heroui/react';
 import {
   COMPUTER_BUSY_CODE,
   SNAPSHOT_UNAVAILABLE_CODE,
@@ -173,7 +173,9 @@ export function ComputerView({ status, problem, busy, onSave, onRestore }: Compu
       <SettingsSection title={t('settings.computer.snapshot')}>
         <SettingsRow
           label={snapshot === null ? t('settings.computer.none') : t('settings.computer.saved')}
-          description={saved ?? t('settings.computer.noneLine')}
+          description={
+            <span className="tabular-nums">{saved ?? t('settings.computer.noneLine')}</span>
+          }
           control={
             activity === null ? (
               <div className="flex items-center gap-2">
@@ -197,7 +199,7 @@ export function ComputerView({ status, problem, busy, onSave, onRestore }: Compu
                 </Button>
               </div>
             ) : (
-              <span role="status" className="flex items-center gap-2 text-[12px] text-muted">
+              <span role="status" className="flex items-center gap-2 text-caption text-muted">
                 <Spinner size="sm" />
                 {activity === 'SAVING'
                   ? t('settings.computer.saving')
@@ -206,54 +208,60 @@ export function ComputerView({ status, problem, busy, onSave, onRestore }: Compu
             )
           }
         />
-        <div className="px-4 py-3 text-[12px] leading-[17px] text-muted">
+        <div className="px-4 py-3 text-caption leading-[17px] text-muted">
           {t('settings.computer.explainer')}
         </div>
       </SettingsSection>
 
       {status.lastError === null ? null : (
-        <p role="alert" className="-mt-3 mb-6 px-1 text-[12px] text-danger">
-          {status.lastError === 'SAVE_FAILED'
-            ? t('settings.computer.saveFailed')
-            : t('settings.computer.restoreFailed')}
-        </p>
+        <Alert status="danger" role="alert" className="mb-6">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>
+              {status.lastError === 'SAVE_FAILED'
+                ? t('settings.computer.saveFailed')
+                : t('settings.computer.restoreFailed')}
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
       )}
       {problem === null ? null : (
-        <p role="alert" className="-mt-3 mb-6 px-1 text-[12px] text-danger">
-          {problem}
-        </p>
+        <Alert status="danger" role="alert" className="mb-6">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>{problem}</Alert.Description>
+          </Alert.Content>
+        </Alert>
       )}
 
       <Modal state={overlay}>
         <Modal.Backdrop>
-          <Modal.Container size="cover" placement="center" className="h-fit sm:w-auto">
+          <Modal.Container size="sm" placement="center">
             <Modal.Dialog
               aria-label={
                 confirming === 'restore'
                   ? t('settings.computer.restoreTitle')
                   : t('settings.computer.replaceTitle')
               }
-              className="flex h-fit w-[400px] max-w-[92vw] flex-col gap-3 rounded-card bg-surface p-5"
             >
-              <h2 className="text-[15px] font-semibold">
-                {confirming === 'restore'
-                  ? t('settings.computer.restoreTitle')
-                  : t('settings.computer.replaceTitle')}
-              </h2>
-              <p className="text-[13px] leading-[18px] text-muted">
-                {confirming === 'restore'
-                  ? t('settings.computer.restoreConsequence', {
-                      date: snapshot === null ? '' : formatTakenAt(snapshot.takenAt),
-                    })
-                  : t('settings.computer.replaceConsequence')}
-              </p>
-              <div className="mt-1 flex justify-end gap-2">
-                <Button
-                  variant="tertiary"
-                  size="sm"
-                  onPress={() => setConfirming(null)}
-                  className="h-8 rounded-[10px] text-[12px] font-medium"
-                >
+              <Modal.Header>
+                <Modal.Heading>
+                  {confirming === 'restore'
+                    ? t('settings.computer.restoreTitle')
+                    : t('settings.computer.replaceTitle')}
+                </Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                <p className="text-footnote leading-[18px] text-muted">
+                  {confirming === 'restore'
+                    ? t('settings.computer.restoreConsequence', {
+                        date: snapshot === null ? '' : formatTakenAt(snapshot.takenAt),
+                      })
+                    : t('settings.computer.replaceConsequence')}
+                </p>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="tertiary" size="sm" onPress={() => setConfirming(null)}>
                   {t('settings.computer.cancel')}
                 </Button>
                 <Button
@@ -265,13 +273,12 @@ export function ComputerView({ status, problem, busy, onSave, onRestore }: Compu
                     if (chosen === 'restore') onRestore();
                     if (chosen === 'save') onSave();
                   }}
-                  className="h-8 rounded-[10px] text-[12px] font-medium"
                 >
                   {confirming === 'restore'
                     ? t('settings.computer.restoreConfirm')
                     : t('settings.computer.replaceConfirm')}
                 </Button>
-              </div>
+              </Modal.Footer>
             </Modal.Dialog>
           </Modal.Container>
         </Modal.Backdrop>

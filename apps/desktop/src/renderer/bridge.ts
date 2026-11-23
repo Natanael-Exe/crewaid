@@ -28,7 +28,7 @@ const IPC_ERROR: TokenStoreReadResult = { status: 'error', code: 'IPC_ERROR' };
 const IPC_WRITE_ERROR: TokenStoreWriteResult = { status: 'error', code: 'IPC_ERROR' };
 
 /**
- * CC-07 accessors. Renderer never touches fs or safeStorage. The compatibility
+ * token-store accessors. Renderer never touches fs or safeStorage. The compatibility
  * `get` returns credentials only for a configured store; first-run,
  * unavailable, corrupt, and IPC-error states become empty credentials so the
  * WS/model clients fail closed with their normalized configuration state.
@@ -134,6 +134,15 @@ export function reportLocale(locale: string): void {
   window.crewaid.app.setLocale(locale).catch(() => undefined);
 }
 
+/**
+ * Tell the main process which theme preference is active so native menus,
+ * scrollbars, and resize frames never flash the opposite color scheme.
+ */
+export function reportTheme(theme: 'light' | 'dark' | 'system'): void {
+  if (typeof window === 'undefined' || typeof window.crewaid === 'undefined') return;
+  window.crewaid.app.setTheme(theme).catch(() => undefined);
+}
+
 export const systemBrowser = {
   open: async (url: string): Promise<OpenExternalResult> => {
     try {
@@ -162,7 +171,7 @@ export function credentialsProvider(): Promise<TokenCredentials> {
 }
 
 /**
- * V1-11 sign-in, through the same bridge and the same failure discipline.
+ * Session sign-in, through the same bridge and the same failure discipline.
  *
  * Every call normalizes a thrown IPC error into a result the UI can render,
  * for the reason the accessors above do: a rejected promise from the bridge

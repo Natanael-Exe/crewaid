@@ -321,7 +321,10 @@ test('view, edit, save, approve and reopen ride the real skills wire end to end'
     // The raw editor is the developer path (D-098): the surface's primary edit
     // is a sentence, and getting at the source means opening the disclosure —
     // which is also the gesture a person makes.
-    await page.locator('[data-skill-developer] summary').click();
+    await page
+      .locator('[data-skill-developer]')
+      .getByRole('button', { name: 'Developer view', exact: true })
+      .click();
     await page.locator('[data-skill-script-editor]').fill(SCRIPT_V2);
     await page.locator('[data-skill-action="save"]').click();
     await expect(page.locator('[data-skill-version="2"]')).toBeVisible();

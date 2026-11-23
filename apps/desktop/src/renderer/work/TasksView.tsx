@@ -1,4 +1,4 @@
-import { Button, ToggleButton, ToggleButtonGroup } from '@heroui/react';
+import { Button, Input, Tooltip } from '@heroui/react';
 import { IconLayoutKanban, IconList, IconPlus } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useState, type DragEvent } from 'react';
 import {
@@ -13,7 +13,7 @@ import { failureOf } from '../api';
 import type { ApiClient } from '../api/apiClient';
 import { createTask, listGoals, listTasks, updateTask } from '../api/work';
 import { BotAvatar } from '../components/BotAvatar';
-import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
+import { Kanban, Segment } from '../components/ui';
 import {
   BOARD_COLUMNS,
   STATUS_LABELS,
@@ -249,29 +249,32 @@ export function TasksView({
             setGroupBy((values['groupBy'] as GroupBy | null) ?? 'status');
           }}
         />
-        <ToggleButtonGroup
+        <Segment.Root
           aria-label={t('work.tasksView.layout')}
-          selectionMode="single"
-          disallowEmptySelection
-          selectedKeys={new Set([layout])}
-          onSelectionChange={(keys) => {
-            const [key] = [...keys];
+          size="sm"
+          selectedKey={layout}
+          onSelectionChange={(key) => {
             if (key === 'board' || key === 'list') setLayout(key);
           }}
-          size="sm"
         >
-          <ToggleButton id="board" aria-label={t('work.tasksView.board')} isIconOnly>
-            <IconLayoutKanban className="size-4" stroke={1.8} />
-          </ToggleButton>
-          <ToggleButton id="list" aria-label={t('work.tasksView.list')} isIconOnly>
-            <IconList className="size-4" stroke={1.8} />
-          </ToggleButton>
-        </ToggleButtonGroup>
+          <Tooltip delay={400}>
+            <Segment.Item id="board" aria-label={t('work.tasksView.board')} className="px-2">
+              <IconLayoutKanban className="size-4" stroke={1.8} />
+            </Segment.Item>
+            <Tooltip.Content placement="bottom">{t('work.tasksView.board')}</Tooltip.Content>
+          </Tooltip>
+          <Tooltip delay={400}>
+            <Segment.Item id="list" aria-label={t('work.tasksView.list')} className="px-2">
+              <IconList className="size-4" stroke={1.8} />
+            </Segment.Item>
+            <Tooltip.Content placement="bottom">{t('work.tasksView.list')}</Tooltip.Content>
+          </Tooltip>
+        </Segment.Root>
         <Button
           variant="primary"
           size="sm"
           onPress={() => setAdding(true)}
-          className="h-8 gap-1 rounded-[10px] text-[12px] font-medium"
+          className="h-8 gap-1 rounded-[10px] text-caption font-medium"
         >
           <IconPlus className="size-3.5" stroke={2} />
           {t('work.tasksView.addTask')}
@@ -304,7 +307,7 @@ export function TasksView({
 
   if (cards === null) {
     return failure === null ? null : (
-      <p role="alert" className="p-6 text-[13px] text-danger">
+      <p role="alert" className="p-6 text-footnote text-danger">
         {failure}
       </p>
     );
@@ -321,7 +324,7 @@ export function TasksView({
               variant="secondary"
               size="sm"
               onPress={() => setAdding(true)}
-              className="h-8 rounded-[10px] text-[12px]"
+              className="h-8 rounded-[10px] text-caption"
             >
               {t('work.tasksView.addATask')}
             </Button>
@@ -348,7 +351,7 @@ export function TasksView({
       {failure === null ? null : (
         <p
           role="alert"
-          className="mx-4 mt-3 rounded-lg bg-danger/10 px-3 py-2 text-[12px] text-danger"
+          className="mx-4 mt-3 rounded-lg bg-danger/10 px-3 py-2 text-caption text-danger"
         >
           {failure}
         </p>
@@ -432,7 +435,7 @@ export function Board({
           className="flex flex-col gap-2"
         >
           {lane.label === '' ? null : (
-            <h2 className="flex items-center gap-2 text-[12px] font-medium text-muted">
+            <h2 className="flex items-center gap-2 text-caption font-medium text-muted">
               {groupBy === 'bot' && botById.get(lane.key) !== undefined ? (
                 <BotAvatar bot={botById.get(lane.key)!} size="sm" />
               ) : null}
@@ -440,65 +443,75 @@ export function Board({
               <span className="tabular-nums text-foreground-faint">{lane.cards.length}</span>
             </h2>
           )}
-          <div className="flex gap-3">
+          <Kanban.Root className="gap-3">
             {BOARD_COLUMNS.map((status) => {
               const column = columnCards(lane.cards, status);
               return (
-                <div
+                <Kanban.Column
                   key={status}
                   role="list"
+                  data-kanban-column={status}
                   aria-label={STATUS_LABELS[status]}
                   onDragOver={(event) => event.preventDefault()}
                   onDrop={drop(status, column, column.length)}
-                  className="flex max-w-[320px] min-w-[196px] flex-1 basis-0 flex-col gap-2 rounded-card bg-background-secondary/60 p-2"
+                  className="max-w-[320px] min-w-[196px] flex-1 basis-0 gap-2 rounded-card bg-background-secondary/60 p-2"
                 >
-                  <div className="flex items-center justify-between px-1 text-[11px] font-medium tracking-[0.02em] text-muted">
-                    <span>{STATUS_LABELS[status]}</span>
-                    <span className="tabular-nums text-foreground-faint">{column.length}</span>
-                  </div>
-                  {status === 'TODO' && laneIndex === 0 && groupBy === 'status' ? (
-                    <QuickAdd onAdd={onQuickAdd} />
-                  ) : null}
-                  {column.map((card, index) => (
-                    <div
-                      key={card.id}
-                      role="listitem"
-                      onDragOver={(event) => event.preventDefault()}
-                      onDrop={drop(status, column, index)}
-                      className={dragging?.id === card.id ? 'opacity-40' : ''}
-                    >
-                      <TaskCardView
-                        card={card}
-                        assignee={
-                          card.assigneeBotId === null ? undefined : botById.get(card.assigneeBotId)
-                        }
-                        project={
-                          card.projectId === null ? undefined : projectById.get(card.projectId)
-                        }
-                        today={today}
-                        selected={selectedTaskId === card.id}
-                        onOpen={() => onOpenTask(card.id)}
-                        onDragStart={(event) => {
-                          event.dataTransfer.effectAllowed = 'move';
-                          event.dataTransfer.setData('text/plain', card.id);
-                          setDragging(card);
-                        }}
-                      />
-                    </div>
-                  ))}
-                  {status === 'DONE' && !showAllDone && laneIndex === rows.length - 1 ? (
-                    <button
-                      type="button"
-                      onClick={onShowAllDone}
-                      className="rounded-lg px-1 py-1 text-start text-[11px]! text-muted hover:text-foreground"
-                    >
-                      {t('work.tasksView.showingTheLast14Days')}
-                    </button>
-                  ) : null}
-                </div>
+                  <Kanban.ColumnHeader className="px-1">
+                    <Kanban.ColumnTitle className="text-micro font-medium tracking-[0.02em] text-muted">
+                      {STATUS_LABELS[status]}
+                    </Kanban.ColumnTitle>
+                    <Kanban.ColumnCount className="tabular-nums text-foreground-faint">
+                      {column.length}
+                    </Kanban.ColumnCount>
+                  </Kanban.ColumnHeader>
+                  <Kanban.ColumnBody className="gap-2">
+                    {status === 'TODO' && laneIndex === 0 && groupBy === 'status' ? (
+                      <QuickAdd onAdd={onQuickAdd} />
+                    ) : null}
+                    {column.map((card, index) => (
+                      <div
+                        key={card.id}
+                        role="listitem"
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={drop(status, column, index)}
+                        className={dragging?.id === card.id ? 'opacity-40' : ''}
+                      >
+                        <TaskCardView
+                          card={card}
+                          assignee={
+                            card.assigneeBotId === null
+                              ? undefined
+                              : botById.get(card.assigneeBotId)
+                          }
+                          project={
+                            card.projectId === null ? undefined : projectById.get(card.projectId)
+                          }
+                          today={today}
+                          selected={selectedTaskId === card.id}
+                          onOpen={() => onOpenTask(card.id)}
+                          onDragStart={(event) => {
+                            event.dataTransfer.effectAllowed = 'move';
+                            event.dataTransfer.setData('text/plain', card.id);
+                            setDragging(card);
+                          }}
+                        />
+                      </div>
+                    ))}
+                    {status === 'DONE' && !showAllDone && laneIndex === rows.length - 1 ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onPress={onShowAllDone}
+                        className="h-7 justify-start rounded-lg px-1.5 text-micro text-muted hover:text-foreground"
+                      >
+                        {t('work.tasksView.showingTheLast14Days')}
+                      </Button>
+                    ) : null}
+                  </Kanban.ColumnBody>
+                </Kanban.Column>
               );
             })}
-          </div>
+          </Kanban.Root>
         </section>
       ))}
     </div>
@@ -509,7 +522,8 @@ function QuickAdd({ onAdd }: { onAdd: (title: string) => void }) {
   const t = useT();
   const [title, setTitle] = useState('');
   return (
-    <input
+    <Input
+      variant="secondary"
       aria-label={t('work.tasksView.addATask')}
       value={title}
       placeholder={t('work.tasksView.addTask2')}
@@ -519,9 +533,7 @@ function QuickAdd({ onAdd }: { onAdd: (title: string) => void }) {
         onAdd(title.trim());
         setTitle('');
       }}
-      // app.css resets `font: inherit` on inputs outside any layer, which beats
-      // a plain size utility; the modifier says this one is meant at 13px.
-      className={`${SETTINGS_INPUT_CLASS} h-8 bg-surface text-[13px]!`}
+      className="h-8 w-full bg-surface text-footnote"
     />
   );
 }
@@ -550,9 +562,9 @@ export function TaskList({
   const ordered = BOARD_COLUMNS.flatMap((status) => columnCards(cards, status));
   return (
     <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
-      <table className="w-full border-separate border-spacing-0 text-[13px]">
+      <table className="w-full border-separate border-spacing-0 text-footnote">
         <thead>
-          <tr className="text-start text-[11px] font-medium text-muted">
+          <tr className="text-start text-micro font-medium text-muted">
             <th className="pb-2 ps-2 font-medium">{t('work.deliverablePane.task')}</th>
             <th className="pb-2 font-medium">{t('work.taskDetailsPane.status')}</th>
             <th className="pb-2 font-medium">{t('work.newTaskDialog.assignee')}</th>
@@ -576,13 +588,18 @@ export function TaskList({
                 <td className="rounded-s-lg py-1.5 ps-2">
                   <button
                     type="button"
-                    onClick={() => onOpenTask(card.id)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onOpenTask(card.id);
+                    }}
                     className="text-start outline-none focus-visible:underline"
                   >
                     {card.title}
                   </button>
                   {card.occursOn !== null ? (
-                    <span className="ms-2 text-[11px] text-muted">{shortDate(card.occursOn)}</span>
+                    <span className="ms-2 text-micro tabular-nums text-muted">
+                      {shortDate(card.occursOn)}
+                    </span>
                   ) : null}
                 </td>
                 <td className="py-1.5 text-muted">{STATUS_LABELS[card.status]}</td>

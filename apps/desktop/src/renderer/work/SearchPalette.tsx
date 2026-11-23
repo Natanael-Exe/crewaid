@@ -1,18 +1,20 @@
-import { Modal, ToggleButton, ToggleButtonGroup, useOverlayState } from '@heroui/react';
+import { Alert } from '@heroui/react';
 import {
   IconChecklist,
   IconFileText,
   IconFolder,
   IconMessage,
   IconSearch,
+  IconSearchOff,
   IconTarget,
 } from '@tabler/icons-react';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { BotWithSandbox, ProjectWithCounts, SearchResponse } from '@crewaid/shared';
 import { failureOf, isAbortError } from '../api';
 import type { ApiClient } from '../api/apiClient';
 import { searchEverything } from '../api/work';
 import { BotAvatar } from '../components/BotAvatar';
+import { Command, EmptyState, Segment } from '../components/ui';
 import { STATUS_LABELS } from './boardState';
 import { excerptParts, hitCount, SEARCH_TABS, typesOf, type SearchTab } from './searchState';
 import { workFailureText } from './workErrors';
@@ -36,10 +38,8 @@ export type SearchTarget =
 const DEBOUNCE_MS = 180;
 
 /**
- * Search everything: one query over the user's tasks,
- * goals, projects, deliverables and every transcript, grouped by type with
- * the server's excerpts. Choosing a hit jumps there — a message opens its
- * transcript around it.
+ * Search everything: the Command palette with Arrow/Enter/Escape navigation,
+ * a Segment to narrow the scope, and debounced server-side search.
  */
 export function SearchPalette({
   isOpen,
@@ -59,29 +59,10 @@ export function SearchPalette({
   onChoose: (target: SearchTarget) => void;
 }) {
   const t = useT();
-  const overlay = useOverlayState({ isOpen, onOpenChange });
   const [query, setQuery] = useState(initialQuery);
   const [tab, setTab] = useState<SearchTab>('all');
   const [results, setResults] = useState<SearchResponse | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
-  const setMotionOrigin = useCallback((node: HTMLElement | null) => {
-    if (node === null) return;
-    const trigger = document.querySelector('.crewaid-search-trigger');
-    const bounds = trigger?.getBoundingClientRect();
-    if (bounds === undefined) return;
-    // The input settles at the viewport center, 10vh below the title bar.
-    // Capture the trigger once so the exit follows the same path, without
-    // moving the underlying room or changing noVNC's measured geometry.
-    const container = node.closest<HTMLElement>('.crewaid-search-container');
-    container?.style.setProperty(
-      '--search-origin-x',
-      `${bounds.x + bounds.width / 2 - window.innerWidth / 2}px`,
-    );
-    container?.style.setProperty(
-      '--search-origin-y',
-      `${bounds.y + bounds.height / 2 - window.innerHeight * 0.1 - 26}px`,
-    );
-  }, []);
 
   useEffect(() => {
     if (isOpen) setQuery(initialQuery);
@@ -115,72 +96,102 @@ export function SearchPalette({
     };
   }, [client, query, tab, isOpen]);
 
-  const botById = new Map(bots.map((bot) => [bot.id, bot]));
-  const projectById = new Map(projects.map((project) => [project.id, project]));
+  const botById = useMemo(() => new Map(bots.map((bot) => [bot.id, bot])), [bots]);
+  const projectById = useMemo(
+    () => new Map(projects.map((project) => [project.id, project])),
+    [projects],
+  );
   const choose = (target: SearchTarget) => {
     onOpenChange(false);
     onChoose(target);
   };
 
   return (
-    <Modal state={overlay}>
-      <Modal.Backdrop className="crewaid-search-backdrop">
-        <Modal.Container
-          size="lg"
-          placement="top"
-          className="crewaid-search-container"
-          scroll="inside"
-        >
-          <Modal.Dialog
+    <Command.Root>
+      <Command.Backdrop
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        className="crewaid-search-backdrop"
+      >
+        <Command.Container className="crewaid-search-container">
+          <Command.Dialog
             aria-label={t('work.searchPalette.searchEverything')}
-            className="crewaid-search-dialog flex max-h-[72vh] w-[640px] max-w-[92vw] flex-col overflow-hidden rounded-card bg-surface p-0"
+            inputValue={query}
+            onInputChange={setQuery}
+            // Server already performs full-text matching; let every returned hit render.
+            filter={() => true}
+            className="crewaid-search-dialog"
           >
-            <div
-              ref={setMotionOrigin}
-              className="flex items-center gap-2 border-b border-separator px-4 py-3"
+            <Command.InputGroup
+              aria-label={t('work.searchPalette.searchEverything')}
+              className="gap-2 border-b border-separator px-4 py-3"
             >
-              <IconSearch className="size-4 shrink-0 text-muted" stroke={1.8} />
-              <input
+              <Command.InputGroupPrefix>
+                <IconSearch className="size-4 text-muted" stroke={1.8} aria-hidden />
+              </Command.InputGroupPrefix>
+              <Command.InputGroupInput
                 aria-label={t('work.searchPalette.searchEverything')}
-                autoFocus
-                value={query}
                 placeholder={t('work.searchPalette.searchTasksGoalsFilesAnd')}
-                onChange={(event) => setQuery(event.target.value)}
-                className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted"
+                className="min-w-0 flex-1 bg-transparent text-body outline-none placeholder:text-muted"
               />
-              <ToggleButtonGroup
-                aria-label={t('work.searchPalette.searchIn')}
-                selectionMode="single"
-                disallowEmptySelection
-                selectedKeys={new Set([tab])}
-                onSelectionChange={(keys) => {
-                  const [key] = [...keys];
-                  if (key === 'all' || key === 'tasks' || key === 'files' || key === 'chat')
-                    setTab(key);
-                }}
-                size="sm"
-              >
-                {SEARCH_TABS.map((option) => (
-                  <ToggleButton key={option.id} id={option.id} className="text-[12px]!">
-                    {option.label}
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
-            </div>
+              <Command.InputGroupSuffix className="flex items-center gap-1.5">
+                {query !== '' ? <Command.InputGroupClearButton /> : null}
+                <Segment.Root
+                  aria-label={t('work.searchPalette.searchIn')}
+                  size="sm"
+                  selectedKey={tab}
+                  onSelectionChange={(key) => {
+                    if (key === 'all' || key === 'tasks' || key === 'files' || key === 'chat')
+                      setTab(key);
+                  }}
+                >
+                  {SEARCH_TABS.map((option) => (
+                    <Segment.Item key={option.id} id={option.id} className="text-caption">
+                      {option.label}
+                    </Segment.Item>
+                  ))}
+                </Segment.Root>
+              </Command.InputGroupSuffix>
+            </Command.InputGroup>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
               {failure !== null ? (
-                <p role="alert" className="px-3 py-4 text-[13px] text-danger">
-                  {failure}
-                </p>
+                <Alert status="danger" role="alert" className="m-2 text-footnote">
+                  <Alert.Indicator />
+                  <Alert.Content>
+                    <Alert.Description>{failure}</Alert.Description>
+                  </Alert.Content>
+                </Alert>
               ) : results === null ? (
-                <p className="px-3 py-4 text-[13px] text-muted">
-                  {t('work.searchPalette.typeToSearch')}
-                </p>
+                <EmptyState size="sm" className="py-10">
+                  <EmptyState.Header>
+                    <EmptyState.Media variant="icon">
+                      <IconSearch
+                        className="size-5 text-foreground-faint"
+                        stroke={1.6}
+                        aria-hidden
+                      />
+                    </EmptyState.Media>
+                    <EmptyState.Description>
+                      {t('work.searchPalette.typeToSearch')}
+                    </EmptyState.Description>
+                  </EmptyState.Header>
+                </EmptyState>
               ) : hitCount(results) === 0 ? (
-                <p className="px-3 py-4 text-[13px] text-muted">
-                  {t('work.search.nothingFound', { query: query.trim() })}
-                </p>
+                <EmptyState size="sm" className="py-10">
+                  <EmptyState.Header>
+                    <EmptyState.Media variant="icon">
+                      <IconSearchOff
+                        className="size-5 text-foreground-faint"
+                        stroke={1.6}
+                        aria-hidden
+                      />
+                    </EmptyState.Media>
+                    <EmptyState.Description>
+                      {t('work.search.nothingFound', { query: query.trim() })}
+                    </EmptyState.Description>
+                  </EmptyState.Header>
+                </EmptyState>
               ) : (
                 <SearchResults
                   results={results}
@@ -190,10 +201,10 @@ export function SearchPalette({
                 />
               )}
             </div>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+          </Command.Dialog>
+        </Command.Container>
+      </Command.Backdrop>
+    </Command.Root>
   );
 }
 
@@ -209,161 +220,180 @@ export function SearchResults({
   onChoose: (target: SearchTarget) => void;
 }) {
   const t = useT();
+  const targetByKey = new Map<string, SearchTarget>();
+  for (const hit of results.deliverables) {
+    targetByKey.set(`deliverable:${hit.id}`, {
+      kind: 'deliverable',
+      id: hit.id,
+      botId: hit.botId,
+      taskId: hit.taskId,
+      goalId: hit.goalId,
+    });
+  }
+  for (const hit of results.tasks) targetByKey.set(`task:${hit.id}`, { kind: 'task', id: hit.id });
+  for (const hit of results.messages)
+    targetByKey.set(`message:${hit.id}`, { kind: 'message', id: hit.id, botId: hit.botId });
+  for (const hit of results.goals) targetByKey.set(`goal:${hit.id}`, { kind: 'goal', id: hit.id });
+  for (const hit of results.projects)
+    targetByKey.set(`project:${hit.id}`, { kind: 'project', id: hit.id });
+
   return (
-    <div className="flex flex-col gap-3">
-      <Group
-        title={t('work.goalDetailsPane.deliverables')}
-        hidden={results.deliverables.length === 0}
-      >
-        {results.deliverables.map((hit) => (
-          <Hit
-            key={hit.id}
-            icon={<IconFileText className="size-4 text-muted" stroke={1.8} />}
-            title={hit.title}
-            meta={[
-              hit.botId === null ? null : (botById.get(hit.botId)?.name ?? null),
-              hit.createdAt.toLocaleDateString(currentLocale(), { month: 'short', day: 'numeric' }),
-              hit.projectId === null ? null : (projectById.get(hit.projectId)?.name ?? null),
-            ]}
-            excerpt={hit.excerpt}
-            onPress={() =>
-              onChoose({
-                kind: 'deliverable',
-                id: hit.id,
-                botId: hit.botId,
-                taskId: hit.taskId,
-                goalId: hit.goalId,
-              })
-            }
-          />
-        ))}
-      </Group>
-      <Group title={t('work.botTasksSection.tasks')} hidden={results.tasks.length === 0}>
-        {results.tasks.map((hit) => (
-          <Hit
-            key={hit.id}
-            icon={<IconChecklist className="size-4 text-muted" stroke={1.8} />}
-            title={hit.title}
-            meta={[
-              hit.assigneeBotId === null ? null : (botById.get(hit.assigneeBotId)?.name ?? null),
-              STATUS_LABELS[hit.status],
-            ]}
-            excerpt={hit.excerpt}
-            onPress={() => onChoose({ kind: 'task', id: hit.id })}
-          />
-        ))}
-      </Group>
-      <Group title={t('work.searchPalette.conversations')} hidden={results.messages.length === 0}>
-        {results.messages.map((hit) => {
-          const bot = botById.get(hit.botId);
-          return (
+    <Command.List
+      aria-label={t('work.searchPalette.searchEverything')}
+      onAction={(key) => {
+        const target = targetByKey.get(String(key));
+        if (target !== undefined) onChoose(target);
+      }}
+      className="flex flex-col gap-2"
+    >
+      {results.deliverables.length > 0 ? (
+        <Command.Group
+          aria-label={t('work.goalDetailsPane.deliverables')}
+          heading={t('work.goalDetailsPane.deliverables')}
+        >
+          {results.deliverables.map((hit) => (
             <Hit
               key={hit.id}
-              icon={
-                bot === undefined ? (
-                  <IconMessage className="size-4 text-muted" stroke={1.8} />
-                ) : (
-                  <BotAvatar bot={bot} size="sm" />
-                )
-              }
-              title={bot?.name ?? t('work.searchPalette.aBot')}
+              id={`deliverable:${hit.id}`}
+              icon={<IconFileText className="size-4 text-muted" stroke={1.8} />}
+              title={hit.title}
               meta={[
+                hit.botId === null ? null : (botById.get(hit.botId)?.name ?? null),
                 hit.createdAt.toLocaleDateString(currentLocale(), {
                   month: 'short',
                   day: 'numeric',
                 }),
-                hit.author === 'USER' ? t('work.tasksView.you') : null,
+                hit.projectId === null ? null : (projectById.get(hit.projectId)?.name ?? null),
               ]}
               excerpt={hit.excerpt}
-              onPress={() => onChoose({ kind: 'message', id: hit.id, botId: hit.botId })}
             />
-          );
-        })}
-      </Group>
-      <Group title={t('work.searchPalette.goals')} hidden={results.goals.length === 0}>
-        {results.goals.map((hit) => (
-          <Hit
-            key={hit.id}
-            icon={<IconTarget className="size-4 text-muted" stroke={1.8} />}
-            title={hit.title}
-            meta={[
-              hit.status === 'ACTIVE'
-                ? null
-                : hit.status === 'ACHIEVED'
-                  ? t('work.goalDetailsPane.achieved')
-                  : t('work.goalDetailsPane.abandoned'),
-            ]}
-            excerpt={hit.excerpt}
-            onPress={() => onChoose({ kind: 'goal', id: hit.id })}
-          />
-        ))}
-      </Group>
-      <Group title={t('work.projectDialogs.projects')} hidden={results.projects.length === 0}>
-        {results.projects.map((hit) => (
-          <Hit
-            key={hit.id}
-            icon={<IconFolder className="size-4" stroke={1.8} style={{ color: hit.color }} />}
-            title={hit.name}
-            meta={[hit.status === 'ARCHIVED' ? t('work.searchPalette.archived') : null]}
-            excerpt={null}
-            onPress={() => onChoose({ kind: 'project', id: hit.id })}
-          />
-        ))}
-      </Group>
-    </div>
-  );
-}
-
-function Group({
-  title,
-  hidden,
-  children,
-}: {
-  title: string;
-  hidden: boolean;
-  children: ReactNode;
-}) {
-  if (hidden) return null;
-  return (
-    <section aria-label={title} className="flex flex-col">
-      <h3 className="px-3 pb-1 text-[11px] font-medium tracking-[0.04em] text-muted uppercase">
-        {title}
-      </h3>
-      {children}
-    </section>
+          ))}
+        </Command.Group>
+      ) : null}
+      {results.tasks.length > 0 ? (
+        <Command.Group
+          aria-label={t('work.botTasksSection.tasks')}
+          heading={t('work.botTasksSection.tasks')}
+        >
+          {results.tasks.map((hit) => (
+            <Hit
+              key={hit.id}
+              id={`task:${hit.id}`}
+              icon={<IconChecklist className="size-4 text-muted" stroke={1.8} />}
+              title={hit.title}
+              meta={[
+                hit.assigneeBotId === null ? null : (botById.get(hit.assigneeBotId)?.name ?? null),
+                STATUS_LABELS[hit.status],
+              ]}
+              excerpt={hit.excerpt}
+            />
+          ))}
+        </Command.Group>
+      ) : null}
+      {results.messages.length > 0 ? (
+        <Command.Group
+          aria-label={t('work.searchPalette.conversations')}
+          heading={t('work.searchPalette.conversations')}
+        >
+          {results.messages.map((hit) => {
+            const bot = botById.get(hit.botId);
+            return (
+              <Hit
+                key={hit.id}
+                id={`message:${hit.id}`}
+                icon={
+                  bot === undefined ? (
+                    <IconMessage className="size-4 text-muted" stroke={1.8} />
+                  ) : (
+                    <BotAvatar bot={bot} size="sm" />
+                  )
+                }
+                title={bot?.name ?? t('work.searchPalette.aBot')}
+                meta={[
+                  hit.createdAt.toLocaleDateString(currentLocale(), {
+                    month: 'short',
+                    day: 'numeric',
+                  }),
+                  hit.author === 'USER' ? t('work.tasksView.you') : null,
+                ]}
+                excerpt={hit.excerpt}
+              />
+            );
+          })}
+        </Command.Group>
+      ) : null}
+      {results.goals.length > 0 ? (
+        <Command.Group
+          aria-label={t('work.searchPalette.goals')}
+          heading={t('work.searchPalette.goals')}
+        >
+          {results.goals.map((hit) => (
+            <Hit
+              key={hit.id}
+              id={`goal:${hit.id}`}
+              icon={<IconTarget className="size-4 text-muted" stroke={1.8} />}
+              title={hit.title}
+              meta={[
+                hit.status === 'ACTIVE'
+                  ? null
+                  : hit.status === 'ACHIEVED'
+                    ? t('work.goalDetailsPane.achieved')
+                    : t('work.goalDetailsPane.abandoned'),
+              ]}
+              excerpt={hit.excerpt}
+            />
+          ))}
+        </Command.Group>
+      ) : null}
+      {results.projects.length > 0 ? (
+        <Command.Group
+          aria-label={t('work.projectDialogs.projects')}
+          heading={t('work.projectDialogs.projects')}
+        >
+          {results.projects.map((hit) => (
+            <Hit
+              key={hit.id}
+              id={`project:${hit.id}`}
+              icon={<IconFolder className="size-4" stroke={1.8} style={{ color: hit.color }} />}
+              title={hit.name}
+              meta={[hit.status === 'ARCHIVED' ? t('work.searchPalette.archived') : null]}
+              excerpt={null}
+            />
+          ))}
+        </Command.Group>
+      ) : null}
+    </Command.List>
   );
 }
 
 function Hit({
+  id,
   icon,
   title,
   meta,
   excerpt,
-  onPress,
 }: {
+  id: string;
   icon: ReactNode;
   title: string;
   meta: readonly (string | null)[];
   excerpt: string | null;
-  onPress: () => void;
 }) {
   const details = meta.filter((part): part is string => part !== null);
   return (
-    <button
-      type="button"
-      onClick={onPress}
-      className="flex items-start gap-2.5 rounded-lg px-3 py-2 text-start outline-none hover:bg-background-secondary focus-visible:bg-background-secondary"
-    >
+    <Command.Item id={id} textValue={title} className="items-start gap-2.5 rounded-lg px-3 py-2">
       <span className="mt-0.5 shrink-0">{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-baseline gap-2">
-          <span className="truncate text-[13px]! font-medium text-foreground">{title}</span>
+          <span className="truncate text-footnote font-medium text-foreground">{title}</span>
           {details.length === 0 ? null : (
-            <span className="shrink-0 text-[11px]! text-muted">{details.join(' · ')}</span>
+            <span className="shrink-0 text-micro tabular-nums text-muted">
+              {details.join(' · ')}
+            </span>
           )}
         </span>
         {excerpt === null ? null : (
-          <span className="mt-0.5 line-clamp-2 block text-[12px]! leading-[17px] text-muted">
+          <span className="mt-0.5 line-clamp-2 block text-caption leading-[17px] text-muted">
             {excerptParts(excerpt).map((part, index) =>
               part.match ? (
                 <mark key={index} className="rounded-sm bg-warning/25 px-0.5 text-foreground">
@@ -376,6 +406,6 @@ function Hit({
           </span>
         )}
       </span>
-    </button>
+    </Command.Item>
   );
 }

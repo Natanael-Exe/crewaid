@@ -1,5 +1,5 @@
-import { Button } from '@heroui/react';
-import { useId, useState } from 'react';
+import { Alert, Button, Checkbox, Radio, RadioGroup } from '@heroui/react';
+import { useState } from 'react';
 import type { Bot, PluginAccess } from '@crewaid/shared';
 import { t, useT } from '../i18n/i18n';
 
@@ -33,7 +33,6 @@ export function PluginAccessEditor({
   readonly onSave: (access: PluginAccess) => void;
 }) {
   const t = useT();
-  const group = useId();
   const [mode, setMode] = useState(access.mode);
   const [selected, setSelected] = useState(access.mode === 'SELECTED' ? access.selectedBotIds : []);
   const [excluded, setExcluded] = useState(access.mode === 'ALL' ? access.excludedBotIds : []);
@@ -43,93 +42,113 @@ export function PluginAccessEditor({
   return (
     <div className="space-y-5" aria-busy={busy}>
       <div className="border-b border-separator pb-4">
-        <p className="mb-1 text-[12px] text-muted">{t('plugins.access.breadcrumb')}</p>
-        <h2 className="text-[19px] font-semibold text-foreground">
+        <Button
+          size="sm"
+          variant="ghost"
+          isDisabled={busy}
+          onPress={onCancel}
+          className="mb-2 -ms-2 h-7 px-2 text-caption text-muted"
+        >
+          {t('plugins.back')}
+        </Button>
+        <p className="mb-1 text-caption text-muted">{t('plugins.access.breadcrumb')}</p>
+        <h2 className="text-heading font-semibold text-foreground">
           {t('plugins.access.heading', { name })}
         </h2>
-        <p className="mt-1 text-[13px] text-muted">{t('plugins.access.intro')}</p>
+        <p className="mt-1 text-footnote text-muted">{t('plugins.access.intro')}</p>
       </div>
       <fieldset disabled={busy} className="space-y-2">
-        <legend className="mb-2 text-[12px] font-medium text-muted">
+        <legend className="mb-2 text-caption font-medium text-muted">
           {t('plugins.access.legend')}
         </legend>
-        {(['SELECTED', 'ALL'] as const).map((choice) => (
-          <label
-            key={choice}
-            className={`flex cursor-pointer items-start gap-3 rounded-card border p-4 ${mode === choice ? 'border-accent bg-surface-secondary' : 'border-separator'}`}
-          >
-            <input
-              type="radio"
-              name={group}
+        <RadioGroup
+          aria-label={t('plugins.access.legend')}
+          value={mode}
+          isDisabled={busy}
+          onChange={(value) => {
+            if (value === 'ALL' || value === 'SELECTED') setMode(value);
+          }}
+          className="flex flex-col gap-2"
+        >
+          {(['SELECTED', 'ALL'] as const).map((choice) => (
+            <Radio
+              key={choice}
               value={choice}
-              checked={mode === choice}
-              onChange={() => setMode(choice)}
-              className="mt-1 size-4 accent-accent"
-            />
-            <span>
-              <span className="block text-[13px] font-medium text-foreground">
-                {choice === 'ALL'
-                  ? t('plugins.access.mode.all')
-                  : t('plugins.access.mode.selected')}
-              </span>
-              <span className="mt-0.5 block text-[12px] text-muted">
-                {choice === 'ALL'
-                  ? t('plugins.access.mode.all.hint')
-                  : t('plugins.access.mode.selected.hint')}
-              </span>
-            </span>
-          </label>
-        ))}
+              className={`rounded-card border p-4 transition-colors ${mode === choice ? 'border-accent bg-surface-secondary' : 'border-separator'}`}
+            >
+              <Radio.Content className="flex w-full cursor-pointer items-start gap-3">
+                <Radio.Control className="mt-0.5 shrink-0">
+                  <Radio.Indicator />
+                </Radio.Control>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-footnote font-medium text-foreground">
+                    {choice === 'ALL'
+                      ? t('plugins.access.mode.all')
+                      : t('plugins.access.mode.selected')}
+                  </span>
+                  <span className="mt-0.5 block text-caption text-muted">
+                    {choice === 'ALL'
+                      ? t('plugins.access.mode.all.hint')
+                      : t('plugins.access.mode.selected.hint')}
+                  </span>
+                </span>
+              </Radio.Content>
+            </Radio>
+          ))}
+        </RadioGroup>
       </fieldset>
       <fieldset disabled={busy}>
-        <legend className="mb-2 text-[13px] font-medium text-foreground">
+        <legend className="mb-2 text-footnote font-medium text-foreground">
           {mode === 'ALL' ? t('plugins.access.except') : t('plugins.access.choose')}
         </legend>
-        <p className="mb-3 text-[12px] text-muted">
+        <p className="mb-3 text-caption text-muted">
           {mode === 'ALL' ? t('plugins.access.except.hint') : t('plugins.access.choose.hint')}
         </p>
         {bots.length === 0 ? (
-          <p className="py-3 text-[13px] text-muted">
+          <p className="py-3 text-footnote text-muted">
             {t('plugins.access.noBots')}{' '}
             {mode === 'ALL' ? t('plugins.access.noBots.all') : t('plugins.access.noBots.selected')}
           </p>
         ) : (
           <div className="max-h-64 overflow-y-auto rounded-card border border-separator">
             {bots.map((bot) => (
-              <label
+              <Checkbox
                 key={bot.id}
-                className="flex cursor-pointer items-center gap-3 border-b border-separator px-4 py-3 last:border-b-0 hover:bg-surface-secondary"
+                isDisabled={busy}
+                isSelected={ids.includes(bot.id)}
+                onChange={(checked) => {
+                  const next = checked ? [...ids, bot.id] : ids.filter((id) => id !== bot.id);
+                  if (mode === 'ALL') setExcluded(next);
+                  else setSelected(next);
+                }}
+                className="w-full border-b border-separator last:border-b-0"
               >
-                <input
-                  type="checkbox"
-                  checked={ids.includes(bot.id)}
-                  onChange={(event) => {
-                    const next = event.target.checked
-                      ? [...ids, bot.id]
-                      : ids.filter((id) => id !== bot.id);
-                    if (mode === 'ALL') setExcluded(next);
-                    else setSelected(next);
-                  }}
-                  className="size-4 shrink-0 accent-accent"
-                />
-                <span className="truncate text-[13px] text-foreground">{bot.name}</span>
-              </label>
+                <Checkbox.Content className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 hover:bg-surface-secondary">
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <span className="truncate text-footnote text-foreground">{bot.name}</span>
+                </Checkbox.Content>
+              </Checkbox>
             ))}
           </div>
         )}
       </fieldset>
       {backend === 'COMPOSIO' ? (
-        <p className="rounded-card bg-surface-secondary p-3 text-[12px] leading-relaxed text-muted">
+        <p className="rounded-card bg-surface-secondary p-3 text-caption leading-relaxed text-muted">
           {t('plugins.access.composio')}
         </p>
       ) : null}
       {problem === '' ? null : (
-        <p role="alert" className="text-[13px] text-warning">
-          {problem}
-        </p>
+        <Alert status="danger" role="alert">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>{problem}</Alert.Description>
+          </Alert.Content>
+        </Alert>
       )}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-separator pt-4">
-        <p className="text-[12px] text-muted" aria-live="polite">
+        <p className="text-caption text-muted" aria-live="polite">
           {accessSummary(draft)}
         </p>
         <div className="flex gap-2">

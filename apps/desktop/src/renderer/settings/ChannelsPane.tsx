@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react';
+import { Alert, Button, Input, Spinner } from '@heroui/react';
 import { IconBrandTelegram, IconCheck } from '@tabler/icons-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { encode } from 'uqr';
@@ -18,7 +18,7 @@ import {
   useApiClient,
 } from '../api';
 import { systemBrowser } from '../bridge';
-import { SETTINGS_INPUT_CLASS, SettingsRow, SettingsSection } from './SettingsLayout';
+import { SettingsRow, SettingsSection } from './SettingsLayout';
 import { useT } from '../i18n/i18n';
 
 /** The product's name, and the shape of a bot token; neither is a word to translate. */
@@ -282,7 +282,7 @@ export function TelegramChannelView({
           description={t('channels.telegram.description')}
           control={
             connection ? (
-              <Button size="sm" variant="secondary" isDisabled={busy} onPress={onDisconnect}>
+              <Button size="sm" variant="danger-soft" isDisabled={busy} onPress={onDisconnect}>
                 {t('channels.disconnect')}
               </Button>
             ) : idle ? (
@@ -297,7 +297,16 @@ export function TelegramChannelView({
             ) : undefined
           }
         />
-        {!status && !problem ? <SettingsRow label={t('channels.checking')} /> : null}
+        {!status && !problem ? (
+          <SettingsRow
+            label={
+              <span className="flex items-center gap-2 text-muted">
+                <Spinner size="sm" />
+                {t('channels.checking')}
+              </span>
+            }
+          />
+        ) : null}
         {status && !status.configured ? (
           <SettingsRow label={t('channels.disabled')} description={t('channels.disabled.hint')} />
         ) : null}
@@ -399,14 +408,17 @@ export function TelegramChannelView({
         ) : null}
       </SettingsSection>
       {problem ? (
-        <p role="alert" className="mb-4 text-[13px] text-danger">
-          {problem}
-        </p>
+        <Alert status="danger" role="alert" className="mb-4">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>{problem}</Alert.Description>
+          </Alert.Content>
+        </Alert>
       ) : null}
       {connection ? (
-        <p className="px-1 text-[12px] leading-relaxed text-muted">{t('channels.commands')}</p>
+        <p className="px-1 text-caption leading-relaxed text-muted">{t('channels.commands')}</p>
       ) : null}
-      <p className="mt-4 px-1 text-[12px] leading-relaxed text-muted">{t('channels.privacy')}</p>
+      <p className="mt-4 px-1 text-caption leading-relaxed text-muted">{t('channels.privacy')}</p>
     </div>
   );
 }
@@ -416,7 +428,7 @@ function PairingCode({ code }: { code: string }) {
   return (
     <span
       aria-label={t('channels.pairingCode')}
-      className="ms-1 inline-block rounded-[8px] border border-field-border bg-field px-2 py-0.5 font-mono text-[15px] font-semibold tracking-[0.12em] text-foreground"
+      className="ms-1 inline-block rounded-[8px] border border-field-border bg-field px-2 py-0.5 font-mono text-body font-semibold tracking-[0.12em] text-foreground tabular-nums"
     >
       {formatTelegramPairingCode(code)}
     </span>
@@ -444,15 +456,16 @@ function TokenForm({
   };
   return (
     <form onSubmit={submit}>
-      <input
+      <Input
         id="telegram-bot-token"
+        variant="secondary"
         type="password"
         autoComplete="off"
         spellCheck={false}
         placeholder={TOKEN_EXAMPLE}
         value={token}
         onChange={(event) => setToken(event.target.value)}
-        className={SETTINGS_INPUT_CLASS}
+        className="w-full"
       />
       <div className="mt-2 flex gap-2">
         <Button size="sm" variant="primary" type="submit" isDisabled={busy || !token.trim()}>
