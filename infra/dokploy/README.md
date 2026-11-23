@@ -145,6 +145,65 @@ it is unreadable. Do not enable a cleanup job that prunes unused **named** Docke
 volumes: a stopped or newly provisioned bot can have an intentionally unattached
 workspace volume.
 
+## Staging and promotion
+
+Merging to `main` must never change what paying users run. Contributor pull
+requests land on `main` after CI, the CLA and review; from there they reach a
+**staging** deployment automatically, and reach **production** only when the
+maintainer tags a release that has already run on staging.
+
+### Staging: a second Compose app that tracks `main`
+
+Create a second Docker Compose app in Dokploy from the same repository and the
+same Compose file as production, with **Autodeploy** on and its branch set to
+`main`, so Dokploy's Git webhook redeploys it on every merge. Give it its own
+domain, and set `CREWAID_RELEASE_TAG=staging` in its environment. The value is
+accepted wherever the release identity is checked (`/health`,
+`apps/orchestrator/scripts/runtime-readiness.mjs` and the
+`compose.instabox.yml` healthcheck reject only `dev` or a mismatch), but it
+names no commit: read the deployed revision from Dokploy's deployment log.
+
+Staging shares **nothing stateful** with production. Give it its own:
+
+- **Postgres**: a separate Neon branch or project, with its own pooled
+  `DATABASE_URL` and direct `MIGRATION_DATABASE_URL`. Migrations from `main`
+  run against staging first, which is the point.
+- **Stripe**: test-mode keys, prices and webhook secret, with a webhook
+  endpoint at the staging domain. Never put live keys on staging.
+- **Runtime or Instabox**: a separate project or account and credential.
+  Crewaid reconciles every Crewaid computer its credential can see, so a shared
+  inventory lets staging pause, stop or delete production computers.
+- **R2**: a separate bucket and `ARTIFACT_R2_*` keys. The readiness check
+  writes an object there and the artifact reaper deletes objects, so a shared
+  bucket lets staging delete production attachments and recordings.
+- **Secrets**: its own `BETTER_AUTH_SECRET`, `CREDENTIAL_KEY`,
+  `CREWAID_CREDENTIAL_KEYRING`, `REDIS_PASSWORD` and OAuth apps, so a staging
+  session or stored key can never open anything on production.
+
+Point a desktop build at staging only through an unpackaged or locally
+packaged app (`CREWAID_ORCHESTRATOR_URL`); the released cloud app has the
+production address compiled in.
+
+### Production: only a stable tag that ran on staging
+
+1. Pick a commit on `main` that staging has been running, with no open
+   regressions from it.
+2. Bump `apps/desktop/package.json` to the new version, merge, and tag that
+   merge commit `vX.Y.Z` (`git tag vX.Y.Z && git push origin vX.Y.Z`). The tag
+   publishes the desktop apps, the self-hosted images and the installer.
+3. In the production app, set `CREWAID_RELEASE_TAG=vX.Y.Z`, select that same
+   Git revision, and deploy. Then follow the release verification for your
+   topology (for Runtime, "Runtime release verification" below).
+4. To roll back, deploy the previous tag the same way. Migrations only move
+   forward, so a release whose migration is not backwards compatible needs its
+   own rollback plan before it is tagged.
+
+**Do not push prerelease tags** (`v1.2.0-rc.1` and the like). Every `v*` tag
+triggers the release workflows: it publishes the self-hosted installer to npm,
+imports the sandbox image into the production Runtime account, and builds
+desktop apps pointed at the production orchestrator. Staging tracks `main`, so
+a release candidate needs no tag.
+
 ## Computers on DigitalOcean instead of this VPS (Deprecated)
 
 With `compose.digitalocean.yml` as the Compose path, each computer runs as a
