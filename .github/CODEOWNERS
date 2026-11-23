@@ -1,0 +1,4 @@
+# Every change needs the maintainer's eye before it reaches main. Merging to
+# main deploys only to staging; production cloud deploys from a release tag
+# (infra/dokploy/README.md, "Staging and promotion").
+* @Natanael-Exe
