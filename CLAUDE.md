@@ -6,7 +6,7 @@ Guidance for coding agents and contributors working in this repository.
 
 Crewaid is a self-hosted Electron desktop app (`apps/desktop`) backed by a NestJS orchestrator (`apps/orchestrator`) and isolated Linux containers (`packages/sandbox-*`, `infra/sandbox-image`) where AI agents ("bots") browse, run skills, message each other, track Work items, and stream their screens live.
 
-`CREWAID_EDITION` (`selfhosted` or `cloud`, required) controls sign-in and commercial features: `selfhosted` uses email/password with no billing routes; `cloud` enables OAuth/magic-link sign-in, Stripe billing, metered models, and voice calls.
+`CREWAID_EDITION` (`selfhosted` or `cloud`, required) controls sign-in and commercial features: `selfhosted` uses email/password with no billing routes; `cloud` enables OAuth/magic-link sign-in, Stripe billing, metered models, and voice calls. Cloud-only server code lives in `apps/orchestrator/src/ee/` under the Crewaid Enterprise License (D-238) and boots only through `dist/ee/main.js`; `dist/main.js` refuses `cloud`.
 
 ## Commands
 
@@ -44,6 +44,7 @@ Orchestrator integration suites require `DATABASE_URL` (and `ARTIFACT_DIR` for a
   - No `eval`, `vm.*`, `new Function`, or dynamic `import()` in `apps/orchestrator`.
   - `no-restricted-imports` blocks in `eslint.config.mjs` must compose via `restrictedImports()` so earlier bans are never overwritten.
 - **Route & DB ownership**: `test/ownership-route-coverage.test.ts` checks every parameterized Nest route; `test/prisma-allowlist.test.ts` audits every Prisma call site by enclosing function; `test/schema-contract.test.ts` guards Prisma field names; CI runs `prisma migrate diff --exit-code`.
+- **Open-core boundary (D-238)**: the AGPL core never imports from an `ee/` directory (lint + `ee-core-import` probe). The core exposes ports (`COMPUTE_POLICY`, `INCLUDED_MODELS`, `HOSTED_VOICE`, auth extensions) and `ee/` binds them. Core tests never name `ee/`; the core must lint, build and test with every `ee/` directory deleted.
 - **At-rest message sealing**: `Message.content`, `Message.parts`, and `RunEvent.chunk` are encrypted via `PrismaService`'s client extension. Never query ciphertext with `where: { content: ... }` (except `{ not: '' }`) and never write messages as nested writes.
 - **Desktop i18n**: User-facing strings live in `apps/desktop/src/renderer/i18n/messages/en.ts`. Missing translations fall back to English at runtime; maintainers refresh shipped locales with `pnpm i18n:translate` and verify full coverage with `pnpm i18n:check`.
 

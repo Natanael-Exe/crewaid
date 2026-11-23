@@ -234,7 +234,7 @@ const TANSTACK_SEAM_ALLOWLIST = [
   'apps/orchestrator/src/agent/persistence/**',
   'apps/orchestrator/src/models/**',
   'apps/orchestrator/src/mcp/**',
-  'apps/orchestrator/src/billing/**',
+  'apps/orchestrator/src/ee/billing/**',
   'apps/orchestrator/src/telemetry/**',
   // Tests exercise the libraries directly (the MOD-02 compatibility suite and
   // its successors); the firewall is about production imports.
@@ -280,7 +280,7 @@ function rendererTanstackBans() {
  * Build a `no-restricted-imports` option that ALWAYS carries the repo-wide
  * architectural bans, plus any scope-specific additions.
  *
- * @param {{composioSeam?: boolean, elevenlabsSeam?: boolean, paths?: Array<{name: string, message: string}>, patterns?: Array<{group: string[], message: string}>}} [extra]
+ * @param {{composioSeam?: boolean, elevenlabsSeam?: boolean, eeSeam?: boolean, paths?: Array<{name: string, message: string}>, patterns?: Array<{group: string[], message: string}>}} [extra]
  */
 function restrictedImports(extra = {}) {
   return [
@@ -306,6 +306,20 @@ function restrictedImports(extra = {}) {
                 group: ['@elevenlabs/*', '@elevenlabs/*/**'],
                 message:
                   'D-222: @elevenlabs/* is imported only by apps/desktop/src/renderer/voice/callSession.ts.',
+              },
+            ]),
+        // D-238: code under an `ee/` directory is licensed separately from the
+        // AGPL core, and the core must build, test and run with every `ee/`
+        // directory deleted. So the core may never import one; only `ee/` code
+        // (eeSeam) may import other `ee/` code.
+        ...(extra.eeSeam
+          ? []
+          : [
+              {
+                group: ['**/ee', '**/ee/**'],
+                message:
+                  'D-238: the AGPL core may not import from an ee/ directory. Expose a port in the ' +
+                  'core and bind it from ee/ instead.',
               },
             ]),
         // Every orchestrator allowlist composes these paths, so subpath and
@@ -449,6 +463,8 @@ export default tseslint.config(
       'tools/guard-probes/d200-*.probe.ts',
       // D-013: the D-222 orchestrator probe, for the same reason.
       'tools/guard-probes/d222-*.probe.ts',
+      // D-013: the D-238 ee/ boundary probe, for the same reason.
+      'tools/guard-probes/ee-*.probe.ts',
     ],
     rules: {
       'no-eval': 'error',
@@ -587,6 +603,37 @@ export default tseslint.config(
       'no-restricted-imports': restrictedImports({
         paths: ORCHESTRATOR_PATH_BANS,
         patterns: [TANSTACK_SEAM_BAN],
+      }),
+    },
+  },
+
+  /**
+   * D-238: the Enterprise code may import the core and other `ee/` code.
+   *
+   * Composed from `restrictedImports()` like every other allowlist, so CC-06's
+   * `node:vm` ban and V1-10's ws-principals ban still apply inside `ee/`. Only
+   * the ee pattern is lifted here; billing keeps its D-160 TanStack seam in the
+   * next block.
+   */
+  {
+    name: 'crewaid/d238-ee-may-import-ee',
+    files: ['apps/orchestrator/src/ee/**/*.ts'],
+    rules: {
+      'no-restricted-imports': restrictedImports({
+        eeSeam: true,
+        paths: ORCHESTRATOR_PATH_BANS,
+        patterns: [WS_PRINCIPALS_BAN, TANSTACK_SEAM_BAN],
+      }),
+    },
+  },
+  {
+    name: 'crewaid/d238-ee-tanstack-seam',
+    files: ['apps/orchestrator/src/ee/billing/**/*.ts', 'apps/orchestrator/test/ee/**/*.ts'],
+    rules: {
+      'no-restricted-imports': restrictedImports({
+        eeSeam: true,
+        paths: ORCHESTRATOR_PATH_BANS,
+        patterns: [WS_PRINCIPALS_BAN],
       }),
     },
   },

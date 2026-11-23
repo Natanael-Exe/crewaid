@@ -85,5 +85,12 @@ example in the hosted cloud edition of Crewaid.
 
 Crewaid is released under the
 [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`), and your
-contributions are distributed in it under that license. Brand artwork and third-party marks remain governed by
+contributions are distributed in it under that license.
+
+Directories named `ee/` are the exception: they hold the cloud-only modules and
+are licensed under the
+[Crewaid Enterprise License](apps/orchestrator/src/ee/LICENSE.md). Contributions
+there are welcome under the same CLA. The core must never import from `ee/`
+(lint enforces this, D-238): if the core needs something from a cloud module,
+add a port in the core and bind it from `ee/`. Brand artwork and third-party marks remain governed by
 [`packages/brand/LICENSE.md`](packages/brand/LICENSE.md).

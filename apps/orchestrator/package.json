@@ -2,7 +2,7 @@
   "name": "@crewaid/orchestrator",
   "version": "0.0.0",
   "private": true,
-  "license": "AGPL-3.0-only",
+  "license": "(AGPL-3.0-only AND LicenseRef-Crewaid-Enterprise)",
   "type": "module",
   "scripts": {
     "build": "tsc -b",

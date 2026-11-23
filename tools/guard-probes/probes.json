@@ -170,6 +170,11 @@
       "file": "tools/guard-probes/d234-literal-copy.probe.tsx",
       "rule": "no-restricted-syntax",
       "guard": "D-234 \u2014 renderer copy comes from the catalog, never a JSX literal"
+    },
+    {
+      "file": "tools/guard-probes/ee-core-import.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "D-238 \u2014 the AGPL core never imports from an ee/ directory"
     }
   ]
 }
