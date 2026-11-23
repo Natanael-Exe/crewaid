@@ -1,5 +1,9 @@
 # Fly.io configuration for the self-hosted Crewaid Orchestrator.
-# Bot computers run on Runtime (https://withruntime.com) via SANDBOX_PROVIDER=runtime.
+# Bot computers default to Instabox (https://instabox.sh) via
+# SANDBOX_PROVIDER=instabox (Free plan includes 1 sandbox; create a scoped API
+# key with machines:read, machines:write, machines:delete). To use Runtime
+# instead, set SANDBOX_PROVIDER=runtime, RUNTIME_API_KEY, and
+# SANDBOX_RUNTIME_IMAGE.
 #
 # Quick start:
 #   fly launch --copy-config --no-deploy
@@ -9,7 +13,7 @@
 #     BETTER_AUTH_SECRET="$(openssl rand -base64 32)" \
 #     CREWAID_CREDENTIAL_KEYRING="{\"1\":\"$(openssl rand -hex 32)\"}" \
 #     CREDENTIAL_KEY="$(openssl rand -hex 32)" \
-#     RUNTIME_API_KEY="<your-runtime-api-key>" \
+#     INSTABOX_API_KEY="<your-instabox-api-key>" \
 #     REDIS_URL="<your-redis-url>"
 #   fly deploy
 
@@ -22,8 +26,9 @@ primary_region = 'iad'
   NODE_ENV = 'production'
   PORT = '3000'
   CREWAID_EDITION = 'selfhosted'
-  SANDBOX_PROVIDER = 'runtime'
-  SANDBOX_RUNTIME_IMAGE = 'crewaid-sandbox:latest'
+  SANDBOX_PROVIDER = 'instabox'
+  SANDBOX_INSTABOX_IMAGE = 'ghcr.io/natanael-exe/crewaid-sandbox:latest'
+  SANDBOX_MAX_RUNNING = '1'
   ARTIFACT_DIR = '/data/artifacts'
 
 [http_service]

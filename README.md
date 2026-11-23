@@ -69,7 +69,7 @@ Crewaid Cloud is this repository running with `CREWAID_EDITION=cloud`, which ena
 Pick whichever topology fits your setup:
 
 1. **Docker host (Recommended — zero third-party sandbox bill):** Runs everything (Orchestrator, Postgres, Redis, egress firewall, and each bot's Linux computer) on one Linux VPS, Mac, or Windows machine.
-2. **One-click PaaS (Railway, Render, Fly.io, DigitalOcean):** Runs the Orchestrator + Postgres + Redis on a managed PaaS and delegates isolated bot computers to [Runtime](https://withruntime.com) (`SANDBOX_PROVIDER=runtime`) or [Instabox](https://instabox.sh) (`SANDBOX_PROVIDER=instabox`), since managed PaaS hosts do not expose a Docker socket. Instabox's Free plan includes one 4 vCPU / 8 GiB computer at \$0/mo (pauses after 30 min idle and at most 8 hours continuous run, followed by a cooldown; see `infra/selfhost/compose.instabox.yml`).
+2. **One-click PaaS (Railway, Render, Fly.io, DigitalOcean):** Runs the Orchestrator + Postgres + Redis on a managed PaaS and delegates isolated bot computers to [Instabox](https://instabox.sh) (`SANDBOX_PROVIDER=instabox`, the default — Free plan includes one 4 vCPU / 8 GiB computer at \$0/mo and pulls the public desktop image automatically) or [Runtime](https://withruntime.com) (`SANDBOX_PROVIDER=runtime`), since managed PaaS hosts do not expose a Docker socket.
 
 ### Option 1: Docker host (VPS, macOS, Windows)
 
@@ -88,10 +88,10 @@ server's address, and create an account. Manual Docker Compose setup, automatic
 HTTPS with Caddy, firewall details, and backups are in
 [`infra/selfhost/README.md`](infra/selfhost/README.md).
 
-### Option 2: One-click PaaS deploy (Orchestrator + Runtime sandboxes)
+### Option 2: One-click PaaS deploy (Orchestrator + Instabox sandboxes)
 
 <p>
-  <a href="https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2FNatanael-Exe%2Fcrewaid&envs=CREWAID_EDITION,SANDBOX_PROVIDER,SANDBOX_RUNTIME_IMAGE,BETTER_AUTH_URL,BETTER_AUTH_SECRET,CREWAID_CREDENTIAL_KEYRING,CREDENTIAL_KEY,RUNTIME_API_KEY,DATABASE_URL,REDIS_URL,ARTIFACT_DIR"><img src="https://img.shields.io/badge/Deploy_on-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white" alt="Deploy on Railway"></a>
+  <a href="https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2FNatanael-Exe%2Fcrewaid&envs=CREWAID_EDITION,SANDBOX_PROVIDER,SANDBOX_INSTABOX_IMAGE,SANDBOX_MAX_RUNNING,BETTER_AUTH_URL,BETTER_AUTH_SECRET,CREWAID_CREDENTIAL_KEYRING,CREDENTIAL_KEY,INSTABOX_API_KEY,DATABASE_URL,REDIS_URL,ARTIFACT_DIR"><img src="https://img.shields.io/badge/Deploy_on-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white" alt="Deploy on Railway"></a>
   <a href="https://render.com/deploy?repo=https://github.com/Natanael-Exe/crewaid"><img src="https://img.shields.io/badge/Deploy_to-Render-46E3B7?style=for-the-badge&logo=render&logoColor=black" alt="Deploy to Render"></a>
   <a href="https://fly.io/launch"><img src="https://img.shields.io/badge/Deploy_on-Fly.io-7B3FE4?style=for-the-badge&logo=flydotio&logoColor=white" alt="Deploy on Fly.io"></a>
   <a href="https://cloud.digitalocean.com/apps/new?repo=https://github.com/Natanael-Exe/crewaid/tree/main"><img src="https://img.shields.io/badge/Deploy_to-DigitalOcean-0080FF?style=for-the-badge&logo=digitalocean&logoColor=white" alt="Deploy to DigitalOcean"></a>
@@ -104,7 +104,7 @@ Each button builds [`infra/dokploy/Dockerfile`](infra/dokploy/Dockerfile) via th
 - **Railway** builds from `railway.toml`; attach Railway's Postgres and Redis plugins to populate `DATABASE_URL` and `REDIS_URL`.
 - **Fly.io** uses `fly.toml` — clone the repo and run `fly launch --copy-config --no-deploy`, attach Fly Postgres + Redis, set secrets (commands in `fly.toml`), and run `fly deploy`.
 
-#### Required environment variables (PaaS / `SANDBOX_PROVIDER=runtime`)
+#### Required environment variables (PaaS / `SANDBOX_PROVIDER=instabox`)
 
 | Variable | Example / how to generate | Purpose |
 | --- | --- | --- |
@@ -115,9 +115,14 @@ Each button builds [`infra/dokploy/Dockerfile`](infra/dokploy/Dockerfile) via th
 | `BETTER_AUTH_SECRET` | `openssl rand -base64 32` | Signs sessions and auth tokens |
 | `CREWAID_CREDENTIAL_KEYRING` | `{"1":"<openssl rand -hex 32>"}` | AES-256-GCM key sealing provider keys and message text at rest |
 | `CREDENTIAL_KEY` | `openssl rand -hex 32` | Encrypts MCP plugin OAuth tokens |
-| `SANDBOX_PROVIDER` | `runtime` | Delegates bot Linux desktops to [Runtime](https://withruntime.com) |
-| `RUNTIME_API_KEY` | From [withruntime.com](https://withruntime.com) | API key for a funded Runtime account |
-| `SANDBOX_RUNTIME_IMAGE` | `crewaid-sandbox:latest` | Sandbox image imported from `ghcr.io/natanael-exe/crewaid-sandbox` |
+| `SANDBOX_PROVIDER` | `instabox` | Delegates bot Linux desktops to [Instabox](https://instabox.sh) |
+| `INSTABOX_API_KEY` | From [instabox.sh](https://instabox.sh) | Scoped API key (`machines:read`, `machines:write`, `machines:delete`) |
+| `SANDBOX_INSTABOX_IMAGE` | `ghcr.io/natanael-exe/crewaid-sandbox:latest` | Public desktop image pulled automatically inside each VM (optional; default) |
+| `SANDBOX_MAX_RUNNING` | `1` | Matches Instabox Free plan's 1-computer limit; raise on paid plans |
+
+> **Instabox Free plan notes:** The first computer start pulls the public image (~35 s; subsequent wakes take ~4–5 s). Free-plan computers have a fixed 30-minute idle pause and a continuous run cap (up to 8 hours) followed by a cooldown, so they cannot stay running 24/7.
+>
+> **Using Runtime instead:** Set `SANDBOX_PROVIDER=runtime`, `RUNTIME_API_KEY`, and `SANDBOX_RUNTIME_IMAGE=crewaid-sandbox:latest` (imported into your [Runtime](https://withruntime.com) account with `pnpm --filter @crewaid/sandbox-runtime build-image`) for sub-second wakes, direct screen access, or whole-computer snapshots.
 
 For persistent chat attachments across PaaS redeploys, set `ARTIFACT_R2_ACCOUNT_ID`, `ARTIFACT_R2_ACCESS_KEY_ID`, `ARTIFACT_R2_SECRET_ACCESS_KEY`, and `ARTIFACT_R2_BUCKET` (Cloudflare R2) instead of a local `ARTIFACT_DIR`. Every variable is documented in [`infra/compose/.env.example`](infra/compose/.env.example).
 
@@ -128,7 +133,7 @@ Desktop app (Electron, React)
    │  HTTPS + WebSocket
    ▼
 Orchestrator (NestJS, Postgres, Redis) ── model providers, MCP servers
-   │  signed lifecycle requests (Docker) or authenticated tunnel (Runtime)
+   │  signed lifecycle requests (Docker) or authenticated tunnel (Instabox / Runtime)
    ▼
 Sandbox supervisor ──▶ the crew's Linux computer (one container per user)
 ```

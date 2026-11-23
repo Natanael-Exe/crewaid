@@ -1,6 +1,9 @@
 # DigitalOcean App Platform deploy template for self-hosted Crewaid Orchestrator.
-# Managed PaaS hosts do not expose a Docker socket, so bot computers run on
-# Runtime (https://withruntime.com) via SANDBOX_PROVIDER=runtime.
+# Managed PaaS hosts do not expose a Docker socket, so bot computers default to
+# Instabox (https://instabox.sh) via SANDBOX_PROVIDER=instabox (Free plan
+# includes 1 sandbox and pulls the public crewaid-sandbox image automatically).
+# To use Runtime instead, switch SANDBOX_PROVIDER to `runtime` and set
+# RUNTIME_API_KEY + SANDBOX_RUNTIME_IMAGE.
 # For full all-in-one Docker self-hosting on a DigitalOcean Droplet instead,
 # run `npx crewaid-selfhost init` (see infra/selfhost/README.md).
 
@@ -34,10 +37,13 @@ spec:
           value: selfhosted
         - key: SANDBOX_PROVIDER
           scope: RUN_TIME
-          value: runtime
-        - key: SANDBOX_RUNTIME_IMAGE
+          value: instabox
+        - key: SANDBOX_INSTABOX_IMAGE
           scope: RUN_TIME
-          value: crewaid-sandbox:latest
+          value: ghcr.io/natanael-exe/crewaid-sandbox:latest
+        - key: SANDBOX_MAX_RUNNING
+          scope: RUN_TIME
+          value: '1'
         - key: ARTIFACT_DIR
           scope: RUN_TIME
           value: /tmp/crewaid-artifacts
@@ -56,7 +62,7 @@ spec:
         - key: CREDENTIAL_KEY
           scope: RUN_TIME
           type: SECRET
-        - key: RUNTIME_API_KEY
+        - key: INSTABOX_API_KEY
           scope: RUN_TIME
           type: SECRET
         - key: REDIS_URL
