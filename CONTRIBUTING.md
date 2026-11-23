@@ -70,9 +70,20 @@ Key rules that fail CI if broken:
      set): `pnpm pre-review`
 4. Format code with `pnpm format` (Prettier).
 
+## Contributor License Agreement
+
+Before your first pull request can be merged, you need to accept the
+[Crewaid Contributor License Agreement](CLA.md). A bot comments on your pull
+request with instructions: reply with the sentence it gives you. You only need
+to sign once, and the signature covers all of your future contributions.
+
+You keep the copyright to your work. The CLA gives the maintainer the right to
+distribute your contribution under other licenses as well as the AGPL, for
+example in the hosted cloud edition of Crewaid.
+
 ## License
 
-By contributing to Crewaid, you agree that your code contributions will be
-licensed under the [GNU Affero General Public License v3.0](LICENSE)
-(`AGPL-3.0-only`). Brand artwork and third-party marks remain governed by
+Crewaid is released under the
+[GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`), and your
+contributions are distributed in it under that license. Brand artwork and third-party marks remain governed by
 [`packages/brand/LICENSE.md`](packages/brand/LICENSE.md).

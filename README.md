@@ -194,7 +194,7 @@ Crewaid is pre-1.0. It works end to end and moves fast; until 1.0, breaking chan
 
 ## Contributing
 
-Bug reports and pull requests are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow, local test setup, and enforced architectural rules. For anything larger than a bug fix, open an issue first so we can agree on the shape before you write code.
+Bug reports and pull requests are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow, local test setup, and enforced architectural rules. Contributors sign the [Contributor License Agreement](CLA.md) once, on their first pull request. For anything larger than a bug fix, open an issue first so we can agree on the shape before you write code.
 
 ## Security
 
