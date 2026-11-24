@@ -31,7 +31,6 @@ import type { CrewaidBridge, TokenStoreWriteResult } from '../src/preload.js';
  * orchestrator does — and the disappearance this test asserts is the product's
  * reaction to the frame rather than to its own click.
  */
-const PORT = 59_994;
 const BOT_ID = 'bot_d147_01';
 const THREAD = 'clxd147thread000000000001';
 const USER_MSG = 'clxd147user00000000000001';
@@ -167,7 +166,7 @@ async function setUp(
         orchestratorBaseUrl: baseUrl,
         orchestratorToken: 'd147-token',
       }),
-    `http://127.0.0.1:${PORT}`,
+    stubAuth.baseUrl,
   );
   expect(saved.status).toBe('saved');
   await page.reload();
@@ -178,7 +177,7 @@ async function setUp(
 let stubAuth: StubAuthServer;
 
 test.beforeAll(async () => {
-  stubAuth = await startStubAuthServer(PORT);
+  stubAuth = await startStubAuthServer(0);
 });
 
 test.afterAll(async () => {

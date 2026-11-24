@@ -234,7 +234,11 @@ for (const reloadBeforeApproval of [false, true]) {
       }
 
       await prompt(first).getByRole('button', { name: 'Details', exact: true }).click();
-      await first.getByLabel('Edit arguments before approving').check();
+      // The input is react-aria's visually hidden one; a person clicks the label.
+      await prompt(first).getByText('Edit arguments before approving').click();
+      await expect(
+        prompt(first).getByRole('checkbox', { name: 'Edit arguments before approving' }),
+      ).toBeChecked();
       const input = first.getByLabel('Approval arguments as JSON');
       // The editor opens on the arguments the policy reviewed, so what the
       // operator edits is what they were asked about.
