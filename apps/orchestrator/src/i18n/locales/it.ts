@@ -228,6 +228,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Trova cinque post pubblici recenti in cui founder o operatori descrivono il problema che risolviamo, prepara risposte utili e ordina i lead più caldi.',
       },
+      iris: {
+        role: 'Monitoraggio release e feedback',
+        summary:
+          'Segui le date di release che cambiano, tieni allineata la documentazione di assistenza, etichetta i ticket di lancio e inoltra subito il feedback degli utenti.',
+        persona:
+          "Tieni il supporto pronto per ogni lancio di prodotto, anche quando le date slittano all'ultimo minuto. Mantieni un calendario delle release sempre aggiornato, tieni allineati i playbook interni e la documentazione esterna, etichetti i ticket in arrivo per funzionalità o release e fai emergere il feedback delle prime ore e dei primi giorni dopo il lancio, così le correzioni arrivano in fretta. Prepari bozze di aggiornamenti alla documentazione e di escalation da rivedere, senza pubblicare modifiche non approvate.",
+        inputs: [
+          'Il tuo calendario delle release in arrivo e i changelog',
+          'La tua base di conoscenza interna ed esterna o il centro assistenza',
+        ],
+        example: {
+          title: 'Allineamento release e feedback di lancio',
+          content:
+            'Release: Team Permissions v2 (anticipata a giovedì).\nDocumentazione pronta: articolo del centro assistenza aggiornato; macro interna in bozza per la revisione.\nFeedback di lancio (prime 24h): 19 ticket etichettati — 11 chiedono come migrare i ruoli esistenti (in escalation).',
+        },
+        starterTask:
+          'Crea un calendario delle release da questi lanci in arrivo, indica quali articoli di assistenza vanno aggiornati ed etichetta la prima ondata di ticket di lancio.',
+      },
+      caleb: {
+        role: 'Riproduttore di bug del supporto',
+        summary:
+          'Riproduci nel browser i bug segnalati dagli utenti e allega passaggi chiari e prove visive.',
+        persona:
+          "Trasformi segnalazioni vaghe dei clienti in ticket per l'ingegneria precisi e riproducibili. Apri l'app nel tuo browser, segui passo passo il percorso dell'utente finché non ricrei lo stato rotto, catturi screenshot o una breve registrazione come prova e scrivi i passaggi esatti di riproduzione con comportamento atteso e osservato e il contesto dell'account. Verifichi cosa si rompe davvero invece di tirare a indovinare.",
+        inputs: [
+          'Il ticket del cliente o la segnalazione del bug',
+          "L'URL della tua app e un account di test se serve l'accesso",
+        ],
+        example: {
+          title: 'Riproduzione del bug verificata',
+          content:
+            "Ticket #8412: l'esportazione CSV scarica un file vuoto nelle viste filtrate.\nRiprodotto: Sì (Chrome, workspace con >500 righe).\nPassaggi: applica il filtro data → clicca Esporta CSV → file da 0 byte.\nProva: registrazione dello schermo ed errore in console allegati; bozza della segnalazione pronta.",
+        },
+        starterTask:
+          'Riproduci nel browser questa segnalazione del cliente, cattura una prova visiva dello stato rotto e scrivi i passaggi esatti per riprodurlo.',
+      },
+      naomi: {
+        role: 'Analista di churn e retention',
+        summary:
+          'Trova i ticket a rischio churn, raggruppa le cause principali e individua pattern per anzianità e concorrenti.',
+        persona:
+          "Leggi tra le righe delle conversazioni di supporto più tese per scoprire perché i clienti se ne vanno prima che si veda nei ricavi. Analizzi i ticket recenti cercando minacce di disdetta e rischio di churn, raggruppi le vere cause principali con numeri e citazioni esatte e incroci i trend per durata dell'abbonamento, livello del piano e menzioni dei concorrenti, così il team sa cosa sistemare prima.",
+        inputs: [
+          'La tua coda di ticket o le conversazioni recenti esportate',
+          "L'anzianità dell'abbonamento o il contesto del piano, se disponibile",
+        ],
+        example: {
+          title: 'Analisi settimanale del churn',
+          content:
+            'Conversazioni a rischio (ultimi 7 giorni): 24 account.\nCause principali: SSO assente su Pro (9 — anzianità media 4 mesi), import CSV lenti (6), aumento di prezzo (5).\nMenzioni dei concorrenti: RivalCo citata in 7 conversazioni, soprattutto sul bundling delle licenze.',
+        },
+        starterTask:
+          "Analizza i ticket di supporto dell'ultima settimana cercando utenti che minacciano di andarsene, raggruppa le cause principali e scomponi i trend per anzianità e menzioni dei concorrenti.",
+      },
+      felix: {
+        role: 'Specialista rimborsi e policy',
+        summary:
+          "Verifica le richieste di rimborso in base alla tua policy, proponi offerte di retention e prepara le risposte per l'approvazione.",
+        persona:
+          "Gestisci le richieste di rimborso e di fatturazione in modo equo, coerente e rigorosamente secondo la policy scritta. Per ogni richiesta verifichi storico dei pagamenti, tempi di rinnovo e utilizzo rispetto alle regole di rimborso, consigli se approvare o rifiutare con una motivazione di policy in una riga, proponi un'offerta di retention su misura quando il cliente ne ha diritto e prepari la bozza della risposta. Non emetti mai un rimborso, non applichi un credito e non invii un'email di decisione senza approvazione esplicita.",
+        inputs: [
+          'La tua policy di rimborso e le linee guida per le offerte di retention',
+          "Richieste di rimborso in sospeso e dettagli di fatturazione dell'account",
+        ],
+        example: {
+          title: 'Revisione del rimborso in attesa di approvazione',
+          content:
+            'Richiesta: Acme Corp · rinnovo annuale da $240 (addebitato 4 giorni fa, 0 accessi dal rinnovo).\nVerifica policy: idoneo secondo la regola dei 14 giorni per i rinnovi non utilizzati.\nRaccomandazione: approvare il rimborso completo — oppure offrire un credito di pausa del 50% per 2 mesi.\nStato: risposta in bozza, in attesa della tua approvazione prima di toccare Stripe.',
+        },
+        starterTask:
+          'Esamina queste richieste di rimborso in arrivo in base alla mia policy, consiglia per ciascuna se approvare o rifiutare indicando eventuali opzioni di retention e prepara le bozze di risposta per la mia approvazione.',
+      },
+      mina: {
+        role: 'Analista di metriche e avvisi di supporto',
+        summary:
+          'Crea report sulle metriche di supporto su misura per ogni stakeholder e segnala in anticipo i picchi delle code.',
+        persona:
+          'Trasformi dati grezzi di ticket, fatturazione e prodotto in report chiari e su misura per ogni stakeholder, senza costringere nessuno a cercare tra le dashboard. Rispondi con volumi esatti, tempo di prima risposta, tasso di risoluzione, cause principali e una visualizzazione su misura per chi legge — direzione, product o responsabili del supporto. Quando volume delle code, tempo di risposta o ticket legati a errori superano le soglie normali, invii un avviso conciso che spiega cosa è cambiato e da dove guardare prima.',
+        inputs: [
+          'Quali metriche servono e a chi è destinato il report',
+          'I tuoi dati di ticketing, analytics o fatturazione, collegati o esportati',
+        ],
+        example: {
+          title: 'Report di supporto su misura e avviso di picco',
+          content:
+            "Stato delle code (ultime 24h): 412 ticket (+38% rispetto alla media di 7 giorni); prima risposta mediana 11 min.\nAvviso di picco: 94 ticket per errori di fatturazione dalle 09:00 UTC — tutti legati ai rinnovi con carta UE.\nAzione: segnalato per la revisione on-call prima che l'SLA salti.",
+        },
+        starterTask:
+          'Crea un riepilogo conciso delle metriche di supporto dai dati recenti della mia coda e metti in evidenza eventuali picchi anomali o rischi per gli SLA.',
+      },
       clara: {
         role: 'Gestore della posta in arrivo',
         summary: 'Separa ciò che richiede te da ciò che no e prepara le risposte.',
@@ -523,6 +613,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Chiedi alla squadra Vendite guidate dal founder di imparare il mio ICP, la mia voce e gli account off-limits, poi cerca cinque design partner supportati da segnali, divisi in KEEP, HOLD e DQ con aperture in bozza da rivedere.',
+      },
+      'customer-support': {
+        title: 'Assistenza clienti',
+        category: 'Assistenza',
+        summary:
+          "Gestisci la tua coda di supporto, dal monitoraggio delle release alla riproduzione dei bug fino all'analisi del churn, ai rimborsi e alla reportistica.",
+        outcomes: [
+          'Calendari delle release allineati, ticket di lancio etichettati e documentazione di assistenza aggiornata',
+          'Segnalazioni di bug riprodotte con passaggi esatti e prove visive',
+          'Raggruppamenti settimanali delle cause di churn e bozze di rimborso verificate secondo la policy',
+          'Report su misura delle metriche di supporto e avvisi di picco delle code',
+        ],
+        inputs: [
+          'La tua policy di rimborso, la documentazione di assistenza e le regole di escalation',
+          'La tua coda di ticket, lo strumento di fatturazione o il calendario delle release',
+        ],
+        handoff: [
+          'Monitora le release',
+          'Riproduci i bug',
+          'Esamina i rimborsi',
+          'Report e avvisi',
+        ],
+        example: {
+          title:
+            'Un riepilogo settimanale del supporto: feedback di lancio, bug riprodotto, cluster di churn e un rimborso in attesa di approvazione.',
+          content:
+            'Release: Team Permissions v2 (anticipata a giovedì).\nDocumentazione pronta: articolo del centro assistenza aggiornato; macro interna in bozza per la revisione.\nFeedback di lancio (prime 24h): 19 ticket etichettati — 11 chiedono come migrare i ruoli esistenti (in escalation).\n\nRichiesta: Acme Corp · rinnovo annuale da $240 (addebitato 4 giorni fa, 0 accessi dal rinnovo).\nVerifica policy: idoneo secondo la regola dei 14 giorni per i rinnovi non utilizzati.\nRaccomandazione: approvare il rimborso completo — oppure offrire un credito di pausa del 50% per 2 mesi.\nStato: risposta in bozza, in attesa della tua approvazione prima di toccare Stripe.',
+        },
+        starterTask:
+          'Chiedi alla squadra Assistenza clienti di analizzare i miei ticket recenti per rischi di churn, riprodurre la segnalazione di bug principale, verificare le richieste di rimborso in sospeso in base alla mia policy e riepilogare le metriche delle code.',
       },
       'business-admin': {
         title: 'Amministrazione aziendale',

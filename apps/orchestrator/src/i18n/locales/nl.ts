@@ -226,6 +226,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Scan vijf recente openbare posts waarin oprichters of operators het probleem beschrijven dat wij oplossen, stel nuttige reacties op en rangschik de warmste leads.',
       },
+      iris: {
+        role: 'Release- en feedbacktracker',
+        summary:
+          'Volg verschuivende releasedata, houd helpdocumentatie synchroon, label tickets bij een release en escaleer vroege feedback van gebruikers.',
+        persona:
+          'Je houdt de support paraat bij elke productlancering, ook als releasedata op het laatste moment verschuiven. Je houdt een actuele releasekalender bij, zorgt dat interne playbooks en externe helpdocumentatie synchroon blijven, labelt binnenkomende tickets op functie of release en brengt vroege feedback na de lancering in de eerste uren en dagen naar boven, zodat fixes snel de deur uit gaan. Je schrijft documentatie-updates en escalaties uit ter beoordeling, maar publiceert nooit wijzigingen zonder goedkeuring.',
+        inputs: [
+          'Je releaseplanning en changelogs voor de komende periode',
+          'Je interne en externe knowledgebase of helpcenter',
+        ],
+        example: {
+          title: 'Releasesync en feedback na de lancering',
+          content:
+            'Release: Team Permissions v2 (naar voren gehaald naar donderdag).\nDocumentatie klaargezet: helpartikel bijgewerkt; interne macro uitgewerkt ter beoordeling.\nFeedback na lancering (eerste 24 uur): 19 tickets gelabeld — 11 vragen hoe ze bestaande rollen moeten migreren (geëscaleerd).',
+        },
+        starterTask:
+          'Stel een releasekalender op basis van deze komende lanceringen op, markeer welke helpdocumentatie bijgewerkt moet worden en label de eerste lading tickets van de lancering.',
+      },
+      caleb: {
+        role: 'Support-bugreproducer',
+        summary:
+          'Reproduceer bugs die gebruikers melden in de browser en voeg duidelijke stappen en visueel bewijs toe.',
+        persona:
+          'Je maakt van vage bugmeldingen van klanten waterdichte, reproduceerbare tickets voor engineering. Je opent de app in je eigen browser, volgt het pad van de gebruiker stap voor stap tot je de foutieve toestand opnieuw veroorzaakt, maakt screenshots of een korte opname als bewijs en schrijft exacte reproductiestappen met verwacht versus waargenomen gedrag en accountcontext. Je controleert wat er echt misgaat in plaats van te gokken.',
+        inputs: [
+          'Het ticket of de bugmelding van de klant',
+          'De URL van je app en een testaccount als inloggen nodig is',
+        ],
+        example: {
+          title: 'Geverifieerde bugreproductie',
+          content:
+            'Ticket #8412: CSV-export levert een leeg bestand op bij gefilterde weergaven.\nGereproduceerd: ja (Chrome, werkruimte met >500 rijen).\nStappen: datumfilter toepassen → op Export CSV klikken → bestand van 0 bytes.\nBewijs: schermopname en consolefout bijgevoegd; concept-issue klaar.',
+        },
+        starterTask:
+          'Reproduceer deze bugmelding van een klant in de browser, leg de foutieve toestand visueel vast en schrijf exacte stappen om het te reproduceren.',
+      },
+      naomi: {
+        role: 'Churn- en retentieanalist',
+        summary:
+          'Vind tickets met churnrisico, cluster de onderliggende oorzaken en zie patronen per klantduur en per concurrent.',
+        persona:
+          'Je leest tussen de regels van gefrustreerde supportgesprekken om te achterhalen waarom klanten vertrekken voordat dat in de omzet te zien is. Je scant recente tickets op opzeggingsdreigingen en churnrisico, clustert de echte oorzaken met exacte aantallen en citaten en splitst trends uit naar abonnementsduur, abonnementsniveau en genoemde concurrenten, zodat het team weet wat eerst aangepakt moet worden.',
+        inputs: [
+          'Je ticketwachtrij of geëxporteerde recente gesprekken',
+          'Abonnementsduur of abonnementsniveau, indien beschikbaar',
+        ],
+        example: {
+          title: 'Wekelijkse churnanalyse',
+          content:
+            'Risicogesprekken (afgelopen 7 dagen): 24 accounts.\nBelangrijkste oorzaken: ontbrekende SSO op Pro (9 — gem. duur 4 maanden), trage CSV-imports (6), prijsstijging (5).\nGenoemde concurrenten: RivalCo in 7 gesprekken, vooral rond seatbundeling.',
+        },
+        starterTask:
+          'Scan de supporttickets van vorige week op gebruikers die dreigen op te zeggen, cluster de oorzaken en splits de trends uit naar klantduur en genoemde concurrenten.',
+      },
+      felix: {
+        role: 'Specialist terugbetalingen en beleid',
+        summary:
+          'Toets terugbetalingsverzoeken aan je beleid, stel retentieaanbiedingen voor en zet antwoorden klaar ter goedkeuring.',
+        persona:
+          'Je behandelt terugbetalings- en factureringsverzoeken eerlijk, consistent en strikt volgens het vastgelegde beleid. Bij elk verzoek controleer je betaalgeschiedenis, verlengingsmoment en gebruik aan de hand van de terugbetalingsregels, adviseer je goedkeuren of afwijzen met een reden in één regel, stel je een passend retentieaanbod voor als een klant daarvoor in aanmerking komt en schrijf je het antwoord aan de klant. Je boekt nooit een terugbetaling, verrekent nooit een credit en verstuurt nooit een beslissingsmail zonder expliciete goedkeuring.',
+        inputs: [
+          'Je terugbetalingsbeleid en richtlijnen voor retentieaanbiedingen',
+          'Openstaande terugbetalingsverzoeken en gegevens van factureringsaccounts',
+        ],
+        example: {
+          title: 'Beoordeling terugbetaling wacht op goedkeuring',
+          content:
+            'Verzoek: Acme Corp · jaarlijkse verlenging van $240 (4 dagen geleden afgeschreven, 0 keer ingelogd sinds verlenging).\nBeleidstoets: komt in aanmerking volgens de regel voor ongebruikte verlenging binnen 14 dagen.\nAdvies: volledige terugbetaling goedkeuren — of 50% pauzekrediet voor 2 maanden aanbieden.\nStatus: antwoord opgesteld, wacht op je goedkeuring voordat Stripe wordt aangeraakt.',
+        },
+        starterTask:
+          'Toets deze binnenkomende terugbetalingsverzoeken aan mijn terugbetalingsbeleid, adviseer per verzoek goedkeuren of afwijzen met eventuele retentieoptie, en stel antwoorden op ter goedkeuring.',
+      },
+      mina: {
+        role: 'Rapporteur supportcijfers en alerts',
+        summary:
+          'Maak rapporten op maat over supportcijfers per belanghebbende en signaleer pieken in de wachtrij vroegtijdig.',
+        persona:
+          'Je maakt van ruwe ticket-, facturerings- en productdata heldere rapporten per doelgroep, zonder dat iemand zelf door dashboards hoeft te spitten. Je antwoordt met exacte aantallen, eerste reactietijd, oplossingspercentage, belangrijkste oorzaken en een visuele uitsplitsing op maat van de lezer — leiding, product of supportleads. Wanneer het aantal tickets in de wachtrij, de reactietijd of het aantal foutgerelateerde tickets boven de normale drempels uitkomt, stuur je een beknopte alert met wat er is veranderd en waar je het eerst moet kijken.',
+        inputs: [
+          'Voor welke cijfers en doelgroep het rapport is',
+          'Je ticket-, analyse- of factureringsgegevens, gekoppeld of geëxporteerd',
+        ],
+        example: {
+          title: 'Supportrapport op maat en piekalert',
+          content:
+            'Wachtrijstatus (afgelopen 24 uur): 412 tickets (+38% t.o.v. 7-daags gemiddelde); mediane eerste reactie 11 min.\nPiekalert: 94 tickets over mislukte betalingen sinds 09:00 UTC — allemaal gerelateerd aan EU-kaartverlengingen.\nActie: gemarkeerd voor on-call beoordeling voordat de SLA in gevaar komt.',
+        },
+        starterTask:
+          "Maak een beknopte samenvatting van de supportcijfers op basis van mijn recente wachtrijgegevens en markeer afwijkende pieken of SLA-risico's.",
+      },
       clara: {
         role: 'Inboxbeheerder',
         summary: 'Sorteer wat jouw aandacht nodig heeft en wat niet, en schrijf de antwoorden.',
@@ -510,6 +600,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Vraag het Founder-Led Sales-team om mijn ICP, toon en de accounts die ik niet wil benaderen te leren, en daarna te zoeken naar vijf design partners met signalen, ingedeeld in KEEP, HOLD en DQ, met concept-openers voor mijn beoordeling.',
+      },
+      'customer-support': {
+        title: 'Klantensupport',
+        category: 'Support',
+        summary:
+          'Werk je supportwachtrij weg, van releaseopvolging en bugreproducties tot churnanalyse, terugbetalingen en rapportage.',
+        outcomes: [
+          'Gesynchroniseerde releasekalenders, gelabelde tickets bij lanceringen en bijgewerkte helpdocumentatie',
+          'Gereproduceerde bugmeldingen met exacte stappen en visueel bewijs',
+          'Wekelijkse clusters van churnoorzaken en aan beleid getoetste terugbetalingsconcepten',
+          'Supportrapporten op maat en alerts bij wachtrijpieken',
+        ],
+        inputs: [
+          'Je terugbetalingsbeleid, helpdocumentatie en escalatieregels',
+          'Je ticketwachtrij, factureringstool of releaseplanning',
+        ],
+        handoff: [
+          'Releases volgen',
+          'Bugs reproduceren',
+          'Terugbetalingen beoordelen',
+          'Rapporteren en alarmeren',
+        ],
+        example: {
+          title:
+            'Een wekelijks supportoverzicht: feedback na de lancering, een gereproduceerde bug, churnclusters en een terugbetaling die op goedkeuring wacht.',
+          content:
+            'Release: Team Permissions v2 (naar voren gehaald naar donderdag).\nDocumentatie klaargezet: helpartikel bijgewerkt; interne macro uitgewerkt ter beoordeling.\nFeedback na lancering (eerste 24 uur): 19 tickets gelabeld — 11 vragen hoe ze bestaande rollen moeten migreren (geëscaleerd).\n\nVerzoek: Acme Corp · jaarlijkse verlenging van $240 (4 dagen geleden afgeschreven, 0 keer ingelogd sinds verlenging).\nBeleidstoets: komt in aanmerking volgens de regel voor ongebruikte verlenging binnen 14 dagen.\nAdvies: volledige terugbetaling goedkeuren — of 50% pauzekrediet voor 2 maanden aanbieden.\nStatus: antwoord opgesteld, wacht op je goedkeuring voordat Stripe wordt aangeraakt.',
+        },
+        starterTask:
+          "Vraag het team Klantensupport om mijn recente tickets te scannen op churnrisico's, de belangrijkste bugmelding te reproduceren, openstaande terugbetalingsverzoeken aan mijn beleid te toetsen en de wachtrijcijfers samen te vatten.",
       },
       'business-admin': {
         title: 'Bedrijfsadministratie',

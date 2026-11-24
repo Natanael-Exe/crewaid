@@ -230,6 +230,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Trouvez cinq posts publics récents où des fondateurs ou des opérationnels décrivent la douleur que nous résolvons, rédigez des réponses utiles et classez les leads les plus chauds.',
       },
+      iris: {
+        role: 'Suivi des versions et des retours',
+        summary:
+          "Suivez les dates de sortie qui bougent, synchronisez les articles d'aide, étiquetez les tickets de lancement et remontez les premiers retours utilisateurs.",
+        persona:
+          "Vous tenez le support prêt pour chaque lancement produit, même quand les dates de sortie changent à la dernière minute. Vous tenez à jour un calendrier des versions, gardez en phase les guides internes et les articles d'aide externes, étiquetez les tickets entrants par fonctionnalité ou par version et faites remonter les premiers retours post-lancement dans les heures et les jours qui suivent, pour que les correctifs partent vite. Vous préparez les mises à jour de documentation et les escalades pour relecture, sans rien publier sans validation.",
+        inputs: [
+          'Votre calendrier de versions à venir et vos notes de version',
+          "Votre base de connaissances ou centre d'aide, interne et externe",
+        ],
+        example: {
+          title: 'Synchro des versions et retours de lancement',
+          content:
+            "Version : Team Permissions v2 (avancée à jeudi).\nDocs prêtes : article d'aide mis à jour ; macro interne rédigée pour relecture.\nRetours de lancement (premières 24 h) : 19 tickets étiquetés — 11 demandent comment migrer les rôles existants (escaladé).",
+        },
+        starterTask:
+          "Créez un calendrier des versions à partir de ces lancements à venir, signalez les articles d'aide à mettre à jour et étiquetez la première vague de tickets de lancement.",
+      },
+      caleb: {
+        role: 'Reproduction de bugs support',
+        summary:
+          'Reproduisez dans le navigateur les bugs signalés par les utilisateurs et joignez des étapes claires et une preuve visuelle.',
+        persona:
+          "Vous transformez des signalements clients vagues en tickets d'ingénierie irréprochables et reproductibles. Vous ouvrez l'application dans votre propre navigateur, suivez le parcours utilisateur étape par étape jusqu'à retrouver l'état défaillant, capturez des copies d'écran ou un court enregistrement comme preuve, et rédigez les étapes de reproduction exactes, avec le comportement attendu, le comportement observé et le contexte du compte. Vous vérifiez ce qui casse réellement au lieu de deviner.",
+        inputs: [
+          'Le ticket client ou le signalement de bug',
+          "L'URL de votre application et un compte de test si une connexion est nécessaire",
+        ],
+        example: {
+          title: 'Reproduction de bug vérifiée',
+          content:
+            "Ticket #8412 : l'export CSV télécharge un fichier vide sur les vues filtrées.\nReproduit : oui (Chrome, espace de travail de plus de 500 lignes).\nÉtapes : appliquer le filtre de date → cliquer sur Exporter CSV → fichier de 0 octet.\nPreuve : enregistrement d'écran et erreur console joints ; brouillon de ticket prêt.",
+        },
+        starterTask:
+          "Reproduisez ce signalement client dans le navigateur, capturez une preuve visuelle de l'état défaillant et rédigez les étapes exactes de reproduction.",
+      },
+      naomi: {
+        role: 'Analyste churn et rétention',
+        summary:
+          "Repérez les tickets à risque de churn, regroupez les causes profondes et dégagez des tendances selon l'ancienneté et les concurrents.",
+        persona:
+          "Vous lisez entre les lignes des échanges support agacés pour comprendre pourquoi les clients partent avant que ça ne se voie dans le chiffre d'affaires. Vous passez les tickets récents au crible pour repérer les menaces d'annulation et le risque de churn, regroupez les vraies causes profondes avec des chiffres et des citations exactes, et découpez les tendances par ancienneté d'abonnement, niveau de formule et mentions de concurrents, pour que l'équipe sache quoi corriger en premier.",
+        inputs: [
+          'Votre file de tickets ou vos conversations récentes exportées',
+          "L'ancienneté d'abonnement ou le contexte de la formule, si disponible",
+        ],
+        example: {
+          title: 'Analyse hebdomadaire du churn',
+          content:
+            'Fils à risque (7 derniers jours) : 24 comptes.\nPrincipales causes profondes : SSO absent sur Pro (9 — ancienneté moyenne 4 mois), imports CSV lents (6), hausse de prix (5).\nMentions de concurrents : RivalCo cité dans 7 fils, surtout à propos des licences groupées.',
+        },
+        starterTask:
+          'Passez au crible les tickets support de la semaine dernière pour repérer les utilisateurs qui menacent de partir, regroupez les causes profondes et décomposez les tendances par ancienneté et mentions de concurrents.',
+      },
+      felix: {
+        role: 'Spécialiste remboursements et règles',
+        summary:
+          'Vérifiez les demandes de remboursement au regard de votre politique, proposez des offres de rétention et préparez les réponses pour validation.',
+        persona:
+          "Vous traitez les demandes de remboursement et de facturation avec équité et constance, et strictement selon la politique écrite. Pour chaque demande, vous vérifiez l'historique de paiement, la date de renouvellement et l'usage au regard des règles de remboursement, recommandez d'accepter ou de refuser avec une justification d'une ligne tirée de la politique, proposez une offre de rétention adaptée quand le client y est éligible, et rédigez la réponse au client. Vous n'émettez jamais de remboursement, n'appliquez jamais d'avoir et n'envoyez jamais d'e-mail de décision sans validation explicite.",
+        inputs: [
+          "Votre politique de remboursement et vos règles d'offres de rétention",
+          'Les demandes de remboursement en attente et le détail de facturation des comptes',
+        ],
+        example: {
+          title: 'Remboursement en attente de validation',
+          content:
+            'Demande : Acme Corp · renouvellement annuel de 240 $ (débité il y a 4 jours, 0 connexion depuis le renouvellement).\nVérification politique : éligible à la règle des 14 jours sur renouvellement non utilisé.\nRecommandation : remboursement intégral — ou avoir de 50 % pour une pause de 2 mois.\nStatut : réponse rédigée, en attente de votre validation avant toute action sur Stripe.',
+        },
+        starterTask:
+          "Examinez ces demandes de remboursement entrantes au regard de ma politique de remboursement, recommandez pour chacune d'accepter ou de refuser avec l'option de rétention éventuelle, et rédigez les réponses pour ma validation.",
+      },
+      mina: {
+        role: 'Rapports de métriques support et alertes',
+        summary:
+          "Produisez des rapports de métriques support sur mesure pour chaque partie prenante et signalez tôt les pics de file d'attente.",
+        persona:
+          'Vous transformez des données brutes de tickets, de facturation et de produit en rapports clairs, adaptés à chaque destinataire, sans obliger personne à fouiller les tableaux de bord. Vous répondez avec le volume exact, le délai de première réponse, le taux de résolution, les principaux facteurs et une ventilation visuelle adaptée au lecteur — direction, produit ou responsables support. Quand le volume de la file, le temps de réponse ou les tickets liés à des erreurs dépassent les seuils habituels, vous envoyez une alerte concise expliquant ce qui a changé et où regarder en premier.',
+        inputs: [
+          'Les métriques et le public visés par le rapport',
+          "Vos données de tickets, d'analytics ou de facturation, connectées ou exportées",
+        ],
+        example: {
+          title: 'Rapport support sur mesure et alerte de pic',
+          content:
+            "Santé de la file (24 dernières heures) : 412 tickets (+38 % vs moyenne sur 7 jours) ; délai médian de première réponse 11 min.\nAlerte de pic : 94 tickets d'échec de facturation depuis 09:00 UTC — tous liés à des renouvellements de cartes UE.\nAction : signalé pour revue par l'astreinte avant tout dépassement de SLA.",
+        },
+        starterTask:
+          'Produisez un résumé concis des métriques support à partir des données récentes de ma file et signalez tout pic anormal ou risque de SLA.',
+      },
       clara: {
         role: 'Gestionnaire de boîte de réception',
         summary:
@@ -532,6 +622,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           "Demandez à l'équipe Ventes menées par le fondateur d'apprendre mon ICP, ma voix et les comptes à ne pas contacter, puis de repérer cinq partenaires de design appuyés par des signaux, classés en KEEP, HOLD et DQ, avec des accroches rédigées à valider.",
+      },
+      'customer-support': {
+        title: 'Support client',
+        category: 'Support',
+        summary:
+          "Traitez votre file support, du suivi des versions et de la reproduction de bugs à l'analyse du churn, aux remboursements et au reporting.",
+        outcomes: [
+          "Calendriers de versions synchronisés, tickets de lancement étiquetés et articles d'aide à jour",
+          'Signalements de bugs reproduits avec étapes exactes et preuve visuelle',
+          'Regroupements hebdomadaires des causes de churn et brouillons de remboursement vérifiés selon la politique',
+          'Rapports de métriques support sur mesure et alertes de pic de file',
+        ],
+        inputs: [
+          "Votre politique de remboursement, vos articles d'aide et vos règles d'escalade",
+          'Votre file de tickets, votre outil de facturation ou votre calendrier de versions',
+        ],
+        handoff: [
+          'Suivre les versions',
+          'Reproduire les bugs',
+          'Examiner les remboursements',
+          'Rapporter et alerter',
+        ],
+        example: {
+          title:
+            'Un point hebdomadaire sur le support : retours de lancement, bug reproduit, groupes de churn et un remboursement en attente de validation.',
+          content:
+            "Version : Team Permissions v2 (avancée à jeudi).\nDocs prêtes : article d'aide mis à jour ; macro interne rédigée pour relecture.\nRetours de lancement (premières 24 h) : 19 tickets étiquetés — 11 demandent comment migrer les rôles existants (escaladé).\n\nDemande : Acme Corp · renouvellement annuel de 240 $ (débité il y a 4 jours, 0 connexion depuis le renouvellement).\nVérification politique : éligible à la règle des 14 jours sur renouvellement non utilisé.\nRecommandation : remboursement intégral — ou avoir de 50 % pour une pause de 2 mois.\nStatut : réponse rédigée, en attente de votre validation avant toute action sur Stripe.",
+        },
+        starterTask:
+          "Demandez à l'équipe Support client de passer mes tickets récents au crible pour repérer les risques de churn, de reproduire le principal signalement de bug, de vérifier les demandes de remboursement en attente au regard de ma politique et de résumer les métriques de la file.",
       },
       'business-admin': {
         title: 'Gestion administrative',

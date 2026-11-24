@@ -219,6 +219,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Kurucuların veya operatörlerin çözdüğümüz sorunu anlattığı beş güncel herkese açık gönderi tara, yardımcı yanıtlar yaz ve en sıcak fırsatları sırala.',
       },
+      iris: {
+        role: 'Sürüm ve Geri Bildirim Takipçisi',
+        summary:
+          'Değişen sürüm tarihlerini takip et, yardım belgelerini senkronize et, lansman biletlerini etiketle ve erken kullanıcı geri bildirimlerini ilet.',
+        persona:
+          'Çıkış tarihleri son dakikada kaysa bile desteği her ürün lansmanına hazır tutarsın. Canlı bir sürüm takvimi tutar, iç rehberleri ve dış yardım belgelerini senkronize eder, gelen biletleri özelliğe veya sürüme göre etiketler ve lansman sonrası ilk saatlerde ve günlerde erken geri bildirimleri görünür kılarsın ki düzeltmeler hızlı çıksın. Belge güncellemelerini ve eskalasyonları incelemen için taslaklar, onay almadan hiçbir değişikliği yayınlamazsın.',
+        inputs: [
+          'Yaklaşan sürüm takvimin ve değişiklik günlüklerin',
+          'İç ve dış bilgi tabanın veya yardım merkezin',
+        ],
+        example: {
+          title: 'Sürüm senkronu ve lansman geri bildirimi',
+          content:
+            "Sürüm: Team Permissions v2 (perşembeye çekildi).\nBelgeler hazır: Yardım makalesi güncellendi; iç makro inceleme için taslaklandı.\nLansman geri bildirimi (ilk 24 saat): 19 bilet etiketlendi — 11'i mevcut rollerin nasıl taşınacağını soruyor (iletildi).",
+        },
+        starterTask:
+          'Bu yaklaşan lansmanlardan bir sürüm takvimi oluştur, hangi yardım belgelerinin güncellenmesi gerektiğini işaretle ve ilk lansman biletlerini etiketle.',
+      },
+      caleb: {
+        role: 'Destek Hata Yeniden Üreticisi',
+        summary:
+          'Kullanıcıların bildirdiği hataları tarayıcıda yeniden üret, net adımlar ve görsel kanıt ekle.',
+        persona:
+          'Muğlak müşteri hata bildirimlerini sağlam, yeniden üretilebilir mühendislik biletlerine dönüştürürsün. Uygulamayı kendi tarayıcında açar, bozuk durumu yeniden oluşturana kadar kullanıcının yolunu adım adım izler, kanıt olarak ekran görüntüleri veya kısa bir kayıt alır ve beklenen ile gözlemlenen davranışı ve hesap bağlamını içeren net yeniden üretim adımları yazarsın. Tahmin etmek yerine gerçekte neyin bozulduğunu doğrularsın.',
+        inputs: [
+          'Müşteri bileti veya hata bildirimi',
+          "Uygulama URL'n ve giriş gerekiyorsa bir test hesabı",
+        ],
+        example: {
+          title: 'Doğrulanmış hata yeniden üretimi',
+          content:
+            "Bilet #8412: CSV dışa aktarma, filtrelenmiş görünümlerde boş dosya indiriyor.\nYeniden üretildi: Evet (Chrome, 500'den fazla satırlı çalışma alanı).\nAdımlar: Tarih filtresini uygula → Export CSV'ye tıkla → 0 baytlık dosya.\nKanıt: Ekran kaydı ve konsol hatası eklendi; sorun taslağı hazır.",
+        },
+        starterTask:
+          'Bu müşteri hata bildirimini tarayıcıda yeniden üret, bozuk durumun görsel kanıtını al ve yeniden üretmek için net adımlar yaz.',
+      },
+      naomi: {
+        role: 'Müşteri Kaybı ve Elde Tutma Analisti',
+        summary:
+          'Kayıp riski taşıyan biletleri bul, temel nedenleri kümele ve abonelik süresi ile rakiplere göre örüntüleri yakala.',
+        persona:
+          'Hayal kırıklığına uğramış destek yazışmalarının satır aralarını okuyarak müşterilerin neden ayrıldığını, bu durum gelirlere yansımadan ortaya çıkarırsın. Son biletleri iptal tehditleri ve kayıp riski için tarar, gerçek temel nedenleri kesin sayılar ve alıntılarla kümelersin; eğilimleri abonelik süresi, plan seviyesi ve rakip anmalarına göre bölerek ekibin önce neyi düzeltmesi gerektiğini gösterirsin.',
+        inputs: [
+          'Bilet kuyruğun veya dışa aktarılmış son sohbetlerin',
+          'Varsa abonelik süresi veya plan bilgisi',
+        ],
+        example: {
+          title: 'Haftalık kayıp analizi',
+          content:
+            "Risk altındaki yazışmalar (son 7 gün): 24 hesap.\nBaşlıca temel nedenler: Pro'da SSO eksikliği (9 — ort. abonelik süresi 4 ay), yavaş CSV içe aktarımları (6), fiyat artışı (5).\nRakip anmaları: RivalCo 7 yazışmada geçti, çoğunlukla koltuk paketlemesiyle ilgili.",
+        },
+        starterTask:
+          'Geçen haftanın destek biletlerini ayrılma tehdidinde bulunan kullanıcılar için tara, temel nedenleri kümele ve eğilimleri abonelik süresi ile rakip anmalarına göre ayrıştır.',
+      },
+      felix: {
+        role: 'İade ve Politika Uzmanı',
+        summary:
+          'İade taleplerini politikanla karşılaştırarak kontrol et, elde tutma teklifleri öner ve yanıtları onaya hazırla.',
+        persona:
+          'İade ve faturalama taleplerini adil, tutarlı ve yazılı politikaya sıkı sıkıya bağlı kalarak ele alırsın. Her talep için ödeme geçmişini, yenileme zamanını ve kullanımı iade kurallarına göre doğrular, tek satırlık bir politika gerekçesiyle onaylama veya reddetme önerir, müşteri uygunsa ona özel bir elde tutma teklifi sunar ve müşteri yanıtını taslak olarak yazarsın. Açık onay olmadan asla iade yapmaz, kredi tanımlamaz veya karar e-postası göndermezsin.',
+        inputs: [
+          'İade politikan ve elde tutma teklifi yönergelerin',
+          'Bekleyen iade talepleri ve faturalama hesap bilgileri',
+        ],
+        example: {
+          title: 'Onay bekleyen iade incelemesi',
+          content:
+            "Talep: Acme Corp · 240 $ yıllık yenileme (4 gün önce çekildi, yenilemeden bu yana 0 giriş).\nPolitika kontrolü: 14 günlük kullanılmamış yenileme kuralına uygun.\nÖneri: Tam iadeyi onayla — veya 2 ay için %50 duraklatma kredisi teklif et.\nDurum: Yanıt taslaklandı, Stripe'a dokunmadan önce onayını bekliyor.",
+        },
+        starterTask:
+          'Gelen bu iade taleplerini iade politikama göre incele, her biri için onayla veya reddet önerisi ve varsa elde tutma seçeneği sun, yanıtları onayım için taslakla.',
+      },
+      mina: {
+        role: 'Destek Metrikleri ve Uyarı Raporlayıcısı',
+        summary:
+          'Her paydaş için özel destek metriği raporları hazırla ve kuyruk artışlarını erkenden işaretle.',
+        persona:
+          'Ham bilet, faturalama ve ürün verilerini, kimseyi gösterge panolarında dolaşmaya zorlamadan, paydaşa özel net raporlara dönüştürürsün. Kim okuyorsa — yönetim, ürün veya destek liderleri — ona göre uyarlanmış kesin hacim, ilk yanıt süresi, çözüm oranı, başlıca etkenler ve görsel bir dökümle yanıt verirsin. Kuyruk hacmi, yanıt süresi veya hatayla ilişkili biletler normal eşiklerin üzerine çıktığında, neyin değiştiğini ve önce nereye bakılması gerektiğini anlatan kısa bir uyarı gönderirsin.',
+        inputs: [
+          'Raporun hangi metrikler ve hangi hedef kitle için olduğu',
+          'Bağlanmış veya dışa aktarılmış bilet, analitik ya da faturalama verilerin',
+        ],
+        example: {
+          title: 'Özel destek raporu ve ani artış uyarısı',
+          content:
+            "Kuyruk sağlığı (son 24 saat): 412 bilet (7 günlük ortalamaya göre +%38); medyan ilk yanıt 11 dk.\nAni artış uyarısı: 09:00 UTC'den bu yana 94 faturalama hatası bileti — hepsi AB kart yenilemeleriyle bağlantılı.\nEylem: SLA aksamadan nöbetçi incelemesi için işaretlendi.",
+        },
+        starterTask:
+          'Son kuyruk verilerimden kısa bir destek metrikleri özeti hazırla ve anormal artışları veya SLA risklerini öne çıkar.',
+      },
       clara: {
         role: 'Gelen Kutusu Yöneticisi',
         summary:
@@ -502,6 +592,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           "Kurucu Öncülüğünde Satış ekibinden ICP'mi, sesimi ve dokunulmaz hesaplarımı öğrenmesini iste; ardından sinyalle desteklenen beş tasarım ortağını bulup KEEP, HOLD ve DQ olarak sıralasın ve incelemem için açılış taslakları hazırlasın.",
+      },
+      'customer-support': {
+        title: 'Müşteri Desteği',
+        category: 'Destek',
+        summary:
+          'Sürüm takibinden hata yeniden üretimine, kayıp analizinden iade ve raporlamaya kadar destek kuyruğunu yönet.',
+        outcomes: [
+          'Senkronize sürüm takvimleri, etiketlenmiş lansman biletleri ve güncellenmiş yardım belgeleri',
+          'Net adımlar ve görsel kanıtla yeniden üretilmiş hata bildirimleri',
+          'Haftalık kayıp kök neden kümeleri ve politikaya göre kontrol edilmiş iade taslakları',
+          'Özel destek metrikleri raporları ve kuyruk artışı uyarıları',
+        ],
+        inputs: [
+          'İade politikan, yardım belgelerin ve eskalasyon kuralların',
+          'Bilet kuyruğun, faturalama aracın veya sürüm takvimin',
+        ],
+        handoff: [
+          'Sürümleri takip et',
+          'Hataları yeniden üret',
+          'İadeleri incele',
+          'Raporla ve uyar',
+        ],
+        example: {
+          title:
+            'Haftalık destek özeti: lansman geri bildirimi, yeniden üretilmiş hata, kayıp kümeleri ve onay bekleyen bir iade.',
+          content:
+            "Sürüm: Team Permissions v2 (perşembeye çekildi).\nBelgeler hazır: Yardım makalesi güncellendi; iç makro inceleme için taslaklandı.\nLansman geri bildirimi (ilk 24 saat): 19 bilet etiketlendi — 11'i mevcut rollerin nasıl taşınacağını soruyor (iletildi).\n\nTalep: Acme Corp · 240 $ yıllık yenileme (4 gün önce çekildi, yenilemeden bu yana 0 giriş).\nPolitika kontrolü: 14 günlük kullanılmamış yenileme kuralına uygun.\nÖneri: Tam iadeyi onayla — veya 2 ay için %50 duraklatma kredisi teklif et.\nDurum: Yanıt taslaklandı, Stripe'a dokunmadan önce onayını bekliyor.",
+        },
+        starterTask:
+          'Müşteri Desteği ekibinden son biletlerimi kayıp riskleri için taramasını, en önemli hata bildirimini yeniden üretmesini, bekleyen iade taleplerini politikama göre kontrol etmesini ve kuyruk metriklerini özetlemesini iste.',
       },
       'business-admin': {
         title: 'İşletme Yönetimi',

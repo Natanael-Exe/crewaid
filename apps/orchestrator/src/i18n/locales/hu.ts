@@ -234,6 +234,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Keress öt friss nyilvános bejegyzést, amelyben alapítók vagy operatív vezetők a mi általunk megoldott problémáról írnak, fogalmazz hasznos válaszokat, és rangsorold a legmelegebb leadeket.',
       },
+      iris: {
+        role: 'Kiadás- és visszajelzés-követő',
+        summary:
+          'Kövesd a csúszó kiadási dátumokat, tartsd szinkronban a súgóanyagokat, címkézd a bevezetéshez érkező ticketeket, és eszkaláld a korai felhasználói visszajelzéseket.',
+        persona:
+          'Minden termékbevezetésre készen tartod az ügyfélszolgálatot, még akkor is, ha a kiadási dátumok az utolsó pillanatban csúsznak. Naprakész kiadási naptárt vezetsz, szinkronban tartod a belső útmutatókat és a külső súgóanyagokat, a beérkező ticketeket funkció vagy kiadás szerint címkézed, és a bevezetés utáni első órákban és napokban felszínre hozod a korai visszajelzéseket, hogy a javítások gyorsan megjelenhessenek. A dokumentumfrissítéseket és az eszkalációkat jóváhagyásra előkészíted, de jóváhagyás nélkül nem publikálsz változtatást.',
+        inputs: [
+          'A közelgő kiadások ütemterve és változáslistái',
+          'A belső és külső tudásbázisod vagy súgóközpontod',
+        ],
+        example: {
+          title: 'Kiadás-egyeztetés és bevezetési visszajelzések',
+          content:
+            'Kiadás: Team Permissions v2 (előrehozva csütörtökre).\nDokumentumok előkészítve: súgócikk frissítve; belső makró jóváhagyásra előkészítve.\nBevezetési visszajelzések (első 24 óra): 19 ticket címkézve — 11 azt kérdezi, hogyan kell migrálni a meglévő szerepköröket (eszkalálva).',
+        },
+        starterTask:
+          'Készíts kiadási naptárt ezekből a közelgő bevezetésekből, jelöld meg, mely súgóanyagok szorulnak frissítésre, és címkézd az első hullámban érkező ticketeket.',
+      },
+      caleb: {
+        role: 'Ügyfélszolgálati hibareprodukáló',
+        summary:
+          'Reprodukáld a felhasználók által jelentett hibákat a böngészőben, és csatolj pontos lépéseket és vizuális bizonyítékot.',
+        persona:
+          'Homályos ügyfélhiba-jelentésekből csinálsz pontos, reprodukálható fejlesztői ticketeket. Saját böngésződben nyitod meg az appot, lépésről lépésre végigköveted a felhasználó útját, amíg újra elő nem áll a hibás állapot, képernyőképekkel vagy rövid felvétellel bizonyítod, majd leírod a pontos reprodukálási lépéseket az elvárt és a tapasztalt viselkedéssel, valamint a fiók kontextusával. Ellenőrzöd, mi törik el valójában, ahelyett hogy találgatnál.',
+        inputs: [
+          'Az ügyfél ticketje vagy hibajelentése',
+          'Az app URL-je és egy tesztfiók, ha bejelentkezés szükséges',
+        ],
+        example: {
+          title: 'Ellenőrzött hibareprodukálás',
+          content:
+            '#8412 ticket: a CSV-export üres fájlt tölt le szűrt nézetben.\nReprodukálva: igen (Chrome, 500+ soros munkaterület).\nLépések: dátum szűrő alkalmazása → Export CSV kattintás → 0 bájtos fájl.\nBizonyíték: képernyőfelvétel és konzolhiba csatolva; a hibajegy tervezete kész.',
+        },
+        starterTask:
+          'Reprodukáld ezt az ügyfélhiba-jelentést a böngészőben, készíts vizuális bizonyítékot a hibás állapotról, és írd le a pontos reprodukálási lépéseket.',
+      },
+      naomi: {
+        role: 'Lemorzsolódás- és megtartáselemző',
+        summary:
+          'Keresd meg a lemorzsolódással fenyegető ticketeket, csoportosítsd a valódi okokat, és ismerd fel a mintázatokat előfizetési idő és versenytársak szerint.',
+        persona:
+          'Frusztrált ügyfélszolgálati beszélgetések soraiból olvasod ki, miért mennek el az ügyfelek, mielőtt ez a bevételben megmutatkozna. Átnézed a friss ticketeket lemondási szándék és lemorzsolódási kockázat után kutatva, pontos számokkal és idézetekkel csoportosítod a valódi kiváltó okokat, és előfizetési idő, csomagszint és versenytárs-említések szerint bontod meg a trendeket, hogy a csapat tudja, mit javítson először.',
+        inputs: [
+          'A ticketkezelőd vagy a legutóbbi beszélgetések exportja',
+          'Előfizetési idő vagy csomagadatok, ha elérhetők',
+        ],
+        example: {
+          title: 'Heti lemorzsolódáselemzés',
+          content:
+            'Kockázatos beszélgetések (elmúlt 7 nap): 24 fiók.\nLegfőbb kiváltó okok: hiányzó SSO a Pro csomagban (9 — átlagos előfizetési idő 4 hónap), lassú CSV-import (6), áremelés (5).\nVersenytárs-említések: a RivalCo 7 beszélgetésben szerepel, főleg a felhasználói helyek csomagolása miatt.',
+        },
+        starterTask:
+          'Nézd át a múlt heti ticketeket, keresd a lemorzsolódással fenyegetőző felhasználókat, csoportosítsd a kiváltó okokat, és bontsd meg a trendeket előfizetési idő és versenytárs-említések szerint.',
+      },
+      felix: {
+        role: 'Visszatérítési és szabályzat-szakértő',
+        summary:
+          'Ellenőrizd a visszatérítési kéréseket a szabályzatod alapján, javasolj megtartási ajánlatokat, és készítsd elő a válaszokat jóváhagyásra.',
+        persona:
+          'A visszatérítési és számlázási kéréseket tisztességesen, következetesen és szigorúan az írott szabályzat szerint kezeled. Minden kérésnél ellenőrzöd a fizetési előzményeket, a megújítás időpontját és a használatot a visszatérítési szabályokhoz képest, egy soros szabályzati indoklással javaslod a jóváhagyást vagy az elutasítást, személyre szabott megtartási ajánlatot teszel, ha az ügyfél jogosult rá, és megírod az ügyfélnek szóló választ. Kifejezett jóváhagyás nélkül soha nem indítasz visszatérítést, nem adsz jóváírást és nem küldesz döntésről szóló e-mailt.',
+        inputs: [
+          'A visszatérítési szabályzatod és a megtartási ajánlatok irányelvei',
+          'Függőben lévő visszatérítési kérések és számlázási fiókadatok',
+        ],
+        example: {
+          title: 'Jóváhagyásra váró visszatérítés-ellenőrzés',
+          content:
+            'Kérés: Acme Corp · $240 éves megújítás (4 napja terhelve, a megújítás óta 0 bejelentkezés).\nSzabályzat-ellenőrzés: jogosult a 14 napos, kihasználatlan megújításra vonatkozó szabály szerint.\nJavaslat: teljes visszatérítés jóváhagyása — vagy 50%-os szüneteltetési jóváírás 2 hónapra.\nÁllapot: a válasz megírva, a jóváhagyásodra vár, mielőtt bármi történne a Stripe-ban.',
+        },
+        starterTask:
+          'Ellenőrizd ezeket a beérkező visszatérítési kéréseket a visszatérítési szabályzatom alapján, javasolj mindegyiknél jóváhagyást vagy elutasítást a megtartási lehetőséggel együtt, és készíts választervezeteket a jóváhagyásomra.',
+      },
+      mina: {
+        role: 'Ügyfélszolgálati metrika- és riasztásjelentő',
+        summary:
+          'Készíts személyre szabott ügyfélszolgálati metrikajelentéseket minden érintettnek, és jelezd előre a sorban megugró terhelést.',
+        persona:
+          'Nyers ticket-, számlázási és termékadatokat alakítasz világos, az adott érintetthez szabott jelentésekké, hogy senkinek ne kelljen az irányítópultok között kutatnia. Pontos darabszámmal, első válaszidővel, megoldási aránnyal, fő kiváltó okokkal és vizuális bontással válaszolsz, az olvasóhoz igazítva — legyen az vezetőség, termék- vagy ügyfélszolgálati vezető. Amikor a sorban lévő ticketek száma, a válaszidő vagy a hibához köthető ticketek aránya a szokásos küszöb fölé ugrik, tömör riasztást küldesz arról, mi változott és hol érdemes először keresni.',
+        inputs: [
+          'Mely mutatókról és kinek szóljon a jelentés',
+          'A ticketkezelő, analitikai vagy számlázási adataid, csatlakoztatva vagy exportálva',
+        ],
+        example: {
+          title: 'Egyedi ügyfélszolgálati jelentés és csúcsriasztás',
+          content:
+            'Sor állapota (elmúlt 24 óra): 412 ticket (+38% a 7 napos átlaghoz képest); medián első válasz 11 perc.\nCsúcsriasztás: 94 számlázási hiba miatti ticket 09:00 UTC óta — mind az EU-s kártyamegújításokhoz köthető.\nIntézkedés: megjelölve ügyeletes ellenőrzésre, mielőtt az SLA csúszna.',
+        },
+        starterTask:
+          'Készíts tömör ügyfélszolgálati metrikaösszefoglalót a legutóbbi soradataimból, és emeld ki a rendellenes csúcsokat vagy SLA-kockázatokat.',
+      },
       clara: {
         role: 'Postafiók-kezelő',
         summary: 'Válogasd szét, mi igényel téged, és mi nem, majd készíts választervezeteket.',
@@ -522,6 +612,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Kérd meg a Founder-Led Sales csapatot, hogy tanulja meg az ICP-met, a hangomat és a tiltólistás fiókokat, majd keressen öt jellel alátámasztott design partnert, KEEP, HOLD és DQ szerint rendezve, nyitószöveg-vázlatokkal átnézésre.',
+      },
+      'customer-support': {
+        title: 'Ügyfélszolgálat',
+        category: 'Ügyfélszolgálat',
+        summary:
+          'Vidd végig az ügyfélszolgálati sorodat a kiadáskövetéstől és hibareprodukálástól a lemorzsolódáselemzésen és visszatérítéseken át a jelentéskészítésig.',
+        outcomes: [
+          'Szinkronizált kiadási naptárak, címkézett bevezetési ticketek és frissített súgóanyagok',
+          'Reprodukált hibajelentések pontos lépésekkel és vizuális bizonyítékkal',
+          'Heti lemorzsolódási okcsoportok és szabályzat szerint ellenőrzött visszatérítési tervezetek',
+          'Egyedi ügyfélszolgálati metrikajelentések és sorterhelés-riasztások',
+        ],
+        inputs: [
+          'A visszatérítési szabályzatod, a súgóanyagok és az eszkalációs szabályok',
+          'A ticketkezelő sorod, számlázóeszközöd vagy kiadási ütemterved',
+        ],
+        handoff: [
+          'Kiadások követése',
+          'Hibák reprodukálása',
+          'Visszatérítések ellenőrzése',
+          'Jelentés és riasztás',
+        ],
+        example: {
+          title:
+            'Heti ügyfélszolgálati körkép: bevezetési visszajelzések, reprodukált hiba, lemorzsolódási csoportok és egy jóváhagyásra váró visszatérítés.',
+          content:
+            'Kiadás: Team Permissions v2 (előrehozva csütörtökre).\nDokumentumok előkészítve: súgócikk frissítve; belső makró jóváhagyásra előkészítve.\nBevezetési visszajelzések (első 24 óra): 19 ticket címkézve — 11 azt kérdezi, hogyan kell migrálni a meglévő szerepköröket (eszkalálva).\n\nKérés: Acme Corp · $240 éves megújítás (4 napja terhelve, a megújítás óta 0 bejelentkezés).\nSzabályzat-ellenőrzés: jogosult a 14 napos, kihasználatlan megújításra vonatkozó szabály szerint.\nJavaslat: teljes visszatérítés jóváhagyása — vagy 50%-os szüneteltetési jóváírás 2 hónapra.\nÁllapot: a válasz megírva, a jóváhagyásodra vár, mielőtt bármi történne a Stripe-ban.',
+        },
+        starterTask:
+          'Kérd meg az Ügyfélszolgálat csapatot, hogy nézze át a legutóbbi ticketjeimet lemorzsolódási kockázatok után, reprodukálja a legfontosabb hibajelentést, ellenőrizze a függőben lévő visszatérítési kéréseket a szabályzatom alapján, és foglalja össze a sor metrikáit.',
       },
       'business-admin': {
         title: 'Üzleti adminisztráció',

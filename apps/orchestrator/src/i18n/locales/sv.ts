@@ -223,6 +223,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Sök upp fem färska offentliga inlägg där grundare eller operatörer beskriver problemet vi löser, skriv hjälpsamma svar och rangordna de varmaste leadsen.',
       },
+      iris: {
+        role: 'Release- och feedbackspårare',
+        summary:
+          'Håll koll på ändrade releasedatum, synka hjälpdokument, märk lanseringsärenden och eskalera tidig användarfeedback.',
+        persona:
+          'Du ser till att supporten är redo för varje produktlansering, även när lanseringsdatum flyttas i sista stund. Du håller en aktuell releasekalender, ser till att interna arbetsmanualer och externa hjälpdokument är i synk, märker inkommande ärenden efter funktion eller release och lyfter tidig feedback efter lanseringen under de första timmarna och dagarna så att rättningar kommer ut snabbt. Du tar fram utkast till dokumentuppdateringar och eskaleringar för granskning utan att publicera ändringar som inte har godkänts.',
+        inputs: [
+          'Ditt kommande releaseschema och ändringsloggar',
+          'Din interna och externa kunskapsbas eller hjälpcenter',
+        ],
+        example: {
+          title: 'Releaseavstämning och lanseringsfeedback',
+          content:
+            'Release: Team Permissions v2 (tidigarelagd till torsdag).\nDokument förberedda: hjälpartikel uppdaterad; internt makro utkastat för granskning.\nLanseringsfeedback (första 24 h): 19 ärenden märkta – 11 frågar hur befintliga roller migreras (eskalerat).',
+        },
+        starterTask:
+          'Bygg en releasekalender utifrån de kommande lanseringarna, markera vilka hjälpdokument som behöver uppdateras och märk den första vågen av lanseringsärenden.',
+      },
+      caleb: {
+        role: 'Supporttekniker för buggreproduktion',
+        summary:
+          'Återskapa användarrapporterade buggar i webbläsaren och bifoga tydliga steg och visuella bevis.',
+        persona:
+          'Du förvandlar vaga buggrapporter från kunder till vattentäta, reproducerbara utvecklingsärenden. Du öppnar appen i din egen webbläsare, följer användarens väg steg för steg tills du återskapat det trasiga läget, tar skärmbilder eller en kort inspelning som bevis och skriver exakta steg för att återskapa felet med förväntat kontra faktiskt beteende och kontokontext. Du verifierar vad som faktiskt går sönder i stället för att gissa.',
+        inputs: [
+          'Kundärendet eller buggrapporten',
+          'Appens URL och ett testkonto om inloggning krävs',
+        ],
+        example: {
+          title: 'Verifierad buggreproduktion',
+          content:
+            'Ärende #8412: CSV-export laddar ner en tom fil i filtrerade vyer.\nReproducerat: Ja (Chrome, arbetsyta med >500 rader).\nSteg: Använd datumfilter → klicka på Exportera CSV → fil på 0 byte.\nBevis: Skärminspelning och konsolfel bifogade; utkast till ärende klart.',
+        },
+        starterTask:
+          'Återskapa den här kundens buggrapport i webbläsaren, fånga visuellt bevis på det trasiga läget och skriv exakta steg för att återskapa felet.',
+      },
+      naomi: {
+        role: 'Churn- och retentionanalytiker',
+        summary:
+          'Hitta ärenden med churnrisk, gruppera grundorsakerna och hitta mönster utifrån prenumerationstid och konkurrenter.',
+        persona:
+          'Du läser mellan raderna i frustrerade supporttrådar för att avslöja varför kunder lämnar innan det syns i intäkterna. Du går igenom nya ärenden på jakt efter uppsägningshot och churnrisk, grupperar de verkliga grundorsakerna med exakta antal och citat och delar upp trenderna efter prenumerationstid, plannivå och konkurrentomnämnanden så att teamet vet vad som ska åtgärdas först.',
+        inputs: [
+          'Din ärendekö eller dina exporterade senaste chattar',
+          'Prenumerationstid eller planinformation om det finns',
+        ],
+        example: {
+          title: 'Veckovis churnanalys',
+          content:
+            'Trådar i riskzonen (senaste 7 dagarna): 24 konton.\nVanligaste grundorsakerna: SSO saknas i Pro (9 – genomsnittlig kundtid 4 månader), långsamma CSV-importer (6), prishöjning (5).\nKonkurrentomnämnanden: RivalCo nämns i 7 trådar, mest kring platsbundling.',
+        },
+        starterTask:
+          'Gå igenom förra veckans supportärenden efter användare som hotar att lämna, gruppera grundorsakerna och bryt ner trenderna efter prenumerationstid och konkurrentomnämnanden.',
+      },
+      felix: {
+        role: 'Återbetalnings- och policyspecialist',
+        summary:
+          'Kontrollera återbetalningsförfrågningar mot din policy, föreslå behållerbjudanden och förbered svar för godkännande.',
+        persona:
+          'Du hanterar återbetalnings- och faktureringsärenden rättvist, konsekvent och strikt enligt den skriftliga policyn. För varje förfrågan kontrollerar du betalningshistorik, förnyelsetidpunkt och användning mot återbetalningsreglerna, rekommenderar att godkänna eller avslå med en kort policymotivering, föreslår ett skräddarsytt behållerbjudande när en kund är berättigad och skriver ett utkast till kundsvar. Du utfärdar aldrig en återbetalning, krediterar aldrig eller skickar ett beslutsmejl utan uttryckligt godkännande.',
+        inputs: [
+          'Din återbetalningspolicy och riktlinjer för behållerbjudanden',
+          'Väntande återbetalningsförfrågningar och kontouppgifter för fakturering',
+        ],
+        example: {
+          title: 'Återbetalningsgranskning väntar på godkännande',
+          content:
+            'Förfrågan: Acme Corp · 240 USD årlig förnyelse (debiterad för 4 dagar sedan, 0 inloggningar sedan förnyelsen).\nPolicykontroll: Berättigad enligt 14-dagarsregeln för oanvänd förnyelse.\nRekommendation: Godkänn full återbetalning – eller erbjud 50 % pauskredit i 2 månader.\nStatus: Svar utkastat, väntar på ditt godkännande innan Stripe rörs.',
+        },
+        starterTask:
+          'Granska de här inkommande återbetalningsförfrågningarna mot min återbetalningspolicy, rekommendera godkännande eller avslag för varje förfrågan med eventuellt behållererbjudande och skriv svarsutkast för mitt godkännande.',
+      },
+      mina: {
+        role: 'Rapportör för supportmätvärden och larm',
+        summary:
+          'Bygg skräddarsydda supportrapporter för varje intressent och flagga kötoppar tidigt.',
+        persona:
+          'Du förvandlar rå data från ärenden, fakturering och produkt till tydliga rapporter anpassade för varje intressent, utan att någon behöver leta i dashboards. Du svarar med exakt volym, tid till första svar, lösningsgrad, vanligaste orsaker och en visuell uppdelning anpassad efter mottagaren – ledning, produkt eller supportledning. När kövolym, svarstid eller ärenden kopplade till fel överstiger normala trösklar skickar du ett kort larm som förklarar vad som ändrats och var man ska titta först.',
+        inputs: [
+          'Vilka mätvärden och vilken målgrupp rapporten gäller',
+          'Dina ärende-, analys- eller faktureringsdata, anslutna eller exporterade',
+        ],
+        example: {
+          title: 'Skräddarsydd supportrapport och larm vid kötoppar',
+          content:
+            'Köhälsa (senaste 24 h): 412 ärenden (+38 % mot 7-dagarsnittet); median för första svar 11 min.\nLarm om topp: 94 ärenden om faktureringsfel sedan 09:00 UTC – alla kopplade till kortförnyelser i EU.\nÅtgärd: Flaggat för jourgranskning innan SLA påverkas.',
+        },
+        starterTask:
+          'Sammanställ en kort sammanfattning av supportmätvärden från mina senaste ködata och lyft eventuella onormala toppar eller SLA-risker.',
+      },
       clara: {
         role: 'Inkorgshanterare',
         summary: 'Sortera det som behöver dig från det som inte gör det, och skriv svarsutkast.',
@@ -505,6 +595,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Be Founder-Led Sales-teamet lära sig min ICP, min ton och vilka konton som är off-limits, och sedan söka efter fem signalstödda designpartners sorterade i KEEP, HOLD och DQ med utkast till inledningar för min granskning.',
+      },
+      'customer-support': {
+        title: 'Kundsupport',
+        category: 'Support',
+        summary:
+          'Ta hand om supportkön – från releaseuppföljning och buggreproduktion till churnanalys, återbetalningar och rapportering.',
+        outcomes: [
+          'Synkade releasekalendrar, märkta lanseringsärenden och uppdaterade hjälpdokument',
+          'Reproducerade buggrapporter med exakta steg och visuellt bevis',
+          'Veckovisa kluster av churnorsaker och policykontrollerade återbetalningsutkast',
+          'Anpassade supportmetrikrapporter och larm vid kötoppar',
+        ],
+        inputs: [
+          'Din återbetalningspolicy, dina hjälpdokument och eskaleringsregler',
+          'Din ärendekö, ditt faktureringsverktyg eller ditt releaseschema',
+        ],
+        handoff: [
+          'Följ releaser',
+          'Återskapa buggar',
+          'Granska återbetalningar',
+          'Rapportera och larma',
+        ],
+        example: {
+          title:
+            'En veckovis supportöverblick: lanseringsfeedback, återskapad bugg, churnkluster och en återbetalning som väntar på godkännande.',
+          content:
+            'Release: Team Permissions v2 (tidigarelagd till torsdag).\nDokument förberedda: hjälpartikel uppdaterad; internt makro utkastat för granskning.\nLanseringsfeedback (första 24 h): 19 ärenden märkta – 11 frågar hur befintliga roller migreras (eskalerat).\n\nFörfrågan: Acme Corp · 240 USD årlig förnyelse (debiterad för 4 dagar sedan, 0 inloggningar sedan förnyelsen).\nPolicykontroll: Berättigad enligt 14-dagarsregeln för oanvänd förnyelse.\nRekommendation: Godkänn full återbetalning – eller erbjud 50 % pauskredit i 2 månader.\nStatus: Svar utkastat, väntar på ditt godkännande innan Stripe rörs.',
+        },
+        starterTask:
+          'Be Kundsupportteamet att gå igenom mina senaste ärenden efter churnrisker, återskapa den främsta buggrapporten, kontrollera väntande återbetalningsförfrågningar mot min policy och sammanfatta kömätvärden.',
       },
       'business-admin': {
         title: 'Företagsadmin',

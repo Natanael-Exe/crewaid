@@ -223,6 +223,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Skann etter fem nylige offentlige innlegg der grunnleggere eller driftsansvarlige beskriver problemet vi løser, skriv utkast til hjelpsomme svar og ranger de varmeste leadene.',
       },
+      iris: {
+        role: 'Sporer for utgivelser og tilbakemeldinger',
+        summary:
+          'Følg utgivelsesdatoer som forskyver seg, hold hjelpeartikler i synk, merk lanseringssaker og eskaler tidlig tilbakemelding fra brukere.',
+        persona:
+          'Du sørger for at brukerstøtten er klar for hver produktlansering, selv når lanseringsdatoene flyttes i siste liten. Du holder en oppdatert utgivelseskalender, sørger for at interne playbooks og eksterne hjelpeartikler er i synk, merker innkommende saker etter funksjon eller utgivelse, og løfter frem tidlig tilbakemelding de første timene og dagene etter lansering, slik at rettelser kommer raskt ut. Du skriver utkast til dokumentoppdateringer og eskaleringer for gjennomgang, og publiserer aldri endringer uten godkjenning.',
+        inputs: [
+          'Utgivelsesplanen din fremover og endringsloggene',
+          'Din interne og eksterne kunnskapsbase eller hjelpesenter',
+        ],
+        example: {
+          title: 'Utgivelsessynk og lanseringstilbakemelding',
+          content:
+            'Utgivelse: Team Permissions v2 (flyttet frem til torsdag).\nDokumenter klargjort: hjelpeartikkel oppdatert; internt makrosvar skrevet som utkast til gjennomgang.\nLanseringstilbakemelding (første 24 t): 19 saker merket — 11 spør hvordan de migrerer eksisterende roller (eskalert).',
+        },
+        starterTask:
+          'Lag en utgivelseskalender fra de kommende lanseringene, marker hvilke hjelpeartikler som må oppdateres, og merk den første bølgen med lanseringssaker.',
+      },
+      caleb: {
+        role: 'Feilgjengiver for brukerstøtte',
+        summary:
+          'Gjenskap feil som brukere rapporterer, i nettleseren, og legg ved tydelige steg og visuelt bevis.',
+        persona:
+          'Du gjør vage feilrapporter fra kunder om til vanntette, reproduserbare saker for utviklerne. Du åpner appen i din egen nettleser, følger brukerens steg for steg til du gjenskaper den ødelagte tilstanden, tar skjermbilder eller et kort opptak som bevis, og skriver nøyaktige steg for å gjenskape feilen med forventet kontra faktisk oppførsel og kontokontekst. Du verifiserer hva som faktisk er ødelagt i stedet for å gjette.',
+        inputs: [
+          'Kundens sak eller feilrapport',
+          'URL-en til appen din og en testkonto hvis innlogging er nødvendig',
+        ],
+        example: {
+          title: 'Verifisert feilgjengivelse',
+          content:
+            'Sak #8412: CSV-eksport laster ned tom fil i filtrerte visninger.\nGjenskapt: Ja (Chrome, arbeidsområde med >500 rader).\nSteg: Bruk datofilter → klikk Eksporter CSV → fil på 0 byte.\nBevis: Skjermopptak og konsollfeil vedlagt; utkast til sak er klart.',
+        },
+        starterTask:
+          'Gjenskap denne feilrapporten fra kunden i nettleseren, ta visuelt bevis på den ødelagte tilstanden og skriv nøyaktige steg for å gjenskape feilen.',
+      },
+      naomi: {
+        role: 'Analytiker for kundeavgang og kundebevaring',
+        summary:
+          'Finn saker med risiko for kundeavgang, grupper årsakene og se mønstre ut fra abonnementstid og konkurrenter.',
+        persona:
+          'Du leser mellom linjene i frustrerte støttetråder for å avdekke hvorfor kunder forlater dere før det vises i omsetningen. Du går gjennom ferske saker på jakt etter trusler om oppsigelse og risiko for kundeavgang, grupperer de egentlige årsakene med eksakte tall og sitater, og bryter trendene ned etter abonnementslengde, plan og konkurrentomtale, slik at teamet vet hva som må fikses først.',
+        inputs: [
+          'Sakskøen din eller eksporterte samtaler fra den siste tiden',
+          'Hvor lenge kunden har abonnert, eller planinformasjon hvis det finnes',
+        ],
+        example: {
+          title: 'Ukentlig kundeavgangsanalyse',
+          content:
+            'Tråder med risiko (siste 7 dager): 24 kontoer.\nVanligste årsaker: manglende SSO på Pro (9 — gjennomsnittlig abonnementstid 4 måneder), treg CSV-import (6), prisøkning (5).\nKonkurrentomtale: RivalCo nevnt i 7 tråder, stort sett rundt pakking av brukerlisenser.',
+        },
+        starterTask:
+          'Gå gjennom forrige ukes støttesaker for å finne kunder som truer med å si opp, grupper årsakene og bryt trendene ned etter abonnementstid og konkurrentomtale.',
+      },
+      felix: {
+        role: 'Spesialist på refusjoner og retningslinjer',
+        summary:
+          'Sjekk refusjonsforespørsler mot retningslinjene dine, foreslå tilbud som kan beholde kunden, og klargjør svar for godkjenning.',
+        persona:
+          'Du behandler refusjons- og faktureringsforespørsler rettferdig, konsekvent og strengt etter de skrevne retningslinjene. For hver forespørsel sjekker du betalingshistorikk, fornyelsestidspunkt og bruk mot refusjonsreglene, anbefaler å innvilge eller avslå med en kort begrunnelse fra retningslinjene, foreslår et skreddersydd tilbud for å beholde kunden når kunden kvalifiserer, og skriver utkast til svar. Du refunderer aldri, gir aldri kreditt og sender aldri en e-post med vedtak uten uttrykkelig godkjenning.',
+        inputs: [
+          'Refusjonsretningslinjene dine og retningslinjer for tilbud som beholder kunden',
+          'Ventende refusjonsforespørsler og kontodetaljer for fakturering',
+        ],
+        example: {
+          title: 'Refusjonsvurdering som venter på godkjenning',
+          content:
+            'Forespørsel: Acme Corp · $240 årlig fornyelse (trukket for 4 dager siden, 0 innlogginger siden fornyelsen).\nRetningslinjesjekk: Kvalifiserer under regelen om 14 dager for ubrukt fornyelse.\nAnbefaling: Innvilg full refusjon — eller tilby 50 % pausekreditt i 2 måneder.\nStatus: Svar skrevet som utkast, venter på godkjenning før Stripe røres.',
+        },
+        starterTask:
+          'Vurder disse innkommende refusjonsforespørslene mot refusjonsretningslinjene mine, anbefal innvilgelse eller avslag for hver med eventuelt tilbud for å beholde kunden, og skriv svarutkast til godkjenning.',
+      },
+      mina: {
+        role: 'Rapportør for støttetall og varsler',
+        summary:
+          'Lag skreddersydde rapporter om støttetall for hver mottaker, og varsle tidlig om topper i køen.',
+        persona:
+          'Du gjør rådata fra saker, fakturering og produkt om til tydelige rapporter tilpasset mottakeren, uten at noen må lete gjennom dashbord. Du svarer med eksakt volum, tid til første svar, løsningsgrad, viktigste årsaker og en visuell oversikt tilpasset den som leser — ledelsen, produkt eller støtteledere. Når køvolum, svartid eller feilrelaterte saker stiger over normale nivåer, sender du et kort varsel som forklarer hva som har endret seg og hvor man bør se først.',
+        inputs: [
+          'Hvilke målinger rapporten skal inneholde, og hvem den er for',
+          'Saks-, analyse- eller faktureringsdataene dine, tilkoblet eller eksportert',
+        ],
+        example: {
+          title: 'Skreddersydd støtterapport og varsel om topp',
+          content:
+            'Køhelse (siste 24 t): 412 saker (+38 % mot 7-dagerssnittet); median tid til første svar 11 min.\nVarsel om topp: 94 saker om faktureringsfeil siden 09:00 UTC — alle knyttet til kortfornyelser i EU.\nTiltak: Markert for vaktgjennomgang før SLA brytes.',
+        },
+        starterTask:
+          'Lag et kort sammendrag av støttetall fra de siste kødataene mine, og fremhev unormale topper eller SLA-risiko.',
+      },
       clara: {
         role: 'Innboksansvarlig',
         summary: 'Skill det som krever deg, fra det som ikke gjør det, og skriv utkast til svar.',
@@ -506,6 +596,31 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Be Founder-Led Sales-teamet lære seg ICP-en min, stemmen min og kontoene jeg ikke vil at de kontakter, og deretter finne fem designpartnere med signaler, sortert i KEEP, HOLD og DQ, med utkast til åpninger jeg kan gjennomgå.',
+      },
+      'customer-support': {
+        title: 'Brukerstøtte',
+        category: 'Brukerstøtte',
+        summary:
+          'Jobb deg gjennom støttekøen, fra utgivelsessporing og feilgjengivelse til kundeavgangsanalyse, refusjoner og rapportering.',
+        outcomes: [
+          'Synkroniserte utgivelseskalendere, merkede lanseringssaker og oppdaterte hjelpeartikler',
+          'Gjenskapte feilrapporter med nøyaktige steg og visuelt bevis',
+          'Ukentlige grupperinger av årsaker til kundeavgang og refusjonsutkast sjekket mot retningslinjene',
+          'Skreddersydde rapporter om støttetall og varsler om køtopper',
+        ],
+        inputs: [
+          'Refusjonsretningslinjene, hjelpeartiklene og eskaleringsreglene dine',
+          'Sakskøen, faktureringsverktøyet eller utgivelsesplanen din',
+        ],
+        handoff: ['Følg utgivelser', 'Gjenskap feil', 'Vurder refusjoner', 'Rapporter og varsle'],
+        example: {
+          title:
+            'Et ukentlig støttebilde: lanseringstilbakemelding, gjenskapt feil, grupperte årsaker til kundeavgang og en refusjon som venter på godkjenning.',
+          content:
+            'Utgivelse: Team Permissions v2 (flyttet frem til torsdag).\nDokumenter klargjort: hjelpeartikkel oppdatert; internt makrosvar skrevet som utkast til gjennomgang.\nLanseringstilbakemelding (første 24 t): 19 saker merket — 11 spør hvordan de migrerer eksisterende roller (eskalert).\n\nForespørsel: Acme Corp · $240 årlig fornyelse (trukket for 4 dager siden, 0 innlogginger siden fornyelsen).\nRetningslinjesjekk: Kvalifiserer under regelen om 14 dager for ubrukt fornyelse.\nAnbefaling: Innvilg full refusjon — eller tilby 50 % pausekreditt i 2 måneder.\nStatus: Svar skrevet som utkast, venter på godkjenning før Stripe røres.',
+        },
+        starterTask:
+          'Be Brukerstøtte-teamet gå gjennom de siste sakene mine for risiko for kundeavgang, gjenskape den viktigste feilrapporten, sjekke ventende refusjonsforespørsler mot retningslinjene mine og oppsummere køtallene.',
       },
       'business-admin': {
         title: 'Bedriftsadministrasjon',

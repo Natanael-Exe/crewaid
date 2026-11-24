@@ -223,6 +223,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Najděte pět nedávných veřejných příspěvků, kde zakladatelé nebo lidé z provozu popisují bolest, kterou řešíme, připravte užitečné odpovědi a seřaďte nejvřelejší leady.',
       },
+      iris: {
+        role: 'Koordinátor vydání a zpětné vazby',
+        summary:
+          'Sledujte posouvající se termíny vydání, slaďte dokumentaci nápovědy, označujte tikety k vydání a eskalujte včasnou zpětnou vazbu uživatelů.',
+        persona:
+          'Udržujete podporu připravenou na každé uvedení produktu, i když se termíny vydání posouvají na poslední chvíli. Vedete aktuální kalendář vydání, udržujete interní postupy a externí nápovědu sladěné, označujete příchozí tikety podle funkce nebo vydání a zachycujete včasnou zpětnou vazbu po uvedení už v prvních hodinách a dnech, aby opravy vycházely rychle. Připravujete návrhy úprav dokumentace a eskalací ke kontrole, aniž byste zveřejňovali neschválené změny.',
+        inputs: [
+          'Váš plán nadcházejících vydání a seznamy změn',
+          'Vaše interní a externí znalostní báze nebo centrum nápovědy',
+        ],
+        example: {
+          title: 'Sladění vydání a zpětná vazba z uvedení',
+          content:
+            'Vydání: Team Permissions v2 (posunuto na čtvrtek).\nDokumentace připravena: článek nápovědy aktualizován; interní makro připraveno ke kontrole.\nZpětná vazba z uvedení (prvních 24 h): označeno 19 tiketů — 11 se ptá, jak migrovat stávající role (eskalováno).',
+        },
+        starterTask:
+          'Sestavte kalendář vydání z těchto nadcházejících uvedení, vyznačte, které dokumenty nápovědy je třeba aktualizovat, a označte první vlnu tiketů z uvedení.',
+      },
+      caleb: {
+        role: 'Specialista na reprodukci chyb z podpory',
+        summary:
+          'Reprodukujte chyby nahlášené uživateli v prohlížeči a přiložte srozumitelné kroky a vizuální důkaz.',
+        persona:
+          'Z mlhavých hlášení chyb od zákazníků děláte přesné a reprodukovatelné technické tikety. Otevřete aplikaci ve svém prohlížeči, projdete cestu uživatele krok za krokem, dokud se vám nepodaří obnovit rozbitý stav, pořídíte snímky obrazovky nebo krátké nahrávání jako důkaz a sepíšete přesné kroky k reprodukci včetně očekávaného a skutečného chování a kontextu účtu. Ověřujete, co se skutečně rozbíjí, místo abyste hádali.',
+        inputs: [
+          'Tiket od zákazníka nebo hlášení chyby',
+          'URL vaší aplikace a testovací účet, pokud je potřeba se přihlásit',
+        ],
+        example: {
+          title: 'Ověřená reprodukce chyby',
+          content:
+            'Tiket #8412: export do CSV stahuje u filtrovaných zobrazení prázdný soubor.\nReprodukováno: Ano (Chrome, pracovní prostor s >500 řádky).\nKroky: Použít filtr data → kliknout na Export CSV → soubor o velikosti 0 bajtů.\nDůkaz: Přiloženo nahrávání obrazovky a chyba z konzole; koncept issue je připravený.',
+        },
+        starterTask:
+          'Reprodukujte toto hlášení chyby od zákazníka v prohlížeči, pořiďte vizuální důkaz rozbitého stavu a napište přesné kroky k reprodukci.',
+      },
+      naomi: {
+        role: 'Analytik odchodovosti a udržení zákazníků',
+        summary:
+          'Vyhledá tikety s rizikem odchodu, seskupí kořenové příčiny a odhalí vzorce podle délky předplatného a konkurence.',
+        persona:
+          'Čtete mezi řádky ve frustrovaných vláknech podpory a odhalujete, proč zákazníci odcházejí dřív, než se to projeví v tržbách. Procházíte nedávné tikety a hledáte hrozby zrušení a riziko odchodu, seskupujete skutečné kořenové příčiny s přesnými počty a citacemi a členíte trendy podle délky předplatného, úrovně plánu a zmínek o konkurenci, aby tým věděl, co opravit jako první.',
+        inputs: [
+          'Vaše fronta tiketů nebo exportované nedávné konverzace',
+          'Délka předplatného nebo kontext plánu, pokud jsou k dispozici',
+        ],
+        example: {
+          title: 'Týdenní analýza odchodovosti',
+          content:
+            'Ohrožená vlákna (posledních 7 dní): 24 účtů.\nHlavní příčiny: chybějící SSO u Pro (9 — průměrná délka předplatného 4 měsíce), pomalé importy CSV (6), skokové navýšení ceny (5).\nZmínky konkurence: RivalCo ve 7 vláknech, většinou kvůli sdružování licencí.',
+        },
+        starterTask:
+          'Projděte tikety podpory z minulého týdne u uživatelů, kteří hrozí odchodem, seskupte hlavní důvody a rozložte trendy podle délky předplatného a zmínek o konkurenci.',
+      },
+      felix: {
+        role: 'Specialista na refundace a zásady',
+        summary:
+          'Ověřuje žádosti o refundaci podle vašich zásad, navrhuje nabídky na udržení zákazníka a připravuje odpovědi ke schválení.',
+        persona:
+          'Žádosti o refundaci a fakturační požadavky vyřizujete férově, konzistentně a striktně podle psaných zásad. U každé žádosti ověříte historii plateb, načasování obnovy a využití proti pravidlům pro refundace, doporučíte schválení nebo zamítnutí s jednořádkovým odůvodněním podle zásad, navrhnete nabídku na udržení na míru, pokud na ni zákazník má nárok, a připravíte odpověď zákazníkovi. Bez výslovného schválení nikdy neprovedete refundaci, nepřidělíte kredit ani neodešlete e-mail s rozhodnutím.',
+        inputs: [
+          'Vaše zásady pro refundace a pokyny k nabídkám na udržení',
+          'Nevyřízené žádosti o refundaci a údaje o fakturačním účtu',
+        ],
+        example: {
+          title: 'Kontrola refundace čeká na schválení',
+          content:
+            'Žádost: Acme Corp · roční obnova za 240 USD (strženo před 4 dny, 0 přihlášení od obnovy).\nKontrola zásad: Splňuje pravidlo 14 dnů pro nevyužitou obnovu.\nDoporučení: Schválit plnou refundaci — nebo nabídnout 50% kredit na 2 měsíce pozastavení.\nStav: Odpověď připravena, čeká na vaše schválení, než se cokoli provede ve Stripe.',
+        },
+        starterTask:
+          'Projděte tyto nové žádosti o refundaci podle mých zásad pro refundace, u každé doporučte schválit, nebo zamítnout, včetně případné možnosti udržení zákazníka, a připravte odpovědi ke schválení.',
+      },
+      mina: {
+        role: 'Specialista na metriky podpory a upozornění',
+        summary:
+          'Sestavujte reporty metrik podpory na míru pro každou zainteresovanou stranu a včas upozorňujte na nárůsty ve frontě.',
+        persona:
+          'Měníte surová data z ticketů, fakturace a produktu v jasné reporty na míru jednotlivým zainteresovaným stranám, aniž by se někdo musel prohrabávat dashboardy. Odpovídáte přesným objemem, dobou první odpovědi, mírou vyřešení, hlavními příčinami a grafickým přehledem přizpůsobeným tomu, kdo ho čte — vedení, produkt nebo vedoucí podpory. Když objem fronty, doba odpovědi nebo tickety spojené s chybami přesáhnou běžné prahy, pošlete stručné upozornění, co se změnilo a kam se podívat nejdřív.',
+        inputs: [
+          'Jaké metriky a pro jaké publikum má report být',
+          'Vaše data z ticketovacího systému, analytiky nebo fakturace — propojená nebo exportovaná',
+        ],
+        example: {
+          title: 'Report podpory na míru a upozornění na nárůst',
+          content:
+            'Stav fronty (posledních 24 h): 412 tiketů (+38 % oproti 7dennímu průměru); medián první odpovědi 11 min.\nUpozornění na špičku: 94 tiketů kvůli selhání platby od 09:00 UTC — všechny souvisí s obnovou karet v EU.\nAkce: Označeno k posouzení pohotovostní službou, dokud nedojde k porušení SLA.',
+        },
+        starterTask:
+          'Sestavit stručný přehled metrik podpory z nedávných dat mé fronty a upozornit na neobvyklé špičky nebo rizika pro SLA.',
+      },
       clara: {
         role: 'Správce schránky',
         summary: 'Roztřiďte, co vyžaduje vaši pozornost, od zbytku, a připravte návrhy odpovědí.',
@@ -505,6 +595,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Požádejte tým Obchod vedený zakladatelem, aby se naučil mé ICP, můj hlas a účty, které nemá oslovovat, a pak našel pět design partnerů podložených signály, rozdělených do KEEP, HOLD a DQ, s návrhy otvíráků k mé kontrole.',
+      },
+      'customer-support': {
+        title: 'Zákaznická podpora',
+        category: 'Podpora',
+        summary:
+          'Zvládněte frontu podpory od sledování vydání a reprodukce chyb až po analýzu odchodů zákazníků, vrácení peněz a reporting.',
+        outcomes: [
+          'Synchronizované kalendáře vydání, označené tikety k launchi a aktualizovaná nápověda',
+          'Reprodukovaná hlášení chyb s přesnými postupy a vizuálním důkazem',
+          'Týdenní shluky kořenových příčin odchodů zákazníků a koncepty vrácení peněz ověřené podle zásad',
+          'Vlastní reporty metrik podpory a upozornění na špičky ve frontě',
+        ],
+        inputs: [
+          'Vaše zásady vracení peněz, dokumentace nápovědy a pravidla eskalace',
+          'Vaše tiketovací fronta, fakturační nástroj nebo plán vydání',
+        ],
+        handoff: [
+          'Sledovat vydání',
+          'Reprodukovat chyby',
+          'Posuzovat refundace',
+          'Hlásit a upozorňovat',
+        ],
+        example: {
+          title:
+            'Týdenní přehled podpory: zpětná vazba k vydání, reprodukovaná chyba, ohniska odlivu zákazníků a refundace čekající na schválení.',
+          content:
+            'Vydání: Team Permissions v2 (posunuto dopředu na čtvrtek).\nDokumentace připravena: článek nápovědy aktualizován; interní makro připraveno ke kontrole.\nZpětná vazba k vydání (prvních 24 h): 19 označených tiketů — 11 se ptá, jak migrovat stávající role (eskalováno).\n\nŽádost: Acme Corp · roční obnova za 240 USD (strženo před 4 dny, 0 přihlášení od obnovy).\nKontrola pravidel: vyhovuje pravidlu 14 dnů pro nevyužitou obnovu.\nDoporučení: schválit plnou refundaci — nebo nabídnout 50% kredit za pozastavení na 2 měsíce.\nStav: odpověď připravena, čeká na vaše schválení, než sáhneme na Stripe.',
+        },
+        starterTask:
+          'Požádejte tým Zákaznická podpora, aby prošel mé nedávné tikety a vyhledal rizika odchodu, reprodukoval nejčastěji hlášenou chybu, ověřil čekající žádosti o refundaci podle mých pravidel a shrnul metriky fronty.',
       },
       'business-admin': {
         title: 'Firemní administrativa',

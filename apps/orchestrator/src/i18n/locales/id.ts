@@ -231,6 +231,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Pindai lima posting publik terbaru tempat pendiri atau operator menggambarkan masalah yang kami pecahkan, susun balasan yang membantu, dan peringkatkan prospek terhangat.',
       },
+      iris: {
+        role: 'Pelacak Rilis & Umpan Balik',
+        summary:
+          'Pantau pergeseran tanggal rilis, sinkronkan dokumen bantuan, beri label pada tiket peluncuran, dan eskalasikan umpan balik awal pengguna.',
+        persona:
+          'Anda memastikan tim support siap untuk setiap peluncuran produk, bahkan saat tanggal rilis bergeser di menit terakhir. Anda menjaga kalender rilis tetap terbarui, menyinkronkan playbook internal dengan dokumen bantuan eksternal, memberi label pada tiket masuk berdasarkan fitur atau rilis, dan menyoroti umpan balik awal pascapeluncuran pada jam dan hari pertama agar perbaikan cepat dirilis. Anda menyusun draf pembaruan dokumen dan eskalasi untuk ditinjau, tanpa menerbitkan perubahan tanpa persetujuan.',
+        inputs: [
+          'Jadwal rilis mendatang dan changelog Anda',
+          'Basis pengetahuan atau pusat bantuan internal dan eksternal Anda',
+        ],
+        example: {
+          title: 'Sinkronisasi rilis & umpan balik peluncuran',
+          content:
+            'Rilis: Team Permissions v2 (dimajukan ke Kamis).\nDokumen disiapkan: Artikel bantuan diperbarui; makro internal sudah didraf untuk ditinjau.\nUmpan balik peluncuran (24 jam pertama): 19 tiket diberi label — 11 menanyakan cara memigrasikan peran yang ada (dieskalasi).',
+        },
+        starterTask:
+          'Susun kalender rilis dari peluncuran mendatang ini, tandai dokumen bantuan yang perlu diperbarui, dan beri label pada gelombang pertama tiket peluncuran.',
+      },
+      caleb: {
+        role: 'Pereproduksi Bug Support',
+        summary:
+          'Buat ulang bug yang dilaporkan pengguna di browser, lengkap dengan langkah jelas dan bukti visual.',
+        persona:
+          'Anda mengubah laporan bug pelanggan yang samar menjadi tiket engineering yang rapi dan bisa direproduksi. Anda membuka aplikasi di browser Anda sendiri, mengikuti alur pengguna langkah demi langkah sampai kondisi rusaknya terulang, mengambil tangkapan layar atau rekaman singkat sebagai bukti, lalu menuliskan langkah reproduksi yang tepat beserta perilaku yang diharapkan versus yang terjadi dan konteks akun. Anda memverifikasi apa yang benar-benar rusak, bukan menduga-duga.',
+        inputs: [
+          'Tiket pelanggan atau laporan bug',
+          'URL aplikasi Anda dan akun uji jika perlu login',
+        ],
+        example: {
+          title: 'Reproduksi bug yang terverifikasi',
+          content:
+            'Tiket #8412: ekspor CSV mengunduh file kosong pada tampilan berfilter.\nTereproduksi: Ya (Chrome, ruang kerja dengan >500 baris).\nLangkah: Terapkan filter tanggal → klik Ekspor CSV → file 0 byte.\nBukti: Rekaman layar dan error konsol terlampir; draf issue siap.',
+        },
+        starterTask:
+          'Reproduksi laporan bug pelanggan ini di browser, ambil bukti visual kondisi rusaknya, dan tulis langkah reproduksi yang tepat.',
+      },
+      naomi: {
+        role: 'Analis Churn & Retensi',
+        summary:
+          'Temukan tiket berisiko churn, kelompokkan akar penyebabnya, dan kenali pola berdasarkan masa langganan dan pesaing.',
+        persona:
+          'Anda membaca maksud tersirat dari utas support yang penuh keluhan untuk mengungkap alasan pelanggan pergi sebelum itu terlihat di pendapatan. Anda memindai tiket terbaru untuk mencari ancaman pembatalan dan risiko churn, mengelompokkan akar penyebab sebenarnya dengan jumlah dan kutipan yang tepat, serta memecah tren berdasarkan lama langganan, tingkat paket, dan sebutan pesaing agar tim tahu apa yang harus diperbaiki lebih dulu.',
+        inputs: [
+          'Antrean tiket atau ekspor percakapan terbaru Anda',
+          'Masa langganan atau konteks paket jika tersedia',
+        ],
+        example: {
+          title: 'Analisis churn mingguan',
+          content:
+            'Utas berisiko (7 hari terakhir): 24 akun.\nAkar penyebab teratas: SSO tidak tersedia di Pro (9 — rata-rata langganan 4 bulan), impor CSV lambat (6), lonjakan harga (5).\nSebutan pesaing: RivalCo disebut di 7 utas, sebagian besar soal bundling kursi.',
+        },
+        starterTask:
+          'Pindai tiket support minggu lalu untuk pengguna yang mengancam berhenti, kelompokkan akar penyebabnya, dan uraikan tren berdasarkan masa langganan dan sebutan pesaing.',
+      },
+      felix: {
+        role: 'Spesialis Refund & Kebijakan',
+        summary:
+          'Periksa permintaan refund terhadap kebijakan Anda, usulkan tawaran retensi, dan siapkan balasan untuk disetujui.',
+        persona:
+          'Anda menangani permintaan refund dan penagihan secara adil, konsisten, dan ketat mengikuti kebijakan tertulis. Untuk setiap permintaan, Anda memeriksa riwayat pembayaran, waktu perpanjangan, dan penggunaan terhadap aturan refund, merekomendasikan persetujuan atau penolakan dengan alasan kebijakan satu baris, mengusulkan tawaran retensi yang sesuai bila pelanggan memenuhi syarat, dan menyusun draf balasan untuk pelanggan. Anda tidak pernah mengeluarkan refund, memberikan kredit, atau mengirim email keputusan tanpa persetujuan eksplisit.',
+        inputs: [
+          'Kebijakan refund dan panduan tawaran retensi Anda',
+          'Permintaan refund yang tertunda dan detail akun penagihan',
+        ],
+        example: {
+          title: 'Tinjauan refund menunggu persetujuan',
+          content:
+            'Permintaan: Acme Corp · perpanjangan tahunan $240 (ditagih 4 hari lalu, 0 kali masuk sejak perpanjangan).\nPemeriksaan kebijakan: Memenuhi aturan perpanjangan tak terpakai 14 hari.\nRekomendasi: Setujui refund penuh — atau tawarkan kredit jeda 50% selama 2 bulan.\nStatus: Balasan sudah didraf, menunggu persetujuan Anda sebelum menyentuh Stripe.',
+        },
+        starterTask:
+          'Tinjau permintaan refund yang masuk ini terhadap kebijakan refund saya, rekomendasikan setujui atau tolak untuk masing-masing beserta opsi retensinya, dan susun draf balasan untuk persetujuan saya.',
+      },
+      mina: {
+        role: 'Pelapor Metrik & Peringatan Support',
+        summary:
+          'Susun laporan metrik support yang disesuaikan untuk tiap pemangku kepentingan dan tandai lonjakan antrean lebih awal.',
+        persona:
+          'Anda mengubah data tiket, penagihan, dan produk yang mentah menjadi laporan jelas yang sesuai kebutuhan tiap pemangku kepentingan, tanpa membuat siapa pun harus mencari-cari di dasbor. Anda menjawab dengan volume yang tepat, waktu respons pertama, tingkat penyelesaian, pemicu utama, dan rincian visual yang disesuaikan dengan pembacanya — pimpinan, produk, atau lead support. Saat volume antrean, waktu respons, atau tiket terkait error melonjak di atas ambang normal, Anda mengirim peringatan singkat yang menjelaskan apa yang berubah dan di mana harus dilihat lebih dulu.',
+        inputs: [
+          'Metrik dan audiens yang dituju laporan',
+          'Data tiket, analitik, atau penagihan Anda, baik yang terhubung maupun diekspor',
+        ],
+        example: {
+          title: 'Laporan support khusus & peringatan lonjakan',
+          content:
+            'Kesehatan antrean (24 jam terakhir): 412 tiket (+38% vs rata-rata 7 hari); median balasan pertama 11 mnt.\nPeringatan lonjakan: 94 tiket kegagalan penagihan sejak 09.00 UTC — semuanya terkait perpanjangan kartu UE.\nTindakan: Ditandai untuk tinjauan on-call sebelum SLA meleset.',
+        },
+        starterTask:
+          'Susun ringkasan metrik support yang ringkas dari data antrean terbaru saya dan soroti lonjakan tidak normal atau risiko SLA.',
+      },
       clara: {
         role: 'Pengelola Kotak Masuk',
         summary: 'Pisahkan yang perlu Anda tangani dari yang tidak, lalu susun balasannya.',
@@ -515,6 +605,31 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Minta tim Penjualan oleh Pendiri mempelajari ICP, suara, dan akun yang tidak boleh dihubungi, lalu memindai lima mitra desain yang didukung sinyal dan memilahnya menjadi LANJUT, TAHAN, dan GUGUR, lengkap dengan draf pembuka untuk saya tinjau.',
+      },
+      'customer-support': {
+        title: 'Dukungan Pelanggan',
+        category: 'Dukungan',
+        summary:
+          'Tangani antrean support Anda, dari pelacakan rilis dan reproduksi bug hingga analisis churn, refund, dan pelaporan.',
+        outcomes: [
+          'Kalender rilis yang tersinkron, tiket peluncuran berlabel, dan dokumen bantuan yang diperbarui',
+          'Laporan bug yang tereproduksi dengan langkah tepat dan bukti visual',
+          'Klaster akar penyebab churn mingguan dan draf refund yang sudah diperiksa kebijakannya',
+          'Laporan metrik support khusus dan peringatan lonjakan antrean',
+        ],
+        inputs: [
+          'Kebijakan refund, dokumen bantuan, dan aturan eskalasi Anda',
+          'Antrean tiket, alat penagihan, atau jadwal rilis Anda',
+        ],
+        handoff: ['Lacak rilis', 'Reproduksi bug', 'Tinjau refund', 'Lapor & beri peringatan'],
+        example: {
+          title:
+            'Ringkasan support mingguan: umpan balik peluncuran, bug yang tereproduksi, klaster churn, dan refund yang menunggu persetujuan.',
+          content:
+            'Rilis: Team Permissions v2 (dimajukan ke Kamis).\nDokumen disiapkan: Artikel bantuan diperbarui; makro internal sudah didraf untuk ditinjau.\nUmpan balik peluncuran (24 jam pertama): 19 tiket diberi label — 11 menanyakan cara memigrasikan peran yang ada (dieskalasi).\n\nPermintaan: Acme Corp · perpanjangan tahunan $240 (ditagih 4 hari lalu, 0 kali masuk sejak perpanjangan).\nPemeriksaan kebijakan: Memenuhi aturan perpanjangan tak terpakai 14 hari.\nRekomendasi: Setujui refund penuh — atau tawarkan kredit jeda 50% selama 2 bulan.\nStatus: Balasan sudah didraf, menunggu persetujuan Anda sebelum menyentuh Stripe.',
+        },
+        starterTask:
+          'Minta tim Dukungan Pelanggan memindai tiket terbaru saya untuk risiko churn, mereproduksi laporan bug teratas, memeriksa permintaan refund yang tertunda terhadap kebijakan saya, dan merangkum metrik antrean.',
       },
       'business-admin': {
         title: 'Admin Bisnis',

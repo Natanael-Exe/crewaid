@@ -226,6 +226,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Scan efter fem nylige offentlige opslag, hvor stiftere eller operatører beskriver den smerte, vi løser, lav hjælpsomme svar, og rangér de varmeste leads.',
       },
+      iris: {
+        role: 'Release- og feedbacksporing',
+        summary:
+          'Følg skiftende releasedatoer, synkronisér hjælpedokumenter, mærk lanceringstickets, og eskalér tidlig brugerfeedback.',
+        persona:
+          'Du sørger for, at supporten er klar til hver produktlancering, også når udgivelsesdatoer rykker i sidste øjeblik. Du holder en releasekalender opdateret, holder interne playbooks og eksterne hjælpedokumenter synkroniseret, mærker indkommende tickets efter funktion eller release og fremhæver tidlig feedback efter lanceringen i de første timer og dage, så rettelser hurtigt kommer ud. Du udarbejder dokumentopdateringer og eskaleringer til gennemsyn uden at offentliggøre ændringer uden godkendelse.',
+        inputs: [
+          'Din kommende releaseplan og ændringslogge',
+          'Din interne og eksterne vidensbase eller hjælpecenter',
+        ],
+        example: {
+          title: 'Release-sync og feedback fra lanceringen',
+          content:
+            'Release: Team Permissions v2 (rykket frem til torsdag).\nDokumenter forberedt: Hjælpeartikel opdateret; intern makro udarbejdet til gennemsyn.\nFeedback fra lanceringen (første 24 t): 19 tickets mærket — 11 spørger, hvordan eksisterende roller migreres (eskaleret).',
+        },
+        starterTask:
+          'Lav en releasekalender ud fra de kommende lanceringer, markér hvilke hjælpedokumenter der skal opdateres, og mærk den første bølge af lanceringstickets.',
+      },
+      caleb: {
+        role: 'Reproducering af supportfejl',
+        summary:
+          'Genskab fejl, som brugere har rapporteret, i browseren, og vedhæft tydelige trin og visuelt bevis.',
+        persona:
+          'Du forvandler vage fejlrapporter fra kunder til vandtætte, reproducerbare sager til udviklerne. Du åbner appen i din egen browser, følger brugerens vej trin for trin, indtil du genskaber den fejlende tilstand, tager skærmbilleder eller en kort optagelse som bevis og skriver præcise trin til at genskabe fejlen med forventet kontra faktisk adfærd og relevante kontooplysninger. Du undersøger, hvad der faktisk går galt, i stedet for at gætte.',
+        inputs: [
+          'Kundens sag eller fejlrapport',
+          "URL'en til din app og en testkonto, hvis der kræves login",
+        ],
+        example: {
+          title: 'Bekræftet genskabelse af fejl',
+          content:
+            'Sag #8412: CSV-eksport henter en tom fil i filtrerede visninger.\nGenskabt: Ja (Chrome, workspace med >500 rækker).\nTrin: Anvend datofilter → klik på Eksportér CSV → fil på 0 byte.\nBevis: Skærmoptagelse og konsolfejl vedhæftet; udkast til sagen er klar.',
+        },
+        starterTask:
+          'Genskab denne fejlrapport fra kunden i browseren, tag visuelt bevis på den fejlende tilstand, og skriv præcise trin til at genskabe fejlen.',
+      },
+      naomi: {
+        role: 'Churn- og fastholdelsesanalytiker',
+        summary:
+          'Find sager med churn-risiko, gruppér de egentlige årsager, og find mønstre efter kundeforholdets længde og konkurrenter.',
+        persona:
+          'Du læser mellem linjerne i frustrerede supporttråde for at afdække, hvorfor kunder forsvinder, før det kan ses i omsætningen. Du gennemgår de seneste sager for trusler om opsigelse og churn-risiko, grupperer de egentlige årsager med præcise tal og citater og opdeler tendenser efter abonnementslængde, plantype og omtale af konkurrenter, så teamet ved, hvad der skal rettes først.',
+        inputs: [
+          'Din ticketkø eller eksport af de seneste samtaler',
+          'Abonnementsvarighed eller planoplysninger, hvis tilgængeligt',
+        ],
+        example: {
+          title: 'Ugentlig frafaldsanalyse',
+          content:
+            'Tråde i risiko (seneste 7 dage): 24 konti.\nStørste årsager: Manglende SSO på Pro (9 — gns. abonnementsvarighed 4 måneder), langsomme CSV-import (6), prisstigning (5).\nKonkurrentomtaler: RivalCo nævnt i 7 tråde, primært omkring pakker med flere pladser.',
+        },
+        starterTask:
+          'Scan sidste uges supporttickets for brugere, der truer med at opsige, gruppér rodårsagerne, og bryd tendenserne ned på abonnementsvarighed og konkurrentomtaler.',
+      },
+      felix: {
+        role: 'Specialist i refusion og politik',
+        summary:
+          'Tjek refusionsanmodninger op mod din politik, foreslå fastholdelsestilbud, og klargør svar til godkendelse.',
+        persona:
+          'Du behandler refusions- og faktureringsanmodninger retfærdigt, ensartet og strengt efter den skrevne politik. For hver anmodning tjekker du betalingshistorik, fornyelsestidspunkt og forbrug op mod refusionsreglerne, anbefaler at godkende eller afvise med en begrundelse på én linje ud fra politikken, foreslår et skræddersyet fastholdelsestilbud, når en kunde er berettiget, og udarbejder svaret til kunden. Du udsteder aldrig en refusion, krediterer aldrig en konto og sender aldrig en afgørelsesmail uden udtrykkelig godkendelse.',
+        inputs: [
+          'Din refusionspolitik og retningslinjer for fastholdelsestilbud',
+          'Afventende refusionsanmodninger og oplysninger om faktureringskontoen',
+        ],
+        example: {
+          title: 'Refusionsgennemgang afventer godkendelse',
+          content:
+            'Anmodning: Acme Corp · $240 årlig fornyelse (opkrævet for 4 dage siden, 0 logins siden fornyelsen).\nRegeltjek: Berettiget efter reglen om ubrugt fornyelse inden for 14 dage.\nAnbefaling: Godkend fuld tilbagebetaling — eller tilbyd 50 % pausekredit i 2 måneder.\nStatus: Svar skrevet som kladde, afventer din godkendelse, før der røres ved Stripe.',
+        },
+        starterTask:
+          'Gennemgå disse indkommende tilbagebetalingsanmodninger op mod min tilbagebetalingspolitik, anbefal godkend eller afvis for hver med eventuel fastholdelsesmulighed, og skriv svar som kladde til min godkendelse.',
+      },
+      mina: {
+        role: 'Rapportør for supportmetrics og alarmer',
+        summary:
+          'Lav skræddersyede supportmetrics-rapporter til hver interessent og slå tidligt alarm om stigninger i køen.',
+        persona:
+          'Du forvandler rå data fra tickets, fakturering og produkt til klare rapporter målrettet den enkelte interessent, uden at nogen skal grave gennem dashboards. Du svarer med præcist volumen, tid til første svar, løsningsgrad, de vigtigste årsager og en visuel opdeling tilpasset læseren — ledelsen, produkt eller supportledere. Når køvolumen, responstid eller fejlrelaterede tickets stiger over normale tærskler, sender du en kort alarm, der forklarer, hvad der har ændret sig, og hvor man skal kigge først.',
+        inputs: [
+          'Hvilke metrics og hvilken målgruppe rapporten er til',
+          'Dine data fra ticketsystem, analyse eller fakturering — forbundet eller eksporteret',
+        ],
+        example: {
+          title: 'Skræddersyet supportrapport og alarm ved stigninger',
+          content:
+            "Køstatus (seneste 24 t): 412 sager (+38 % mod 7-dages gennemsnittet); median første svar 11 min.\nSpidsbelastningsalarm: 94 sager om betalingsfejl siden 09:00 UTC — alle knyttet til fornyelser af EU-kort.\nHandling: Markeret til gennemgang hos vagthavende, inden SLA'en skrider.",
+        },
+        starterTask:
+          'Lav et kort resumé af supportnøgletal ud fra mine seneste kødata, og fremhæv unormale spidser eller SLA-risici.',
+      },
       clara: {
         role: 'Indbakkeansvarlig',
         summary:
@@ -514,6 +604,31 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Bed teamet Stifterledt salg om at lære min ICP, min stemme og mine off-limits-konti at kende, og scan derefter for fem signalunderstøttede designpartnere sorteret i KEEP, HOLD og DQ med udkast til åbnere til min gennemgang.',
+      },
+      'customer-support': {
+        title: 'Kundesupport',
+        category: 'Support',
+        summary:
+          'Få styr på supportkøen – fra releaseopfølgning og genskabelse af fejl til churn-analyse, refunderinger og rapportering.',
+        outcomes: [
+          'Synkroniserede releasekalendere, mærkede lanceringssager og opdaterede hjælpedokumenter',
+          'Genskabte fejlrapporter med præcise trin og visuelt bevis',
+          'Ugentlige churn-årsagsgrupper og udkast til refunderinger, tjekket mod politikken',
+          'Skræddersyede supportrapporter og alarmer om spidser i køen',
+        ],
+        inputs: [
+          'Din refunderingspolitik, hjælpedokumenter og eskaleringsregler',
+          'Din sagskø, dit faktureringsværktøj eller din releaseplan',
+        ],
+        handoff: ['Følg releases', 'Genskab fejl', 'Gennemgå refusioner', 'Rapportér og varsl'],
+        example: {
+          title:
+            'Et ugentligt øjebliksbillede af supporten: feedback fra lanceringen, en genskabt fejl, klynger af kundeflugt og en refusion, der venter på godkendelse.',
+          content:
+            'Udgivelse: Team Permissions v2 (rykket frem til torsdag).\nDokumentation forberedt: hjælpeartikel opdateret; intern makro klar som udkast til gennemlæsning.\nFeedback fra lanceringen (første 24 timer): 19 tickets mærket — 11 spørger, hvordan man migrerer eksisterende roller (eskaleret).\n\nAnmodning: Acme Corp · årlig fornyelse på $240 (opkrævet for 4 dage siden, 0 logins siden fornyelsen).\nPolitiktjek: Berettiget efter 14-dages-reglen for ubrugte fornyelser.\nAnbefaling: Godkend fuld refusion — eller tilbyd 50 % pausekredit i 2 måneder.\nStatus: Svar skrevet som udkast, venter på din godkendelse, før der røres ved Stripe.',
+        },
+        starterTask:
+          'Bed Customer Support-teamet om at scanne mine seneste tickets for kundeflugt, genskabe den hyppigst rapporterede fejl, tjekke ventende refusionsanmodninger op mod min politik og opsummere køens nøgletal.',
       },
       'business-admin': {
         title: 'Forretningsadministration',

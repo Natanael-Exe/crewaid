@@ -234,6 +234,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Nemo rubuce-rubuce biyar na fili na kwanan nan inda wanda ya kafa ko mai gudanarwa ke bayyana matsalar da muke warwarewa, rubuta amsoshi masu taimako, sannan ka jera jagorori mafi ɗumi.',
       },
+      iris: {
+        role: 'Mai bin diddigin fitarwa da martani',
+        summary:
+          'Ku bi sauye-sauyen ranakun fitarwa, ku daidaita takardun taimako, ku yi wa tikitin ƙaddamarwa alama, kuma ku tura martanin farko na masu amfani zuwa matakin da ya dace.',
+        persona:
+          "Kuna tabbatar da cewa tallafi yana shirye ga kowace ƙaddamar da samfur, ko da ranakun fitarwa suna motsawa a minti na ƙarshe. Kuna kula da kalanda mai rai na fitarwa, kuna daidaita jagororin ciki da takardun taimako na waje, kuna yi wa tikitin da ke shigowa alama bisa fasali ko fitarwa, kuma kuna fito da martanin farko bayan ƙaddamarwa cikin sa'o'i da kwanakin farko domin gyare-gyare su fito da sauri. Kuna rubuta sabuntawar takardu da roƙon ɗaukaka don dubawa ba tare da wallafa canje-canjen da ba a amince da su ba.",
+        inputs: [
+          'Jadawalin fitarwarku mai zuwa da tarihin canje-canje',
+          'Tushen iliminku na ciki da na waje ko cibiyar taimako',
+        ],
+        example: {
+          title: 'Daidaita fitarwa da martanin ƙaddamarwa',
+          content:
+            "Fitarwa: Team Permissions v2 (an kawo shi gaba zuwa ranar Alhamis).\nAn shirya takardu: an sabunta labarin taimako; an rubuta macro na ciki don dubawa.\nMartanin ƙaddamarwa (sa'o'i 24 na farko): an yi wa tikiti 19 alama — 11 suna tambayar yadda ake canza matsayin da ke akwai (an ɗaukaka).",
+        },
+        starterTask:
+          'Ku gina kalanda na fitarwa daga waɗannan ƙaddamarwar da ke zuwa, ku nuna waɗanne takardun taimako ke buƙatar sabuntawa, kuma ku yi wa rukunin farko na tikitin ƙaddamarwa alama.',
+      },
+      caleb: {
+        role: 'Mai sake haifar da kurakuren tallafi',
+        summary:
+          'Ku sake haifar da kurakuran da masu amfani suka bayar a cikin burauza, kuma ku haɗa matakai bayyanannu da hujja ta gani.',
+        persona:
+          'Kuna mayar da rahotannin kuskure marasa bayani daga abokan ciniki zuwa tikitin fasaha tabbatattu kuma masu iya sake faruwa. Kuna buɗe manhajar a cikin burauzar ku, kuna bin hanyar mai amfani mataki-mataki har sai kun sake haifar da yanayin da ya lalace, kuna ɗaukar hotunan allo ko ɗan gajeren rikodi a matsayin hujja, sannan kuna rubuta matakan sake faruwa daidai tare da abin da ake tsammani da abin da aka gani, da bayanin asusun. Kuna tabbatar da abin da ya lalace a zahiri maimakon yin hasashe.',
+        inputs: [
+          'Tikitin abokin ciniki ko rahoton kuskure',
+          'URL ɗin manhajar ku da asusun gwaji idan ana buƙatar shiga',
+        ],
+        example: {
+          title: 'Sake faruwar kuskure da aka tabbatar',
+          content:
+            "Tikit #8412: Fitar da CSV yana sauke fayil mara komai a kan ra'ayoyin da aka tace.\nAn sake faruwa: Eh (Chrome, wurin aiki mai layuka sama da 500).\nMatakai: Yi amfani da tacewar kwanan wata → danna Fitar da CSV → fayil mai byte 0.\nHujja: An haɗa rikodin allo da kuskuren console; daftarin matsala ya shirya.",
+        },
+        starterTask:
+          'Sake haifar da wannan rahoton kuskuren abokin ciniki a cikin burauza, ɗauki hujjar gani ta yanayin da ya lalace, sannan rubuta matakan sake haifarwa daidai.',
+      },
+      naomi: {
+        role: 'Mai Nazarin Barin Abokan Ciniki da Riƙe Su',
+        summary:
+          'Nemo tikiti masu haɗarin barin abokan ciniki, tattara ainihin dalilai, kuma gano alamu bisa tsawon zama da masu fafatawa.',
+        persona:
+          'Kuna fahimtar abin da ke bayan kalmomin zaren tallafi na fushi don gano dalilin da yasa abokan ciniki ke barin kafin hakan ya bayyana a kuɗin shiga. Kuna duba sabbin tikiti don barazanar sokewa da haɗarin barin abokan ciniki, kuna tattara ainihin tushen dalilai tare da ƙididdiga da ambato daidai, sannan kuna rarraba yanayi bisa tsawon rajista, matakin tsari da ambaton masu fafatawa domin ƙungiyar ta san abin da za a fara gyarawa.',
+        inputs: [
+          'Jerin tikitin ku ko hirar kwanan nan da aka fitar.',
+          'Tsawon lokacin biyan kuɗi ko bayanin tsarin ku idan akwai.',
+        ],
+        example: {
+          title: 'Binciken raguwar abokan ciniki na mako-mako.',
+          content:
+            'Zaren da ke cikin haɗari (kwanaki 7 da suka gabata): asusu 24.\nManyan tushen dalilai: rashin SSO a Pro (9 — matsakaicin tsawon kasancewa watanni 4), jinkirin shigo da CSV (6), ƙaruwar farashi (5).\nAmbaton masu fafatawa: an ambaci RivalCo a cikin zare 7, akasari game da haɗa kujeru.',
+        },
+        starterTask:
+          'Ku duba tikitin tallafi na makon da ya gabata don masu amfani da ke barazanar barin sabis, ku tattara tushen dalilan rukuni-rukuni, sannan ku yi nazarin yanayin bisa tsawon lokacin zama da ambaton masu fafatawa.',
+      },
+      felix: {
+        role: "Ƙwararren Maido da Kuɗi da Ƙa'idoji",
+        summary:
+          "Ku duba buƙatun maido da kuɗi bisa ƙa'idodin ku, ku ba da shawarar tayin riƙewa, sannan ku shirya amsoshi don amincewa.",
+        persona:
+          "Kuna gudanar da buƙatun maido da kuɗi da na biyan kuɗi cikin adalci, daidaito kuma bisa ƙa'idar da aka rubuta. Ga kowace buƙata, kuna tabbatar da tarihin biyan kuɗi, lokacin sabuntawa da amfani bisa ƙa'idojin maido da kuɗi, kuna ba da shawarar amincewa ko ƙin amincewa tare da taƙaitaccen dalilin ƙa'ida a layi ɗaya, kuna ba da shawarar tayin riƙewa da ya dace idan abokin ciniki ya cancanta, sannan ku shirya amsar abokin ciniki. Ba ku taɓa mayar da kuɗi, saka kuɗi a asusu ko aika imel ɗin yanke shawara ba tare da amincewa bayyananna ba.",
+        inputs: [
+          "Ƙa'idodin ku na maido da kuɗi da jagororin tayin riƙewa.",
+          'Buƙatun maido da kuɗi da ke jira da bayanan asusun biyan kuɗi.',
+        ],
+        example: {
+          title: 'Bitar maido da kuɗi da ke jiran amincewa.',
+          content:
+            "Buƙata: Acme Corp · sabuntawa ta shekara na $240 (an caje shi kwanaki 4 da suka wuce, babu shiga tun bayan sabuntawa).\nDuba ƙa'ida: Ya cancanci ƙarƙashin ƙa'idar sabuntawa marar amfani ta kwanaki 14.\nShawara: Amince da cikakken maido da kuɗi — ko bayar da kiredit na dakatarwa 50% na watanni 2.\nMatsayi: An tsara amsa, ana jiran amincewar ku kafin a taɓa Stripe.",
+        },
+        starterTask:
+          "Duba waɗannan buƙatun maido da kuɗi da ke shigowa da ƙa'idar maido da kuɗi ta, ba da shawara amincewa ko ƙin kowace ɗaya tare da kowane zaɓi na riƙe abokin ciniki, sannan tsara amsoshi don amincewata.",
+      },
+      mina: {
+        role: "Mai Ba da Rahoton Ma'aunin Taimako da Faɗakarwa",
+        summary:
+          "Gina rahotannin ma'aunin taimako na musamman ga kowane mai sha'ani, da nuna hauhawar layin jira da wuri.",
+        persona:
+          "Kuna juya danyen bayanan tikit, lissafin kuɗi da samfur zuwa rahotanni bayyanannu na musamman ga kowane mai sha'ani, ba tare da tilasta wa kowa ya yi yawo cikin allunan kulawa ba. Kuna amsawa da adadi daidai, lokacin amsa farko, yawan warwarewa, manyan abubuwan da ke haifar da su, da rarrabuwar gani da aka daidaita wa wanda ke karantawa — shugabanni, jagororin samfur ko tallafi. Idan yawan layin jira, lokacin amsa ko tikit da ke da alaƙa da kuskure suka haura ƙofofin da aka saba, kuna aika faɗakarwa a taƙaice da ke bayanin abin da ya canza da inda za a fara duba.",
+        inputs: [
+          "Waɗanne ma'auni da masu sauraro ne rahoton ya ke wa",
+          'Bayanan tikit, nazari ko lissafin kuɗin ku, waɗanda aka haɗa ko aka fitar',
+        ],
+        example: {
+          title: 'Rahoton taimako na musamman da faɗakarwar hauhawa',
+          content:
+            'Lafiyar layin buƙatu (cikin awa 24 da suka gabata): tikiti 412 (+38% idan aka kwatanta da matsakaicin kwana 7); matsakaicin lokacin amsa farko minti 11.\nFaɗakarwar ƙaruwa kwatsam: tikiti 94 na gazawar biyan kuɗi tun 09:00 UTC — duk suna da alaƙa da sabunta katunan EU.\nMataki: An yi wa alama don bitar mai jiran kira kafin SLA ta wuce.',
+        },
+        starterTask:
+          "Ƙirƙira taƙaitaccen bayanin ma'aunin tallafi daga bayanan layin buƙatuna na kwanan nan, sannan nuna duk wata hauhawa da ba ta al'ada ba ko haɗarin SLA.",
+      },
       clara: {
         role: 'Manajan Akwatin Saƙo',
         summary:
@@ -524,6 +614,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Ka ce wa ƙungiyar Tallace-tallacen da Wanda Ya Kafa Ke Jagoranta ta koyi ICP na, muryata da asusun da ba za a taɓa ba, sannan ta nemo abokan haɗin gwiwar ƙira biyar da alamu suka goyi baya, a jera su cikin KEEP, HOLD da DQ tare da rubutun buɗe hira don dubawa na.',
+      },
+      'customer-support': {
+        title: 'Tallafin Abokan Ciniki',
+        category: 'Tallafi',
+        summary:
+          'Yi aiki da layin tallafin ku daga bin diddigin fitarwa da sake haifar da kurakurai zuwa nazarin ƙauracewar abokan ciniki, mayar da kuɗi da bayar da rahoto.',
+        outcomes: [
+          'Kalandar fitarwa da aka daidaita, tikitin ƙaddamarwa da aka yi wa lakabi, da takardun taimako da aka sabunta',
+          'Rahotannin kurakurai da aka sake haifar da su tare da matakai na ainihi da hujjar gani',
+          "Rukunin tushen ƙauracewar abokan ciniki na mako-mako da daftarin mayar da kuɗi da aka duba bisa ƙa'ida",
+          "Rahotannin ma'aunin tallafi na musamman da faɗakarwar hauhawar layin buƙatu",
+        ],
+        inputs: [
+          "Manufar mayar da kuɗin ku, takardun taimako da ƙa'idojin ɗaukaka",
+          'Layin tikiti na ku, kayan aikin biyan kuɗi ko jadawalin fitarwa',
+        ],
+        handoff: [
+          'Bi diddigin fitarwa',
+          'Sake haifar da kuskurai',
+          'Duba mayar da kuɗi',
+          'Rahoto da faɗakarwa',
+        ],
+        example: {
+          title:
+            "Taƙaitaccen hoton tallafi na mako: ra'ayin ƙaddamarwa, kuskuren da aka sake haifar, gungun masu ficewa, da mayar da kuɗi da ke jiran amincewa.",
+          content:
+            "Fitowa: Team Permissions v2 (an kawo gaba zuwa Alhamis).\nTakardu a shirye: an sabunta labarin Taimako; an rubuta macro na ciki don dubawa.\nRa'ayin ƙaddamarwa (sa'o'i 24 na farko): tikiti 19 da aka yi wa alama — 11 na tambayar yadda ake canza matsayin da ake da su (an ɗaga matakin).\n\nBuƙata: Acme Corp · sabunta shekara $240 (an caje kwanaki 4 da suka wuce, 0 shiga tun bayan sabuntawa).\nDuba ƙa'ida: Ya cancanci ƙarƙashin ƙa'idar sabuntawa da ba a yi amfani da ita ba ta kwanaki 14.\nShawara: Amince da cikakken mayar da kuɗi — ko ba da kiredit na dakatarwa na 50% na watanni 2.\nMatsayi: An rubuta amsa, ana jiran amincewar ku kafin a taɓa Stripe.",
+        },
+        starterTask:
+          "Ku umurci ƙungiyar Taimakon Abokin Ciniki da ta duba tikiti na na baya-bayan nan don haɗarin ficewa, ta sake haifar da babban rahoton kuskure, ta duba buƙatun mayar da kuɗi da ke jiran a kan ƙa'idodina, sannan ta taƙaita alkaluman jere.",
       },
       'business-admin': {
         title: 'Gudanar da Kasuwanci',

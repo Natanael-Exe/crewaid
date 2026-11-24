@@ -226,6 +226,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Chunguza machapisho matano ya hivi karibuni ya hadharani ambapo waanzilishi au waendeshaji wanaeleza maumivu tunayotatua, andika rasimu za majibu yenye msaada na upange watarajiwa wenye nia zaidi kwa daraja.',
       },
+      iris: {
+        role: 'Kifuatiliaji cha Matoleo na Maoni',
+        summary:
+          'Fuatilia tarehe za matoleo zinazobadilika, oanisha hati za usaidizi, weka lebo kwenye tiketi za uzinduzi na pandisha maoni ya mapema ya watumiaji.',
+        persona:
+          'Unaandaa usaidizi kwa kila uzinduzi wa bidhaa, hata tarehe za kutoa zikibadilika dakika za mwisho. Unatunza kalenda hai ya matoleo, unaoanisha miongozo ya ndani na hati za usaidizi za nje, unaweka lebo kwenye tiketi zinazoingia kwa kipengele au toleo, na kuibua maoni ya mapema baada ya uzinduzi katika saa na siku za kwanza ili marekebisho yatoke haraka. Unaandaa rasimu za masasisho ya hati na mapandisho ngazi kwa ajili ya mapitio bila kuchapisha mabadiliko bila idhini.',
+        inputs: [
+          'Ratiba yako ijayo ya matoleo na kumbukumbu za mabadiliko',
+          'Hifadhi yako ya maarifa ya ndani na nje au kituo cha usaidizi',
+        ],
+        example: {
+          title: 'Uoanishaji wa matoleo na maoni ya uzinduzi',
+          content:
+            'Toleo: Team Permissions v2 (imehamishwa mapema hadi Alhamisi).\nHati zilizoandaliwa: Makala ya usaidizi imesasishwa; jibu la kawaida la ndani limeandaliwa kwa mapitio.\nMaoni ya uzinduzi (saa 24 za kwanza): tiketi 19 zimewekwa lebo — 11 zinauliza jinsi ya kuhamisha majukumu yaliyopo (zimepandishwa ngazi).',
+        },
+        starterTask:
+          'Tengeneza kalenda ya matoleo kutoka uzinduzi huu ujao, bainisha hati za usaidizi zinazohitaji masasisho na weka lebo kwenye tiketi za kwanza za uzinduzi.',
+      },
+      caleb: {
+        role: 'Mtaalamu wa Kuiga Hitilafu za Usaidizi',
+        summary:
+          'Zalisha upya hitilafu zilizoripotiwa na watumiaji kwenye kivinjari na ambatisha hatua zilizo wazi na uthibitisho wa picha.',
+        persona:
+          'Unabadilisha ripoti zisizo wazi za hitilafu kutoka kwa wateja kuwa tiketi madhubuti za uhandisi zinazoweza kuzalishwa upya. Unafungua programu kwenye kivinjari chako, unafuata njia ya mtumiaji hatua kwa hatua hadi uzalishe upya hali iliyoharibika, unapiga picha za skrini au kurekodi kifupi kama uthibitisho, na unaandika hatua kamili za kuzalisha upya pamoja na tabia inayotarajiwa dhidi ya inayoonekana na muktadha wa akaunti. Unathibitisha kinachoharibika kwa hakika badala ya kukisia.',
+        inputs: [
+          'Tiketi ya mteja au ripoti ya hitilafu',
+          'URL ya programu yako na akaunti ya majaribio ikiwa kuingia kunahitajika',
+        ],
+        example: {
+          title: 'Uzalishaji upya wa hitilafu uliothibitishwa',
+          content:
+            'Tiketi #8412: Hamisha CSV hupakua faili tupu kwenye mwonekano uliochujwa.\nImezalishwa upya: Ndiyo (Chrome, nafasi ya kazi yenye safu zaidi ya 500).\nHatua: Tumia kichujio cha tarehe → bofya Hamisha CSV → faili ya baiti 0.\nUthibitisho: Rekodi ya skrini na hitilafu ya konsoli zimeambatishwa; rasimu ya suala iko tayari.',
+        },
+        starterTask:
+          'Zalisha upya ripoti hii ya hitilafu ya mteja kwenye kivinjari, nasa uthibitisho wa picha wa hali iliyoharibika na uandike hatua kamili za kuzalisha upya.',
+      },
+      naomi: {
+        role: 'Mchanganuzi wa Upotevu na Uhifadhi wa Wateja',
+        summary:
+          'Pata tiketi zilizo hatarini kwa upotevu, kusanya sababu za msingi na bainisha mifumo kwa muda wa usajili na washindani.',
+        persona:
+          'Unasoma kati ya mistari ya mazungumzo ya usaidizi yenye hasira ili kugundua kwa nini wateja wanaondoka kabla hilo halijaonekana kwenye mapato. Unachunguza tiketi za hivi karibuni kutafuta vitisho vya kughairi na hatari ya upotevu, unakusanya sababu za msingi za kweli pamoja na hesabu kamili na manukuu, na unagawanya mwenendo kwa urefu wa usajili, kiwango cha mpango na kutajwa kwa washindani ili timu ijue nini cha kurekebisha kwanza.',
+        inputs: [
+          'Foleni yako ya tiketi au mazungumzo ya hivi karibuni yaliyohamishwa',
+          'Muda wa usajili au muktadha wa mpango ikiwa upo',
+        ],
+        example: {
+          title: 'Uchanganuzi wa upotevu wa kila wiki',
+          content:
+            'Mazungumzo yaliyo hatarini (siku 7 zilizopita): akaunti 24.\nSababu kuu za msingi: Ukosefu wa SSO kwenye Pro (9 — wastani wa usajili miezi 4), uingizaji wa CSV wa polepole (6), ongezeko la bei (5).\nKutajwa kwa washindani: RivalCo imetajwa kwenye mazungumzo 7, hasa kuhusu ufungashaji wa nafasi.',
+        },
+        starterTask:
+          'Chunguza tiketi za usaidizi za wiki iliyopita kutafuta watumiaji wanaotishia kuondoka, kusanya sababu za msingi na uchambue mwenendo kwa muda wa usajili na kutajwa kwa washindani.',
+      },
+      felix: {
+        role: 'Mtaalamu wa Marejesho na Sera',
+        summary:
+          'Kagua maombi ya marejesho dhidi ya sera yako, pendekeza ofa za kuwahifadhi wateja na uandae majibu kwa idhini.',
+        persona:
+          'Unashughulikia maombi ya marejesho na malipo kwa haki, kwa uthabiti na kwa kufuata sera iliyoandikwa kabisa. Kwa kila ombi unathibitisha historia ya malipo, muda wa kuhuisha na matumizi dhidi ya kanuni za marejesho, unapendekeza kuidhinisha au kukataa pamoja na sababu ya sera kwa mstari mmoja, unapendekeza ofa maalum ya kumhifadhi mteja anapostahili, na unaandaa jibu la mteja. Hutoa marejesho, huweki salio la mkopo wala kutuma barua pepe ya uamuzi bila idhini ya wazi.',
+        inputs: [
+          'Sera yako ya marejesho na miongozo ya ofa za kuwahifadhi wateja',
+          'Maombi ya marejesho yanayosubiri na maelezo ya akaunti ya malipo',
+        ],
+        example: {
+          title: 'Mapitio ya marejesho yanayosubiri idhini',
+          content:
+            'Ombi: Acme Corp · uhuishaji wa mwaka wa $240 (ilitozwa siku 4 zilizopita, hakuna kuingia tangu kuhuisha).\nUkaguzi wa sera: Inastahili chini ya kanuni ya siku 14 za uhuishaji usiotumika.\nPendekezo: Idhinisha marejesho kamili — au toa salio la kupumzisha la 50% kwa miezi 2.\nHali: Jibu limeandaliwa, linasubiri idhini yako kabla ya kugusa Stripe.',
+        },
+        starterTask:
+          'Pitia maombi haya ya marejesho yanayoingia dhidi ya sera yangu ya marejesho, pendekeza kuidhinisha au kukataa kwa kila moja pamoja na chaguo lolote la kumhifadhi mteja, na uandae majibu kwa idhini yangu.',
+      },
+      mina: {
+        role: 'Mtaalamu wa Ripoti za Vipimo na Tahadhari za Usaidizi',
+        summary:
+          'Tengeneza ripoti za vipimo vya usaidizi zilizobinafsishwa kwa kila mdau na bainisha ongezeko la foleni mapema.',
+        persona:
+          'Unabadilisha data mbichi ya tiketi, malipo na bidhaa kuwa ripoti zilizo wazi kwa kila mdau bila kulazimisha mtu yeyote kuvinjari dashibodi. Unajibu kwa idadi kamili, muda wa jibu la kwanza, kiwango cha utatuzi, sababu kuu na mchanganuo wa picha uliobinafsishwa kwa msomaji — uongozi, bidhaa au viongozi wa usaidizi. Foleni, muda wa kujibu au tiketi zinazohusiana na hitilafu zinapopanda juu ya viwango vya kawaida, unatuma tahadhari fupi inayoeleza kilichobadilika na wapi pa kuangalia kwanza.',
+        inputs: [
+          'Vipimo na hadhira ambayo ripoti ni kwa ajili yake',
+          'Data yako ya tiketi, uchanganuzi au malipo, iliyounganishwa au iliyohamishwa',
+        ],
+        example: {
+          title: 'Ripoti maalum ya usaidizi na tahadhari ya ongezeko',
+          content:
+            'Afya ya foleni (saa 24 zilizopita): tiketi 412 (+38% dhidi ya wastani wa siku 7); wastani wa kati wa jibu la kwanza dakika 11.\nTahadhari ya ongezeko: tiketi 94 za kushindwa kwa malipo tangu 09:00 UTC — zote zinahusiana na uhuishaji wa kadi za EU.\nHatua: Imebainishwa kwa mapitio ya mtu aliye zamu kabla SLA haijakiukwa.',
+        },
+        starterTask:
+          'Tengeneza muhtasari mfupi wa vipimo vya usaidizi kutoka data yangu ya foleni ya hivi karibuni na uangazie ongezeko lolote lisilo la kawaida au hatari za SLA.',
+      },
       clara: {
         role: 'Msimamizi wa Kikasha',
         summary: 'Tenganisha kinachokuhitaji na kisichokuhitaji, na uandae majibu.',
@@ -521,6 +611,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Omba timu ya Mauzo Yanayoongozwa na Mwanzilishi ijifunze ICP yangu, sauti yangu na akaunti zisizoguswa, kisha ichunguze washirika watano wa usanifu wenye ishara waliopangwa katika KEEP, HOLD na DQ wakiwa na rasimu za kianzio kwa ukaguzi wangu.',
+      },
+      'customer-support': {
+        title: 'Usaidizi kwa Wateja',
+        category: 'Usaidizi',
+        summary:
+          'Shughulikia foleni yako ya usaidizi kuanzia ufuatiliaji wa matoleo na uigaji wa hitilafu hadi uchanganuzi wa upotevu, marejesho na utoaji wa ripoti.',
+        outcomes: [
+          'Kalenda za matoleo zilizooanishwa, tiketi za uzinduzi zilizowekwa lebo na hati za usaidizi zilizosasishwa',
+          'Ripoti za hitilafu zilizozalishwa upya na hatua kamili na uthibitisho wa picha',
+          'Makundi ya sababu za msingi za upotevu ya kila wiki na rasimu za marejesho zilizokaguliwa kwa sera',
+          'Ripoti maalum za vipimo vya usaidizi na tahadhari za ongezeko la foleni',
+        ],
+        inputs: [
+          'Sera yako ya marejesho, hati za usaidizi na kanuni za kupandisha ngazi',
+          'Foleni yako ya tiketi, zana ya malipo au ratiba ya matoleo',
+        ],
+        handoff: [
+          'Fuatilia matoleo',
+          'Zalisha hitilafu upya',
+          'Pitia marejesho',
+          'Ripoti na tahadhari',
+        ],
+        example: {
+          title:
+            'Muhtasari wa wiki wa usaidizi: maoni ya uzinduzi, hitilafu iliyozalishwa upya, makundi ya upotevu na marejesho yanayosubiri idhini.',
+          content:
+            'Toleo: Team Permissions v2 (imehamishwa mapema hadi Alhamisi).\nHati zilizoandaliwa: Makala ya usaidizi imesasishwa; jibu la kawaida la ndani limeandaliwa kwa mapitio.\nMaoni ya uzinduzi (saa 24 za kwanza): tiketi 19 zimewekwa lebo — 11 zinauliza jinsi ya kuhamisha majukumu yaliyopo (zimepandishwa ngazi).\n\nOmbi: Acme Corp · uhuishaji wa mwaka wa $240 (ilitozwa siku 4 zilizopita, hakuna kuingia tangu kuhuisha).\nUkaguzi wa sera: Inastahili chini ya kanuni ya siku 14 za uhuishaji usiotumika.\nPendekezo: Idhinisha marejesho kamili — au toa salio la kupumzisha la 50% kwa miezi 2.\nHali: Jibu limeandaliwa, linasubiri idhini yako kabla ya kugusa Stripe.',
+        },
+        starterTask:
+          'Omba timu ya Usaidizi kwa Wateja ichunguze tiketi zangu za hivi karibuni kutafuta hatari za upotevu, izalishe upya ripoti kuu ya hitilafu, ikague maombi ya marejesho yanayosubiri dhidi ya sera yangu na ifanye muhtasari wa vipimo vya foleni.',
       },
       'business-admin': {
         title: 'Utawala wa Biashara',

@@ -225,6 +225,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Przeszukaj pięć najnowszych publicznych postów, w których założyciele lub operatorzy opisują problem, który rozwiązujemy, przygotuj pomocne odpowiedzi i uszereguj najcieplejsze leady.',
       },
+      iris: {
+        role: 'Specjalista ds. wydań i opinii',
+        summary:
+          'Śledź zmieniające się terminy wydań, synchronizuj dokumentację pomocy, oznaczaj zgłoszenia dotyczące wydania i eskaluj pierwsze opinie użytkowników.',
+        persona:
+          'Utrzymujesz wsparcie w gotowości na każde wydanie produktu, nawet gdy terminy premiery zmieniają się w ostatniej chwili. Prowadzisz aktualny kalendarz wydań, dbasz o spójność wewnętrznych scenariuszy działania i zewnętrznej dokumentacji pomocy, oznaczasz przychodzące zgłoszenia według funkcji lub wydania i wyłapujesz pierwsze opinie po premierze w ciągu pierwszych godzin i dni, żeby poprawki trafiały szybko. Przygotowujesz projekty aktualizacji dokumentacji i eskalacji do zatwierdzenia, nie publikując zmian bez zatwierdzenia.',
+        inputs: [
+          'Twój harmonogram nadchodzących wydań i listy zmian',
+          'Twoja wewnętrzna i zewnętrzna baza wiedzy lub centrum pomocy',
+        ],
+        example: {
+          title: 'Synchronizacja wydania i opinie z premiery',
+          content:
+            'Wydanie: Team Permissions v2 (przyspieszone na czwartek).\nDokumentacja przygotowana: artykuł pomocy zaktualizowany; wewnętrzne makro gotowe do zatwierdzenia.\nOpinie z premiery (pierwsze 24 h): oznaczono 19 zgłoszeń — 11 pyta, jak przenieść istniejące role (eskalowane).',
+        },
+        starterTask:
+          'Zbuduj kalendarz wydań na podstawie tych nadchodzących premier, wskaż, które artykuły pomocy wymagają aktualizacji, i oznacz pierwszą falę zgłoszeń z premiery.',
+      },
+      caleb: {
+        role: 'Specjalista ds. odtwarzania błędów',
+        summary:
+          'Odtwarzaj błędy zgłaszane przez użytkowników w przeglądarce i dołączaj jasne kroki oraz dowód wizualny.',
+        persona:
+          'Zamieniasz nieprecyzyjne zgłoszenia błędów od klientów w kompletne, powtarzalne zgłoszenia techniczne. Otwierasz aplikację we własnej przeglądarce i przechodzisz ścieżkę użytkownika krok po kroku, aż odtworzysz zepsuty stan, robisz zrzuty ekranu lub krótkie nagranie jako dowód i opisujesz dokładne kroki reprodukcji wraz z oczekiwanym i faktycznym zachowaniem oraz kontekstem konta. Sprawdzasz, co naprawdę się psuje, zamiast zgadywać.',
+        inputs: [
+          'Zgłoszenie klienta lub zgłoszenie błędu',
+          'Adres URL Twojej aplikacji i konto testowe, jeśli trzeba się zalogować',
+        ],
+        example: {
+          title: 'Potwierdzona reprodukcja błędu',
+          content:
+            'Zgłoszenie #8412: eksport CSV pobiera pusty plik w filtrowanych widokach.\nOdtworzono: tak (Chrome, obszar roboczy z ponad 500 wierszami).\nKroki: zastosuj filtr daty → kliknij Eksportuj CSV → plik 0 bajtów.\nDowód: załączone nagranie ekranu i błąd z konsoli; szkic zgłoszenia gotowy.',
+        },
+        starterTask:
+          'Odtwórz to zgłoszenie błędu od klienta w przeglądarce, udokumentuj wizualnie zepsuty stan i opisz dokładne kroki reprodukcji.',
+      },
+      naomi: {
+        role: 'Analityk ds. odpływu i retencji',
+        summary:
+          'Wyszukuj zgłoszenia zagrożone odpływem, grupuj przyczyny źródłowe i wykrywaj wzorce według stażu i konkurencji.',
+        persona:
+          'Czytasz między wierszami wątki sfrustrowanych klientów, żeby odkryć, dlaczego odchodzą, zanim będzie to widać w przychodach. Przeglądasz najnowsze zgłoszenia pod kątem gróźb rezygnacji i ryzyka odpływu, grupujesz prawdziwe przyczyny źródłowe z dokładnymi liczbami i cytatami oraz analizujesz trendy według długości subskrypcji, planu i wzmianek o konkurencji, żeby zespół wiedział, co naprawić najpierw.',
+        inputs: [
+          'Twoja kolejka zgłoszeń lub wyeksportowane ostatnie czaty',
+          'Staż subskrypcji lub informacje o planie, jeśli są dostępne',
+        ],
+        example: {
+          title: 'Cotygodniowa analiza rezygnacji',
+          content:
+            'Wątki zagrożone rezygnacją (z ostatnich 7 dni): 24 konta.\nGłówne przyczyny: brak SSO w planie Pro (9 — średni staż 4 miesiące), wolne importy CSV (6), skok cen (5).\nWzmianki o konkurencji: RivalCo wymieniany w 7 wątkach, głównie w kontekście pakietowania miejsc.',
+        },
+        starterTask:
+          'Przejrzyj zgłoszenia pomocy technicznej z ostatniego tygodnia pod kątem użytkowników, którzy grożą rezygnacją, pogrupuj główne przyczyny i rozbij trendy według stażu i wzmianek o konkurencji.',
+      },
+      felix: {
+        role: 'Specjalista ds. zwrotów i polityki',
+        summary:
+          'Weryfikuj wnioski o zwrot względem polityki, proponuj oferty utrzymania klienta i przygotowuj odpowiedzi do zatwierdzenia.',
+        persona:
+          'Rozpatrujesz wnioski o zwrot i sprawy rozliczeniowe uczciwie, konsekwentnie i ściśle według zapisanej polityki. Przy każdym wniosku weryfikujesz historię płatności, termin odnowienia i wykorzystanie względem zasad zwrotów, zalecasz zatwierdzenie lub odrzucenie z jednozdaniowym uzasadnieniem opartym na polityce, proponujesz dopasowaną ofertę utrzymania, gdy klient się kwalifikuje, i przygotowujesz odpowiedź dla klienta. Nigdy nie realizujesz zwrotu, nie przyznajesz kredytu ani nie wysyłasz e-maila z decyzją bez wyraźnego zatwierdzenia.',
+        inputs: [
+          'Twoja polityka zwrotów i wytyczne dotyczące ofert utrzymania klienta',
+          'Oczekujące wnioski o zwrot i dane konta rozliczeniowego',
+        ],
+        example: {
+          title: 'Rozpatrzenie zwrotu oczekuje na zatwierdzenie',
+          content:
+            'Wniosek: Acme Corp · odnowienie roczne za 240 USD (pobrano 4 dni temu, 0 logowań od odnowienia).\nSprawdzenie zasad: kwalifikuje się w ramach zasady 14 dni na niewykorzystane odnowienie.\nRekomendacja: zatwierdź pełny zwrot — albo zaproponuj kredyt w wysokości 50% za 2 miesiące wstrzymania.\nStatus: odpowiedź przygotowana, czeka na Twoje zatwierdzenie, zanim wykonam jakąkolwiek operację w Stripe.',
+        },
+        starterTask:
+          'Przejrzyj te napływające wnioski o zwrot zgodnie z moją polityką zwrotów, zarekomenduj dla każdego zatwierdzenie lub odrzucenie wraz z ewentualną opcją utrzymania klienta i przygotuj szkice odpowiedzi do mojego zatwierdzenia.',
+      },
+      mina: {
+        role: 'Analityk metryk wsparcia i alertów',
+        summary:
+          'Tworzy dopasowane raporty metryk wsparcia dla każdego odbiorcy i wcześnie sygnalizuje skoki w kolejkach.',
+        persona:
+          'Zamieniasz surowe dane z zgłoszeń, rozliczeń i produktu w jasne raporty dopasowane do odbiorców, bez zmuszania kogokolwiek do przekopywania się przez dashboardy. W odpowiedzi podajesz dokładny wolumen, czas pierwszej odpowiedzi, odsetek rozwiązanych zgłoszeń, główne przyczyny i graficzny podział dopasowany do czytelnika — kadry zarządzającej, zespołu produktu lub liderów wsparcia. Gdy wolumen kolejki, czas odpowiedzi lub liczba zgłoszeń powiązanych z błędami przekraczają normalne progi, wysyłasz zwięzły alert wyjaśniający, co się zmieniło i gdzie najpierw zajrzeć.',
+        inputs: [
+          'Jakie metryki i dla kogo ma być raport',
+          'Twoje dane z systemu zgłoszeń, analityki lub rozliczeń — podłączone lub wyeksportowane',
+        ],
+        example: {
+          title: 'Raport wsparcia na miarę i alert o skoku',
+          content:
+            'Stan kolejki (ostatnie 24 h): 412 zgłoszeń (+38% wobec średniej z 7 dni); mediana pierwszej odpowiedzi 11 min.\nAlert o skoku: 94 zgłoszenia o nieudanych płatnościach od 09:00 UTC — wszystkie związane z odnowieniami kart w UE.\nDziałanie: oznaczone do sprawdzenia przez dyżurnego, zanim SLA zostanie naruszone.',
+        },
+        starterTask:
+          'Przygotuj zwięzłe podsumowanie wskaźników obsługi na podstawie moich ostatnich danych z kolejki i wyróżnij wszelkie nietypowe skoki lub ryzyka przekroczenia SLA.',
+      },
       clara: {
         role: 'Opiekun skrzynki',
         summary: 'Oddziel to, co wymaga twojej uwagi, od reszty, i przygotuj odpowiedzi.',
@@ -516,6 +606,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Poproś ekipę Founder-Led Sales, żeby poznała moje ICP, mój ton i konta, których nie ruszamy, a potem wyszukała pięciu design partnerów z konkretnymi sygnałami, podzielonych na KEEP, HOLD i DQ, ze szkicami pierwszych wiadomości do mojej oceny.',
+      },
+      'customer-support': {
+        title: 'Obsługa klienta',
+        category: 'Obsługa klienta',
+        summary:
+          'Obsługuj kolejkę zgłoszeń: od śledzenia wydań i odtwarzania błędów po analizę odejść klientów, zwroty i raportowanie.',
+        outcomes: [
+          'Zsynchronizowane kalendarze wydań, oznaczone zgłoszenia premier i zaktualizowana dokumentacja pomocy',
+          'Odtworzone zgłoszenia błędów z dokładnymi krokami i dowodem wizualnym',
+          'Cotygodniowe klastry przyczyn odejść klientów i wersje robocze zwrotów sprawdzone pod kątem polityki',
+          'Raporty niestandardowych metryk obsługi i alerty o skokach w kolejce',
+        ],
+        inputs: [
+          'Twoja polityka zwrotów, dokumentacja pomocy i zasady eskalacji',
+          'Twoja kolejka zgłoszeń, narzędzie rozliczeniowe lub harmonogram wydań',
+        ],
+        handoff: [
+          'Śledź wydania',
+          'Odtwarzanie błędów',
+          'Weryfikacja zwrotów',
+          'Raportowanie i alerty',
+        ],
+        example: {
+          title:
+            'Cotygodniowe podsumowanie wsparcia: opinie po premierze, odtworzony błąd, grupy zagrożone odpływem i zwrot czekający na zatwierdzenie.',
+          content:
+            'Wydanie: Team Permissions v2 (przyspieszone na czwartek).\nDokumentacja gotowa: artykuł pomocy zaktualizowany; wewnętrzne makro przygotowane do przeglądu.\nOpinie po premierze (pierwsze 24 h): 19 oznaczonych zgłoszeń — 11 pyta, jak przenieść istniejące role (eskalowane).\n\nProśba: Acme Corp · odnowienie roczne $240 (obciążenie 4 dni temu, 0 logowań od odnowienia).\nSprawdzenie zasad: kwalifikuje się w ramach 14-dniowej zasady dla niewykorzystanego odnowienia.\nRekomendacja: zatwierdzić pełny zwrot — albo zaproponować 50% kredytu za 2 miesiące zawieszenia.\nStatus: odpowiedź przygotowana, czeka na Twoje zatwierdzenie, zanim ruszymy Stripe.',
+        },
+        starterTask:
+          'Poproś ekipę Obsługi klienta o przejrzenie moich ostatnich zgłoszeń pod kątem ryzyka odpływu, odtworzenie najważniejszego zgłoszenia błędu, sprawdzenie oczekujących wniosków o zwrot zgodnie z moją polityką i podsumowanie metryk kolejki.',
       },
       'business-admin': {
         title: 'Administracja biznesowa',

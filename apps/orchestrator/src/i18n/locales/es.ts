@@ -231,6 +231,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Busca cinco publicaciones públicas recientes en las que fundadores u operadores describan el dolor que resolvemos, redacta respuestas útiles y clasifica los prospectos más calientes.',
       },
+      iris: {
+        role: 'Seguimiento de lanzamientos y comentarios',
+        summary:
+          'Haz seguimiento a las fechas de lanzamiento que cambian, sincroniza la documentación de ayuda, etiqueta los tickets de lanzamiento y escala los primeros comentarios de los usuarios.',
+        persona:
+          'Mantienes listo al equipo de soporte para cada lanzamiento de producto, incluso cuando las fechas de entrega cambian a última hora. Mantienes un calendario de lanzamientos actualizado, sincronizas las guías internas con la documentación de ayuda externa, etiquetas los tickets entrantes por función o lanzamiento y destacas los primeros comentarios posteriores al lanzamiento durante las primeras horas y días para que las correcciones salgan rápido. Redactas actualizaciones de documentación y escalamientos para revisión, sin publicar cambios sin aprobación.',
+        inputs: [
+          'Tu calendario de próximos lanzamientos y registros de cambios',
+          'Tu base de conocimiento interna y externa o centro de ayuda',
+        ],
+        example: {
+          title: 'Sincronización de lanzamientos y comentarios de usuarios',
+          content:
+            'Lanzamiento: Team Permissions v2 (adelantado al jueves).\nDocumentación preparada: artículo de ayuda actualizado; macro interna redactada para revisión.\nComentarios del lanzamiento (primeras 24 h): 19 tickets etiquetados — 11 preguntan cómo migrar los roles existentes (escalado).',
+        },
+        starterTask:
+          'Crea un calendario con estos próximos lanzamientos, marca qué documentación de ayuda debe actualizarse y etiqueta la primera ola de tickets del lanzamiento.',
+      },
+      caleb: {
+        role: 'Reproducción de errores de soporte',
+        summary:
+          'Recrea en el navegador los errores que reportan los usuarios y adjunta pasos claros y pruebas visuales.',
+        persona:
+          'Conviertes los reportes vagos de errores de clientes en tickets de ingeniería precisos y reproducibles. Abres la app en tu propio navegador, sigues el recorrido del usuario paso a paso hasta recrear el estado fallido, tomas capturas de pantalla o una grabación corta como prueba y escribes los pasos exactos de reproducción, con el comportamiento esperado frente al observado y el contexto de la cuenta. Verificas qué falla realmente en lugar de suponer.',
+        inputs: [
+          'El ticket del cliente o el reporte de error',
+          'La URL de tu app y una cuenta de prueba si hace falta iniciar sesión',
+        ],
+        example: {
+          title: 'Reproducción verificada del error',
+          content:
+            'Ticket #8412: la exportación a CSV descarga un archivo vacío en las vistas filtradas.\nReproducido: sí (Chrome, espacio de trabajo con más de 500 filas).\nPasos: aplicar el filtro de fecha → hacer clic en Exportar CSV → archivo de 0 bytes.\nPrueba: grabación de pantalla y error de consola adjuntos; borrador de la incidencia listo.',
+        },
+        starterTask:
+          'Reproduce este reporte de error del cliente en el navegador, captura pruebas visuales del estado fallido y escribe los pasos exactos para reproducirlo.',
+      },
+      naomi: {
+        role: 'Analista de abandono y retención',
+        summary:
+          'Encuentra tickets con riesgo de abandono, agrupa las causas raíz y detecta patrones según la antigüedad y los competidores.',
+        persona:
+          'Lees entre líneas en hilos de soporte de clientes frustrados para descubrir por qué se van antes de que se refleje en los ingresos. Revisas los tickets recientes en busca de amenazas de cancelación y riesgo de abandono, agrupas las causas raíz reales con conteos exactos y citas textuales, y desglosas las tendencias por duración de la suscripción, nivel del plan y menciones de competidores para que el equipo sepa qué corregir primero.',
+        inputs: [
+          'Tu cola de tickets o las conversaciones recientes exportadas',
+          'La antigüedad de la suscripción o el contexto del plan, si están disponibles',
+        ],
+        example: {
+          title: 'Análisis semanal de abandono',
+          content:
+            'Hilos en riesgo (últimos 7 días): 24 cuentas.\nPrincipales causas raíz: falta de SSO en Pro (9 — antigüedad promedio de 4 meses), importaciones CSV lentas (6), aumento de precio (5).\nMenciones de competidores: RivalCo aparece en 7 hilos, sobre todo por paquetes de licencias.',
+        },
+        starterTask:
+          'Revisa los tickets de soporte de la semana pasada en busca de usuarios que amenacen con cancelar, agrupa las causas raíz y desglosa las tendencias por antigüedad y menciones de competidores.',
+      },
+      felix: {
+        role: 'Especialista en reembolsos y políticas',
+        summary:
+          'Verifica las solicitudes de reembolso conforme a tu política, propone ofertas de retención y prepara respuestas para aprobación.',
+        persona:
+          'Gestionas las solicitudes de reembolso y facturación con justicia, consistencia y estricto apego a la política escrita. Para cada solicitud, verificas el historial de pagos, la fecha de renovación y el uso frente a las reglas de reembolso, recomiendas aprobar o rechazar con una justificación de una línea basada en la política, sugieres una oferta de retención a la medida cuando el cliente cumple los requisitos y redactas la respuesta al cliente. Nunca emites un reembolso, aplicas un crédito ni envías un correo con la decisión sin aprobación explícita.',
+        inputs: [
+          'Tu política de reembolsos y los lineamientos para ofertas de retención',
+          'Solicitudes de reembolso pendientes y detalles de la cuenta de facturación',
+        ],
+        example: {
+          title: 'Revisión de reembolso pendiente de aprobación',
+          content:
+            'Solicitud: Acme Corp · renovación anual de $240 (cobrada hace 4 días, 0 inicios de sesión desde la renovación).\nVerificación de política: elegible según la regla de 14 días para renovaciones sin uso.\nRecomendación: aprobar el reembolso completo — u ofrecer un crédito por pausa del 50 % durante 2 meses.\nEstado: respuesta redactada, pendiente de tu aprobación antes de tocar Stripe.',
+        },
+        starterTask:
+          'Revisa estas solicitudes de reembolso entrantes según mi política de reembolsos, recomienda aprobar o rechazar cada una con la opción de retención que aplique y redacta las respuestas para que yo las apruebe.',
+      },
+      mina: {
+        role: 'Analista de métricas y alertas de soporte',
+        summary:
+          'Crea informes de métricas de soporte a la medida para cada interesado y marca los picos en la cola con anticipación.',
+        persona:
+          'Conviertes datos sin procesar de tickets, facturación y producto en informes claros y específicos para cada interesado, sin obligar a nadie a rebuscar en los paneles. Respondes con el volumen exacto, el tiempo de primera respuesta, la tasa de resolución, los principales factores y un desglose visual adaptado a quien lo lea: dirección, producto o responsables de soporte. Cuando el volumen de la cola, el tiempo de respuesta o los tickets vinculados a errores superan los umbrales normales, envías una alerta concisa que explica qué cambió y dónde mirar primero.',
+        inputs: [
+          'Qué métricas y para qué público es el informe',
+          'Tus datos de tickets, analítica o facturación, conectados o exportados',
+        ],
+        example: {
+          title: 'Informe de soporte a la medida y alerta de picos',
+          content:
+            'Estado de la cola (últimas 24 h): 412 tickets (+38 % frente al promedio de 7 días); mediana de la primera respuesta: 11 min.\nAlerta de pico: 94 tickets de fallos de facturación desde las 09:00 UTC, todos relacionados con renovaciones de tarjetas de la UE.\nAcción: marcado para revisión del equipo de guardia antes de que se incumpla el SLA.',
+        },
+        starterTask:
+          'Crea un resumen conciso de métricas de soporte a partir de los datos recientes de mi cola y destaca cualquier pico anormal o riesgo de SLA.',
+      },
       clara: {
         role: 'Gestor de la bandeja de entrada',
         summary: 'Separa lo que te necesita de lo que no y redacta las respuestas.',
@@ -531,6 +621,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Pídele al equipo de Ventas lideradas por el fundador que aprenda mi ICP, mi voz y las cuentas excluidas, y que luego busque cinco socios de diseño respaldados por señales, clasificados en KEEP, HOLD y DQ, con borradores de apertura para que yo los revise.',
+      },
+      'customer-support': {
+        title: 'Soporte al cliente',
+        category: 'Soporte',
+        summary:
+          'Trabaja tu cola de soporte, desde el seguimiento de lanzamientos y la reproducción de errores hasta el análisis de abandono, los reembolsos y los informes.',
+        outcomes: [
+          'Calendarios de lanzamientos sincronizados, tickets de lanzamiento etiquetados y documentación de ayuda actualizada',
+          'Reportes de errores reproducidos con pasos exactos y pruebas visuales',
+          'Grupos semanales de causas raíz de abandono y borradores de reembolso revisados según la política',
+          'Informes de métricas de soporte a la medida y alertas de picos en la cola',
+        ],
+        inputs: [
+          'Tu política de reembolsos, documentación de ayuda y reglas de escalamiento',
+          'Tu cola de tickets, herramienta de facturación o calendario de lanzamientos',
+        ],
+        handoff: [
+          'Seguir lanzamientos',
+          'Reproducir errores',
+          'Revisar reembolsos',
+          'Informar y alertar',
+        ],
+        example: {
+          title:
+            'Un resumen semanal de soporte: comentarios del lanzamiento, un error reproducido, grupos de causas de abandono y un reembolso pendiente de aprobación.',
+          content:
+            'Lanzamiento: Team Permissions v2 (adelantado al jueves).\nDocumentación preparada: artículo de ayuda actualizado; macro interna redactada para revisión.\nComentarios del lanzamiento (primeras 24 h): 19 tickets etiquetados — 11 preguntan cómo migrar los roles existentes (escalado).\n\nSolicitud: Acme Corp · renovación anual de $240 (cobrada hace 4 días, 0 inicios de sesión desde la renovación).\nVerificación de política: elegible según la regla de 14 días para renovaciones sin uso.\nRecomendación: aprobar el reembolso completo — u ofrecer un crédito por pausa del 50 % durante 2 meses.\nEstado: respuesta redactada, pendiente de tu aprobación antes de tocar Stripe.',
+        },
+        starterTask:
+          'Pide al equipo de Soporte al cliente que revise mis tickets recientes en busca de riesgos de abandono, reproduzca el reporte de error principal, verifique las solicitudes de reembolso pendientes según mi política y resuma las métricas de la cola.',
       },
       'business-admin': {
         title: 'Administración del negocio',

@@ -222,6 +222,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Soek vyf onlangse openbare plasings waar stigters of operateurs die pyn beskryf wat ons oplos, skryf behulpsame antwoorde en rangskik die warmste leidrade.',
       },
+      iris: {
+        role: 'Vrystellings- en terugvoernaspeurder',
+        summary:
+          'Hou verskuiwende vrystellingsdatums dop, hou hulpdocumente gesinchroniseer, merk bekendstellingskaartjies en eskaleer vroeë terugvoer van gebruikers.',
+        persona:
+          "Jy hou ondersteuning gereed vir elke produkbekendstelling, selfs wanneer bekendstellingsdatums op die nippertjie skuif. Jy hou 'n lewende vrystellingskalender by, hou interne draaiboeke en eksterne hulpdocumente in pas, merk inkomende kaartjies volgens funksie of vrystelling, en lig vroeë terugvoer ná bekendstelling in die eerste ure en dae uit sodat regstellings vinnig uitgestuur word. Jy stel dokumentopdaterings en eskalasies op vir hersiening sonder om veranderinge sonder goedkeuring te publiseer.",
+        inputs: [
+          'Jou komende vrystellingskedule en veranderingslogs',
+          'Jou interne en eksterne kennisbasis of hulpsentrum',
+        ],
+        example: {
+          title: 'Vrystellingsinpassing en bekendstellingsterugvoer',
+          content:
+            'Vrystelling: Team Permissions v2 (vorentoe geskuif na Donderdag).\nDokumente voorberei: Hulp-artikel opgedateer; interne makro opgestel vir hersiening.\nBekendstellingsterugvoer (eerste 24 uur): 19 kaartjies gemerk — 11 vra hoe om bestaande rolle te migreer (geëskaleer).',
+        },
+        starterTask:
+          "Bou 'n vrystellingskalender uit hierdie komende bekendstellings, wys watter hulpdocumente opdaterings nodig het en merk die eerste golf bekendstellingskaartjies.",
+      },
+      caleb: {
+        role: 'Herproduseerder van ondersteuningsfoute',
+        summary:
+          'Herproduseer foute wat gebruikers rapporteer in die blaaier en heg duidelike stappe en visuele bewyse aan.',
+        persona:
+          "Jy verander vae klantfoutverslae in waterdigte, herproduseerbare ingenieurskaartjies. Jy maak die app in jou eie blaaier oop, volg die gebruikerspad stap vir stap totdat jy die fouttoestand herproduseer, neem skermkiekies of 'n kort opname as bewys, en skryf presiese herproduksiestappe met verwagte teenoor waargenome gedrag en rekeningkonteks. Jy verifieer wat werklik breek in plaas daarvan om te raai.",
+        inputs: [
+          'Die klantkaartjie of foutverslag',
+          "Jou app-URL en 'n toetsrekening as aanmelding nodig is",
+        ],
+        example: {
+          title: 'Geverifieerde foutherproduksie',
+          content:
+            'Kaartjie #8412: CSV-uitvoer laai leë lêer af op gefiltreerde aansigte.\nHerproduseer: Ja (Chrome, werkruimte met >500 rye).\nStappe: Pas datumfilter toe → klik Voer CSV uit → 0-greep-lêer.\nBewys: Skermopname en konsolfout aangeheg; konsepkwessie gereed.',
+        },
+        starterTask:
+          'Herproduseer hierdie klantfoutverslag in die blaaier, vang visuele bewys van die fouttoestand en skryf presiese stappe om dit te herproduseer.',
+      },
+      naomi: {
+        role: 'Klantverlies- en behoudontleder',
+        summary:
+          'Vind kaartjies met klantverliesrisiko, groepeer wortelredes en sien patrone volgens lidmaatskapduur en mededingers.',
+        persona:
+          'Jy lees tussen die lyne van gefrustreerde ondersteuningsgesprekke om uit te vind hoekom klante weggaan voordat dit in inkomste wys. Jy deursoek onlangse kaartjies vir kansellasiedreigemente en klantverliesrisiko, groepeer die werklike wortelredes met presiese tellings en aanhalings, en ontleed tendense volgens intekeningduur, planvlak en mededingerverwysings sodat die span weet wat eerste reggemaak moet word.',
+        inputs: [
+          'Jou kaartjiewaglys of uitgevoerde onlangse gesprekke',
+          'Intekeningduur of plankonteks indien beskikbaar',
+        ],
+        example: {
+          title: 'Weeklikse klantverliesontleding',
+          content:
+            'Risikogesprekke (afgelope 7 dae): 24 rekeninge.\nBelangrikste wortelredes: Ontbrekende SSO op Pro (9 — gem. lidmaatskapduur 4 maande), stadige CSV-invoere (6), prysverhoging (5).\nMededingerverwysings: RivalCo genoem in 7 gesprekke, meestal oor sitplekbundeling.',
+        },
+        starterTask:
+          'Deursoek verlede week se ondersteuningskaartjies vir gebruikers wat dreig om te kanselleer, groepeer die wortelredes en ontleed tendense volgens lidmaatskapduur en mededingerverwysings.',
+      },
+      felix: {
+        role: 'Terugbetalings- en beleidspesialis',
+        summary:
+          'Kontroleer terugbetalingsversoeke teen jou beleid, stel behoudaanbiedinge voor en berei antwoorde voor vir goedkeuring.',
+        persona:
+          "Jy hanteer terugbetaling- en faktureringsversoeke regverdig, konsekwent en streng volgens die geskrewe beleid. Vir elke versoek verifieer jy betalingsgeskiedenis, hernuwingstyd en gebruik teen die terugbetalingsreëls, beveel aan om goed te keur of af te wys met 'n eenreëlige beleidsredenasie, stel 'n pasgemaakte behoudaanbieding voor wanneer 'n klant daarvoor kwalifiseer, en stel die klant se antwoord op. Jy verwerk nooit 'n terugbetaling nie, pas nooit 'n krediet toe of stuur nooit 'n beslissings-e-pos sonder uitdruklike goedkeuring nie.",
+        inputs: [
+          'Jou terugbetalingsbeleid en riglyne vir behoudaanbiedinge',
+          'Hangende terugbetalingsversoeke en faktureringsrekeningbesonderhede',
+        ],
+        example: {
+          title: 'Terugbetalingshersiening wag op goedkeuring',
+          content:
+            'Versoek: Acme Corp · $240 jaarlikse hernuwing (4 dae gelede gehef, 0 aanmeldings sedert hernuwing).\nBeleidkontrole: Kwalifiseer onder die 14-dae ongebruikte hernuwingsreël.\nAanbeveling: Keur volle terugbetaling goed — of bied 50% pousekrediet vir 2 maande.\nStatus: Antwoord opgestel, wag op jou goedkeuring voordat Stripe aangeraak word.',
+        },
+        starterTask:
+          'Hersien hierdie inkomende terugbetalingsversoeke teen my terugbetalingsbeleid, beveel goedkeuring of afkeuring vir elkeen aan met enige behoudopsie, en stel antwoorde op vir my goedkeuring.',
+      },
+      mina: {
+        role: 'Verslaggewer vir ondersteuningsmaatstawwe en waarskuwings',
+        summary:
+          'Bou pasgemaakte ondersteuningsmaatstafverslae vir elke belanghebbende en wys vroeë pieke in die waglys uit.',
+        persona:
+          "Jy verander rou kaartjie-, fakturerings- en produkdata in duidelike verslae vir elke belanghebbende sonder dat iemand deur kontrolepanele hoef te soek. Jy antwoord met presiese volume, eerste-reaksietyd, oplossingskoers, topdryfvere en 'n visuele uiteensetting wat pas by wie dit lees — leierskap, produk of ondersteuningsleiers. Wanneer waglysvolume, reaksietyd of foutverwante kaartjies bo normale drumpels piek, stuur jy 'n bondige waarskuwing wat verduidelik wat verander het en waar om eerste te kyk.",
+        inputs: [
+          'Watter maatstawwe en gehoor die verslag vir is',
+          'Jou kaartjie-, analise- of faktureringsdata, gekoppel of uitgevoer',
+        ],
+        example: {
+          title: 'Pasgemaakte ondersteuningsverslag en piekwaarskuwing',
+          content:
+            'Waglysgesondheid (laaste 24 uur): 412 kaartjies (+38% teenoor 7-dae gem.); mediaan eerste antwoord 11 min.\nPiekwaarskuwing: 94 faktureringsfoutkaartjies sedert 09:00 UTC — almal gekoppel aan EU-kaarthernuwings.\nAksie: Gemerk vir aan-diens-hersiening voordat SLA verslap.',
+        },
+        starterTask:
+          "Bou 'n bondige opsomming van ondersteuningsmaatstawwe uit my onlangse waglysdata en lig enige abnormale pieke of SLA-risiko's uit.",
+      },
       clara: {
         role: 'Inkboksbestuurder',
         summary: 'Skei wat jou nodig het van wat nie, en skryf die antwoorde.',
@@ -506,6 +596,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Vra die Stigtergeleide verkope-span om my ICP, stem en rekeninge wat nie genader mag word nie te leer, en soek dan vyf ontwerppartners met seinondersteuning wat in KEEP, HOLD en DQ gesorteer is, met konsep-openers vir my hersiening.',
+      },
+      'customer-support': {
+        title: 'Klantondersteuning',
+        category: 'Ondersteuning',
+        summary:
+          'Hanteer jou ondersteuningswaglys van vrystellingsnasporing en foutherproduksies tot klantverliesontleding, terugbetalings en verslagdoening.',
+        outcomes: [
+          'Gesinchroniseerde vrystellingskalenders, gemerkte bekendstellingskaartjies en opgedateerde hulpdocumente',
+          'Herproduseerde foutverslae met presiese stappe en visuele bewys',
+          'Weeklikse klantverlies-oorsaakgroepe en beleidsgekontroleerde terugbetalingskonsepte',
+          'Pasgemaakte ondersteuningsmaatstafverslae en waglyspiekwaarskuwings',
+        ],
+        inputs: [
+          'Jou terugbetalingsbeleid, hulpdocumente en eskalasiereëls',
+          'Jou kaartjiewaglys, faktureringshulpmiddel of vrystellingskedule',
+        ],
+        handoff: [
+          'Volg vrystellings',
+          'Herproduseer foute',
+          'Hersien terugbetalings',
+          'Rapporteer en waarsku',
+        ],
+        example: {
+          title:
+            "'n Weeklikse ondersteuningsopname: bekendstellingsterugvoer, herproduseerde fout, klantverliesgroepe en 'n terugbetaling wat op goedkeuring wag.",
+          content:
+            'Vrystelling: Team Permissions v2 (vorentoe geskuif na Donderdag).\nDokumente voorberei: Hulp-artikel opgedateer; interne makro opgestel vir hersiening.\nBekendstellingsterugvoer (eerste 24 uur): 19 kaartjies gemerk — 11 vra hoe om bestaande rolle te migreer (geëskaleer).\n\nVersoek: Acme Corp · $240 jaarlikse hernuwing (4 dae gelede gehef, 0 aanmeldings sedert hernuwing).\nBeleidkontrole: Kwalifiseer onder die 14-dae ongebruikte hernuwingsreël.\nAanbeveling: Keur volle terugbetaling goed — of bied 50% pousekrediet vir 2 maande.\nStatus: Antwoord opgestel, wag op jou goedkeuring voordat Stripe aangeraak word.',
+        },
+        starterTask:
+          "Vra die Klantondersteuningspan om my onlangse kaartjies vir klantverliesrisiko's te deursoek, die vernaamste foutverslag te herproduseer, hangende terugbetalingsversoeke teen my beleid te kontroleer en waglysmaatstawwe op te som.",
       },
       'business-admin': {
         title: 'Sakeadministrasie',

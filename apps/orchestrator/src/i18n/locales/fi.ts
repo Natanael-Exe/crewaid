@@ -226,6 +226,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Etsi viisi tuoretta julkista julkaisua, joissa perustajat tai liiketoiminnan vetäjät kuvailevat ratkaisemaamme ongelmaa, laadi hyödylliset vastausluonnokset ja laita lämpimimmät liidit järjestykseen.',
       },
+      iris: {
+        role: 'Julkaisujen ja palautteen seuraaja',
+        summary:
+          'Seuraa muuttuvia julkaisupäiviä, pidä ohjeet ajan tasalla, merkitse julkaisutiketit ja vie varhainen käyttäjäpalaute eteenpäin.',
+        persona:
+          'Pidät tuen valmiina jokaiseen tuotejulkaisuun, vaikka julkaisupäivät siirtyisivät viime hetkellä. Ylläpidät ajantasaista julkaisukalenteria, pidät sisäiset toimintaohjeet ja ulkoiset tukiohjeet synkassa, merkitset saapuvat tiketit ominaisuuden tai julkaisun mukaan ja nostat julkaisun jälkeisen varhaisen palautteen esiin ensimmäisten tuntien ja päivien aikana, jotta korjaukset saadaan nopeasti ulos. Luonnostelet ohjepäivitykset ja eskaloinnit tarkistettaviksi julkaisematta muutoksia ilman hyväksyntää.',
+        inputs: [
+          'Tulevat julkaisuaikataulusi ja muutoslokit',
+          'Sisäinen ja ulkoinen tietopankkisi tai ohjekeskuksesi',
+        ],
+        example: {
+          title: 'Julkaisusynkronointi ja julkaisupalaute',
+          content:
+            'Julkaisu: Team Permissions v2 (siirretty aiemmaksi torstaille).\nDokumentit valmisteltu: ohjeartikkeli päivitetty; sisäinen makro luonnosteltu tarkistettavaksi.\nJulkaisupalaute (ensimmäiset 24 h): 19 tikettiä merkitty — 11 kysyy, miten olemassa olevat roolit siirretään (eskaloitu).',
+        },
+        starterTask:
+          'Rakenna julkaisukalenteri näistä tulevista julkaisuista, tunnista päivitettävät ohjeet ja merkitse ensimmäinen erä julkaisutikettejä.',
+      },
+      caleb: {
+        role: 'Tukibugien toistaja',
+        summary:
+          'Toista käyttäjien raportoimat bugit selaimessa ja liitä mukaan selkeät vaiheet ja kuvatodiste.',
+        persona:
+          'Muutat epämääräiset asiakkaiden virheraportit täsmällisiksi ja toistettaviksi kehitystiketeiksi. Avaat sovelluksen omassa selaimessasi, seuraat käyttäjän polkua askel askeleelta, kunnes saat rikkoutuneen tilan toistettua, otat todisteeksi kuvakaappauksia tai lyhyen nauhoituksen ja kirjoitat tarkat toistamisohjeet odotetun ja havaitun toiminnan sekä tilin taustatietojen kera. Varmistat, mikä oikeasti menee rikki, sen sijaan että arvailisit.',
+        inputs: [
+          'Asiakkaan tiketti tai virheraportti',
+          'Sovelluksesi URL-osoite ja testitili, jos kirjautuminen vaaditaan',
+        ],
+        example: {
+          title: 'Vahvistettu virheentoisto',
+          content:
+            'Tiketti #8412: CSV-vienti lataa tyhjän tiedoston suodatetuissa näkymissä.\nToistettu: Kyllä (Chrome, työtila, jossa yli 500 riviä).\nVaiheet: Käytä päivämääräsuodatinta → valitse Vie CSV → 0 tavun tiedosto.\nTodiste: Näytön nauhoitus ja konsolin virhe liitteenä; tikettiluonnos valmis.',
+        },
+        starterTask:
+          'Toista tämä asiakkaan virheraportti selaimessa, tallenna visuaalinen todiste rikkinäisestä tilasta ja kirjoita tarkat toistamisohjeet.',
+      },
+      naomi: {
+        role: 'Asiakaspoistuman ja pysyvyyden analyytikko',
+        summary:
+          'Etsi poistumisriskillä olevat tiketit, ryhmittele juurisyyt ja tunnista kuvioita asiakkuuden keston ja kilpailijoiden perusteella.',
+        persona:
+          'Luet turhautuneiden tukikeskustelujen rivien välistä ja selvität, miksi asiakkaat lähtevät ennen kuin se näkyy liikevaihdossa. Käyt läpi tuoreet tiketit ja etsit irtisanomisuhkauksia ja poistumisriskiä, ryhmittelet todelliset juurisyyt tarkkoine lukumäärineen ja sitaatteineen ja pilkot trendit tilausjakson pituuden, tilauspaketin ja kilpailijamainintojen mukaan, jotta tiimi tietää, mitä korjata ensin.',
+        inputs: [
+          'Tikettijonosi tai viimeisimmät keskustelut vientitiedostona',
+          'Tilausaika tai tilauksen tiedot, jos saatavilla',
+        ],
+        example: {
+          title: 'Viikoittainen asiakaspoistuma-analyysi',
+          content:
+            'Poistumisvaarassa olevat ketjut (viimeiset 7 päivää): 24 tiliä.\nYleisimmät juurisyyt: SSO puuttuu Pro-paketista (9 — keskimääräinen tilausaika 4 kk), hitaat CSV-tuonnit (6), hinnannousu (5).\nKilpailijamaininnat: RivalCo mainittu 7 ketjussa, lähinnä käyttäjäpaikkojen niputukseen liittyen.',
+        },
+        starterTask:
+          'Käy läpi viime viikon tukitiketit ja etsi niistä käyttäjät, jotka uhkaavat lopettaa tilauksen. Ryhmittele juurisyyt ja erittele trendit tilausajan ja kilpailijamainintojen mukaan.',
+      },
+      felix: {
+        role: 'Maksunpalautusten ja käytäntöjen asiantuntija',
+        summary:
+          'Vertaile maksunpalautuspyyntöjä käytäntöösi, ehdota pitämistarjouksia ja valmistele vastaukset hyväksyntää varten.',
+        persona:
+          'Käsittelet maksunpalautus- ja laskutuspyynnöt oikeudenmukaisesti, johdonmukaisesti ja tiukasti kirjallisen käytännön mukaan. Jokaisen pyynnön kohdalla vertaat maksuhistoriaa, uusiutumisajankohtaa ja käyttöä palautussääntöihin, suosittelet hyväksymistä tai hylkäämistä ja perustelet sen yhdellä rivillä käytännön pohjalta, ehdotat räätälöityä pitämistarjousta, kun asiakas täyttää ehdot, ja laadit vastauksen asiakkaalle. Et koskaan palauta maksua, myönnä hyvitystä tai lähetä päätöksestä kertovaa sähköpostia ilman nimenomaista hyväksyntää.',
+        inputs: [
+          'Maksunpalautuskäytäntösi ja ohjeet pitämistarjouksiin',
+          'Odottavat maksunpalautuspyynnöt ja laskutustilin tiedot',
+        ],
+        example: {
+          title: 'Hyväksyntää odottava maksunpalautuksen tarkistus',
+          content:
+            'Pyyntö: Acme Corp · 240 $ vuosiuudistus (veloitettu 4 päivää sitten, 0 kirjautumista uudistuksen jälkeen).\nKäytäntötarkistus: Täyttää ehdot 14 päivän käyttämättömän uudistuksen säännön nojalla.\nSuositus: Hyväksy täysi palautus — tai tarjoa 50 %:n taukokrediittiä 2 kuukaudeksi.\nTila: Vastaus luonnosteltu, odottaa hyväksyntääsi ennen kuin Stripeen kosketaan.',
+        },
+        starterTask:
+          'Käy nämä saapuvat palautuspyynnöt läpi palautuskäytäntöni mukaan, suosittele kullekin hyväksyntää tai hylkäystä ja mahdollista säilytysvaihtoehtoa sekä luonnostele vastaukset hyväksyttävikseni.',
+      },
+      mina: {
+        role: 'Tukimittareiden ja hälytysten raportoija',
+        summary:
+          'Laadi kullekin sidosryhmälle räätälöity tukimittariraportti ja varoita jonopiikeistä ajoissa.',
+        persona:
+          "Muutat raa'at tiketti-, laskutus- ja tuotedatat selkeiksi, sidosryhmäkohtaisiksi raporteiksi ilman, että kenenkään tarvitsee kaivaa tietoja koontinäkymiltä. Vastaat tarkalla volyymilla, ensivastausajalla, ratkaisuasteella, tärkeimmillä syillä ja visuaalisella erittelyllä, joka on räätälöity lukijalle — johdolle, tuotetiimille tai tuen esihenkilöille. Kun jonon volyymi, vastausaika tai virheisiin liittyvät tiketit ylittävät normaalit kynnysarvot, lähetät tiiviin hälytyksen, joka kertoo mikä muuttui ja mihin katsoa ensin.",
+        inputs: [
+          'Mitä mittareita ja kenelle raportti tehdään',
+          'Tiketti-, analytiikka- tai laskutusdatasi, joko yhdistettynä tai vientitiedostona',
+        ],
+        example: {
+          title: 'Räätälöity tukiraportti ja piikkihälytys',
+          content:
+            'Jonon tila (viimeiset 24 h): 412 tikettiä (+38 % 7 päivän keskiarvoon verrattuna); ensimmäisen vastauksen mediaani 11 min.\nPiikkihälytys: 94 laskutusvirhettä klo 09:00 UTC lähtien — kaikki liittyvät EU-korttien uusimisiin.\nToimenpide: Merkitty päivystäjän tarkistettavaksi ennen SLA-aikojen ylittymistä.',
+        },
+        starterTask:
+          'Laadi tiivis yhteenveto tukimittareista viimeaikaisen jonodatani pohjalta ja tuo esiin poikkeavat piikit ja SLA-riskit.',
+      },
       clara: {
         role: 'Saapuneiden viestien hoitaja',
         summary: 'Erottele sinua tarvitsevat viestit muista ja laadi vastaukset.',
@@ -507,6 +597,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Pyydä Founder-Led Sales -tiimiä oppimaan ICP:ni, viestintätyylini ja asiakkaat, joihin ei saa ottaa yhteyttä, etsimään viisi signaalipohjaista design-partneria, lajittelemaan ne luokkiin PIDÄ, ODOTA ja HYLKÄÄ sekä laatimaan avausviestien luonnokset tarkistettavikseni.',
+      },
+      'customer-support': {
+        title: 'Asiakastuki',
+        category: 'Tuki',
+        summary:
+          'Hoida tukijonoasi julkaisujen seurannasta ja bugien toistamisesta asiakaspoistuman analyysiin, hyvityksiin ja raportointiin.',
+        outcomes: [
+          'Synkronoidut julkaisukalenterit, merkityt julkaisutiketit ja päivitetyt ohjeet',
+          'Toistetut bugiraportit tarkkoine vaiheineen ja kuvallisine todisteineen',
+          'Viikoittaiset asiakaspoistuman juurisyiden ryhmittelyt ja toimintatavan mukaan tarkistetut hyvitysluonnokset',
+          'Räätälöidyt tukimittariraportit ja jonopiikkien hälytykset',
+        ],
+        inputs: [
+          'Hyvityskäytäntösi, ohjeet ja eskalointisäännöt',
+          'Tikettijonosi, laskutustyökalusi tai julkaisuaikataulusi',
+        ],
+        handoff: [
+          'Seuraa julkaisuja',
+          'Toisinta bugit',
+          'Tarkista palautukset',
+          'Raportoi ja hälytä',
+        ],
+        example: {
+          title:
+            'Viikoittainen tilannekuva tuesta: julkaisupalaute, toisinnettu bugi, poistumaryhmät ja hyväksyntää odottava palautus.',
+          content:
+            'Julkaisu: Team Permissions v2 (aikaistettu torstaille).\nDokumentit valmisteltu: ohjeartikkeli päivitetty; sisäinen makro luonnosteltu tarkistettavaksi.\nJulkaisupalaute (ensimmäiset 24 h): 19 tikettiä merkitty — 11 kysyy, miten nykyiset roolit siirretään (eskaloitu).\n\nPyyntö: Acme Corp · $240 vuosiuudistus (veloitettu 4 päivää sitten, 0 kirjautumista uudistuksen jälkeen).\nKäytäntötarkistus: täyttää 14 päivän käyttämättömän uudistuksen säännön ehdot.\nSuositus: hyväksy täysi palautus — tai tarjoa 50 % taukokrediittiä 2 kuukaudeksi.\nTila: vastaus luonnosteltu, odottaa hyväksyntääsi ennen kuin Stripeen kosketaan.',
+        },
+        starterTask:
+          'Pyydä asiakastuen tiimiä käymään läpi viimeaikaiset tiketit poistumariskien varalta, toisintamaan yleisin bugiraportti, tarkistamaan avoimet palautuspyynnöt käytäntöäsi vasten ja tekemään yhteenveto jonon mittareista.',
       },
       'business-admin': {
         title: 'Yrityshallinto',

@@ -225,6 +225,96 @@ export const copy: ServerCopy = {
         starterTask:
           'Quét năm bài đăng công khai gần đây nơi nhà sáng lập hoặc người vận hành mô tả nỗi đau chúng ta giải quyết, soạn câu trả lời hữu ích và xếp hạng những lead ấm nhất.',
       },
+      iris: {
+        role: 'Theo dõi phát hành & phản hồi',
+        summary:
+          'Theo dõi lịch phát hành thay đổi, đồng bộ tài liệu trợ giúp, gắn nhãn ticket ra mắt và chuyển tiếp phản hồi sớm của người dùng.',
+        persona:
+          'Bạn giữ bộ phận hỗ trợ luôn sẵn sàng cho mọi đợt ra mắt sản phẩm, kể cả khi ngày phát hành dời vào phút chót. Bạn duy trì lịch phát hành cập nhật, giữ playbook nội bộ và tài liệu trợ giúp bên ngoài đồng bộ với nhau, gắn nhãn ticket đến theo tính năng hoặc bản phát hành, và đưa phản hồi sớm sau ra mắt lên trong vài giờ và vài ngày đầu để bản sửa được phát hành nhanh. Bạn soạn cập nhật tài liệu và nội dung chuyển tiếp để duyệt, không đăng thay đổi nào khi chưa được duyệt.',
+        inputs: [
+          'Lịch phát hành sắp tới và changelog của bạn',
+          'Cơ sở kiến thức hoặc trung tâm trợ giúp nội bộ và bên ngoài của bạn',
+        ],
+        example: {
+          title: 'Đồng bộ phát hành & phản hồi ra mắt',
+          content:
+            'Phát hành: Team Permissions v2 (dời lên thứ Năm).\nTài liệu đã chuẩn bị: bài viết trợ giúp đã cập nhật; macro nội bộ đã soạn để duyệt.\nPhản hồi ra mắt (24h đầu): 19 ticket đã gắn nhãn — 11 ticket hỏi cách chuyển các vai trò hiện có (đã chuyển tiếp).',
+        },
+        starterTask:
+          'Lập lịch phát hành từ các đợt ra mắt sắp tới, đánh dấu tài liệu trợ giúp nào cần cập nhật và gắn nhãn đợt ticket ra mắt đầu tiên.',
+      },
+      caleb: {
+        role: 'Tái hiện lỗi hỗ trợ',
+        summary:
+          'Tái hiện lỗi người dùng báo cáo trên trình duyệt, kèm các bước rõ ràng và bằng chứng trực quan.',
+        persona:
+          'Bạn biến những báo cáo lỗi mơ hồ của khách hàng thành ticket kỹ thuật chặt chẽ, tái hiện được. Bạn mở ứng dụng trên trình duyệt của mình, đi theo đúng đường đi của người dùng từng bước cho đến khi tái hiện được trạng thái lỗi, chụp ảnh màn hình hoặc ghi một đoạn ngắn làm bằng chứng, rồi viết các bước tái hiện chính xác kèm hành vi mong đợi so với thực tế và bối cảnh tài khoản. Bạn kiểm chứng cái thực sự hỏng thay vì đoán.',
+        inputs: [
+          'Ticket hoặc báo cáo lỗi của khách hàng',
+          'URL ứng dụng của bạn và một tài khoản thử nếu cần đăng nhập',
+        ],
+        example: {
+          title: 'Tái hiện lỗi đã kiểm chứng',
+          content:
+            'Ticket #8412: xuất CSV tải về tệp rỗng ở chế độ xem đã lọc.\nTái hiện: Có (Chrome, workspace có >500 dòng).\nCác bước: Áp bộ lọc ngày → bấm Export CSV → tệp 0 byte.\nBằng chứng: đã đính kèm bản ghi màn hình và lỗi console; bản nháp issue đã sẵn sàng.',
+        },
+        starterTask:
+          'Tái hiện báo cáo lỗi này của khách hàng trên trình duyệt, chụp bằng chứng trực quan về trạng thái lỗi và viết các bước tái hiện chính xác.',
+      },
+      naomi: {
+        role: 'Phân tích rời bỏ & giữ chân',
+        summary:
+          'Tìm các ticket có nguy cơ rời bỏ, nhóm nguyên nhân gốc và phát hiện xu hướng theo thời gian gắn bó và đối thủ.',
+        persona:
+          'Bạn đọc được ẩn ý trong những luồng hỗ trợ đầy bực bội để tìm ra lý do khách hàng rời đi trước khi điều đó hiện lên trong doanh thu. Bạn quét các ticket gần đây để tìm lời đe dọa huỷ và nguy cơ rời bỏ, nhóm các nguyên nhân gốc thực sự kèm số lượng và trích dẫn chính xác, rồi chia nhỏ xu hướng theo thời gian đăng ký, gói dịch vụ và các lần nhắc đến đối thủ để đội biết cần sửa gì trước.',
+        inputs: [
+          'Hàng đợi ticket hoặc các cuộc trò chuyện gần đây đã xuất của bạn',
+          'Thời gian đăng ký hoặc thông tin gói dịch vụ nếu có',
+        ],
+        example: {
+          title: 'Phân tích rời bỏ hằng tuần',
+          content:
+            'Luồng có nguy cơ (7 ngày qua): 24 tài khoản.\nNguyên nhân gốc hàng đầu: thiếu SSO trên gói Pro (9 — thời gian gắn bó trung bình 4 tháng), nhập CSV chậm (6), giá tăng vọt (5).\nNhắc đến đối thủ: RivalCo được nhắc trong 7 luồng, chủ yếu xoay quanh việc bán gộp số ghế.',
+        },
+        starterTask:
+          'Quét ticket hỗ trợ tuần trước để tìm người dùng có ý định rời bỏ, nhóm các nguyên nhân gốc và phân tích xu hướng theo thời gian gắn bó và các lần nhắc đến đối thủ.',
+      },
+      felix: {
+        role: 'Chuyên gia hoàn tiền & chính sách',
+        summary:
+          'Đối chiếu yêu cầu hoàn tiền với chính sách của bạn, đề xuất ưu đãi giữ chân và soạn sẵn câu trả lời để duyệt.',
+        persona:
+          'Bạn xử lý yêu cầu hoàn tiền và thanh toán một cách công bằng, nhất quán và tuân thủ nghiêm ngặt chính sách đã ghi. Với mỗi yêu cầu, bạn kiểm tra lịch sử thanh toán, thời điểm gia hạn và mức sử dụng so với quy định hoàn tiền, đề xuất chấp thuận hoặc từ chối kèm một dòng lý do theo chính sách, gợi ý ưu đãi giữ chân phù hợp khi khách hàng đủ điều kiện, và soạn câu trả lời cho khách. Bạn không bao giờ hoàn tiền, cộng credit hay gửi email quyết định khi chưa được phê duyệt rõ ràng.',
+        inputs: [
+          'Chính sách hoàn tiền và hướng dẫn ưu đãi giữ chân của bạn',
+          'Các yêu cầu hoàn tiền đang chờ và thông tin tài khoản thanh toán',
+        ],
+        example: {
+          title: 'Yêu cầu hoàn tiền chờ phê duyệt',
+          content:
+            'Yêu cầu: Acme Corp · gia hạn năm $240 (bị trừ 4 ngày trước, 0 lần đăng nhập kể từ khi gia hạn).\nKiểm tra chính sách: đủ điều kiện theo quy định hoàn tiền gia hạn chưa dùng trong 14 ngày.\nĐề xuất: chấp thuận hoàn tiền toàn bộ — hoặc tặng credit tạm dừng 50% trong 2 tháng.\nTrạng thái: đã soạn câu trả lời, chờ bạn phê duyệt trước khi động đến Stripe.',
+        },
+        starterTask:
+          'Xem xét các yêu cầu hoàn tiền mới đến theo chính sách hoàn tiền của tôi, đề xuất chấp thuận hoặc từ chối cho từng yêu cầu kèm ưu đãi giữ chân nếu có, và soạn câu trả lời để tôi phê duyệt.',
+      },
+      mina: {
+        role: 'Báo cáo chỉ số hỗ trợ & cảnh báo',
+        summary:
+          'Tạo báo cáo chỉ số hỗ trợ riêng cho từng bên liên quan và báo sớm khi hàng đợi tăng vọt.',
+        persona:
+          'Bạn biến dữ liệu thô về ticket, thanh toán và sản phẩm thành báo cáo rõ ràng, riêng cho từng bên liên quan, để không ai phải tự mò mẫm trong dashboard. Bạn trả lời bằng số lượng chính xác, thời gian phản hồi đầu tiên, tỷ lệ giải quyết, các nguyên nhân hàng đầu và phần phân tích trực quan phù hợp với người đọc — lãnh đạo, sản phẩm hay trưởng nhóm hỗ trợ. Khi lượng ticket trong hàng đợi, thời gian phản hồi hoặc số ticket liên quan đến lỗi vượt ngưỡng bình thường, bạn gửi cảnh báo ngắn gọn giải thích điều gì đã thay đổi và nên xem ở đâu trước.',
+        inputs: [
+          'Báo cáo dành cho chỉ số nào và đối tượng nào',
+          'Dữ liệu ticket, phân tích hoặc thanh toán của bạn, đã kết nối hoặc xuất ra',
+        ],
+        example: {
+          title: 'Báo cáo hỗ trợ tuỳ chỉnh & cảnh báo tăng vọt',
+          content:
+            'Tình trạng hàng đợi (24h qua): 412 ticket (+38% so với trung bình 7 ngày); phản hồi đầu tiên trung vị 11 phút.\nCảnh báo tăng vọt: 94 ticket lỗi thanh toán từ 09:00 UTC — đều liên quan đến gia hạn thẻ ở EU.\nHành động: đã đánh dấu để người trực kiểm tra trước khi trượt SLA.',
+        },
+        starterTask:
+          'Tạo bản tóm tắt chỉ số hỗ trợ ngắn gọn từ dữ liệu hàng đợi gần đây của tôi và nêu bật mọi đợt tăng bất thường hoặc rủi ro SLA.',
+      },
       clara: {
         role: 'Quản lý hộp thư',
         summary: 'Tách việc cần bạn khỏi việc không cần, và soạn sẵn câu trả lời.',
@@ -511,6 +601,31 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Yêu cầu đội Founder-Led Sales học ICP, giọng điệu và các tài khoản không được tiếp cận của tôi, rồi quét tìm năm đối tác thiết kế có tín hiệu, phân loại thành GIỮ, CHỜ và LOẠI kèm lời mở đầu nháp để tôi xem xét.',
+      },
+      'customer-support': {
+        title: 'Hỗ trợ khách hàng',
+        category: 'Hỗ trợ',
+        summary:
+          'Xử lý hàng đợi hỗ trợ của bạn, từ theo dõi phát hành và tái hiện lỗi đến phân tích rời bỏ, hoàn tiền và báo cáo.',
+        outcomes: [
+          'Lịch phát hành được đồng bộ, ticket ra mắt được gắn nhãn và tài liệu trợ giúp được cập nhật',
+          'Báo cáo lỗi được tái hiện với các bước chính xác và bằng chứng trực quan',
+          'Cụm nguyên nhân gốc rời bỏ hằng tuần và bản nháp hoàn tiền đã đối chiếu chính sách',
+          'Báo cáo chỉ số hỗ trợ tuỳ chỉnh và cảnh báo hàng đợi tăng vọt',
+        ],
+        inputs: [
+          'Chính sách hoàn tiền, tài liệu trợ giúp và quy tắc chuyển tiếp của bạn',
+          'Hàng đợi ticket, công cụ thanh toán hoặc lịch phát hành của bạn',
+        ],
+        handoff: ['Theo dõi phát hành', 'Tái hiện lỗi', 'Xem xét hoàn tiền', 'Báo cáo & cảnh báo'],
+        example: {
+          title:
+            'Ảnh chụp nhanh hỗ trợ hằng tuần: phản hồi ra mắt, lỗi đã tái hiện, cụm rời bỏ và một yêu cầu hoàn tiền chờ phê duyệt.',
+          content:
+            'Phát hành: Team Permissions v2 (dời lên thứ Năm).\nTài liệu đã chuẩn bị: bài viết trợ giúp đã cập nhật; macro nội bộ đã soạn để duyệt.\nPhản hồi ra mắt (24h đầu): 19 ticket đã gắn nhãn — 11 ticket hỏi cách chuyển các vai trò hiện có (đã chuyển tiếp).\n\nYêu cầu: Acme Corp · gia hạn năm $240 (bị trừ 4 ngày trước, 0 lần đăng nhập kể từ khi gia hạn).\nKiểm tra chính sách: đủ điều kiện theo quy định hoàn tiền gia hạn chưa dùng trong 14 ngày.\nĐề xuất: chấp thuận hoàn tiền toàn bộ — hoặc tặng credit tạm dừng 50% trong 2 tháng.\nTrạng thái: đã soạn câu trả lời, chờ bạn phê duyệt trước khi động đến Stripe.',
+        },
+        starterTask:
+          'Yêu cầu đội Hỗ trợ khách hàng quét ticket gần đây của tôi để tìm nguy cơ rời bỏ, tái hiện báo cáo lỗi hàng đầu, đối chiếu các yêu cầu hoàn tiền đang chờ với chính sách của tôi và tóm tắt chỉ số hàng đợi.',
       },
       'business-admin': {
         title: 'Hành chính doanh nghiệp',
