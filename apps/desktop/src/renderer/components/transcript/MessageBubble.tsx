@@ -97,7 +97,11 @@ export function MessageWorkMenu({ onAction }: { onAction: (action: MessageAction
       <Dropdown.Trigger
         aria-label={t('transcript.more')}
         data-message-menu
-        className="rounded p-0.5 text-muted outline-none data-[hovered]:text-foreground data-[focus-visible]:outline-2 data-[focus-visible]:outline-focus/60"
+        // A ghost icon button sized to the 20px footer. Not HeroUI's `.button`:
+        // its press transform kept the trigger moving inside a footer that is
+        // itself fading in, and the trigger is already a button, so nesting a
+        // HeroUI Button inside it would nest interactive elements.
+        className="flex size-5 items-center justify-center rounded-full text-muted outline-none data-[hovered]:bg-default data-[hovered]:text-foreground data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40"
       >
         <IconDots aria-hidden className="size-3.5" stroke={1.8} />
       </Dropdown.Trigger>

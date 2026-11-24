@@ -32,7 +32,9 @@ export function AttachButton({ onFiles }: { onFiles: (files: File[]) => void }) 
       <IconButtonTooltip
         label={t('attachments.attach')}
         placement="top"
-        className="ms-0.5 mb-0.5 size-8 shrink-0 rounded-full bg-background-secondary text-muted"
+        // The same quiet ghost as the approval and dictation controls beside
+        // it; filled accent is kept for Send, Stop and Voice.
+        className="ms-0.5 mb-0.5 size-8 min-w-8 shrink-0 rounded-full bg-transparent text-muted"
       >
         <IconPlus className="size-4" stroke={1.8} />
       </IconButtonTooltip>

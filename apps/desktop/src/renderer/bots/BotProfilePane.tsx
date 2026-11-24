@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { IconArrowRight, IconChevronLeft, IconChevronsRight } from '@tabler/icons-react';
+import { IconChevronLeft, IconChevronRight, IconChevronsRight } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import type { Bot } from '@crewaid/shared';
 import { IconButtonTooltip } from '../components/ui';
@@ -126,6 +126,7 @@ export function BotProfilePane({
               idPrefix={`bot-profile-${bot.id}`}
               fallbackName={bot.name}
               mainAssistant={bot.kind === 'MAIN'}
+              defaultLookOpen={false}
             />
           </div>
 
@@ -145,23 +146,46 @@ export function BotProfilePane({
           <button
             type="button"
             onClick={() => setMemoryOpen(true)}
-            className="flex cursor-[var(--cursor-interactive)] flex-col gap-1 border-y border-separator py-3 text-start"
+            className="flex cursor-[var(--cursor-interactive)] items-center gap-3 rounded-[16px] bg-surface/80 px-3.5 py-3 text-start outline-none hover:bg-surface focus-visible:ring-2 focus-visible:ring-focus/40"
           >
-            <span className="flex items-center justify-between text-footnote font-medium">
-              {t('bots.knowsAboutYou', { name: bot.name })}
-              <IconArrowRight className="size-4 text-muted rtl:-scale-x-100" aria-hidden />
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-footnote font-medium">
+                {t('bots.knowsAboutYou', { name: bot.name })}
+              </span>
+              <span className="text-caption text-muted">
+                {t('bots.botProfilePane.reviewSharedAndPrivateContext')}
+              </span>
             </span>
-            <span className="text-caption text-muted">
-              {t('bots.botProfilePane.reviewSharedAndPrivateContext')}
-            </span>
+            <IconChevronRight className="size-4 shrink-0 text-muted rtl:-scale-x-100" aria-hidden />
           </button>
-
+        </div>
+      )}
+      {/* Save appears once there is something to save, below the scroll and
+          beside a way back out of the edit. A permanent disabled Save was a
+          dark blob at the end of an empty pane. */}
+      {memoryOpen || (!dirty && !saving) ? null : (
+        <div className="flex shrink-0 items-center justify-end gap-2 px-4 py-3">
+          {dirty ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              isDisabled={saving}
+              onPress={() => {
+                setDraft(stored);
+                setVoiceId(bot.voiceId);
+                setFailure(null);
+              }}
+              className="rounded-full"
+            >
+              {t('bots.botProfilePane.discard')}
+            </Button>
+          ) : null}
           <Button
             variant="primary"
             size="sm"
             isDisabled={!canSave}
             onPress={() => void save()}
-            className="shrink-0"
+            className="rounded-full px-4"
           >
             {saving ? t('bots.botProfilePane.saving') : t('bots.botProfilePane.save')}
           </Button>

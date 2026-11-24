@@ -43,3 +43,81 @@
   background: none;
   -webkit-text-fill-color: currentColor;
 }
+
+/*
+ * Sheet: a full-window focus mode. The room stays visible as a frosted blur
+ * behind a soft tint of itself, so the user keeps their place.
+ */
+.crewaid-sheet-backdrop.modal__backdrop {
+  background: color-mix(in oklab, var(--background) 34%, transparent);
+  -webkit-backdrop-filter: blur(32px) saturate(1.5);
+  backdrop-filter: blur(32px) saturate(1.5);
+}
+.crewaid-sheet.modal__dialog {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  max-width: none;
+  color: var(--room-foreground);
+  /* The blur is the backdrop's; a second one here would only cost a pass. */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.crewaid-sheet-button.button {
+  background: color-mix(in oklab, var(--surface) 85%, transparent);
+  box-shadow: var(--surface-shadow);
+  color: var(--room-foreground);
+}
+.crewaid-sheet-button.button[data-hovered='true'] {
+  background: var(--surface);
+}
+.crewaid-sheet-backdrop.modal__backdrop[data-entering='true'] {
+  animation: crewaid-fade-in var(--motion-enter) var(--motion-ease);
+}
+.crewaid-sheet-backdrop.modal__backdrop[data-exiting='true'] {
+  animation: crewaid-fade-in var(--motion-exit) var(--motion-ease) reverse;
+}
+
+/* ListView: one flat card, rows divided by hairlines, no nested shadows. */
+.crewaid-list-view {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--surface) 88%, transparent);
+  box-shadow: var(--surface-shadow);
+}
+.crewaid-list-view-item + .crewaid-list-view-item {
+  border-top: 1px solid var(--separator);
+}
+.crewaid-list-view-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 16px;
+  text-align: start;
+  color: var(--foreground);
+  outline: none;
+}
+button.crewaid-list-view-row {
+  cursor: var(--cursor-interactive, pointer);
+}
+button.crewaid-list-view-row[data-hovered='true'] {
+  background: var(--default);
+}
+button.crewaid-list-view-row[data-focus-visible='true'] {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.crewaid-list-view-icon,
+.crewaid-list-view-chevron {
+  color: var(--muted);
+}
+.crewaid-list-view-item[data-tone='danger'] .crewaid-list-view-row,
+.crewaid-list-view-item[data-tone='danger'] .crewaid-list-view-icon {
+  color: var(--danger);
+}

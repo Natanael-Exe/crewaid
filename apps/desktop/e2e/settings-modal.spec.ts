@@ -7,7 +7,7 @@ import { launchDesktop } from './launchDesktop';
 import { startStubAuthServer, type StubAuthServer } from './stubAuthServer';
 
 /**
- * CC-14 — the account menu opens Settings, and every pane renders.
+ * CC-14 — the account avatar opens Settings, and every pane renders.
  *
  * Deliberately runs with NO orchestrator. That is the state a first install is
  * in, it is the state this modal exists to leave, and it is the one the unit
@@ -32,7 +32,7 @@ test.afterAll(async () => {
   await stubAuth?.close();
 });
 
-test('the account menu opens Settings, and each pane renders its own body', async () => {
+test('the account avatar opens Settings, and each pane renders its own body', async () => {
   const profileDir = await mkdtemp(path.join(tmpdir(), 'crewaid-cc-14-'));
   let app: ElectronApplication | undefined;
 
@@ -42,7 +42,7 @@ test('the account menu opens Settings, and each pane renders its own body', asyn
 
     // Credentials first, because V1-18 put a gate in front of the shell: with
     // none stored the app opens on "Point this app at an orchestrator" and
-    // there is no account menu to click. The stub above answers the gate's
+    // there is no account avatar to click. The stub above answers the gate's
     // one question, so this reaches the shell the way a signed-in install does.
     const saved = await page.evaluate<TokenStoreWriteResult, string>(
       (baseUrl) =>
@@ -55,21 +55,34 @@ test('the account menu opens Settings, and each pane renders its own body', asyn
     expect(saved.status).toBe('saved');
     await page.reload();
 
-    await expect(page.getByRole('button', { name: /account menu/i })).toBeVisible();
-
-    await page.getByRole('button', { name: /account menu/i }).click();
-    const menu = page.getByRole('menu', { name: 'Account' });
-    await expect(menu).toBeVisible();
-    // About is still a named destination the shell has not grown yet, so it
-    // reads as disabled rather than being omitted. Log out is NOT: V1-11 gave
-    // it a session to end, and it stayed greyed out for a whole milestone
-    // after the only reason for that stopped being true.
-    await expect(menu.getByRole('menuitem', { name: 'About' })).toBeDisabled();
-    await expect(menu.getByRole('menuitem', { name: 'Log out' })).toBeEnabled();
-
-    await menu.getByRole('menuitem', { name: 'Settings' }).click();
+    // The avatar opens the settings sheet itself: the account, its plan and
+    // sign out all live there, so a menu in front of it would only point in.
+    const avatar = page.getByRole('button', { name: /account and settings/i });
+    await expect(avatar).toBeVisible();
+    await avatar.click();
     const dialog = page.getByRole('dialog', { name: 'Settings' });
     await expect(dialog).toBeVisible();
+
+    // A full-window sheet, not a box over the room.
+    const box = await dialog.boundingBox();
+    const viewport = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
+    expect(Math.abs((box?.width ?? 0) - viewport.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs((box?.height ?? 0) - viewport.height)).toBeLessThanOrEqual(1);
+
+    // The index: every pane as a row, About live, Log out at the bottom.
+    for (const row of ['General', 'Models', 'Channels', 'Computer', 'About', 'Log out']) {
+      await expect(dialog.getByRole('button', { name: row, exact: true })).toBeEnabled();
+    }
+
+    // About drills down; Escape walks back to the index rather than closing.
+    await dialog.getByRole('button', { name: 'About', exact: true }).click();
+    await expect(dialog.getByRole('heading', { name: 'About' })).toBeVisible();
+    await expect(dialog.getByText('Desktop app', { exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'About', exact: true })).toBeFocused();
+
+    await dialog.getByRole('button', { name: 'General', exact: true }).click();
 
     // General: the address, which is the only credential an operator types.
     // The Session token field is gone (V1-18) — V1-08 made a Better Auth
@@ -91,12 +104,23 @@ test('the account menu opens Settings, and each pane renders its own body', asyn
 
     // Appearance folded into General and Model merged into this one (V1-19).
     for (const pane of ['Models', 'Computer']) {
+      await dialog.getByRole('button', { name: 'Back to settings' }).click();
       await dialog.getByRole('button', { name: pane, exact: true }).click();
       await expect(dialog.getByRole('heading', { name: pane })).toBeVisible();
     }
 
-    await dialog.getByRole('button', { name: 'Close settings' }).click();
+    // From a pane, Escape goes back once and closes from the index.
+    await page.keyboard.press('Escape');
+    await expect(dialog.getByRole('button', { name: 'General', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
+
+    await avatar.click();
+    await page
+      .getByRole('dialog', { name: 'Settings' })
+      .getByRole('button', { name: 'Close settings' })
+      .click();
+    await expect(page.getByRole('dialog', { name: 'Settings' })).toBeHidden();
   } finally {
     await app?.close();
     await rm(profileDir, { recursive: true, force: true });
@@ -190,11 +214,7 @@ test('the Connections pane shows that a key is stored, and no field holding it',
     // where they did not.
     await page.reload();
 
-    await page.getByRole('button', { name: /account menu/i }).click();
-    await page
-      .getByRole('menu', { name: 'Account' })
-      .getByRole('menuitem', { name: 'Settings' })
-      .click();
+    await page.getByRole('button', { name: /account and settings/i }).click();
     const dialog = page.getByRole('dialog', { name: 'Settings' });
     await dialog.getByRole('button', { name: 'Models', exact: true }).click();
 
@@ -352,11 +372,7 @@ test('every switch on the Models pane is pressable, and a provider card collapse
     expect(saved.status).toBe('saved');
     await page.reload();
 
-    await page.getByRole('button', { name: /account menu/i }).click();
-    await page
-      .getByRole('menu', { name: 'Account' })
-      .getByRole('menuitem', { name: 'Settings' })
-      .click();
+    await page.getByRole('button', { name: /account and settings/i }).click();
     const dialog = page.getByRole('dialog', { name: 'Settings' });
     await dialog.getByRole('button', { name: 'Models', exact: true }).click();
 
@@ -480,12 +496,9 @@ test('the timezone list holds every zone, and a choice is saved to the account',
     expect(saved.status).toBe('saved');
     await page.reload();
 
-    await page.getByRole('button', { name: /account menu/i }).click();
-    await page
-      .getByRole('menu', { name: 'Account' })
-      .getByRole('menuitem', { name: 'Settings' })
-      .click();
+    await page.getByRole('button', { name: /account and settings/i }).click();
     const dialog = page.getByRole('dialog', { name: 'Settings' });
+    await dialog.getByRole('button', { name: 'General', exact: true }).click();
     await expect(dialog.getByText('Microphone', { exact: true })).toBeVisible();
 
     // The app reports its own computer once, so a bot on Auto-detect has a zone.

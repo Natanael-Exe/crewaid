@@ -276,14 +276,9 @@ test('voice messages disclose their text in the footer and keep a text fallback 
     );
     await expect(rogerChoice.locator('[data-voice-tags]')).toHaveCSS('font-size', '11px');
     const rogerPreview = picker.getByRole('button', { name: `Preview ${roger.name}`, exact: true });
-    await expect(rogerPreview).toHaveCSS(
-      'background-color',
-      await tokenColor(page, '--app-accent'),
-    );
-    await expect(rogerPreview).toHaveCSS(
-      'color',
-      await tokenColor(page, '--app-accent-foreground', 'color'),
-    );
+    // At rest a preview is a soft disc; only the one playing takes the accent.
+    await expect(rogerPreview).toHaveCSS('background-color', await tokenColor(page, '--default'));
+    await expect(rogerPreview).toHaveCSS('color', await tokenColor(page, '--foreground', 'color'));
     expect((await rogerPreview.boundingBox())!.x).toBeLessThan(
       (await rogerChoice.boundingBox())!.x,
     );
@@ -295,7 +290,8 @@ test('voice messages disclose their text in the footer and keep a text fallback 
     await expect(
       picker.getByRole('button', { name: `Stop preview of ${roger.name}`, exact: true }),
     ).toBeVisible();
-    await expect(profilePane.getByRole('button', { name: 'Save', exact: true })).toBeDisabled();
+    // Previewing a voice is not an edit: Save only appears once something changes.
+    await expect(profilePane.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
     await picker.getByRole('button', { name: `Preview ${charlie.name}`, exact: true }).click();
     await expect(
       picker.getByRole('button', { name: `Stop preview of ${charlie.name}`, exact: true }),

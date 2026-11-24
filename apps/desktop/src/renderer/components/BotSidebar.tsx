@@ -33,9 +33,8 @@ import { useT } from '../i18n/i18n';
 import type { LaunchSession } from '../launch/LaunchGate';
 import type { SidebarSection } from '../state/sidebarSections';
 import type { BotRowView } from '../state/viewTypes';
-import { botAccentTokens } from '../styles/botAccent';
 import { BotAvatar } from './BotAvatar';
-import { RoleChip, StatusDot } from './Chips';
+import { StatusDot } from './Chips';
 import { EmptyState, IconButtonTooltip } from './ui';
 import { UsageNotice } from './UsageNotice';
 
@@ -44,7 +43,7 @@ import { UsageNotice } from './UsageNotice';
  *
  * Rows are BOTS (name, role chip, avatarColor, status, preview), NOT chat
  * threads. Composed from free primitives: ListBox + Button + Avatar
- * (+ the shared RoleChip/StatusDot/BotAvatar).
+ * (+ the shared StatusDot/BotAvatar).
  *
  * Search filters by name and role (client-side until the orchestrator grows a
  * query param — REST has none, and a self-hosted operator's list is small
@@ -333,53 +332,69 @@ export function BotSidebar({
             data-pinned-slot="scroller"
             className="min-w-0 overflow-x-auto overscroll-x-contain px-3 pb-1"
           >
-            <div
-              data-pinned-slot="row"
-              className={`flex w-full gap-2 ${pinnedRows.length > 1 ? 'justify-start' : 'justify-center'}`}
-            >
-              {pinnedRows.map((view) => (
-                <div
-                  key={view.bot.id}
-                  data-pinned-slot="tile"
-                  className="min-w-0 flex-[0_0_calc(50%-4px)]"
-                >
-                  <Button
-                    variant="ghost"
-                    aria-label={t('sidebar.open', { name: view.bot.name })}
-                    aria-pressed={selectedId === view.bot.id}
-                    style={{
-                      ['--pinned-accent' as string]: view.bot.avatarColor,
-                      ['--pinned-ink-light' as string]: botAccentTokens(view.bot.avatarColor)[
-                        '--bot-accent-ink-light'
-                      ],
-                      ['--pinned-ink-dark' as string]: botAccentTokens(view.bot.avatarColor)[
-                        '--bot-accent-ink-dark'
-                      ],
-                    }}
-                    onPress={() => onSelect(view.bot.id)}
-                    onContextMenu={(event) => openContextMenu(view.bot, event)}
-                    className="crewaid-pinned-tile h-auto w-full min-w-0 flex-col gap-2 rounded-card px-2 py-3 text-surface-foreground"
+            <div data-pinned-slot="row" className="flex w-full justify-start gap-2">
+              {pinnedRows.map((view) => {
+                // One pinned bot (usually the main assistant) gets a full row,
+                // so its name and role never truncate inside a half-width tile.
+                const single = pinnedRows.length === 1;
+                const idle = view.bot.status === 'IDLE';
+                return (
+                  <div
+                    key={view.bot.id}
+                    data-pinned-slot="tile"
+                    className={`min-w-0 ${single ? 'flex-1' : 'flex-[0_0_calc(50%-4px)]'}`}
                   >
-                    <div className="crewaid-pinned-avatar relative size-16">
-                      <BotAvatar bot={view.bot} size="md" status={view.bot.status} />
-                      <span className="crewaid-bot-status-compact">
-                        <StatusDot status={view.bot.status} />
-                      </span>
-                    </div>
-                    <span className="crewaid-bot-row-copy min-w-0 max-w-full text-center">
-                      <span className="flex min-w-0 items-center justify-center gap-1.5">
-                        <span className="min-w-0 truncate text-callout font-medium">
-                          {view.bot.name}
+                    <Button
+                      variant="ghost"
+                      aria-label={t('sidebar.open', { name: view.bot.name })}
+                      aria-pressed={selectedId === view.bot.id}
+                      data-pinned-layout={single ? 'row' : 'tile'}
+                      onPress={() => onSelect(view.bot.id)}
+                      onContextMenu={(event) => openContextMenu(view.bot, event)}
+                      className={`crewaid-pinned-tile h-auto w-full min-w-0 rounded-card text-surface-foreground ${
+                        single
+                          ? 'flex-row justify-start gap-3 px-2.5 py-2'
+                          : 'flex-col gap-2 px-2 py-3'
+                      }`}
+                    >
+                      <div
+                        className={`crewaid-pinned-avatar relative shrink-0 ${single ? 'size-[42px]' : 'size-16'}`}
+                      >
+                        <BotAvatar
+                          bot={view.bot}
+                          size={single ? 'row' : 'md'}
+                          status={view.bot.status}
+                        />
+                        <span className="crewaid-bot-status-compact">
+                          <StatusDot status={view.bot.status} />
                         </span>
-                        <StatusDot status={view.bot.status} />
+                      </div>
+                      <span
+                        className={`crewaid-bot-row-copy min-w-0 max-w-full ${single ? 'flex-1 text-start' : 'text-center'}`}
+                      >
+                        <span
+                          className={`flex min-w-0 items-center gap-1.5 ${single ? '' : 'justify-center'}`}
+                        >
+                          <span
+                            className={`min-w-0 truncate font-semibold ${single ? 'text-body' : 'text-callout'}`}
+                          >
+                            {view.bot.name}
+                          </span>
+                          {idle ? null : <StatusDot status={view.bot.status} />}
+                        </span>
+                        <span
+                          className={`mt-0.5 block truncate text-caption leading-[16px] text-room-muted ${
+                            single ? '' : 'text-center'
+                          }`}
+                          title={view.bot.role}
+                        >
+                          {view.bot.role}
+                        </span>
                       </span>
-                      <span className="crewaid-pinned-role mt-1 flex min-w-0 items-center justify-center gap-2">
-                        <RoleChip role={view.bot.role} />
-                      </span>
-                    </span>
-                  </Button>
-                </div>
-              ))}
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -537,7 +552,9 @@ function BotRow({
         <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
           <span className="min-w-0 flex-1 truncate text-body font-semibold">{bot.name}</span>
           <span className="ms-auto flex shrink-0 items-center gap-1">
-            <StatusDot status={bot.status} />
+            {/* At rest the row says nothing; a dot appears once there is
+                something to see. The icon-wide roster keeps its compact dot. */}
+            {bot.status === 'IDLE' ? null : <StatusDot status={bot.status} />}
             {unread > 0 ? (
               <span
                 role="img"

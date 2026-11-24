@@ -101,6 +101,7 @@ export function SearchPalette({
     () => new Map(projects.map((project) => [project.id, project])),
     [projects],
   );
+  const typed = query.trim() !== '';
   const choose = (target: SearchTarget) => {
     onOpenChange(false);
     onChoose(target);
@@ -122,22 +123,31 @@ export function SearchPalette({
             filter={() => true}
             className="crewaid-search-dialog"
           >
+            {/* Spotlight: only the pill floats until there is something to
+                show. The scope bar and the results card join it once the user
+                has typed (or narrowed the scope), so an empty palette is not a
+                box that says "type to search". */}
             <Command.InputGroup
               aria-label={t('work.searchPalette.searchEverything')}
-              className="gap-2 border-b border-separator px-4 py-3"
+              className="crewaid-search-pill h-12 gap-2.5 px-5"
             >
               <Command.InputGroupPrefix>
-                <IconSearch className="size-4 text-muted" stroke={1.8} aria-hidden />
+                <IconSearch className="size-[18px] text-muted" stroke={1.8} aria-hidden />
               </Command.InputGroupPrefix>
               <Command.InputGroupInput
                 aria-label={t('work.searchPalette.searchEverything')}
                 placeholder={t('work.searchPalette.searchTasksGoalsFilesAnd')}
                 className="min-w-0 flex-1 bg-transparent text-body outline-none placeholder:text-muted"
               />
-              <Command.InputGroupSuffix className="flex items-center gap-1.5">
-                {query !== '' ? (
+              {query !== '' ? (
+                <Command.InputGroupSuffix>
                   <Command.InputGroupClearButton aria-label={t('work.viewSearch.clearSearch')} />
-                ) : null}
+                </Command.InputGroupSuffix>
+              ) : null}
+            </Command.InputGroup>
+
+            {typed || tab !== 'all' ? (
+              <div className="flex justify-center">
                 <Segment.Root
                   aria-label={t('work.searchPalette.searchIn')}
                   size="sm"
@@ -146,6 +156,7 @@ export function SearchPalette({
                     if (key === 'all' || key === 'tasks' || key === 'files' || key === 'chat')
                       setTab(key);
                   }}
+                  className="crewaid-search-scope"
                 >
                   {SEARCH_TABS.map((option) => (
                     <Segment.Item key={option.id} id={option.id} className="text-caption">
@@ -153,56 +164,43 @@ export function SearchPalette({
                     </Segment.Item>
                   ))}
                 </Segment.Root>
-              </Command.InputGroupSuffix>
-            </Command.InputGroup>
+              </div>
+            ) : null}
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
-              {failure !== null ? (
-                <Alert status="danger" role="alert" className="m-2 text-footnote">
-                  <Alert.Indicator />
-                  <Alert.Content>
-                    <Alert.Description>{failure}</Alert.Description>
-                  </Alert.Content>
-                </Alert>
-              ) : results === null ? (
-                <EmptyState size="sm" className="py-10">
-                  <EmptyState.Header>
-                    <EmptyState.Media variant="icon">
-                      <IconSearch
-                        className="size-5 text-foreground-faint"
-                        stroke={1.6}
-                        aria-hidden
-                      />
-                    </EmptyState.Media>
-                    <EmptyState.Description>
-                      {t('work.searchPalette.typeToSearch')}
-                    </EmptyState.Description>
-                  </EmptyState.Header>
-                </EmptyState>
-              ) : hitCount(results) === 0 ? (
-                <EmptyState size="sm" className="py-10">
-                  <EmptyState.Header>
-                    <EmptyState.Media variant="icon">
-                      <IconSearchOff
-                        className="size-5 text-foreground-faint"
-                        stroke={1.6}
-                        aria-hidden
-                      />
-                    </EmptyState.Media>
-                    <EmptyState.Description>
-                      {t('work.search.nothingFound', { query: query.trim() })}
-                    </EmptyState.Description>
-                  </EmptyState.Header>
-                </EmptyState>
-              ) : (
-                <SearchResults
-                  results={results}
-                  botById={botById}
-                  projectById={projectById}
-                  onChoose={choose}
-                />
-              )}
-            </div>
+            {failure === null && results === null ? null : (
+              <div className="crewaid-search-results min-h-0 overflow-y-auto px-2 py-2">
+                {failure !== null ? (
+                  <Alert status="danger" role="alert" className="m-2 text-footnote">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                      <Alert.Description>{failure}</Alert.Description>
+                    </Alert.Content>
+                  </Alert>
+                ) : results === null ? null : hitCount(results) === 0 ? (
+                  <EmptyState size="sm" className="py-10">
+                    <EmptyState.Header>
+                      <EmptyState.Media variant="icon">
+                        <IconSearchOff
+                          className="size-5 text-foreground-faint"
+                          stroke={1.6}
+                          aria-hidden
+                        />
+                      </EmptyState.Media>
+                      <EmptyState.Description>
+                        {t('work.search.nothingFound', { query: query.trim() })}
+                      </EmptyState.Description>
+                    </EmptyState.Header>
+                  </EmptyState>
+                ) : (
+                  <SearchResults
+                    results={results}
+                    botById={botById}
+                    projectById={projectById}
+                    onChoose={choose}
+                  />
+                )}
+              </div>
+            )}
           </Command.Dialog>
         </Command.Container>
       </Command.Backdrop>

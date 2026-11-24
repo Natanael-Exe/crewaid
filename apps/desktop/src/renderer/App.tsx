@@ -34,6 +34,7 @@ import { useMessageQueue } from './hooks/useMessageQueue';
 import { currentLocale, useT } from './i18n/i18n';
 import { LaunchGate, type LaunchSession } from './launch/LaunchGate';
 import { PlanGate } from './launch/PlanGate';
+import { accountLabel } from './launch/launchState';
 import { useSyncAccountSettings } from './settings/accountSettings';
 import type { LoadStatus } from './state/chatReducer';
 import { sectionOrder, sidebarSections } from './state/sidebarSections';
@@ -89,7 +90,7 @@ function AppShell({ session }: { session: LaunchSession }) {
     userId: session.user.id,
     client,
     // New accounts open with the rail collapsed so the conversation leads.
-    initialRailCollapsed: welcoming,
+    welcoming,
   });
   const modals = useShellModals();
 
@@ -255,6 +256,11 @@ function AppShell({ session }: { session: LaunchSession }) {
   const selected =
     nav.selectedId === null ? null : (chat.bots.find((b) => b.id === nav.selectedId) ?? null);
   const wake = nav.selectedId === null ? undefined : chat.wakeByBot[nav.selectedId];
+  const selectedComputer = selected === null ? undefined : (selected.sandbox?.state ?? null);
+  const { settleRail } = nav;
+  useEffect(() => {
+    settleRail(nav.selectedId, selectedComputer);
+  }, [settleRail, nav.selectedId, selectedComputer]);
   const recording = nav.selectedId === null ? undefined : chat.recordingByBot[nav.selectedId];
 
   const teachTask = useCallback(() => {
@@ -394,7 +400,6 @@ function AppShell({ session }: { session: LaunchSession }) {
         onSearch={modals.focusSearch}
         onPlugins={() => modals.setPluginsOpen(true)}
         onSettings={modals.openSettings}
-        onOpenPlan={modals.openPlan}
       />
       <div ref={shellRef} data-pane-shell className="crewaid-room-panels">
         <div
@@ -669,6 +674,7 @@ function AppShell({ session }: { session: LaunchSession }) {
             railWidth={dimensions.railWidth}
             onResize={resizeRail}
             onToggle={nav.toggleRail}
+            onShowComputer={nav.openRail}
             screen={{
               expanded: nav.screenExpanded,
               onExpandedChange: nav.setScreenExpanded,
@@ -774,6 +780,12 @@ function AppShell({ session }: { session: LaunchSession }) {
           isOpen: modals.settingsOpen,
           initialPane: modals.settingsPane,
           onOpenChange: modals.onSettingsOpenChange,
+          account: {
+            ...accountLabel(session.user),
+            email: session.user.email,
+            image: session.user.image,
+          },
+          onSignOut: session.signOut,
           onCredentialsSaved: () => {
             previewCache.clear();
             setCredentialRevision((revision) => revision + 1);

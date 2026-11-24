@@ -17,7 +17,11 @@
     --field-border-width: 1px;
 
     /* Base canvas & inks */
-    --background: oklch(97.4% 0.008 258);
+    --background: oklch(96% 0.009 258);
+    /* The Day wallpaper's dimming: a slate veil and a softer saturation, so the
+       sky reads as dusty morning light rather than a bright screen. */
+    --wallpaper-veil: oklch(30% 0.04 268 / 0.14);
+    --wallpaper-filter: saturate(0.85);
     --foreground: oklch(19.5% 0.006 285);
     --room-foreground: oklch(21.5% 0.044 290);
     --muted: oklch(53% 0.016 285);
@@ -31,9 +35,9 @@
     --glass-saturate: 1.65;
     --glass-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
     --glass-filter-subtle: blur(var(--glass-blur-subtle)) saturate(1.45);
-    --glass: oklch(100% 0 0 / 0.72);
+    --glass: oklch(100% 0 0 / 0.6);
     --glass-strong: oklch(100% 0 0 / 0.86);
-    --glass-border: oklch(100% 0 0 / 0.68);
+    --glass-border: oklch(100% 0 0 / 0.48);
     --glass-border-subtle: oklch(21.5% 0.044 290 / 0.08);
     --glass-specular:
       inset 0 1px 0 oklch(100% 0 0 / 0.82), inset 0 0 0 0.5px oklch(100% 0 0 / 0.36);
@@ -99,16 +103,25 @@
 
     /* Product-specific message & room tokens */
     --approval-pending-background: oklch(16% 0.01 285);
-    --message-bot: var(--surface);
+    /* Bot replies read as paper; the user's own words as a translucent slate
+       tint, so the two sides of a conversation separate by tone, not by a
+       border. */
+    --message-bot: oklch(100% 0 0 / 0.94);
     --message-bot-foreground: var(--foreground);
-    --message-user: oklch(100% 0 0 / 0.62);
+    /* A light cool silver: distinct from the bot's white paper, and still a
+       bubble over the wallpaper's deep blue, where a faint dark tint vanished. */
+    --message-user: oklch(91% 0.012 256 / 0.74);
     --message-user-foreground: var(--room-foreground);
-    --message-user-border: oklch(100% 0 0 / 0.68);
+    --message-user-border: transparent;
     --crewaid-sidebar-background: var(--glass);
     --crewaid-card-radius: 14px;
-    --crewaid-message-radius: 18px;
+    --crewaid-message-radius: 20px;
     --topbar-surface: oklch(100% 0 0 / 0.66);
     --crew-hover: oklch(100% 0 0 / 0.56);
+    /* White frost, not a grey tint: grey over the dawn wallpaper's peach and
+       cobalt read as muddy tan and steel. */
+    --crew-dock: oklch(100% 0 0 / 0.42);
+    --crew-dock-muted: oklch(40% 0.04 285);
     --crew-selected: oklch(100% 0 0 / 0.94);
     --nav-selected: oklch(21.5% 0.044 290);
     --nav-selected-foreground: oklch(100% 0 0);
@@ -119,6 +132,11 @@
     --font-display-room: 'Fraunces', Georgia, serif;
     --radius-panel: 24px;
     --radius-pill: 999px;
+    /* One height for everything in the top bar, one radius for floating room
+       controls, one for form fields, so controls stop drifting between them. */
+    --control-height-topbar: 36px;
+    --radius-control: 999px;
+    --radius-field: 12px;
     --motion-fast: 120ms;
     --motion-enter: 220ms;
     --motion-exit: 160ms;
@@ -187,9 +205,9 @@
     --glass-blur: 32px;
     --glass-blur-subtle: 20px;
     --glass-saturate: 1.45;
-    --glass: oklch(20% 0.062 273 / 0.6);
+    --glass: oklch(18% 0.05 273 / 0.48);
     --glass-strong: oklch(21.5% 0.058 273 / 0.86);
-    --glass-border: oklch(100% 0 0 / 0.12);
+    --glass-border: oklch(100% 0 0 / 0.1);
     --glass-border-subtle: oklch(100% 0 0 / 0.08);
     --glass-specular:
       inset 0 1px 0 oklch(100% 0 0 / 0.14), inset 0 0 0 0.5px oklch(100% 0 0 / 0.06);
@@ -236,10 +254,13 @@
 
     --topbar-surface: oklch(20% 0.062 273 / 0.64);
     --crew-hover: oklch(100% 0 0 / 0.06);
+    --crew-dock: oklch(14% 0.05 273 / 0.56);
+    --crew-dock-muted: var(--room-muted);
     --crew-selected: oklch(100% 0 0 / 0.11);
     --nav-selected: oklch(96.3% 0.016 289);
     --nav-selected-foreground: oklch(19.5% 0.062 273);
-    --message-user: oklch(100% 0 0 / 0.12);
-    --message-user-border: oklch(100% 0 0 / 0.2);
+    --message-bot: oklch(26% 0.052 274 / 0.92);
+    --message-user: oklch(88% 0.02 270 / 0.16);
+    --message-user-border: transparent;
   }
 }

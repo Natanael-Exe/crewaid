@@ -51,6 +51,22 @@
     box-shadow: var(--glass-shadow);
   }
 
+  /*
+   * The room's side panels are structure, not things floating over it: frost
+   * and shape alone set them off. A white rim and inner highlight read as a
+   * glow around every panel, and a drop shadow boxed the conversation in;
+   * lift is reserved for what genuinely floats (popovers, dialogs). The
+   * border stays as a transparent 1px so nothing shifts when it is dropped.
+   */
+  .crewaid-crew-dock,
+  .crewaid-rail,
+  .crewaid-profile-pane,
+  .crewaid-work-detail,
+  .crewaid-work-pane {
+    border-color: transparent;
+    box-shadow: none;
+  }
+
   /* Progressive Apple continuous curvature on Electron/Chromium 140+. */
   @supports (corner-shape: squircle) {
     .crewaid-crew-dock,
@@ -76,6 +92,7 @@
   @media (prefers-contrast: more) {
     [data-theme='crewaid'] {
       --glass: oklch(100% 0 0 / 0.94);
+      --crew-dock: oklch(93% 0.01 262 / 0.96);
       --glass-strong: oklch(100% 0 0 / 0.98);
       --surface: oklch(100% 0 0);
       --overlay: oklch(100% 0 0);
@@ -86,6 +103,7 @@
 
     [data-theme='crewaid-dark'] {
       --glass: oklch(19% 0.05 273 / 0.94);
+      --crew-dock: oklch(17% 0.05 273 / 0.96);
       --glass-strong: oklch(19% 0.05 273 / 0.98);
       --surface: oklch(22% 0.05 273);
       --overlay: oklch(20% 0.05 273);

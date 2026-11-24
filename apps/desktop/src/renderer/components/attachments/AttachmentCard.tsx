@@ -15,6 +15,14 @@ import { saveBlobAs } from './saveBlob';
 import { AttachmentPreviewOverlay, previewKindOf } from './AttachmentPreviewOverlay';
 import { useT } from '../../i18n/i18n';
 import { formatFileSize } from '../../i18n/fileSize';
+import { DocumentPreviewCard } from '../reader/DocumentPreviewCard';
+import { documentTitle } from '../reader/documentText';
+
+/**
+ * Text documents up to this size show their opening as a preview card; a
+ * bigger one is fetched only when someone opens it.
+ */
+const DOCUMENT_PREVIEW_MAX_BYTES = 512 * 1024;
 
 /** Type-aware attachment identity over the existing authenticated preview/download lifecycle. */
 
@@ -85,6 +93,54 @@ function InlineImage({
   );
 }
 
+/** A Markdown or text attachment as a page with its title and opening lines. */
+function DocumentAttachment({
+  attachment,
+  kind,
+  meta,
+  onOpen,
+}: {
+  attachment: MessageAttachment;
+  kind: 'markdown' | 'text';
+  meta: string;
+  onOpen: () => void;
+}) {
+  const client = useApiClient();
+  const [source, setSource] = useState<string | null>(null);
+
+  useEffect(() => {
+    const mounted = { current: true };
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const blob = await downloadAttachment(client, attachment.id, controller.signal);
+        const text = await blob.slice(0, 16 * 1024).text();
+        if (mounted.current) setSource(text);
+      } catch {
+        // The card still opens the reader, which reports the failure itself.
+      }
+    })();
+    return () => {
+      mounted.current = false;
+      controller.abort();
+    };
+  }, [client, attachment.id]);
+
+  return (
+    <DocumentPreviewCard
+      title={
+        kind === 'markdown' && source !== null
+          ? documentTitle(source, attachment.filename)
+          : attachment.filename
+      }
+      format={kind}
+      source={source}
+      meta={meta}
+      onOpen={onOpen}
+    />
+  );
+}
+
 export function AttachmentCard({ attachment }: { attachment: MessageAttachment }) {
   const t = useT();
   const client = useApiClient();
@@ -135,6 +191,43 @@ export function AttachmentCard({ attachment }: { attachment: MessageAttachment }
   }
 
   const permanent = failure !== null && !isRetryable(failure.code);
+
+  // Prose reads as a page; CSV, JSON and logs are data, and keep the file card.
+  const prose =
+    kind === 'markdown' || (kind === 'text' && attachment.mimeType.startsWith('text/plain'));
+  if (prose && attachment.sizeBytes <= DOCUMENT_PREVIEW_MAX_BYTES) {
+    return (
+      <div className="flex max-w-full flex-col gap-1" data-attachment-card={attachment.id}>
+        <DocumentAttachment
+          attachment={attachment}
+          kind={kind === 'markdown' ? 'markdown' : 'text'}
+          meta={`${identity.label} · ${formatFileSize(attachment.sizeBytes)}`}
+          onOpen={() => setPreviewing(true)}
+        />
+        {failure === null ? null : (
+          <p role="alert" className="px-1 text-caption text-danger">
+            {failure.message}
+          </p>
+        )}
+        {permanent ? null : (
+          <button
+            type="button"
+            className="crewaid-artifact-action self-start"
+            aria-disabled={busy}
+            aria-busy={busy}
+            aria-label={t('attachments.downloadNamed', { name: attachment.filename })}
+            onClick={() => void handleDownload()}
+          >
+            <IconDownload aria-hidden className="size-3.5" />
+            {busy ? t('attachments.downloading') : t('attachments.download')}
+          </button>
+        )}
+        {previewing ? (
+          <AttachmentPreviewOverlay attachment={attachment} onClose={() => setPreviewing(false)} />
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div

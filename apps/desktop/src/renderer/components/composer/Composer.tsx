@@ -423,7 +423,7 @@ export function Composer({
   };
 
   return (
-    <div className="mx-auto w-full max-w-[900px]">
+    <div className="mx-auto w-full max-w-(--chat-column)">
       <QueuedMessageList
         items={queued ?? []}
         onEdit={(localId, text) => onEditQueued?.(localId, text)}
@@ -454,7 +454,7 @@ export function Composer({
           <div
             ref={pillRef}
             data-composer-stacked={stacked || undefined}
-            className={`crewaid-composer-pill gap-2.5 border border-field-border bg-surface ps-4 pe-2 py-2 ${
+            className={`crewaid-composer-pill gap-2.5 border border-transparent ps-4 pe-2 py-2 ${
               // `rounded-full` resolves to half the height, so a stacked pill
               // would bow its corners into the text. 23px is the inline pill's
               // own radius (36px picker trigger + py-1 + border = 46px tall),

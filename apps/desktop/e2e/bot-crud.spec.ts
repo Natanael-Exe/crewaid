@@ -123,8 +123,8 @@ test('the rail gear opens the BOT profile, not the app settings', async () => {
     await expect(pane.getByLabel('Description')).toHaveValue('You research things.');
     await expect(page.getByRole('dialog', { name: 'Settings' })).toHaveCount(0);
 
-    // Save stays inert until something actually changes.
-    await expect(pane.getByRole('button', { name: 'Save' })).toBeDisabled();
+    // Save appears only once something actually changes.
+    await expect(pane.getByRole('button', { name: 'Save' })).toHaveCount(0);
     await pane.getByLabel('Name').fill('renamed');
     await expect(pane.getByRole('button', { name: 'Save' })).toBeEnabled();
 
@@ -346,7 +346,7 @@ test('File New Bot opens the creation dialog, including after closing the last m
     app = await launchDesktop(profileDir);
     let page = await app.firstWindow();
     await setUp(page);
-    await expect(page.getByRole('button', { name: /account menu/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /account and settings/i })).toBeVisible();
     await app.evaluate(({ Menu }) => {
       const item = Menu.getApplicationMenu()!.getMenuItemById('crewaid.new-bot')!;
       (item.click as () => void)();

@@ -260,6 +260,11 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(transcript.locator('[data-history-loading]')).toBeHidden();
     await expect(transcript).toHaveAttribute('aria-busy', 'false');
     await expect(transcript.locator('[data-motion-message]')).toHaveCount(2);
+    // A bot with no computer opens with the rail tucked away; expanding it is
+    // remembered, so the rest of this walk-through sees it out.
+    await expect(page.locator('[data-pane-rail-state="collapsed"]')).toBeVisible();
+    await page.getByRole('button', { name: 'Expand panel' }).click();
+    await expect(page.locator('[data-pane-rail-state="expanded"]')).toBeVisible();
     await expect(transcript.getByText(/Paused after 25 steps/)).toHaveCount(0);
     await expect(
       page.locator('[data-screen-surface="rail"] > [data-screen-slot="controls"]'),
@@ -275,9 +280,15 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     const screenshot = async (name: string) => {
       // Compare settled surfaces while the screencast retains the transition.
       await page.evaluate(async () => {
-        const finite = document
-          .getAnimations()
-          .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity);
+        const finite = document.getAnimations().filter(
+          (animation) =>
+            animation.effect?.getComputedTiming().iterations !== Infinity &&
+            // Scroll-driven animations (HeroUI's ScrollShadow fades) follow
+            // the scroll position, not the clock, and never finish; an idle
+            // one (an overlay's exit that never ran) never will either.
+            animation.timeline instanceof DocumentTimeline &&
+            animation.playState !== 'idle',
+        );
         await Promise.allSettled(finite.map((animation) => animation.finished));
       });
       await page.screenshot({ path: testInfo.outputPath(`${name}.png`) });
@@ -437,21 +448,16 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expectReadableMention();
     await screenshot('room-quill-light');
     // Account lives in the top bar; appearance uses HeroUI's existing theme root.
-    await page.getByRole('button', { name: /account menu/i }).click();
-    await page.getByRole('menuitem', { name: 'Settings', exact: true }).click();
+    await page.getByRole('button', { name: /account and settings/i }).click();
     const settings = page.getByRole('dialog', { name: 'Settings' });
-    await expect(settings.locator('.button--primary').first()).toHaveCSS(
-      'background-color',
-      'rgb(0, 0, 0)',
-    );
-    await expect(settings).toHaveCSS('border-radius', '28px');
-    await expect(settings).toHaveCSS('width', '920px');
-    await expect(settings).toHaveCSS('height', '640px');
-    await expect(settings.getByRole('navigation', { name: 'Settings sections' })).toHaveCSS(
-      'width',
-      '212px',
-    );
-    await expect(settings.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+    // A full-window frosted sheet with a grouped index, not a fixed box.
+    const sheet = await settings.boundingBox();
+    const windowSize = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
+    expect(Math.abs((sheet?.width ?? 0) - windowSize.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs((sheet?.height ?? 0) - windowSize.height)).toBeLessThanOrEqual(1);
+    await expect(settings.getByRole('heading', { name: 'Settings', exact: true })).toBeAttached();
+    await screenshot('settings-index-light');
+    await settings.getByRole('button', { name: 'General', exact: true }).click();
     const showWork = settings.getByRole('switch', { name: 'Show thinking and actions' });
     await settings.locator('[data-show-bot-work] .switch__control').click();
     await expect(showWork).toBeChecked();
@@ -461,12 +467,13 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(showWork).not.toBeChecked();
     await expect(transcript.locator('[data-motion-message]')).toHaveCount(2);
     await screenshot('settings-general-light');
-    const settingsNav = settings.getByRole('navigation', { name: 'Settings sections' });
-    await settingsNav.getByRole('button', { name: 'Models', exact: true }).click();
+    await settings.getByRole('button', { name: 'Back to settings' }).click();
+    await settings.getByRole('button', { name: 'Models', exact: true }).click();
     await settings.getByRole('button', { name: 'Work Anthropic details' }).click();
     await expect(settings.getByText('Claude Sonnet 4', { exact: true })).toBeVisible();
     await screenshot('settings-models-light');
-    await settingsNav.getByRole('button', { name: 'General', exact: true }).click();
+    await settings.getByRole('button', { name: 'Back to settings' }).click();
+    await settings.getByRole('button', { name: 'General', exact: true }).click();
     await settings.getByLabel('Night', { exact: true }).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'crewaid-dark');
     await screenshot('settings-night');
@@ -565,7 +572,8 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
           .locator('[data-pane-rail-state="collapsed"]')
           .evaluate((node) => node.getBoundingClientRect().height),
       )
-      .toBeLessThanOrEqual(98);
+      // Expand, the computer, bot settings and call: four round controls.
+      .toBeLessThanOrEqual(170);
     await screenshot('rail-collapsed');
     await page.getByRole('button', { name: 'Expand panel' }).click();
     for (const view of ['Tasks', 'Goals', 'Deliverables']) {
@@ -586,6 +594,14 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
       );
       await expect(page.getByRole('tab', { selected: true })).toHaveCount(1);
       await screenshot(`${view.toLowerCase()}-night`);
+      if (capture) {
+        // Evidence only: the same view in Day, to compare its panes with Crew's.
+        await page.locator('html').evaluate((node) => node.setAttribute('data-theme', 'crewaid'));
+        await screenshot(`${view.toLowerCase()}-light`);
+        await page
+          .locator('html')
+          .evaluate((node) => node.setAttribute('data-theme', 'crewaid-dark'));
+      }
     }
     await page.getByRole('tab', { name: 'Crew', exact: true }).click();
     await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.setSize(980, 760));
@@ -618,8 +634,8 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await page.keyboard.press('Escape');
     await expect(createRoutine).toBeFocused();
     await page.locator('html').evaluate((node) => node.removeAttribute('data-reduce-motion'));
-    await page.getByRole('button', { name: /account menu/i }).click();
-    await page.getByRole('menuitem', { name: 'Settings', exact: true }).click();
+    await page.getByRole('button', { name: /account and settings/i }).click();
+    await settings.getByRole('button', { name: 'General', exact: true }).click();
     await settings.getByLabel('System', { exact: true }).click();
     await page.emulateMedia({ colorScheme: 'light' });
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'crewaid');
@@ -797,9 +813,10 @@ test('expanded viewer requests the lease, waits, cancels and hands control back'
     }, auth.baseUrl);
     await page.reload();
     await expect(page.getByRole('region', { name: 'Transcript' })).toBeVisible();
+    // At rest the header carries no badge; only work in progress gets one.
     await expect(
       page.getByRole('region', { name: 'Transcript' }).getByText('Idle', { exact: true }),
-    ).toBeVisible();
+    ).toHaveCount(0);
     await expect(page.getByText('Connected', { exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Take over', exact: true })).toHaveCount(0);
     await expect(page.locator('[data-screen-loading]')).toHaveCount(0);
@@ -839,9 +856,15 @@ test('expanded viewer requests the lease, waits, cancels and hands control back'
     await expect(page.locator('button[aria-label="Close full screen"]')).toBeInViewport();
     if (process.env['CC79_CAPTURE'] === '1') {
       await page.evaluate(async () => {
-        const finite = document
-          .getAnimations()
-          .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity);
+        const finite = document.getAnimations().filter(
+          (animation) =>
+            animation.effect?.getComputedTiming().iterations !== Infinity &&
+            // Scroll-driven animations (HeroUI's ScrollShadow fades) follow
+            // the scroll position, not the clock, and never finish; an idle
+            // one (an overlay's exit that never ran) never will either.
+            animation.timeline instanceof DocumentTimeline &&
+            animation.playState !== 'idle',
+        );
         await Promise.allSettled(finite.map((animation) => animation.finished));
       });
       await page.screenshot({

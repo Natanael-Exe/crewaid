@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { Card, Spinner } from '@heroui/react';
 import {
   IconCheck,
-  IconCircleCheckFilled,
   IconCircleX,
   IconFileText,
   IconPlugConnected,
@@ -98,11 +97,12 @@ export function ToolStatusTag({
           ×{count}
         </span>
       )}
+      {/* A finished resource card (dense) already says what happened in its
+          receipt ("Created", "Updated"), so it shows no check of its own; the
+          status still reaches a screen reader through the label below. */}
       {status === 'running' ? (
         <Spinner size="sm" color="current" aria-hidden className="size-3" />
-      ) : status === 'ok' && dense ? (
-        <IconCircleCheckFilled aria-hidden className="size-[18px] text-success" />
-      ) : status === 'ok' ? (
+      ) : status === 'ok' && !dense ? (
         <IconCheck aria-hidden className="size-3" />
       ) : status === 'error' ? (
         <IconCircleX aria-hidden className="size-3" />

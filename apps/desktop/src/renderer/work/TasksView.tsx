@@ -220,6 +220,16 @@ export function TasksView({
     [projectFilter, goals, bots, layout],
   );
 
+  // With nothing on the board, the empty state's button is the one way in;
+  // a second Add task in the header would compete with it.
+  const emptyBoard =
+    cards !== null &&
+    cards.length === 0 &&
+    goalId === null &&
+    botId === null &&
+    status === null &&
+    scope.kind === 'all' &&
+    search === '';
   const actions = useMemo(
     () => (
       <>
@@ -270,18 +280,20 @@ export function TasksView({
             <Tooltip.Content placement="bottom">{t('work.tasksView.list')}</Tooltip.Content>
           </Tooltip>
         </Segment.Root>
-        <Button
-          variant="primary"
-          size="sm"
-          onPress={() => setAdding(true)}
-          className="h-8 gap-1 rounded-[10px] text-caption font-medium"
-        >
-          <IconPlus className="size-3.5" stroke={2} />
-          {t('work.tasksView.addTask')}
-        </Button>
+        {emptyBoard ? null : (
+          <Button
+            variant="primary"
+            size="sm"
+            onPress={() => setAdding(true)}
+            className="h-8 gap-1 rounded-full px-3.5 text-caption font-medium"
+          >
+            <IconPlus className="size-3.5" stroke={2} />
+            {t('work.tasksView.addTask')}
+          </Button>
+        )}
       </>
     ),
-    [fields, projectFilter, scope, goalId, botId, status, layout, groupBy, query],
+    [fields, projectFilter, scope, goalId, botId, status, layout, groupBy, query, emptyBoard],
   );
   useEffect(() => onHeaderActions(actions), [actions, onHeaderActions]);
 
@@ -321,11 +333,12 @@ export function TasksView({
           view="tasks"
           action={
             <Button
-              variant="secondary"
+              variant="primary"
               size="sm"
               onPress={() => setAdding(true)}
-              className="h-8 rounded-[10px] text-caption"
+              className="h-8 gap-1 rounded-full px-3.5 text-caption font-medium"
             >
+              <IconPlus className="size-3.5" stroke={2} />
               {t('work.tasksView.addATask')}
             </Button>
           }
@@ -572,7 +585,9 @@ export function TaskList({
   const ordered = BOARD_COLUMNS.flatMap((status) => columnCards(cards, status));
   return (
     <div className="min-h-0 flex-1 overflow-auto px-4 py-3">
-      <table className="w-full border-separate border-spacing-0 text-footnote">
+      {/* Capped so a wide monitor does not stretch a row's title and its
+          status a screen apart. */}
+      <table className="mx-auto w-full max-w-[1160px] border-separate border-spacing-0 text-footnote">
         <thead>
           <tr className="text-start text-micro font-medium text-muted">
             <th className="pb-2 ps-2 font-medium">{t('work.deliverablePane.task')}</th>
@@ -593,7 +608,7 @@ export function TaskList({
                 key={card.id}
                 onClick={() => onOpenTask(card.id)}
                 aria-selected={selectedTaskId === card.id}
-                className="crewaid-task-row cursor-default"
+                className="crewaid-task-row cursor-[var(--cursor-interactive)]"
               >
                 <td className="rounded-s-lg py-1.5 ps-2">
                   <button

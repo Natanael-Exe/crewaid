@@ -276,7 +276,7 @@ export function ScreenCard({
               type="button"
               aria-label={t('screen.screenCard.viewFullScreen')}
               onClick={() => onExpandedChange(true)}
-              className="group absolute inset-0 z-20 flex h-full w-full min-w-0 cursor-pointer items-center justify-center rounded-t-card rounded-b-none bg-transparent p-0 text-white select-none transition-colors duration-200 hover:bg-black/15 focus-visible:bg-black/15 active:bg-black/25"
+              className="group absolute inset-0 z-20 flex h-full w-full min-w-0 cursor-[var(--cursor-interactive)] items-center justify-center rounded-t-card rounded-b-none bg-transparent p-0 text-white select-none transition-colors duration-200 hover:bg-black/15 focus-visible:bg-black/15 active:bg-black/25"
             >
               <span
                 data-screen-open-label="true"

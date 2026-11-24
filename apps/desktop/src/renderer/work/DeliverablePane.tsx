@@ -18,6 +18,8 @@ import { saveBlobAs } from '../components/attachments/saveBlob';
 import { BotAvatar } from '../components/BotAvatar';
 import { ExternalLink, isOpenableLink } from '../components/ExternalLink';
 import { StreamingMarkdown } from '../components/markdown/StreamingMarkdown';
+import { documentTitle } from '../components/reader/documentText';
+import { DocumentReaderOverlay } from '../components/reader/DocumentReaderOverlay';
 import { byteSize, parseCsv, TEXT_PREVIEW_MAX_BYTES } from './deliverablesState';
 import { Picker } from './Fields';
 import { WorkDetailRail } from './WorkDetailRail';
@@ -242,6 +244,7 @@ function Preview({
   const [text, setText] = useState<string | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  const [reading, setReading] = useState(false);
 
   useEffect(() => {
     if (kind === null || tooBig) return;
@@ -282,32 +285,63 @@ function Preview({
       <p className="text-caption text-danger">{t('work.deliverablePane.thePreviewCouldNotBe')}</p>
     );
 
+  const readable = text !== null && (kind === 'markdown' || (kind === 'text' && !csv));
   return (
-    <section
-      aria-label={t('work.deliverablePane.preview')}
-      className="overflow-hidden rounded-[10px] border border-border bg-surface"
-    >
-      {kind === 'image' && url !== null ? (
-        <img src={url} alt={attachment.filename} className="w-full" />
+    <>
+      {/* A rail is a narrow place to read a report; the reader gives it the
+          whole window at a reading measure. */}
+      {readable ? (
+        <Button
+          variant="secondary"
+          size="sm"
+          onPress={() => setReading(true)}
+          className="h-8 self-start rounded-full px-3.5 text-caption"
+        >
+          {t('reader.openReader')}
+        </Button>
       ) : null}
-      {kind === 'video' && url !== null ? <video src={url} controls className="w-full" /> : null}
-      {kind === 'pdf' && blob !== null ? (
-        <Suspense fallback={<PdfPreviewLoading label={t('work.deliverablePane.openingPdf')} />}>
-          <div className="h-[480px]">
-            <PdfPreview file={blob} />
-          </div>
-        </Suspense>
+      {readable && (kind === 'markdown' || kind === 'text') ? (
+        <DocumentReaderOverlay
+          isOpen={reading}
+          onOpenChange={setReading}
+          document={{
+            title:
+              kind === 'markdown' ? documentTitle(text, attachment.filename) : attachment.filename,
+            label: t('reader.deliverable'),
+            format: kind,
+            source: text,
+          }}
+          onDownload={() =>
+            saveBlobAs(new Blob([text], { type: attachment.mimeType }), attachment.filename)
+          }
+        />
       ) : null}
-      {text === null ? null : kind === 'markdown' ? (
-        <StreamingMarkdown source={text} className="p-3 text-footnote leading-5" />
-      ) : csv ? (
-        <CsvTable text={text} />
-      ) : (
-        <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words p-3 font-mono text-micro leading-4">
-          {text}
-        </pre>
-      )}
-    </section>
+      <section
+        aria-label={t('work.deliverablePane.preview')}
+        className="overflow-hidden rounded-[10px] border border-border bg-surface"
+      >
+        {kind === 'image' && url !== null ? (
+          <img src={url} alt={attachment.filename} className="w-full" />
+        ) : null}
+        {kind === 'video' && url !== null ? <video src={url} controls className="w-full" /> : null}
+        {kind === 'pdf' && blob !== null ? (
+          <Suspense fallback={<PdfPreviewLoading label={t('work.deliverablePane.openingPdf')} />}>
+            <div className="h-[480px]">
+              <PdfPreview file={blob} />
+            </div>
+          </Suspense>
+        ) : null}
+        {text === null ? null : kind === 'markdown' ? (
+          <StreamingMarkdown source={text} className="p-3 text-footnote leading-5" />
+        ) : csv ? (
+          <CsvTable text={text} />
+        ) : (
+          <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words p-3 font-mono text-micro leading-4">
+            {text}
+          </pre>
+        )}
+      </section>
+    </>
   );
 }
 

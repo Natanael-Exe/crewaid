@@ -76,18 +76,38 @@ describe('BotFields', () => {
         />
       </I18nProvider>,
     );
-    // One shape radio plus one colour radio.
-    expect(chosen.match(/aria-checked="true"/g)).toHaveLength(2);
+    // Shapes are radios; colours are the swatch picker's options, so the
+    // chosen shape is the only checked radio in the document.
+    expect(chosen.match(/aria-checked="true"/g)).toHaveLength(1);
+    expect(chosen).toMatch(/aria-checked="true" aria-label="Avatar shape cloud"/);
   });
 
-  it('offers every palette colour, with the draft one selected', () => {
+  it('offers every palette colour in a swatch picker, with the draft one selected', () => {
     const html = render();
+    expect(html).toContain('data-slot="color-swatch-picker"');
     for (const color of AVATAR_COLORS) {
       expect(html).toContain(`Avatar colour ${color}`);
     }
-    // Exactly one COLOUR radio is checked; the shape group is unset here, so
-    // one is the whole document's count.
-    expect(html.match(/aria-checked="true"/g)).toHaveLength(1);
+    const selected = [...html.matchAll(/role="option" aria-selected="true" aria-label="([^"]+)"/g)];
+    expect(selected.map((match) => match[1])).toEqual([`Avatar colour ${draft.avatarColor}`]);
+  });
+
+  /**
+   * The look is folded behind "Customize appearance" where it is an
+   * occasional edit (the profile pane) and laid out where it is part of
+   * making the bot (the create dialog). Folded, the controls still render —
+   * hidden — so their state is not lost.
+   */
+  it('lays the look out by default and folds it when asked', () => {
+    const open = render();
+    expect(open).toContain('Customize appearance');
+    expect(open).toMatch(/aria-expanded="true"/);
+    const folded = renderToStaticMarkup(
+      <I18nProvider>
+        <BotFields draft={draft} onChange={() => undefined} idPrefix="f" defaultLookOpen={false} />
+      </I18nProvider>,
+    );
+    expect(folded).toMatch(/aria-expanded="false"/);
   });
 });
 

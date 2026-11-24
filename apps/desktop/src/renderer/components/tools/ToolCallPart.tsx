@@ -203,7 +203,9 @@ function ToolCallLine({
     >
       <div className="flex min-w-0 items-center gap-2">
         <ToolMark kind={presentation.kind} mark={mark} variant="line" />
-        <span className="min-w-0 flex-1 truncate text-caption leading-5" title={presentation.title}>
+        {/* Not stretched: the outcome reads right after what ran, instead of
+            across an empty line at the far end. */}
+        <span className="min-w-0 truncate text-caption leading-5" title={presentation.title}>
           {presentation.title}
         </span>
         {presentation.kind === 'computer' && context?.onViewComputer !== undefined ? (
@@ -308,6 +310,8 @@ export function ToolCallPart({
                 void systemBrowser.open(resource.url!);
               }}
               aria-label={t('tools.openResource', { title: resource.title })}
+              // The same size as Details beside it: two actions in one footer.
+              className="h-auto min-h-0 gap-1 rounded-md px-1.5 py-1 text-micro font-medium"
             >
               {t('tools.open')}
               <IconArrowUpRight aria-hidden className="size-3.5" />

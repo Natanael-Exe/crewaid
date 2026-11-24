@@ -184,7 +184,7 @@ export function CallBar({ call, botName }: { call: BotCall; botName: string }) {
     return (
       <div
         role="alert"
-        className="mx-auto mb-2 flex w-full max-w-[900px] items-center gap-2 px-(--transcript-gutter) text-caption text-danger"
+        className="mx-auto mb-2 flex w-full max-w-[calc(var(--chat-column)+48px)] items-center gap-2 px-(--transcript-gutter) text-caption text-danger"
       >
         <span className="min-w-0 flex-1">{snapshot.error}</span>
         <IconButtonTooltip
@@ -204,7 +204,7 @@ export function CallBar({ call, botName }: { call: BotCall; botName: string }) {
       ? null
       : Math.max(0, snapshot.maxDurationSeconds * 1000 - elapsed);
   return (
-    <div className="mx-auto mb-2 w-full max-w-[900px] px-(--transcript-gutter)">
+    <div className="mx-auto mb-2 w-full max-w-[calc(var(--chat-column)+48px)] px-(--transcript-gutter)">
       <div
         data-call-bar={snapshot.phase}
         role="status"

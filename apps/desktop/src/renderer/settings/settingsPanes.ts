@@ -10,7 +10,7 @@
 import type { Edition } from '@crewaid/shared';
 import { t } from '../i18n/i18n';
 
-export type SettingsPaneId = 'general' | 'connections' | 'channels' | 'plan' | 'computer';
+export type SettingsPaneId = 'general' | 'connections' | 'channels' | 'plan' | 'computer' | 'about';
 
 export type SettingsPane = {
   readonly id: SettingsPaneId;
@@ -90,9 +90,17 @@ export const SETTINGS_PANES: readonly SettingsPane[] = [
       return t('settings.pane.computer.summary');
     },
   },
+  {
+    id: 'about',
+    get label() {
+      return t('settings.pane.about');
+    },
+    status: 'ready',
+    get summary() {
+      return t('settings.pane.about.summary');
+    },
+  },
 ];
-
-export const DEFAULT_SETTINGS_PANE: SettingsPaneId = 'general';
 
 /**
  * The panes a build shows. Before the edition is known (`null`) only the panes

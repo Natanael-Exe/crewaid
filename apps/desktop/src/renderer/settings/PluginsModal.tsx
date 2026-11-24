@@ -24,7 +24,9 @@ export function PluginsModal({
         <Modal.Container size="lg" placement="center" className="sm:w-auto">
           <Modal.Dialog
             aria-label={t('plugins.title')}
-            className="crewaid-settings-dialog flex max-w-[94vw] flex-col overflow-hidden rounded-card bg-surface p-0"
+            // Sized by its content up to a cap, not a fixed 640px box that
+            // left a void under a short catalogue.
+            className="crewaid-settings-dialog crewaid-plugins-dialog flex max-h-[84vh] w-[min(860px,92vw)] max-w-none flex-col overflow-hidden p-0"
           >
             <div className="crewaid-settings-header flex shrink-0 items-start justify-between gap-4 px-[30px] pt-[26px] pb-[22px]">
               <div className="min-w-0">
@@ -37,17 +39,17 @@ export function PluginsModal({
               </div>
               <IconButtonTooltip
                 label={t('plugins.close')}
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onPress={() => onOpenChange(false)}
-                className="crewaid-settings-close size-8 shrink-0 rounded-full text-muted"
+                className="crewaid-sheet-button size-8 min-w-8 shrink-0 rounded-full"
               >
                 <IconX className="size-4" stroke={1.8} aria-hidden />
               </IconButtonTooltip>
             </div>
             <ScrollShadow
               hideScrollBar={false}
-              className="crewaid-settings-body min-h-0 flex-1 overflow-y-auto px-[30px] pb-7"
+              className="min-h-0 flex-1 overflow-y-auto px-[30px] pb-7"
             >
               <PluginsPane botId={botId} botName={botName} />
             </ScrollShadow>

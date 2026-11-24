@@ -12,6 +12,11 @@ export const app = {
   'app.shell.expandPanel': 'Expand panel',
   'app.shell.botSettings': 'Bot settings',
   'app.shell.collapsePanel': 'Collapse panel',
+  'app.shell.showComputer': 'Show computer ({state})',
+  'app.shell.computer.running': 'running',
+  'app.shell.computer.starting': 'starting',
+  'app.shell.computer.stopped': 'stopped',
+  'app.shell.computer.trouble': 'needs attention',
   'app.shell.theBot': 'The bot',
   'app.shell.thisBotHasNoConversation':
     'This bot has no conversation row. Create the bot again, or re-seed the database.',

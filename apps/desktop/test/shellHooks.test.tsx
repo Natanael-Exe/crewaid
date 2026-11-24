@@ -4,7 +4,7 @@ import type { BotGroup, BotWithSandbox, TaskCard } from '@crewaid/shared';
 import { ApiClient } from '../src/renderer/api/apiClient';
 import { useBotActions } from '../src/renderer/state/useBotActions';
 import { useShellModals } from '../src/renderer/state/useShellModals';
-import { useShellNavigation } from '../src/renderer/state/useShellNavigation';
+import { railStartsCollapsed, useShellNavigation } from '../src/renderer/state/useShellNavigation';
 import type { BotRowView } from '../src/renderer/state/viewTypes';
 import { TaskCardView } from '../src/renderer/work/TaskCardView';
 
@@ -236,9 +236,7 @@ describe('useShellNavigation', () => {
     const client = new ApiClient({
       credentials: () => Promise.resolve({ baseUrl: 'http://localhost', token: 't' }),
     });
-    const nav = captureHook(() =>
-      useShellNavigation({ userId: 'u1', client, initialRailCollapsed: true }),
-    );
+    const nav = captureHook(() => useShellNavigation({ userId: 'u1', client, welcoming: true }));
     expect(nav.selectedId).toBe('bot_saved');
     expect(nav.railCollapsed).toBe(true);
     expect(nav.workView).toBeNull();
@@ -259,11 +257,41 @@ describe('useShellNavigation', () => {
     const client = new ApiClient({
       credentials: () => Promise.resolve({ baseUrl: 'http://localhost', token: 't' }),
     });
-    const nav = captureHook(() =>
-      useShellNavigation({ userId: 'u1', client, initialRailCollapsed: false }),
-    );
+    const nav = captureHook(() => useShellNavigation({ userId: 'u1', client, welcoming: false }));
     expect(nav.selectedId).toBeNull();
     expect(nav.railCollapsed).toBe(false);
+  });
+
+  it('lets a saved toggle win over the per-bot default', () => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: {
+        getItem: (key: string) => (key === 'crewaid.rail-collapsed.u1' ? 'false' : null),
+        setItem: () => undefined,
+      },
+      configurable: true,
+      writable: true,
+    });
+    const client = new ApiClient({
+      credentials: () => Promise.resolve({ baseUrl: 'http://localhost', token: 't' }),
+    });
+    const nav = captureHook(() => useShellNavigation({ userId: 'u1', client, welcoming: true }));
+    expect(nav.railCollapsed).toBe(false);
+  });
+});
+
+describe('railStartsCollapsed', () => {
+  // The live computer is what the rail is for, so a bot whose computer is up
+  // opens with it showing; nothing to show, or a welcome to read, tucks it away.
+  it('opens the rail for a running or starting computer', () => {
+    expect(railStartsCollapsed({ welcoming: false, computer: 'RUNNING' })).toBe(false);
+    expect(railStartsCollapsed({ welcoming: false, computer: 'STARTING' })).toBe(false);
+    expect(railStartsCollapsed({ welcoming: false, computer: 'ERROR' })).toBe(false);
+  });
+
+  it('tucks the rail away with no computer running, or while welcoming', () => {
+    expect(railStartsCollapsed({ welcoming: false, computer: 'STOPPED' })).toBe(true);
+    expect(railStartsCollapsed({ welcoming: false, computer: null })).toBe(true);
+    expect(railStartsCollapsed({ welcoming: true, computer: 'RUNNING' })).toBe(true);
   });
 });
 

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import type { DeliverableView } from '@crewaid/shared';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import type { DeliverableView, SandboxState } from '@crewaid/shared';
 import { listDeliverables, type ApiClient } from '../api';
 import type { SearchTarget } from '../work/SearchPalette';
 import { ALL_PROJECTS, type ProjectScope, type WorkView } from '../work/workState';
@@ -11,17 +11,46 @@ export type MessageFocus = {
 };
 
 /**
+ * Where the right rail starts when the user has not chosen for themselves.
+ *
+ * The live computer is the one thing in the rail Hark-style calm must not
+ * hide, so a bot whose computer is running or starting opens with the rail
+ * out. A new account (the welcome conversation leads) and a bot with no
+ * computer running open with it tucked away.
+ */
+export function railStartsCollapsed({
+  welcoming,
+  computer,
+}: {
+  readonly welcoming: boolean;
+  /** The selected bot's computer; `null` when it has none. */
+  readonly computer: SandboxState | null;
+}): boolean {
+  return welcoming || computer === null || computer === 'STOPPED';
+}
+
+function readRailPreference(key: string): boolean | null {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored === 'true' ? true : stored === 'false' ? false : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Navigation, active bot/work selection, and right-rail state for the desktop shell.
  * Kept out of App.tsx so routing transitions stay cohesive and testable.
  */
 export function useShellNavigation({
   userId,
   client,
-  initialRailCollapsed,
+  welcoming,
 }: {
   readonly userId: string;
   readonly client: ApiClient;
-  readonly initialRailCollapsed: boolean;
+  /** A new account's welcome conversation is showing. */
+  readonly welcoming: boolean;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(() => {
     try {
@@ -39,9 +68,43 @@ export function useShellNavigation({
     }
   }, [selectedId, userId]);
 
-  const [railCollapsed, setRailCollapsed] = useState(initialRailCollapsed);
+  // The rail's state, in order of precedence:
+  //  1. `opened` — the user just opened something that lives in the rail (a
+  //     task, a goal, a deliverable, a bot's profile, its computer);
+  //  2. `preference` — the user's own toggle, kept across launches;
+  //  3. `quiet` — `railStartsCollapsed` for the selected bot, decided once per
+  //     bot. A computer that starts mid-conversation does not re-decide it:
+  //     the panel jumping open under the pointer is worse than a status dot.
+  const railKey = `crewaid.rail-collapsed.${userId}`;
+  const [preference, setPreference] = useState<boolean | null>(() => readRailPreference(railKey));
+  const [opened, setOpened] = useState(false);
+  const [quiet, setQuiet] = useState(welcoming);
+  const decidedFor = useRef<string | null | undefined>(undefined);
+  /**
+   * Called by the shell with the selected bot's computer once the bot list can
+   * answer (`undefined` until then; `null` for a bot with none).
+   */
+  const settleRail = useCallback(
+    (botId: string | null, computer: SandboxState | null | undefined) => {
+      if (computer === undefined || decidedFor.current === botId) return;
+      decidedFor.current = botId;
+      setQuiet(railStartsCollapsed({ welcoming, computer }));
+    },
+    [welcoming],
+  );
+  const railCollapsed = opened ? false : (preference ?? quiet);
+  const setRailCollapsed = useCallback((collapsed: boolean) => {
+    if (!collapsed) setOpened(true);
+  }, []);
+
   const [screenExpanded, setScreenExpanded] = useState(false);
-  const [profileBotId, setProfileBotId] = useState<string | null>(null);
+  const [profileBotId, setProfileBotIdState] = useState<string | null>(null);
+  // Opening a profile brings the rail out; closing it lets the rail settle
+  // back to where the user had it.
+  const setProfileBotId = useCallback((botId: string | null) => {
+    setProfileBotIdState(botId);
+    setOpened(botId !== null);
+  }, []);
   const [workView, setWorkView] = useState<WorkView | null>(null);
   const [workScope, setWorkScope] = useState<ProjectScope>(ALL_PROJECTS);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -51,35 +114,57 @@ export function useShellNavigation({
   const [tasksBotFilter, setTasksBotFilter] = useState<string | null>(null);
   const [focus, setFocus] = useState<MessageFocus | null>(null);
 
-  const viewComputer = useCallback(() => setScreenExpanded(true), []);
+  const viewComputer = useCallback(() => {
+    setOpened(true);
+    setScreenExpanded(true);
+  }, []);
   const toggleRail = useCallback(() => {
-    setRailCollapsed((collapsed) => !collapsed);
+    const next = !railCollapsed;
+    setPreference(next);
+    setOpened(false);
     setScreenExpanded(false);
-  }, []);
+    try {
+      localStorage.setItem(railKey, String(next));
+    } catch {
+      /* The toggle still applies for this session without storage. */
+    }
+  }, [railCollapsed, railKey]);
 
-  const selectBot = useCallback((botId: string) => {
-    setSelectedId(botId);
-    setProfileBotId(null);
-    setWorkView(null);
-  }, []);
+  const selectBot = useCallback(
+    (botId: string) => {
+      setSelectedId(botId);
+      setProfileBotId(null);
+      setWorkView(null);
+    },
+    [setProfileBotId],
+  );
 
-  const openTask = useCallback((taskId: string) => {
-    setSelectedTaskId(taskId);
-    setRailCollapsed(false);
-  }, []);
+  const openTask = useCallback(
+    (taskId: string) => {
+      setSelectedTaskId(taskId);
+      setRailCollapsed(false);
+    },
+    [setRailCollapsed],
+  );
 
-  const openGoal = useCallback((goalId: string) => {
-    setSelectedTaskId(null);
-    setSelectedGoalId(goalId);
-    setRailCollapsed(false);
-  }, []);
+  const openGoal = useCallback(
+    (goalId: string) => {
+      setSelectedTaskId(null);
+      setSelectedGoalId(goalId);
+      setRailCollapsed(false);
+    },
+    [setRailCollapsed],
+  );
 
-  const openDeliverable = useCallback((deliverable: DeliverableView, switchView = false) => {
-    setSelectedTaskId(null);
-    setRailCollapsed(false);
-    if (switchView) setWorkView('deliverables');
-    setSelectedDeliverable(deliverable);
-  }, []);
+  const openDeliverable = useCallback(
+    (deliverable: DeliverableView, switchView = false) => {
+      setSelectedTaskId(null);
+      setRailCollapsed(false);
+      if (switchView) setWorkView('deliverables');
+      setSelectedDeliverable(deliverable);
+    },
+    [setRailCollapsed],
+  );
 
   const openConversation = useCallback(
     (botId: string, messageId: string | null) => {
@@ -95,6 +180,7 @@ export function useShellNavigation({
     setSelectedTaskId(null);
     setSelectedDeliverable(null);
     setSelectedGoalId(null);
+    setOpened(false);
   }, []);
 
   const openWorkView = useCallback(
@@ -151,7 +237,7 @@ export function useShellNavigation({
           return;
       }
     },
-    [client, openConversation],
+    [client, openConversation, setRailCollapsed],
   );
 
   // In a Work view the rail only appears while a Work record is open.
@@ -176,6 +262,8 @@ export function useShellNavigation({
     selectedId,
     setSelectedId,
     railCollapsed,
+    settleRail,
+    openRail: () => setRailCollapsed(false),
     screenExpanded,
     setScreenExpanded,
     viewComputer,

@@ -1,6 +1,12 @@
-import { IconChevronsRight, IconSettings } from '@tabler/icons-react';
+import { IconChevronsRight, IconDeviceDesktop, IconSettings } from '@tabler/icons-react';
 import { useMemo } from 'react';
-import type { BotWithSandbox, DeliverableView, Edition, ProjectWithCounts } from '@crewaid/shared';
+import type {
+  BotWithSandbox,
+  DeliverableView,
+  Edition,
+  ProjectWithCounts,
+  SandboxState,
+} from '@crewaid/shared';
 import { useApiClient } from '../api';
 import { BotProfilePane } from '../bots/BotProfilePane';
 import { useT } from '../i18n/i18n';
@@ -76,11 +82,27 @@ export interface RightRailProps {
   readonly railWidth: number;
   readonly onResize: (width: number) => void;
   readonly onToggle: () => void;
+  /** Brings the rail out to show the computer, without changing the saved toggle. */
+  readonly onShowComputer: () => void;
   readonly screen: RightRailScreenProps;
   readonly recording: RightRailRecordingProps;
   readonly call: RightRailCallProps;
   readonly profile: RightRailProfileProps;
   readonly work: RightRailWorkProps;
+}
+
+function computerLabel(state: SandboxState, t: ReturnType<typeof useT>): string {
+  switch (state) {
+    case 'RUNNING':
+      return t('app.shell.computer.running');
+    case 'STARTING':
+      return t('app.shell.computer.starting');
+    case 'STOPPED':
+      return t('app.shell.computer.stopped');
+    case 'UNHEALTHY':
+    case 'ERROR':
+      return t('app.shell.computer.trouble');
+  }
 }
 
 export function RightRail({
@@ -89,6 +111,7 @@ export function RightRail({
   railWidth,
   onResize,
   onToggle,
+  onShowComputer,
   screen,
   recording,
   call,
@@ -112,9 +135,47 @@ export function RightRail({
             label={t('app.shell.expandPanel')}
             aria-expanded={false}
             onPress={onToggle}
-            className="window-no-drag size-8 rounded-[10px] bg-surface text-room-muted"
+            className="window-no-drag size-8 rounded-full bg-surface text-room-muted"
           >
             <IconChevronsRight className="size-4 rotate-180 rtl:-scale-x-100" stroke={1.8} />
+          </IconButtonTooltip>
+          {/* The computer stays one glance away while the rail is tucked in:
+              its dot turns live when it starts, without the panel jumping
+              open under the pointer. */}
+          {bot?.sandbox == null ? null : (
+            <IconButtonTooltip
+              label={t('app.shell.showComputer', { state: computerLabel(bot.sandbox.state, t) })}
+              tooltip={t('app.shell.showComputer', {
+                state: computerLabel(bot.sandbox.state, t),
+              })}
+              placement="left"
+              onPress={onShowComputer}
+              className="window-no-drag relative size-8 rounded-full text-room-muted"
+            >
+              <IconDeviceDesktop className="size-4" stroke={1.8} />
+              <span
+                aria-hidden
+                data-computer-state={bot.sandbox.state}
+                className={`absolute end-1 top-1 size-2 rounded-full ring-2 ring-[var(--glass)] ${
+                  bot.sandbox.state === 'RUNNING'
+                    ? 'bg-success'
+                    : bot.sandbox.state === 'STARTING'
+                      ? 'bg-warning motion-safe:animate-pulse'
+                      : bot.sandbox.state === 'STOPPED'
+                        ? 'bg-foreground-faint'
+                        : 'bg-danger'
+                }`}
+              />
+            </IconButtonTooltip>
+          )}
+          <IconButtonTooltip
+            label={t('app.shell.botSettings')}
+            placement="left"
+            isDisabled={bot === null}
+            onPress={profile.onOpen}
+            className="window-no-drag size-8 rounded-full text-room-muted"
+          >
+            <IconSettings className="size-4" stroke={1.8} />
           </IconButtonTooltip>
           <CallButton
             call={call.session}
@@ -187,13 +248,15 @@ export function RightRail({
             className="crewaid-rail flex h-full w-full flex-col"
           >
             <div className="crewaid-rail-header flex shrink-0 items-center gap-0.5">
+              <h2 className="crewaid-rail-section-title flex-1 truncate ps-1">
+                {t('screen.railTitle')}
+              </h2>
               <CallButton
                 call={call.session}
                 botName={bot?.name ?? null}
                 edition={call.edition}
                 onOpenPlan={call.onOpenPlan}
               />
-              <span aria-hidden className="flex-1" />
               <IconButtonTooltip
                 // Scoped to the selected bot's profile; app settings live behind the account menu.
                 label={t('app.shell.botSettings')}
@@ -213,7 +276,7 @@ export function RightRail({
               </IconButtonTooltip>
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4">
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 pb-3">
               <ScreenCard
                 seatControl={screen.seatControl}
                 controlScreen={screen.controlScreen}

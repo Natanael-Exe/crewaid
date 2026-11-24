@@ -355,7 +355,8 @@ export function ModelPicker({
         placeholder={triggerText}
       >
         <Autocomplete.Trigger className="group flex min-w-0 items-center rounded-2xl border border-transparent px-1.5 py-1 text-start outline-none transition-colors bg-transparent shadow-none">
-          <Autocomplete.Value className="pe-4 truncate max-w-[260px]">
+          {/* Quiet beside the draft: the model is a setting, not the message. */}
+          <Autocomplete.Value className="pe-4 truncate max-w-[260px] text-caption text-muted transition-none group-hover:text-foreground">
             {({ defaultChildren, isPlaceholder }) =>
               isPlaceholder ? defaultChildren : triggerText
             }

@@ -217,7 +217,7 @@ export function DeliverablesView({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3 px-4 py-3 md:grid-cols-2 xl:grid-cols-3">
+    <div className="mx-auto grid w-full max-w-[1160px] grid-cols-1 gap-3 px-4 py-3 md:grid-cols-2 xl:grid-cols-3">
       <span className="col-span-full px-2 pb-1 text-micro tabular-nums text-muted">
         {t('work.deliverables.count', { count: total })}
       </span>
@@ -280,7 +280,7 @@ export function DeliverableRow({
       type="button"
       onClick={onOpen}
       aria-pressed={selected}
-      className={`crewaid-deliverable-row flex items-start gap-3 rounded-[10px] px-2 py-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-focus/40 ${
+      className={`crewaid-deliverable-row flex cursor-[var(--cursor-interactive)] items-start gap-3 rounded-[10px] px-2 py-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-focus/40 ${
         selected ? 'bg-background-tertiary' : 'hover:bg-background-secondary'
       }`}
     >

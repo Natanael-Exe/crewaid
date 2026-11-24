@@ -9,7 +9,8 @@ import {
   useApiClient,
   type ApiFailure,
 } from '../../api';
-import { StreamingMarkdown } from '../markdown/StreamingMarkdown';
+import { documentTitle } from '../reader/documentText';
+import { DocumentReaderOverlay } from '../reader/DocumentReaderOverlay';
 import type { MessageAttachment } from './AttachmentCard';
 import { PdfPreviewLoading } from './PdfPreviewLoading';
 import { IconButtonTooltip } from '../ui';
@@ -131,6 +132,47 @@ export function AttachmentPreviewOverlay({
     anchor.click();
   };
 
+  // Prose is read, not inspected: Markdown and plain text open in the
+  // full-window reader at a reading measure, with the same Save the other
+  // kinds have. CSV, JSON and logs are data and keep the monospace preview.
+  const prose =
+    kind === 'markdown' || (kind === 'text' && attachment.mimeType.startsWith('text/plain'));
+  if (prose) {
+    return (
+      <DocumentReaderOverlay
+        isOpen
+        onOpenChange={(open) => {
+          if (!open) onClose();
+        }}
+        document={{
+          title:
+            kind === 'markdown' && text !== null
+              ? documentTitle(text, attachment.filename)
+              : attachment.filename,
+          label: t(PREVIEW_KIND_KEY[kind]),
+          format: kind === 'markdown' ? 'markdown' : 'text',
+          source: text,
+        }}
+        status={
+          failure !== null ? (
+            <div className="flex flex-col gap-1 py-6 text-footnote text-muted">
+              <span>
+                {isRetryable(failure.code) ? t('attachments.previewFailed') : t('attachments.gone')}
+              </span>
+              <span className="text-caption">{failure.message}</span>
+            </div>
+          ) : text === null ? (
+            <Loading label={t('attachments.loadingPreview')} />
+          ) : null
+        }
+        footer={
+          text !== null && text.length >= MAX_TEXT_CHARS ? t('attachments.truncated') : undefined
+        }
+        onDownload={url === null ? undefined : saveAttachment}
+      />
+    );
+  }
+
   return (
     <Modal state={overlay}>
       <Modal.Backdrop variant="blur">
@@ -183,14 +225,6 @@ export function AttachmentPreviewOverlay({
                     <PdfPreview file={blob} />
                   </Suspense>
                 )
-              ) : kind === 'markdown' ? (
-                <div className="max-h-[75vh] w-[min(720px,85vw)] overflow-y-auto rounded-xl border border-separator bg-background p-4 text-sm">
-                  {text === null ? (
-                    <Loading label={t('attachments.loadingPreview')} />
-                  ) : (
-                    <StreamingMarkdown source={text} />
-                  )}
-                </div>
               ) : kind === 'text' ? (
                 <div className="max-h-[75vh] w-[min(720px,85vw)] overflow-y-auto rounded-xl border border-separator bg-background p-4">
                   <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-foreground">

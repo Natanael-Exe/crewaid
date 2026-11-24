@@ -6,7 +6,7 @@ import {
   ListBoxItem,
   SearchField,
   Select,
-  Spinner,
+  Skeleton,
   Switch,
 } from '@heroui/react';
 import { IconPlus, IconSearch } from '@tabler/icons-react';
@@ -353,9 +353,26 @@ export function PluginsPane({
   );
 
   if (state.status === 'loading') {
+    // Card-shaped placeholders hold the grid's place, so the catalogue lands
+    // where the eye already is instead of after a spinner in an empty void.
     return (
-      <div className="flex justify-center py-10">
-        <Spinner aria-label={t('plugins.loading')} />
+      <div
+        role="status"
+        aria-label={t('plugins.loading')}
+        className="grid grid-cols-1 gap-2.5 pt-2 sm:grid-cols-2"
+      >
+        {[0, 1, 2, 3, 4, 5].map((index) => (
+          <div
+            key={index}
+            className="flex items-start gap-2.5 rounded-card bg-surface-secondary p-3"
+          >
+            <Skeleton className="size-9 shrink-0 rounded-xl" />
+            <div className="flex flex-1 flex-col gap-2 pt-0.5">
+              <Skeleton className="h-3.5 w-1/2 rounded-full" />
+              <Skeleton className="h-3 w-3/4 rounded-full" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -541,12 +558,15 @@ export function PluginsPaneView({
         )}
       </div>
 
-      <div className="mb-3">
+      {/* Search and category share one row: they are one question ("which
+          plugin?"), and stacked they pushed the catalogue below the fold. */}
+      <div className="mb-4 flex flex-wrap items-center gap-2.5">
         <SearchField
           aria-label={t('plugins.search')}
           variant="secondary"
           value={query}
           onChange={onQuery}
+          className="min-w-[200px] flex-1"
         >
           <SearchField.Group>
             <SearchField.SearchIcon />
@@ -554,18 +574,18 @@ export function PluginsPaneView({
             <SearchField.ClearButton />
           </SearchField.Group>
         </SearchField>
-      </div>
 
-      {/* One dropdown, not a wall of chips. live catalog carries the
+        {/* One dropdown, not a wall of chips. live catalog carries the
           vendor's whole category taxonomy — dozens of them, lowercase, beside
           the curated entries' own — and a chip per category turned the filter
           into the tallest thing on the screen. A select reaches every category
           in one row; "All categories" is the sentinel that clears it. */}
-      {options.length === 1 ? null : (
-        <div className="mb-4">
-          <CategoryFilter options={options} category={category} onCategory={onCategory} />
-        </div>
-      )}
+        {options.length === 1 ? null : (
+          <div className="w-[190px] shrink-0">
+            <CategoryFilter options={options} category={category} onCategory={onCategory} />
+          </div>
+        )}
+      </div>
 
       {shown.length === 0 ? (
         <SettingsSection title={t('plugins.available')}>
@@ -760,14 +780,26 @@ function PluginCard({
         <div className="min-w-0 flex-1">
           <div className="truncate text-footnote font-medium text-foreground">{row.name}</div>
           <div className="truncate text-caption">
-            <span className={TONE_CLASS[view.tone]}>{view.label}</span>
-            {row.category === null ? null : <span className="text-muted"> · {row.category}</span>}
+            {/* An uninstalled card sits under "Available" already; repeating
+                "Not installed" on every one of them was noise. */}
+            {row.server === null ? null : (
+              <span className={TONE_CLASS[view.tone]}>{view.label}</span>
+            )}
+            {row.category === null ? null : (
+              <span className="text-muted">
+                {row.server === null ? '' : ' · '}
+                {row.category}
+              </span>
+            )}
             {/* An available card's one "what is this" fact beyond the
                 category: this one connects through the deployment's Composio
                 account rather than a direct MCP endpoint. Once it is
                 installed the summary's status sentence takes over the line. */}
             {row.server === null && row.backend === 'COMPOSIO' ? (
-              <span className="text-muted"> · {t('plugins.viaComposio')}</span>
+              <span className="text-muted">
+                {row.category === null ? '' : ' · '}
+                {t('plugins.viaComposio')}
+              </span>
             ) : null}
           </div>
         </div>

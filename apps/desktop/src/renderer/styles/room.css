@@ -24,6 +24,8 @@
 }
 
 .crewaid-room {
+  /* One reading column for header, messages and composer, so they line up. */
+  --chat-column: 640px;
   height: 100%;
   width: 100%;
   display: flex;
@@ -49,12 +51,13 @@
 }
 .crewaid-wordmark {
   padding-inline-start: 13px;
-  font: 600 20px/24px var(--font-display-room);
+  font: 600 17px/22px var(--font-display-room);
   letter-spacing: -0.01em;
   font-variation-settings:
     'SOFT' 100,
     'opsz' 72;
-  color: var(--foreground);
+  /* Signs the window without competing with the assistant also named Crewaid. */
+  color: color-mix(in oklab, var(--room-foreground) 80%, transparent);
 }
 /* macOS draws its window buttons on the left whatever the app's language, so
    the room they need is physical: the wordmark's side in a left-to-right
@@ -65,6 +68,11 @@
 }
 [data-native-titlebar='mac'][dir='rtl']:not([data-window-fullscreen='true']) .crewaid-room-topbar {
   padding-left: 92px;
+}
+/* A full-window sheet covers the top bar, so its own bar makes the same room
+   for the window buttons, in either reading direction, and drags the window. */
+[data-native-titlebar='mac']:not([data-window-fullscreen='true']) .crewaid-sheet-bar {
+  padding-left: 88px;
 }
 .crewaid-topbar-actions {
   justify-self: end;
@@ -83,7 +91,7 @@
 }
 .crewaid-room-nav .tabs__list {
   gap: 2px;
-  padding: 4px;
+  padding: 3px;
 }
 .crewaid-room-nav .tabs__tab {
   width: auto;
@@ -95,6 +103,8 @@
   color: var(--room-muted);
   font-size: var(--text-footnote);
   font-weight: 500;
+  /* Hover answers the pointer at once; an eased fill reads as lag. */
+  transition: none;
 }
 .crewaid-room-nav .tabs__tab[aria-selected='true'] {
   color: var(--nav-selected-foreground);
@@ -109,13 +119,13 @@
   opacity: 0;
 }
 .crewaid-room-nav .tabs__tab:not([aria-selected='true']):hover {
-  background: var(--nav-selected);
-  color: var(--nav-selected-foreground);
+  background: var(--crew-hover);
+  color: var(--room-foreground);
   opacity: 1;
 }
 .crewaid-topbar-trigger.button {
-  height: 32px;
-  min-height: 32px;
+  height: var(--control-height-topbar);
+  min-height: var(--control-height-topbar);
   gap: 8px;
   border-radius: var(--radius-pill);
   padding-inline: 14px;
@@ -148,12 +158,13 @@
   border-radius: 50%;
   outline: none;
 }
-/* The initials sit on the selected-nav ink in both themes. The fallback
-   inherits from here (see AccountAvatar), so HeroUI's grey default fill never
-   paints dark text on the dark disc. */
+/* The initials sit on paper with a hairline ring, so the Crew pill stays the
+   top bar's one dark anchor. The fallback inherits from here (see
+   AccountAvatar), so HeroUI's grey default fill never shows through. */
 .crewaid-account-trigger .avatar {
-  background: var(--nav-selected);
-  color: var(--nav-selected-foreground);
+  background: var(--surface);
+  color: var(--room-foreground);
+  box-shadow: inset 0 0 0 1px var(--glass-border-subtle);
 }
 .crewaid-room-panels {
   display: flex;
@@ -200,6 +211,51 @@
   border-radius: var(--radius-panel);
   background: var(--glass);
 }
+/* Both sides of the room are the same tinted band of frosted wallpaper rather
+   than white panels: part of the background, not boxes on it, so the
+   conversation stays the brightest thing in the room and white rows and cards
+   stand out on either side. One material for both, so neither side reads as
+   the odd one. Secondary text darkens with the band to keep its contrast.
+   The Work views' pane is the same material, so switching tabs keeps the
+   room's surfaces the same. */
+.crewaid-crew-dock,
+.crewaid-rail,
+.crewaid-profile-pane,
+.crewaid-work-detail,
+.crewaid-work-pane {
+  --room-muted: var(--crew-dock-muted);
+  --muted: var(--crew-dock-muted);
+  background: var(--crew-dock);
+}
+/* Fields on a translucent band get their own bright surface: a dark-tinted
+   fill over the wallpaper turned brown across the horizon. */
+:is(.crewaid-rail, .crewaid-profile-pane, .crewaid-work-detail, .crewaid-work-pane) {
+  --field-background: color-mix(in oklab, var(--surface) 82%, transparent);
+  --field-border: var(--glass-border-subtle);
+}
+[data-theme='crewaid-dark']
+  :is(.crewaid-rail, .crewaid-profile-pane, .crewaid-work-detail, .crewaid-work-pane) {
+  --field-background: oklch(100% 0 0 / 0.075);
+}
+/* HeroUI's secondary fields read their own fill from --default; point them at
+   the pane's bright field surface too. */
+:is(.crewaid-rail, .crewaid-profile-pane, .crewaid-work-detail, .crewaid-work-pane)
+  :is(.input--secondary, .textarea--secondary) {
+  --input-bg: var(--field-background);
+  --input-bg-hover: color-mix(in oklab, var(--surface) 92%, transparent);
+  --input-bg-focus: var(--surface);
+  --textarea-bg: var(--field-background);
+  --textarea-bg-hover: color-mix(in oklab, var(--surface) 92%, transparent);
+  --textarea-bg-focus: var(--surface);
+}
+[data-theme='crewaid-dark']
+  :is(.crewaid-rail, .crewaid-profile-pane, .crewaid-work-detail, .crewaid-work-pane)
+  :is(.input--secondary, .textarea--secondary) {
+  --input-bg-hover: oklch(100% 0 0 / 0.1);
+  --input-bg-focus: oklch(100% 0 0 / 0.12);
+  --textarea-bg-hover: oklch(100% 0 0 / 0.1);
+  --textarea-bg-focus: oklch(100% 0 0 / 0.12);
+}
 .crewaid-crew-dock {
   container: crew / inline-size;
   max-height: 100%;
@@ -217,11 +273,8 @@
   padding: 4px 20px 10px;
 }
 .crewaid-crew-heading h2 {
-  font: 600 24px/30px var(--font-display-room);
-  font-variation-settings:
-    'SOFT' 100,
-    'opsz' 72;
-  letter-spacing: -0.01em;
+  font: 600 18px/24px var(--font-sans);
+  letter-spacing: -0.02em;
   color: var(--foreground);
 }
 .crewaid-crew-heading .button {
@@ -255,21 +308,6 @@
 .crewaid-pinned-tile.button[aria-pressed='true'] {
   background: var(--crew-selected);
 }
-.crewaid-pinned-role > span {
-  border-radius: var(--radius-pill);
-  background: var(--crew-hover);
-  font-size: var(--text-micro);
-  line-height: 16px;
-  padding-inline: 8px;
-}
-.crewaid-pinned-tile[aria-pressed='true'] .crewaid-pinned-role > span {
-  background: color-mix(in oklab, var(--pinned-accent) 8%, #ffffff);
-  color: var(--pinned-ink-light);
-}
-[data-theme='crewaid-dark'] .crewaid-pinned-tile[aria-pressed='true'] .crewaid-pinned-role > span {
-  background: color-mix(in oklab, var(--pinned-accent) 26%, #101430);
-  color: var(--pinned-ink-dark);
-}
 .crewaid-bot-filter {
   padding-inline: 10px;
 }
@@ -298,27 +336,38 @@
   overflow: hidden;
 }
 .crewaid-rail-header {
-  padding: 16px 16px 12px;
-  min-height: 64px;
+  padding: 12px 16px 8px;
+  min-height: 48px;
+}
+.crewaid-rail-section-title {
+  font: 600 var(--text-footnote) / 18px var(--font-sans);
+  color: var(--room-muted);
 }
 .crewaid-rail-collapsed {
   height: auto;
   align-self: flex-start;
-  gap: 10px;
-  padding: 8px 0 12px;
+  gap: 6px;
+  padding: 8px 0;
   /* noVNC measures the viewport during resize. Scaling this ancestor would
      leave its canvas undersized after returning from full screen. */
   animation: crewaid-fade-in var(--motion-enter) var(--motion-ease);
 }
+/* Concentric with the rail: 24px panel = 12px padding + 12px canvas. The
+   inset ring gives the screen an edge against a light wallpaper without a
+   border that would shift its size. */
 [data-screen-surface='rail'] {
   border: 0;
   background: transparent;
-  border-radius: 16px;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 [data-screen-surface='rail'] > [data-screen-slot='canvas'] {
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.06);
+}
+[data-theme='crewaid-dark'] [data-screen-surface='rail'] > [data-screen-slot='canvas'] {
+  box-shadow: inset 0 0 0 1px oklch(100% 0 0 / 0.1);
 }
 [data-screen-surface='rail'] > [data-screen-slot='controls'] {
   padding: 16px 4px 0;
@@ -326,16 +375,15 @@
   min-height: 56px;
   flex-wrap: wrap;
 }
+/* Operational headings use the UI face; Fraunces is kept for editorial
+   moments (welcome, gate, templates, documents) so it still means something. */
 .crewaid-transcript-header {
-  min-height: 86px;
-  padding-block: 18px 16px;
+  min-height: 56px;
+  padding-block: 8px 6px;
 }
 .crewaid-transcript-header h1 {
-  font: 600 30px/34px var(--font-display-room);
-  font-variation-settings:
-    'SOFT' 100,
-    'opsz' 72;
-  letter-spacing: -0.015em;
+  font: 600 18px/24px var(--font-sans);
+  letter-spacing: -0.02em;
 }
 .crewaid-working-pill {
   display: inline-flex;
@@ -356,15 +404,16 @@
 .crewaid-bubble-wrap:has([data-message-bubble='user']) {
   max-width: min(88%, 420px);
 }
+/* Bubbles separate by tone (paper vs slate), not by outline. */
 [data-message-bubble] {
-  border: 1px solid color-mix(in oklab, var(--border) 40%, transparent);
+  border: 0;
   box-shadow: none;
 }
-[data-message-bubble='user'] {
-  border-color: var(--message-user-border);
+[data-message-bubble='bot'] {
+  box-shadow: 0 1px 3px oklch(21.5% 0.044 290 / 0.05);
 }
-[data-message-bubble='user']:not([data-voice-note]) {
-  border-radius: 22px 22px 8px 22px;
+[data-message-bubble]:not([data-voice-note]) {
+  border-radius: 20px;
 }
 [data-bot-mention] {
   color: var(--mention-ink-light);
@@ -396,8 +445,13 @@
 }
 .crewaid-composer-pill {
   min-height: 56px;
-  box-shadow: none;
-  background: var(--surface);
+  /* A soft lift without the white rim: the pill floats on the wallpaper, but
+     an edge highlight read as a glow around it. */
+  border-color: transparent;
+  box-shadow:
+    0 1px 2px oklch(21.5% 0.044 290 / 0.05),
+    0 6px 18px -4px oklch(21.5% 0.044 290 / 0.08);
+  background: color-mix(in oklab, var(--surface) 94%, transparent);
   transition:
     border-color var(--motion-fast),
     transform var(--motion-fast);
@@ -450,11 +504,6 @@
   --button-bg-hover: #ffffff1f;
   --button-border: #ffffff66;
 }
-.crewaid-create-routine.button {
-  color: var(--accent-soft-foreground);
-  background: color-mix(in oklab, var(--accent-soft) 75%, transparent);
-  border: 1px solid color-mix(in oklab, var(--accent) 24%, transparent);
-}
 .crewaid-routines [data-routine-id] {
   border: 0;
   border-top: 1px solid var(--separator);
@@ -486,12 +535,22 @@
   animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
 }
 .crewaid-routine-dialog .crewaid-routine-form {
+  /* In the dialog the form is the dialog's own content, not a card inside it. */
   border: 0;
+  border-radius: 0;
   padding: 0;
+  background: transparent;
   animation: none;
 }
+/* HeroUI's Label is 14px; the form's own labels are 12px. One size for every
+   field label, whichever component drew it. */
+.crewaid-routine-form .label {
+  font-size: var(--text-caption);
+  line-height: 16px;
+}
 .crewaid-routine-dialog .modal__heading {
-  font: 600 28px/34px var(--font-display-room);
+  font: 600 20px/26px var(--font-sans);
+  letter-spacing: -0.02em;
 }
 .crewaid-work-pane {
   overflow: hidden;
@@ -503,17 +562,22 @@
   padding: 20px 24px 16px;
 }
 .crewaid-work-pane > header h1 {
-  font: 600 30px/34px var(--font-display-room);
-  letter-spacing: -0.015em;
+  font: 600 22px/28px var(--font-sans);
+  letter-spacing: -0.02em;
 }
 .crewaid-work-pane > header > svg {
   display: none;
 }
+/* Board columns are a quiet lane on the pane's frost, not a glowing card:
+   no rim, no highlight, just a faint lift so the white task cards group. */
 .crewaid-work-pane [data-kanban-column] {
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
+  background: oklch(100% 0 0 / 0.28);
+  border: 1px solid transparent;
   border-radius: 18px;
-  box-shadow: var(--glass-specular);
+  box-shadow: none;
+}
+[data-theme='crewaid-dark'] .crewaid-work-pane [data-kanban-column] {
+  background: oklch(100% 0 0 / 0.04);
 }
 .crewaid-profile-pane {
   overflow: hidden;
@@ -522,20 +586,20 @@
   overflow: hidden;
   animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
 }
-/* The title of a right-rail pane (work detail, bot profile): the room's
-   display face at a size that still fits beside the pane's controls. */
+/* The title of a right-rail pane (work detail, bot profile), sized to sit
+   beside the pane's controls. */
 .crewaid-rail-title {
-  font: 600 22px/28px var(--font-display-room);
+  font: 600 17px/22px var(--font-sans);
+  letter-spacing: -0.02em;
   color: var(--foreground);
 }
-/* The dialog floats brighter than the room's side panels: a modal sits over
-   dimmed content, and passing that dim through at side-panel opacity read as
-   a dark shell. These roles stay scoped to this dialog; global tokens are only
-   read, never overridden. Sections divide by hairlines, not tint. */
-.crewaid-settings-dialog.modal__dialog,
-.crewaid-templates-dialog.modal__dialog {
+/* The templates dialog floats brighter than the room's side panels: a modal
+   sits over dimmed content, and passing that dim through at side-panel
+   opacity read as a dark shell. These roles stay scoped to this dialog;
+   global tokens are only read, never overridden. */
+.crewaid-templates-dialog.modal__dialog,
+.crewaid-plugins-dialog.modal__dialog {
   --settings-material: color-mix(in oklab, var(--surface) 90%, transparent);
-  --settings-nav: color-mix(in oklab, var(--surface) 55%, transparent);
   --settings-field: var(--field-background);
   background: var(--settings-material);
   color: var(--room-foreground);
@@ -543,46 +607,15 @@
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
 }
-.crewaid-settings-dialog.modal__dialog {
-  width: min(920px, 94vw);
-  max-width: none;
-  height: min(640px, 90vh);
-  min-height: 0;
-}
-.crewaid-settings-dialog .crewaid-settings-nav {
-  background: var(--settings-nav);
-  overflow-y: auto;
-  border-inline-end: 1px solid var(--separator);
-}
-.crewaid-settings-dialog .crewaid-settings-title {
-  font: 600 24px/30px var(--font-display-room);
-  letter-spacing: -0.015em;
-}
-.crewaid-settings-nav-item.button {
-  color: var(--room-muted);
-  background: transparent;
-  flex-shrink: 0;
-}
-.crewaid-settings-nav-item.button[data-hovered='true'] {
-  background: var(--crew-hover);
-}
-.crewaid-settings-nav-item.button[aria-current='true'] {
-  background: var(--surface);
-  color: var(--room-foreground);
-  font-weight: 500;
-  box-shadow: var(--surface-shadow);
-}
 .crewaid-settings-header h2 {
-  font: 600 20px/26px var(--font-sans);
+  font: 600 22px/28px var(--font-sans);
   letter-spacing: -0.02em;
+  color: var(--room-foreground);
 }
 .crewaid-settings-header p {
   font-size: var(--text-footnote);
   line-height: 18px;
   color: var(--room-muted);
-}
-.crewaid-settings-close.button {
-  background: var(--surface);
 }
 .crewaid-settings-dialog .crewaid-settings-section {
   margin-bottom: 22px;
@@ -592,8 +625,8 @@
 }
 .crewaid-settings-dialog .crewaid-settings-surface,
 .crewaid-settings-dialog .crewaid-connection-card {
-  background: var(--surface);
-  border-radius: 18px;
+  background: color-mix(in oklab, var(--surface) 90%, transparent);
+  border-radius: 20px;
   border: 1px solid var(--glass-border-subtle);
   box-shadow: var(--surface-shadow);
 }
@@ -613,12 +646,6 @@
 .crewaid-settings-dialog .crewaid-connection-card > header {
   background: transparent;
 }
-.crewaid-settings-dialog .button {
-  border-radius: var(--radius-pill);
-}
-.crewaid-settings-dialog .crewaid-settings-nav-item.button {
-  border-radius: 12px;
-}
 .crewaid-settings-preferences {
   display: flex;
   flex-direction: column;
@@ -627,28 +654,53 @@
 .crewaid-settings-preferences .crewaid-settings-section {
   margin-bottom: 0;
 }
-[data-theme='crewaid-dark'] .crewaid-settings-dialog.modal__dialog,
+/* Plugins and Templates are one family of floating dialogs: same material,
+   so moving between them reads as the same surface. */
+.crewaid-plugins-dialog.modal__dialog {
+  height: auto;
+  min-height: 0;
+}
+[data-theme='crewaid-dark'] .crewaid-plugins-dialog.modal__dialog,
 [data-theme='crewaid-dark'] .crewaid-templates-dialog.modal__dialog {
   --settings-material: var(--glass-strong);
   --settings-field: var(--field-background);
 }
-@media (max-width: 800px) {
-  .crewaid-settings-dialog .crewaid-settings-nav {
-    width: 170px;
-  }
-  .crewaid-settings-dialog .crewaid-settings-header,
-  .crewaid-settings-dialog .crewaid-settings-body {
-    padding-inline: 20px;
-  }
-}
 .crewaid-search-dialog.modal__dialog {
-  width: min(640px, 92vw);
+  width: min(560px, 92vw);
   max-width: none;
   min-height: 0;
   height: auto;
-  border-radius: 24px;
-  border: 1px solid var(--border);
-  box-shadow: 0 24px 80px #1d183026;
+  max-height: calc(100vh - 12vh);
+  gap: 10px;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* The pill and the results card are the only surfaces; the dialog itself is
+   an invisible column so the room shows between them. */
+.crewaid-search-pill {
+  flex-shrink: 0;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--overlay-shadow);
+}
+.crewaid-search-scope {
+  background: color-mix(in oklab, var(--surface) 72%, transparent);
+  box-shadow: var(--surface-shadow);
+}
+.crewaid-search-results {
+  max-height: min(60vh, 520px);
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--overlay-shadow);
+  animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
 }
 /* React Aria keeps overlays mounted until these exit animations finish, so
    dismissal preserves focus restoration without timers in application code. */
@@ -666,7 +718,8 @@
 }
 .crewaid-search-backdrop.modal__backdrop {
   background: color-mix(in oklab, var(--background) 12%, transparent);
-  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  backdrop-filter: blur(28px) saturate(1.4);
 }
 .crewaid-search-backdrop.modal__backdrop[data-entering='true'] {
   animation: crewaid-search-focus 300ms var(--motion-ease);
@@ -677,9 +730,9 @@
 .crewaid-search-container.modal__container {
   height: 100%;
   width: 100%;
-  padding: 10vh 0 0;
+  padding: 12vh 0 0;
   flex: none;
-  transform-origin: 50% calc(10vh + 26px);
+  transform-origin: 50% calc(12vh + 24px);
 }
 .crewaid-search-container.modal__container[data-entering='true'] {
   animation: crewaid-search-in 300ms var(--motion-ease);
@@ -761,7 +814,7 @@
   }
   to {
     opacity: 1;
-    backdrop-filter: blur(18px);
+    backdrop-filter: blur(28px) saturate(1.4);
   }
 }
 @keyframes crewaid-action-in {
@@ -800,12 +853,12 @@
     grid-template-columns: minmax(130px, 1fr) auto minmax(130px, 1fr);
   }
   .crewaid-wordmark {
-    font-size: 18px;
+    font-size: 16px;
   }
   .crewaid-room-nav .tabs__tab {
     padding-inline: 12px;
   }
-  .crewaid-transcript-header,
+  .crewaid-transcript-header-row,
   [data-transcript-content] {
     padding-inline: 16px;
   }
@@ -849,12 +902,23 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: url('../assets/room/wallpaper.png') center bottom / cover;
+  /* The Day wallpaper is a bright sky; a slate veil over it keeps the paper
+     surfaces reading as the lightest thing in the room. Night's layer below
+     replaces the whole image, veil included. */
+  background:
+    linear-gradient(var(--wallpaper-veil), var(--wallpaper-veil)),
+    url('../assets/room/wallpaper.png') center bottom / cover;
   transition: opacity var(--motion-enter) var(--motion-ease);
+}
+.crewaid-room::before,
+.crewaid-gate::before {
+  filter: var(--wallpaper-filter, none);
 }
 .crewaid-room::after,
 .crewaid-gate::after {
-  background-image: url('../assets/room/wallpaper-night.png');
+  /* The full shorthand, not just the image: the Day layer list is two deep,
+     and a lone image would inherit the veil layer's size instead of cover. */
+  background: url('../assets/room/wallpaper-night.png') center bottom / cover;
   opacity: 0;
 }
 [data-theme='crewaid-dark'] :is(.crewaid-room, .crewaid-gate)::after {
@@ -875,7 +939,7 @@
   background: var(--default);
 }
 [data-theme='crewaid-dark'] .crewaid-work-pane [role='list'] {
-  background: var(--glass);
+  background: var(--crew-dock);
 }
 .crewaid-crew-dock,
 .crewaid-rail,
@@ -919,7 +983,7 @@
 }
 .crewaid-deliverable-row {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   border-radius: 14px;
   padding: 12px 14px;
 }
@@ -1156,15 +1220,18 @@
 }
 
 /* Tool activity shares the room's paper surface; preview text is inert and bounded. */
+/* Tool and output cards are part of the bot's side of the conversation, so
+   they wear its bubble: borderless paper, the same corners and faint lift. They
+   fill the reading column so a card and a row of cards share one edge. */
 .crewaid-tool-card.card {
-  width: min(100%, 520px);
+  width: 100%;
   gap: 10px;
   padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background: var(--message-bot);
   color: var(--foreground);
-  box-shadow: none;
+  box-shadow: 0 1px 3px oklch(21.5% 0.044 290 / 0.05);
   text-align: start;
 }
 .crewaid-tool-mark {
@@ -1217,8 +1284,11 @@
   white-space: pre-wrap;
 }
 .crewaid-tool-preview {
-  /* A tool's output (a page, an email, a command) reads in its own direction. */
+  /* A tool's output (a page, an email, a command) reads in its own direction,
+     but lines up from the app's reading side: left-to-right output in an
+     Arabic room starts beside its label, not across the pane from it. */
   unicode-bidi: plaintext;
+  text-align: match-parent;
   margin-bottom: 0;
   max-height: 180px;
   overflow: auto;
@@ -1399,10 +1469,13 @@
   color: var(--room-foreground);
 }
 .crewaid-welcome-choice.button {
+  /* A reply the user can send, so it wears the user's bubble: the same tone
+     and lift, no white rim. */
   border-radius: var(--radius-pill);
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  color: var(--room-foreground);
+  background: var(--message-user);
+  border: 1px solid transparent;
+  box-shadow: 0 1px 3px oklch(21.5% 0.044 290 / 0.05);
+  color: var(--message-user-foreground);
   /* A long translation wraps inside the column instead of running out of it
      (D-234); one line still sits at the button's own height. */
   height: auto;
@@ -1411,6 +1484,9 @@
   padding-block: 0.5rem;
   white-space: normal;
   text-align: start;
+}
+.crewaid-welcome-choice.button[data-hovered='true'] {
+  background: color-mix(in oklab, var(--message-user) 70%, var(--surface));
 }
 .crewaid-template-card {
   background: var(--surface);
@@ -1452,5 +1528,52 @@
 @media (prefers-reduced-motion: reduce) {
   .crewaid-template-entry {
     transition: none;
+  }
+}
+
+/* Documents are the editorial moment the display face is kept for: the
+   preview card's title and the reader's heading. */
+.crewaid-doc-card-title {
+  font: 600 20px/26px var(--font-display-room);
+  font-variation-settings:
+    'SOFT' 100,
+    'opsz' 72;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+.crewaid-doc-card {
+  box-shadow: 0 1px 3px oklch(21.5% 0.044 290 / 0.05);
+}
+.crewaid-doc-card[data-hovered='true'],
+.crewaid-doc-card:hover {
+  box-shadow: var(--surface-shadow);
+}
+/* The page fades out where the card ends, so it reads as "more below". */
+.crewaid-doc-card-sheet {
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+.crewaid-reader-sheet {
+  padding: 36px 40px;
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: var(--overlay-shadow);
+  line-height: 1.65;
+  font-size: var(--text-body);
+}
+.crewaid-reader-title {
+  font: 600 28px/34px var(--font-display-room);
+  font-variation-settings:
+    'SOFT' 100,
+    'opsz' 72;
+  letter-spacing: -0.015em;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .crewaid-reader-sheet {
+    padding: 24px 20px;
   }
 }

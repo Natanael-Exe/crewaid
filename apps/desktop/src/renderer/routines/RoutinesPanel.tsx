@@ -1,4 +1,4 @@
-import { Alert, Button, Chip, Input, Modal, Spinner, Switch, TextArea } from '@heroui/react';
+import { Alert, Button, Chip, Input, Modal, Skeleton, Switch, TextArea } from '@heroui/react';
 import { IconPencil, IconPlayerPlay, IconPlus, IconTarget, IconTrash } from '@tabler/icons-react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type {
@@ -225,10 +225,10 @@ export function RoutinesPanel({
             </Button>
           )}
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
             onPress={() => setEditing({ kind: 'new' })}
-            className="crewaid-create-routine h-8 gap-1 rounded-full px-2.5 text-footnote"
+            className="h-8 gap-1 rounded-full bg-surface/85 px-3 text-footnote text-foreground"
           >
             <IconPlus className="size-3.5" stroke={1.8} aria-hidden />{' '}
             {t('routines.routinesPanel.createRoutine')}
@@ -252,8 +252,17 @@ export function RoutinesPanel({
       ) : null}
 
       {all === null && readProblem !== null ? null : all === null ? (
-        <div className="flex justify-center py-6">
-          <Spinner size="sm" aria-label={t('routines.routinesPanel.loadingRoutines')} />
+        <div
+          role="status"
+          aria-label={t('routines.routinesPanel.loadingRoutines')}
+          className="flex flex-col gap-3 py-3"
+        >
+          {[0, 1].map((index) => (
+            <div key={index} className="flex flex-col gap-2 px-1">
+              <Skeleton className="h-3.5 w-1/2 rounded-full" />
+              <Skeleton className="h-3 w-3/4 rounded-full" />
+            </div>
+          ))}
         </div>
       ) : mine.length === 0 && editing === null ? (
         <EmptyState size="sm" className="min-h-[160px] py-8">

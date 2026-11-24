@@ -45,11 +45,13 @@ export function ScreenPlaceholder({
         <span {...(detail ? { title: detail } : {})}>{message}</span>
         {action === null || onAct === undefined ? null : (
           <Button
-            variant="tertiary"
+            variant="secondary"
             size="sm"
             data-screen-action={action.kind}
             onPress={onAct}
-            className="h-8 rounded-[10px] px-4 text-caption font-medium"
+            // A crisp paper pill: on the pale placeholder a translucent one
+            // read as part of the picture rather than something to press.
+            className="h-8 rounded-full bg-surface px-4 text-caption font-medium text-foreground shadow-surface"
           >
             {action.label}
           </Button>

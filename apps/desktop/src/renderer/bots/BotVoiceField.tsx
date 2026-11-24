@@ -37,6 +37,9 @@ export function BotVoiceField({
   const client = useApiClient();
   const [catalog, setCatalog] = useState<VoiceListResponse | 'loading' | 'unavailable'>('loading');
   const [open, setOpen] = useState(false);
+  // Which row started the preview. "Default voice" and the voice it resolves
+  // to share an id, and both rows showing Stop read as two previews playing.
+  const [previewRow, setPreviewRow] = useState<string | null>(null);
   const { audio, preview, error, play, stop, fail } = useVoicePreview();
 
   useEffect(() => {
@@ -75,8 +78,8 @@ export function BotVoiceField({
     setOpen(false);
   }
 
-  function previewButton(voice: VoiceOption | undefined, name: string) {
-    const active = voice !== undefined && preview?.id === voice.id;
+  function previewButton(voice: VoiceOption | undefined, name: string, row: string) {
+    const active = voice !== undefined && preview?.id === voice.id && previewRow === row;
     const tip =
       voice?.previewUrl === undefined
         ? t('bots.botVoiceField.previewUnavailable')
@@ -87,15 +90,21 @@ export function BotVoiceField({
       <span className="shrink-0">
         <IconButtonTooltip
           size="sm"
-          variant="primary"
+          variant="secondary"
           label={active ? t('bots.voice.stopPreview', { name }) : t('bots.voice.preview', { name })}
           tooltip={tip}
           placement="top"
           isDisabled={voice?.previewUrl === undefined}
           onPress={() => {
-            if (voice !== undefined) void play(voice);
+            if (voice === undefined) return;
+            setPreviewRow(row);
+            void play(voice);
           }}
-          className="size-8 min-w-8 shrink-0 rounded-full"
+          // A soft disc that turns to the accent only while it plays: a column
+          // of solid black buttons was the heaviest thing in the pane.
+          className={`size-8 min-w-8 shrink-0 rounded-full ${
+            active ? 'bg-accent text-accent-foreground' : 'bg-default text-foreground'
+          }`}
         >
           {active && preview.loading ? (
             <Spinner size="sm" color="current" aria-hidden />
@@ -141,7 +150,7 @@ export function BotVoiceField({
               </Popover.Heading>
               <div className="max-h-[min(50vh,360px)] overflow-y-auto overscroll-contain">
                 <div className="flex items-center gap-1 rounded-lg hover:bg-background-secondary">
-                  {previewButton(defaultVoice, t('bots.voice.default'))}
+                  {previewButton(defaultVoice, t('bots.voice.default'), 'default')}
                   <button
                     type="button"
                     aria-label={t('bots.botVoiceField.chooseDefaultVoice')}
@@ -167,7 +176,7 @@ export function BotVoiceField({
                     key={voice.id}
                     className="flex items-center gap-1 rounded-lg hover:bg-background-secondary"
                   >
-                    {previewButton(voice, voice.name)}
+                    {previewButton(voice, voice.name, voice.id)}
                     <button
                       type="button"
                       aria-label={t('bots.voice.choose', { name: voice.name })}

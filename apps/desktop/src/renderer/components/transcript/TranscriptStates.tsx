@@ -85,7 +85,7 @@ export function IncompleteNote({ text }: { text: string }) {
 export function JumpToLatestButton({ onClick }: { onClick: () => void }) {
   const t = useT();
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center">
+    <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center">
       <IconButtonTooltip
         variant="secondary"
         size="sm"

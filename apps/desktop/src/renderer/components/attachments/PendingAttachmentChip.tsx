@@ -106,7 +106,7 @@ export function PendingAttachmentRow({
   if (items.length === 0) return null;
   return (
     <ChatAttachmentGroup
-      className="mx-auto w-full max-w-[900px] pb-1.5"
+      className="mx-auto w-full max-w-(--chat-column) pb-1.5"
       role="list"
       aria-label={t('attachments.pending')}
     >

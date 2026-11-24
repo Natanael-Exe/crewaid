@@ -1,18 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { I18nProvider } from '@heroui/react';
-import { vi } from 'vitest';
-import {
-  ACCOUNT_MENU_ITEMS,
-  AccountMenu,
-  AccountMenuHeader,
-  AccountUsage,
-  accountMenuHandler,
-} from '../src/renderer/components/AccountMenu';
 import type { BillingResponse } from '@crewaid/shared';
 import { BotSidebar, type GroupActions } from '../src/renderer/components/BotSidebar';
 import { RoomTopBar } from '../src/renderer/components/layout/RoomTopBar';
 import type { LaunchSession } from '../src/renderer/launch/LaunchGate';
+import { AccountIdentity, AccountUsage } from '../src/renderer/settings/AccountSummary';
+import { SettingsIndex } from '../src/renderer/settings/SettingsModal';
 
 const NO_GROUP_ACTIONS: GroupActions = {
   toggleCollapsed: () => undefined,
@@ -25,72 +19,84 @@ const SESSION: LaunchSession = {
   signOut: () => undefined,
 };
 
-function render(onOpenSettings: () => void = () => undefined) {
+const ACCOUNT = {
+  name: 'Ada Lovelace',
+  email: 'ada@example.com',
+  initials: 'AL',
+  image: undefined,
+};
+
+const STARTER: BillingResponse = {
+  plan: 'starter',
+  status: 'active',
+  period: { start: '2026-10-01T10:00:00.000Z', end: '2026-10-20T10:00:00.000Z' },
+  cancelAtPeriodEnd: false,
+  trialEligible: false,
+  compute: { usedSeconds: 44 * 3600, limitSeconds: 100 * 3600 },
+  model: { usedUsd: 5, allowanceUsd: 5 },
+  voice: {
+    listen: { usedSeconds: 0, limitSeconds: 18000 },
+    speak: { usedSeconds: 0, limitSeconds: 1800 },
+  },
+};
+
+function index(props: Partial<Parameters<typeof SettingsIndex>[0]> = {}) {
   return renderToStaticMarkup(
     <I18nProvider>
-      <AccountMenu
-        name="Ada Lovelace"
-        email="ada@example.com"
-        initials="AL"
-        image={undefined}
-        onOpenSettings={onOpenSettings}
+      <SettingsIndex
+        edition="selfhosted"
+        account={ACCOUNT}
+        billing={null}
+        onOpen={() => undefined}
         onSignOut={() => undefined}
+        {...props}
       />
     </I18nProvider>,
   );
 }
 
-describe('AccountMenu', () => {
-  it('names the trigger for a screen reader, not just visually', () => {
-    expect(render()).toContain('account menu');
-  });
-
-  it('offers Log out, which V1 finally gave something to end', () => {
-    // Disabled until V1-18. Pre-V1 the CC-07 bearer was the whole credential,
-    // so there was no session to end; V1-11 created one and V1-15 gave it a
-    // sign-out that ends the row at the orchestrator first.
-    const enabled = ACCOUNT_MENU_ITEMS.filter((item) => item.enabled).map((item) => item.id);
-    expect(enabled).toContain('logout');
-    expect(enabled).toContain('settings');
-  });
-
-  it('routes every enabled entry somewhere, so none is a silent click', () => {
-    // The failure the disabled rows were guarding against, and one no render
-    // test can catch: React Aria builds the popover on open, so these items
-    // never appear in static markup. An entry marked enabled but missing from
-    // the handler looks live and does nothing.
-    for (const item of ACCOUNT_MENU_ITEMS.filter((entry) => entry.enabled)) {
-      const plan = vi.fn();
-      const settings = vi.fn();
-      const logout = vi.fn();
-      accountMenuHandler({ plan, settings, logout })(item.id);
-      expect(
-        plan.mock.calls.length + settings.mock.calls.length + logout.mock.calls.length,
-        `"${item.label}" is enabled but routes nowhere`,
-      ).toBe(1);
+describe('SettingsIndex', () => {
+  it('leads with who is signed in, then every pane as a row, then sign out', () => {
+    const html = index();
+    expect(html).toContain('Ada Lovelace');
+    expect(html).toContain('ada@example.com');
+    for (const label of ['General', 'Models', 'Channels', 'Computer', 'About', 'Log out']) {
+      expect(html).toContain(`>${label}<`);
     }
+    expect(html.indexOf('Ada Lovelace')).toBeLessThan(html.indexOf('>General<'));
+    expect(html.indexOf('>About<')).toBeLessThan(html.indexOf('>Log out<'));
   });
 
-  it('leaves disabled entries unrouted', () => {
-    const plan = vi.fn();
-    const settings = vi.fn();
-    const logout = vi.fn();
-    const route = accountMenuHandler({ plan, settings, logout });
-    for (const item of ACCOUNT_MENU_ITEMS.filter((entry) => !entry.enabled)) route(item.id);
-    expect(plan).not.toHaveBeenCalled();
-    expect(settings).not.toHaveBeenCalled();
-    expect(logout).not.toHaveBeenCalled();
+  it('shows no plan on a self-hosted server, which bills nothing', () => {
+    const html = index();
+    expect(html).not.toContain('Plan &amp; usage');
+    expect(html).not.toContain('Usage remaining');
+  });
+
+  it('puts the plan glance first on a hosted server that answered', () => {
+    const html = index({ edition: 'cloud', billing: STARTER });
+    expect(html).toContain('Usage remaining');
+    expect(html).toContain('Plan &amp; usage');
+    expect(html.indexOf('Usage remaining')).toBeLessThan(html.indexOf('>General<'));
+  });
+
+  it('keeps Plan reachable as a row when the hosted server has not answered', () => {
+    const html = index({ edition: 'cloud', billing: null });
+    expect(html).not.toContain('Usage remaining');
+    expect(html).toContain('Plan &amp; usage');
+  });
+
+  it('omits sign out where there is no session to end', () => {
+    expect(index({ onSignOut: undefined })).not.toContain('Log out');
   });
 });
 
 const PHOTO = 'https://lh3.googleusercontent.com/a/photo=s96-c';
 
-describe('AccountMenuHeader', () => {
-  // The popover is built on open, so the header never reaches the menu's own
-  // static markup; it is rendered here on its own instead.
-  it('leads with who the menu belongs to: photo, name and address', () => {
+describe('AccountIdentity', () => {
+  it('leads with who the settings belong to: photo, name and address', () => {
     const html = renderToStaticMarkup(
-      <AccountMenuHeader name="Ada Lovelace" email="ada@example.com" initials="AL" image={PHOTO} />,
+      <AccountIdentity name="Ada Lovelace" email="ada@example.com" initials="AL" image={PHOTO} />,
     );
     expect(html).toContain(`src="${PHOTO}"`);
     expect(html).toContain('Ada Lovelace');
@@ -100,7 +106,7 @@ describe('AccountMenuHeader', () => {
 
   it('shows initials when there is no photo', () => {
     const html = renderToStaticMarkup(
-      <AccountMenuHeader
+      <AccountIdentity
         name="Ada Lovelace"
         email="ada@example.com"
         initials="AL"
@@ -113,7 +119,7 @@ describe('AccountMenuHeader', () => {
 
   it('does not print the address twice when it is the name', () => {
     const html = renderToStaticMarkup(
-      <AccountMenuHeader
+      <AccountIdentity
         name="ada@example.com"
         email="ada@example.com"
         initials="AE"
@@ -125,20 +131,6 @@ describe('AccountMenuHeader', () => {
 });
 
 describe('AccountUsage', () => {
-  // Like the header, it lives in the popover, so it is rendered on its own.
-  const STARTER: BillingResponse = {
-    plan: 'starter',
-    status: 'active',
-    period: { start: '2026-10-01T10:00:00.000Z', end: '2026-10-20T10:00:00.000Z' },
-    cancelAtPeriodEnd: false,
-    trialEligible: false,
-    compute: { usedSeconds: 44 * 3600, limitSeconds: 100 * 3600 },
-    model: { usedUsd: 5, allowanceUsd: 5 },
-    voice: {
-      listen: { usedSeconds: 0, limitSeconds: 18000 },
-      speak: { usedSeconds: 0, limitSeconds: 1800 },
-    },
-  };
   const NOW = new Date('2026-10-13T15:00:00.000Z');
 
   it('shows the plan and the share left of each allowance, with when it resets', () => {
@@ -175,7 +167,7 @@ describe('Room account and crew collections', () => {
    * collection as bare text takes the whole window down rather than one
    * component. Asserting the template stays empty is what caught it before.
    */
-  it('renders the menu without putting bare text in a collection', () => {
+  it('renders the sidebar without putting bare text in a collection', () => {
     const html = renderToStaticMarkup(
       <I18nProvider>
         <BotSidebar
@@ -213,7 +205,7 @@ describe('Room account and crew collections', () => {
     }
   });
 
-  it('shows the account photo on the row when the session has one', () => {
+  it('shows the account photo on the top bar avatar, which opens settings', () => {
     const html = renderToStaticMarkup(
       <I18nProvider>
         <RoomTopBar
@@ -224,10 +216,11 @@ describe('Room account and crew collections', () => {
           onSearch={() => undefined}
           onPlugins={() => undefined}
           onSettings={() => undefined}
-          onOpenPlan={() => undefined}
         />
       </I18nProvider>,
     );
     expect(html).toContain(`src="${PHOTO}"`);
+    expect(html).toContain('aria-label="Account and settings for Ada Lovelace"');
+    expect(html).toContain('aria-haspopup="dialog"');
   });
 });
