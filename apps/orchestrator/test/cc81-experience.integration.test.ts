@@ -188,11 +188,11 @@ describe.skipIf(!process.env['DATABASE_URL'])(
         await prisma.user.delete({ where: { id: crewed } });
       }
     });
-    it('lists six crews whose members are the same definitions as the standalone bots', () => {
+    it('lists seven crews whose members are the same definitions as the standalone bots', () => {
       const entries = templates.list('', null);
       const crews = entries.filter((entry) => entry.kind === 'crew');
-      expect(crews).toHaveLength(6);
-      expect(entries.filter((entry) => entry.kind === 'bot')).toHaveLength(29);
+      expect(crews).toHaveLength(7);
+      expect(entries.filter((entry) => entry.kind === 'bot')).toHaveLength(34);
       for (const crew of crews)
         for (const member of crew.bots) {
           const alone = templates.read(`bot-${member.key}`, null);
@@ -220,6 +220,8 @@ describe.skipIf(!process.env['DATABASE_URL'])(
       expect(templates.list('design partner', null).map((entry) => entry.id)).toContain(
         'founder-led-sales',
       );
+      expect(templates.list('refund', null).map((entry) => entry.id)).toContain('customer-support');
+      expect(templates.list('churn', null).map((entry) => entry.id)).toContain('customer-support');
       expect(templates.list('social writer', null).map((entry) => entry.id)).toEqual([
         'content-publishing',
         'bot-hannah',

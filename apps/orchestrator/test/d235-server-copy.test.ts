@@ -59,6 +59,11 @@ describe('D-235 — templates in the account’s language', () => {
     expect(nora?.bots[0]?.systemPrompt).not.toBe(TEMPLATE_WORDS_EN.specialists.nora.persona);
     const founderSales = french.find((entry) => entry.id === 'founder-led-sales');
     expect(founderSales?.title).not.toBe(TEMPLATE_WORDS_EN.crews['founder-led-sales']?.title);
+    const iris = french.find((entry) => entry.id === 'bot-iris');
+    expect(iris?.bots[0]?.name).toBe('Iris');
+    expect(iris?.bots[0]?.systemPrompt).not.toBe(TEMPLATE_WORDS_EN.specialists.iris.persona);
+    const support = french.find((entry) => entry.id === 'customer-support');
+    expect(support?.title).not.toBe(TEMPLATE_WORDS_EN.crews['customer-support']?.title);
   });
 
   it('builds every template from the words, and only names stay outside them', () => {
@@ -71,6 +76,12 @@ describe('D-235 — templates in the account’s language', () => {
     const nora = catalog.find((entry) => entry.id === 'bot-nora');
     expect(nora?.bots[0]?.role).toBe(TEMPLATE_WORDS_EN.specialists.nora.role);
     expect(nora?.memberOf).toEqual([TEMPLATE_WORDS_EN.crews['founder-led-sales']?.title]);
+    const support = catalog.find((entry) => entry.id === 'customer-support');
+    expect(support?.title).toBe(TEMPLATE_WORDS_EN.crews['customer-support']?.title);
+    expect(support?.bots).toHaveLength(5);
+    const iris = catalog.find((entry) => entry.id === 'bot-iris');
+    expect(iris?.bots[0]?.role).toBe(TEMPLATE_WORDS_EN.specialists.iris.role);
+    expect(iris?.memberOf).toEqual([TEMPLATE_WORDS_EN.crews['customer-support']?.title]);
     const maya = catalog.find((entry) => entry.id === 'bot-maya');
     expect(maya?.bots[0]?.role).toBe(TEMPLATE_WORDS_EN.specialists.maya.role);
     expect(maya?.bots[0]?.systemPrompt).toBe(TEMPLATE_WORDS_EN.specialists.maya.persona);
@@ -84,8 +95,8 @@ describe('D-235 — templates in the account’s language', () => {
     const catalog = templateCatalog('en');
     const crews = catalog.filter((entry) => entry.kind === 'crew');
     const bots = catalog.filter((entry) => entry.kind === 'bot');
-    expect(crews).toHaveLength(6);
-    expect(bots).toHaveLength(29);
+    expect(crews).toHaveLength(7);
+    expect(bots).toHaveLength(34);
     const names = bots.map((entry) => entry.bots[0]!.name);
     expect(new Set(names).size).toBe(names.length);
     for (const crew of crews) {
