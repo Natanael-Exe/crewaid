@@ -1,7 +1,8 @@
 import { Button } from '@heroui/react';
-import { IconArrowRight, IconChevronLeft, IconChevronsRight } from '@tabler/icons-react';
+import { IconChevronLeft, IconChevronRight, IconChevronsRight } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import type { Bot } from '@crewaid/shared';
+import { IconButtonTooltip } from '../components/ui';
 import { MemoryView } from '../experience/MemoryView';
 import { BotFields } from './BotFields';
 import { BotVoiceField } from './BotVoiceField';
@@ -56,7 +57,7 @@ export function BotProfilePane({
   // changes this one. Keyed on the id AND the stored values so an external
   // patch is not silently masked by a stale draft.
   const seededFor = useRef<string>('');
-  const signature = `${bot.id}|${stored.name}|${stored.role}|${stored.systemPrompt}|${stored.avatarColor}|${bot.voiceId ?? ''}`;
+  const signature = `${bot.id}|${stored.name}|${stored.role}|${stored.systemPrompt}|${stored.avatarColor}|${stored.avatarShape ?? ''}|${bot.voiceId ?? ''}`;
   useEffect(() => {
     if (seededFor.current === signature) return;
     seededFor.current = signature;
@@ -88,12 +89,9 @@ export function BotProfilePane({
       data-pane-rail-state="profile"
       className="crewaid-profile-pane flex h-full w-full flex-col"
     >
-      <div className="window-drag flex h-12 shrink-0 items-center gap-0.5 px-3">
-        <Button
-          variant="ghost"
-          isIconOnly
-          size="sm"
-          aria-label={
+      <div className="flex min-h-16 shrink-0 items-center gap-0.5 px-3">
+        <IconButtonTooltip
+          label={
             memoryOpen
               ? t('bots.botProfilePane.backToSettings')
               : t('bots.botProfilePane.backToDetails')
@@ -102,20 +100,17 @@ export function BotProfilePane({
           className="window-no-drag size-7 rounded-lg text-muted"
         >
           <IconChevronLeft className="size-4 rtl:-scale-x-100" stroke={1.8} />
-        </Button>
-        <span className="flex-1 text-center text-[13px] font-medium">
+        </IconButtonTooltip>
+        <span className="crewaid-rail-title flex-1 text-center">
           {memoryOpen ? t('bots.botProfilePane.memory') : t('bots.botProfilePane.settings')}
         </span>
-        <Button
-          variant="ghost"
-          isIconOnly
-          size="sm"
-          aria-label={t('bots.botProfilePane.collapsePanel')}
+        <IconButtonTooltip
+          label={t('bots.botProfilePane.collapsePanel')}
           onPress={onCollapse}
           className="window-no-drag size-7 rounded-lg text-muted"
         >
           <IconChevronsRight className="size-4 rtl:-scale-x-100" stroke={1.8} />
-        </Button>
+        </IconButtonTooltip>
       </div>
 
       {memoryOpen ? (
@@ -131,18 +126,19 @@ export function BotProfilePane({
               idPrefix={`bot-profile-${bot.id}`}
               fallbackName={bot.name}
               mainAssistant={bot.kind === 'MAIN'}
+              defaultLookOpen={false}
             />
           </div>
 
           <BotVoiceField value={voiceId} onChange={setVoiceId} />
 
           {issue === null ? null : (
-            <p role="alert" className="text-[12px] text-danger">
+            <p role="alert" className="text-caption text-danger">
               {issue}
             </p>
           )}
           {failure === null ? null : (
-            <p role="alert" className="text-[12px] text-danger">
+            <p role="alert" className="text-caption text-danger">
               {failure}
             </p>
           )}
@@ -150,23 +146,46 @@ export function BotProfilePane({
           <button
             type="button"
             onClick={() => setMemoryOpen(true)}
-            className="flex flex-col gap-1 border-y border-separator py-3 text-start"
+            className="flex cursor-[var(--cursor-interactive)] items-center gap-3 rounded-[16px] bg-surface/80 px-3.5 py-3 text-start outline-none hover:bg-surface focus-visible:ring-2 focus-visible:ring-focus/40"
           >
-            <span className="flex items-center justify-between text-[13px] font-medium">
-              {t('bots.knowsAboutYou', { name: bot.name })}
-              <IconArrowRight className="size-4 text-muted rtl:-scale-x-100" aria-hidden />
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-footnote font-medium">
+                {t('bots.knowsAboutYou', { name: bot.name })}
+              </span>
+              <span className="text-caption text-muted">
+                {t('bots.botProfilePane.reviewSharedAndPrivateContext')}
+              </span>
             </span>
-            <span className="text-[12px] text-muted">
-              {t('bots.botProfilePane.reviewSharedAndPrivateContext')}
-            </span>
+            <IconChevronRight className="size-4 shrink-0 text-muted rtl:-scale-x-100" aria-hidden />
           </button>
-
+        </div>
+      )}
+      {/* Save appears once there is something to save, below the scroll and
+          beside a way back out of the edit. A permanent disabled Save was a
+          dark blob at the end of an empty pane. */}
+      {memoryOpen || (!dirty && !saving) ? null : (
+        <div className="flex shrink-0 items-center justify-end gap-2 px-4 py-3">
+          {dirty ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              isDisabled={saving}
+              onPress={() => {
+                setDraft(stored);
+                setVoiceId(bot.voiceId);
+                setFailure(null);
+              }}
+              className="rounded-full"
+            >
+              {t('bots.botProfilePane.discard')}
+            </Button>
+          ) : null}
           <Button
             variant="primary"
             size="sm"
             isDisabled={!canSave}
             onPress={() => void save()}
-            className="h-8 shrink-0 rounded-[10px] text-[12px] font-medium"
+            className="rounded-full px-4"
           >
             {saving ? t('bots.botProfilePane.saving') : t('bots.botProfilePane.save')}
           </Button>

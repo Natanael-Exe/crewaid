@@ -14,7 +14,7 @@ import type { BotDraft } from '../bots/botProfileForm';
 import type { Experience } from '../experience/ExperienceGate';
 import { useT } from '../i18n/i18n';
 import { PluginsModal } from '../settings/PluginsModal';
-import { SettingsModal } from '../settings/SettingsModal';
+import { SettingsModal, type SettingsAccount } from '../settings/SettingsModal';
 import type { SettingsPaneId } from '../settings/settingsPanes';
 import { SkillReviewModal } from '../skills/SkillReviewModal';
 import type { BotMutation, ChatController } from '../state/useChat';
@@ -86,6 +86,8 @@ export interface AppModalsProps {
     readonly initialPane: SettingsPaneId | undefined;
     readonly onOpenChange: (open: boolean) => void;
     readonly onCredentialsSaved: () => void;
+    readonly account: SettingsAccount;
+    readonly onSignOut: () => void;
   };
   readonly plugins: {
     readonly isOpen: boolean;
@@ -223,6 +225,8 @@ export function AppModals({
         {...(settings.initialPane === undefined ? {} : { initialPane: settings.initialPane })}
         onOpenChange={settings.onOpenChange}
         onCredentialsSaved={settings.onCredentialsSaved}
+        account={settings.account}
+        onSignOut={settings.onSignOut}
       />
       <PluginsModal
         isOpen={plugins.isOpen}

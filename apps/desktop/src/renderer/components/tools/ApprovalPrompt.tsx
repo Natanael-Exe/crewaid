@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { JsonSchema, type Json } from '@crewaid/shared';
-import { Button } from '@heroui/react';
+import { Button, Checkbox, Disclosure, TextArea } from '@heroui/react';
 import type { PendingApproval } from '../../state/chatReducer';
 import { safeJson, summarizeInput, truncateForDisplay } from './toolParts';
 import { describeToolAsk } from './toolPhrase';
@@ -106,43 +106,52 @@ export function ApprovalPrompt({
           <ToolFields fields={fields} />
         ) : null}
         {approval.binding.scope === 'identity-turn' ? (
-          <p className="mt-1 text-[12px] text-muted">
+          <p className="mt-1 text-caption text-muted">
             {t('tools.approval.identity', { identity: approval.binding.seat?.identity ?? '' })}
           </p>
         ) : approval.binding.effect === 'unknown' ? (
-          <p className="mt-1 text-[12px] text-muted">{t('tools.approval.unknownEffect')}</p>
+          <p className="mt-1 text-caption text-muted">{t('tools.approval.unknownEffect')}</p>
         ) : null}
         {resource !== undefined ||
         ask.detail === null ||
         (presentation.kind === 'connection' && fields.length > 0) ? null : (
           <div
-            className={`mt-1 break-words text-[13px] opacity-70 ${ask.detailIsCode ? 'crewaid-code font-mono' : ''}`}
+            className={`mt-1 break-words text-footnote opacity-70 ${ask.detailIsCode ? 'crewaid-code font-mono' : ''}`}
           >
             {truncateForDisplay(ask.detail, DETAIL_CHARS)}
           </div>
         )}
 
         {review ? (
-          <div className="mt-2 text-[13px]" data-git-publish-review>
+          <div className="mt-2 text-footnote" data-git-publish-review>
             <p>
               {t('tools.approval.publish', {
                 repository: review.repository,
                 branch: review.branch,
               })}
             </p>
-            <details className="mt-1">
-              <summary>{t('tools.approval.reviewFiles')}</summary>
-              <pre className="crewaid-code mt-2 max-h-48 overflow-auto whitespace-pre-wrap text-[12px]">
-                {review.summary}
-              </pre>
-              <ul>
-                {review.files.map((file) => (
-                  <li key={file} className="break-all font-mono text-[12px]">
-                    {file}
-                  </li>
-                ))}
-              </ul>
-            </details>
+            <Disclosure defaultExpanded={false} className="mt-1">
+              <Disclosure.Heading>
+                <Disclosure.Trigger className="inline-flex items-center gap-1 rounded-md py-0.5 text-caption text-muted hover:text-foreground">
+                  {t('tools.approval.reviewFiles')}
+                  <Disclosure.Indicator className="size-3.5 text-muted" />
+                </Disclosure.Trigger>
+              </Disclosure.Heading>
+              <Disclosure.Content>
+                <Disclosure.Body>
+                  <pre className="crewaid-code mt-2 max-h-48 overflow-auto whitespace-pre-wrap text-caption">
+                    {review.summary}
+                  </pre>
+                  <ul>
+                    {review.files.map((file) => (
+                      <li key={file} className="break-all font-mono text-caption">
+                        {file}
+                      </li>
+                    ))}
+                  </ul>
+                </Disclosure.Body>
+              </Disclosure.Content>
+            </Disclosure>
           </div>
         ) : null}
 
@@ -150,11 +159,11 @@ export function ApprovalPrompt({
           // Open, scrollable, untruncated: see scriptUnderReview for why this
           // block is the review itself and not a pointer at one.
           <div className="mt-1.5">
-            <div className="text-[11px] font-semibold text-muted">{t('tools.approval.script')}</div>
+            <div className="text-micro font-semibold text-muted">{t('tools.approval.script')}</div>
             <pre
               data-approval-script
               dir="ltr"
-              className="mt-0.5 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded bg-black/5 px-2 py-1.5 font-mono text-[11px] leading-[15px]"
+              className="mt-0.5 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-separator bg-field px-2.5 py-2 font-mono text-micro leading-[15px] text-foreground"
             >
               {script}
             </pre>
@@ -164,44 +173,58 @@ export function ApprovalPrompt({
         {/* Everything technical lives here: which tool, and the arguments in
           full. It is one click away for the times the act is not the whole
           question, and out of the way the rest of the time. */}
-        <details className="mt-1.5">
-          <summary className="w-fit cursor-pointer list-none select-none text-[12px] text-muted hover:text-foreground [&::-webkit-details-marker]:hidden">
-            {t('tools.details')}
-          </summary>
-          <div className="mt-1 text-[12px] text-muted">
-            <span className="font-mono">{approval.toolName}</span>
-          </div>
-          {showFull ? (
-            <pre className="crewaid-code mt-1 max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-black/5 px-1.5 py-1 font-mono text-[11px] leading-[15px]">
-              {truncateForDisplay(full, ARGS_CHARS)}
-            </pre>
-          ) : null}
-          {answered === undefined && approval.binding.scope === 'call' ? (
-            <div className="mt-2">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={editing}
-                  onChange={(event) => setEditing(event.target.checked)}
-                />
-                {t('tools.approval.editArgs')}
-              </label>
-              {editing ? (
-                <>
-                  <textarea
-                    dir="ltr"
-                    aria-label={t('tools.approval.argsLabel')}
-                    className="mt-1 w-full rounded border border-border p-2 font-mono text-[12px]"
-                    rows={6}
-                    value={edited}
-                    onChange={(event) => setEdited(event.target.value)}
-                  />
-                  {!validEdit ? <p role="alert">{t('tools.approval.invalidJson')}</p> : null}
-                </>
+        <Disclosure defaultExpanded={false} className="mt-1.5">
+          <Disclosure.Heading>
+            <Disclosure.Trigger className="inline-flex items-center gap-1 rounded-md py-0.5 text-caption text-muted hover:text-foreground">
+              {t('tools.details')}
+              <Disclosure.Indicator className="size-3.5 text-muted" />
+            </Disclosure.Trigger>
+          </Disclosure.Heading>
+          <Disclosure.Content>
+            <Disclosure.Body>
+              <div className="mt-1 text-caption text-muted">
+                <span className="font-mono">{approval.toolName}</span>
+              </div>
+              {showFull ? (
+                <pre className="crewaid-code mt-1 max-h-48 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-separator bg-field px-2 py-1.5 font-mono text-micro leading-[15px] text-foreground">
+                  {truncateForDisplay(full, ARGS_CHARS)}
+                </pre>
               ) : null}
-            </div>
-          ) : null}
-        </details>
+              {answered === undefined && approval.binding.scope === 'call' ? (
+                <div className="mt-2 flex flex-col gap-1.5">
+                  <Checkbox isSelected={editing} onChange={setEditing}>
+                    <Checkbox.Content className="flex items-center gap-2">
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <span className="text-caption text-foreground">
+                        {t('tools.approval.editArgs')}
+                      </span>
+                    </Checkbox.Content>
+                  </Checkbox>
+                  {editing ? (
+                    <>
+                      <TextArea
+                        dir="ltr"
+                        variant="secondary"
+                        aria-label={t('tools.approval.argsLabel')}
+                        className="mt-1 w-full font-mono text-caption"
+                        rows={6}
+                        value={edited}
+                        onChange={(event) => setEdited(event.target.value)}
+                      />
+                      {!validEdit ? (
+                        <p role="alert" className="text-caption text-danger">
+                          {t('tools.approval.invalidJson')}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
+            </Disclosure.Body>
+          </Disclosure.Content>
+        </Disclosure>
 
         {answered === undefined ? (
           <div className="mt-2.5 flex gap-2">
@@ -233,7 +256,7 @@ export function ApprovalPrompt({
           // model still has to answer — and a row that vanished would leave the
           // operator unsure whether their answer landed. The server resolution
           // clears it in every connected window.
-          <div role="status" className="mt-1.5 text-[12px] text-muted">
+          <div role="status" className="mt-1.5 text-caption text-muted">
             {answered === 'approved'
               ? t('tools.approval.sent', { bot: botName })
               : t('tools.approval.leftAlone')}

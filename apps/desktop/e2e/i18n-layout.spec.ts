@@ -121,21 +121,28 @@ test('Arabic mirrors menus while drafts, inline code and terminal output keep th
     await draft.fill('رسالة بالعربية');
     await expect(draft).toHaveCSS('direction', 'rtl');
 
-    const reasoning = transcript.locator('details[data-reasoning]');
-    await reasoning.locator('summary').click();
-    await expect(reasoning.locator('summary svg')).toHaveCSS('rotate', '-90deg');
-    const activity = transcript.locator('[data-tool-activity] > details');
-    await activity.locator(':scope > summary').click();
-    await expect(activity.locator(':scope > summary svg')).toHaveCSS('rotate', '-90deg');
+    // Disclosures open with a downward chevron, which reads the same in
+    // either direction, so what matters in Arabic is that each one opens.
+    const reasoning = transcript
+      .locator('[data-reasoning]')
+      .locator('[data-slot="chain-of-thought-trigger"]');
+    await reasoning.click();
+    await expect(reasoning).toHaveAttribute('aria-expanded', 'true');
+    const activity = transcript
+      .locator('[data-tool-activity]')
+      .locator('[data-slot="chat-tool-group-trigger"]');
+    await activity.click();
+    await expect(activity).toHaveAttribute('aria-expanded', 'true');
     const terminal = transcript.locator('[data-tool-call="shell"]');
-    await terminal.locator('summary').click();
+    await terminal.locator('[data-slot="disclosure-trigger"]').click();
     await expect(terminal.locator('pre').first()).toHaveCSS('direction', 'ltr');
     await expect(terminal.locator('pre').nth(1)).toHaveCSS('unicode-bidi', 'isolate');
 
     await row.click({ button: 'right' });
     const menu = page.getByRole('menu', { name: ar['bots.actionsFor'].replace('{name}', 'Quill') });
-    await menu.getByRole('button', { name: ar['bots.menu.move'], exact: true }).hover();
-    const flyout = page.getByRole('menu', { name: ar['bots.moveTo'].replace('{name}', 'Quill') });
+    await menu.getByRole('menuitem', { name: ar['bots.menu.move'], exact: true }).hover();
+    // A submenu is named by the item that opens it.
+    const flyout = page.getByRole('menu', { name: ar['bots.menu.move'], exact: true });
     await expect(flyout).toBeVisible();
     const bounds = await menu.boundingBox();
     const flyoutBounds = await flyout.boundingBox();

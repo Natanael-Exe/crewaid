@@ -21,8 +21,8 @@ export function TemplateResultCard({ input, output }: { input?: unknown; output:
   return (
     <div className="crewaid-template-card my-2 flex max-w-[628px] flex-wrap items-center justify-between gap-4 rounded-card px-6 py-5">
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <p className="text-[18px] font-semibold">{entry.title}</p>
-        <p className="text-[13px] text-muted">
+        <p className="text-headline font-semibold">{entry.title}</p>
+        <p className="text-footnote text-muted">
           {crew
             ? t('experience.templateResultCard.specialists', {
                 count: entry.bots.length,
@@ -30,7 +30,7 @@ export function TemplateResultCard({ input, output }: { input?: unknown; output:
               })
             : entry.bots[0]?.role}
         </p>
-        <p className="text-[14px]">{entry.summary}</p>
+        <p className="text-callout">{entry.summary}</p>
       </div>
       <div className="flex shrink-0 flex-col items-center gap-2">
         <span className="flex" aria-hidden>

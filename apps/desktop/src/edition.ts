@@ -93,7 +93,7 @@ function parseEdition(
 }
 
 /**
- * The CC-07 store as a hosted build sees it: always pointing at its own
+ * The token store as a hosted build sees it: always pointing at its own
  * orchestrator, and unable to be pointed anywhere else.
  *
  * Reads report the compiled-in address whatever the file holds — including

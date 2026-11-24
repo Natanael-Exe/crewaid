@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { launchDesktop } from './launchDesktop';
+import { tokenColor } from './themeTokens';
 import { routeChat, routeScreenStream } from './stubChat';
 import { startStubAuthServer, type StubAuthServer } from './stubAuthServer';
 import type { CrewaidBridge, TokenStoreWriteResult } from '../src/preload.js';
@@ -308,7 +309,10 @@ test('a compiled draft is reviewed, edited, saved and approved — and a save sw
     // Editing: the raw source becomes an editor inside the developer view, and
     // saving lands a new version.
     await page.locator('[data-skill-action="edit"]').click();
-    await page.locator('[data-skill-developer] summary').click();
+    await page
+      .locator('[data-skill-developer]')
+      .getByRole('button', { name: 'Developer view', exact: true })
+      .click();
     await page.locator('[data-skill-script-editor]').fill(EDITED);
     await page.locator('[data-skill-action="save"]').click();
 
@@ -618,7 +622,7 @@ test('teaching controls preserve the live canvas and mouse movement without a re
     await expect(page.locator('[data-recording-phase="recording"]')).toBeVisible();
     await expect(
       page.locator('[data-recording-phase="recording"] span').filter({ hasText: 'Recording' }),
-    ).toHaveCSS('color', 'rgb(0, 0, 0)');
+    ).toHaveCSS('color', await tokenColor(page, '--foreground', 'color'));
     await moveWithoutClick();
     await page.locator('[data-recording-action="stop"]').click();
     await expect(page.locator('[data-recording-phase="ready"]')).toBeVisible();

@@ -28,7 +28,7 @@
  *
  * Because SetPixelFormat is swallowed, noVNC decodes using the format it
  * ASKED for while the wire carries the format the orchestrator pinned. The two
- * must be identical or the picture is quietly wrong — with the pre-M2-FE-01
+ * must be identical or the picture is quietly wrong — with the original
  * pinning they differed only in the shifts, so Tight rectangles were correct
  * (RFC 6143 fixes TPIXEL at R,G,B regardless) and Raw rectangles came out with
  * red and blue swapped. `SCREEN_PIXEL_FORMAT` below is that agreement written

@@ -1,0 +1,136 @@
+/*
+ * Crewaid's glass material on HeroUI's component classes: blur with
+ * saturation, a specular hairline rim, continuous (squircle) corners where
+ * Chromium supports them, and solid fallbacks under prefers-contrast and
+ * forced colors.
+ */
+@layer components {
+  .popover,
+  .dropdown__popover,
+  .select__popover,
+  .autocomplete__popover,
+  .combo-box__popover,
+  .date-picker__popover,
+  .modal__dialog,
+  .alert-dialog__dialog,
+  .tooltip {
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
+  }
+
+  .popover,
+  .dropdown__popover,
+  .select__popover,
+  .autocomplete__popover {
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--overlay-shadow);
+  }
+
+  /*
+   * Glass is the floating control layer only: shell panels, overlays, the top
+   * bar and the composer. Content inside a panel (cards, chips, fields,
+   * secondary buttons, message bubbles) stays plain tinted fill. Blurring
+   * inside an already-blurred panel shows nothing new but costs a GPU pass per
+   * element, which adds up across a long transcript.
+   */
+  .crewaid-composer-pill {
+    -webkit-backdrop-filter: var(--glass-filter-subtle);
+    backdrop-filter: var(--glass-filter-subtle);
+  }
+
+  .crewaid-crew-dock,
+  .crewaid-rail,
+  .crewaid-profile-pane,
+  .crewaid-work-detail,
+  .crewaid-work-pane,
+  .crewaid-welcome-card,
+  .crewaid-gate-card {
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /*
+   * The room's side panels are structure, not things floating over it: frost
+   * and shape alone set them off. A white rim and inner highlight read as a
+   * glow around every panel, and a drop shadow boxed the conversation in;
+   * lift is reserved for what genuinely floats (popovers, dialogs). The
+   * border stays as a transparent 1px so nothing shifts when it is dropped.
+   */
+  .crewaid-crew-dock,
+  .crewaid-rail,
+  .crewaid-profile-pane,
+  .crewaid-work-detail,
+  .crewaid-work-pane {
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  /* Progressive Apple continuous curvature on Electron/Chromium 140+. */
+  @supports (corner-shape: squircle) {
+    .crewaid-crew-dock,
+    .crewaid-rail,
+    .crewaid-profile-pane,
+    .crewaid-work-detail,
+    .crewaid-work-pane,
+    .crewaid-welcome-card,
+    .crewaid-gate-card,
+    .modal__dialog,
+    .card {
+      corner-shape: squircle;
+    }
+  }
+
+  /* Standard scrollbar tinting with WCAG 1.4.11 thumb contrast over glass. */
+  .crewaid-room * {
+    scrollbar-width: var(--scrollbar-width);
+    scrollbar-color: var(--scrollbar-color);
+  }
+
+  /* Reinforce glass boundaries and opacity for high-contrast accessibility. */
+  @media (prefers-contrast: more) {
+    [data-theme='crewaid'] {
+      --glass: oklch(100% 0 0 / 0.94);
+      --crew-dock: oklch(93% 0.01 262 / 0.96);
+      --glass-strong: oklch(100% 0 0 / 0.98);
+      --surface: oklch(100% 0 0);
+      --overlay: oklch(100% 0 0);
+      --glass-border: oklch(21.5% 0.044 290 / 0.28);
+      --border: oklch(21.5% 0.044 290 / 0.28);
+      --field-border: oklch(21.5% 0.044 290 / 0.3);
+    }
+
+    [data-theme='crewaid-dark'] {
+      --glass: oklch(19% 0.05 273 / 0.94);
+      --crew-dock: oklch(17% 0.05 273 / 0.96);
+      --glass-strong: oklch(19% 0.05 273 / 0.98);
+      --surface: oklch(22% 0.05 273);
+      --overlay: oklch(20% 0.05 273);
+      --glass-border: oklch(100% 0 0 / 0.34);
+      --border: oklch(100% 0 0 / 0.32);
+      --field-border: oklch(100% 0 0 / 0.34);
+    }
+  }
+
+  /* Forced Colors Mode (Windows High Contrast): system color fallbacks. */
+  @media (forced-colors: active) {
+    .crewaid-crew-dock,
+    .crewaid-rail,
+    .crewaid-profile-pane,
+    .crewaid-work-detail,
+    .crewaid-work-pane,
+    .crewaid-welcome-card,
+    .crewaid-gate-card,
+    .modal__dialog,
+    .popover,
+    .dropdown__popover,
+    .crewaid-composer-pill {
+      background: Canvas;
+      color: CanvasText;
+      border: 1px solid ButtonBorder;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+  }
+}

@@ -3,8 +3,7 @@ import type { RecordingCounts, RecordingView } from '../state/chatReducer';
 import { t } from '../i18n/i18n';
 
 /**
- * What the full-screen viewer's recording cluster should show (M3-FE-01,
- * M3-FE-02).
+ * What the full-screen viewer's recording cluster should show.
  *
  * Pure, like `screenCardState`: the surface this draws on is a canvas noVNC
  * owns, and the suite renders with `renderToStaticMarkup` — so the decision

@@ -1,37 +1,39 @@
-import { Button, Modal, useOverlayState } from '@heroui/react';
+import { Button, ScrollShadow } from '@heroui/react';
 import {
+  IconBrandTelegram,
+  IconChevronLeft,
   IconCreditCard,
   IconDeviceDesktop,
+  IconInfoCircle,
+  IconLogout,
   IconPlugConnected,
   IconSettings,
-  IconX,
-  IconBrandTelegram,
 } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import type { BillingResponse } from '@crewaid/shared';
+import { useEffect, useRef, useState } from 'react';
+import { ListView, Sheet, SheetButton } from '../components/ui';
 import { ConnectionsPane } from './ConnectionsPane';
 import { GeneralPane } from './GeneralPane';
 import { PlanPane } from './PlanPane';
 import { ComputerPane } from './ComputerPane';
 import { ChannelsPane } from './ChannelsPane';
+import { AboutPane } from './AboutPane';
+import { AccountIdentity, AccountUsage } from './AccountSummary';
+import { useBillingGlance } from './useBillingGlance';
 import { useAppEdition } from '../state/useAppEdition';
-import {
-  DEFAULT_SETTINGS_PANE,
-  panesFor,
-  settingsPane,
-  type SettingsPaneId,
-} from './settingsPanes';
+import { panesFor, settingsPane, type SettingsPaneId } from './settingsPanes';
 import { useT } from '../i18n/i18n';
 
 /**
- * The Settings modal.
+ * The Settings sheet: a full-window frosted overlay with a grouped index and
+ * one screen per pane.
  *
- * Open state is owned by the shell and passed in, because two things open it —
- * the account menu and the right rail's gear — and a modal that owned its own
- * flag would need each of them to reach inside it.
+ * Open state is owned by the shell and passed in, because several things open
+ * it — the account avatar, the right rail's gear, the plan-use notice — and a
+ * sheet that owned its own flag would need each of them to reach inside it.
  *
- * The nav is buttons under a `<nav>`, deliberately not `role="tab"`: real tab
- * semantics carry an arrow-key contract, and claiming the role without honoring
- * it is worse for a screen reader than the plain landmark.
+ * Escape walks back the way the user came: from a pane to the index, then
+ * closed. The ✕ always closes.
  */
 
 const PANE_ICONS: Record<SettingsPaneId, typeof IconSettings> = {
@@ -40,94 +42,193 @@ const PANE_ICONS: Record<SettingsPaneId, typeof IconSettings> = {
   connections: IconPlugConnected,
   plan: IconCreditCard,
   computer: IconDeviceDesktop,
+  about: IconInfoCircle,
+};
+
+/** The index's main group; Plan has its own card and About its own group. */
+const MAIN_GROUP: readonly SettingsPaneId[] = ['general', 'connections', 'channels', 'computer'];
+
+type SettingsView = 'index' | SettingsPaneId;
+
+export type SettingsAccount = {
+  readonly name: string;
+  readonly email: string;
+  readonly initials: string;
+  readonly image: string | undefined;
 };
 
 export type SettingsModalProps = {
   readonly isOpen: boolean;
   readonly onOpenChange: (open: boolean) => void;
-  /** The pane to show when opened; General when absent. */
+  /** The pane to open straight onto; the index when absent. */
   readonly initialPane?: SettingsPaneId;
   /** Fired after credentials are stored, so the shell can reconnect. */
   readonly onCredentialsSaved?: () => void;
+  /** Who is signed in; the index leads with it. */
+  readonly account?: SettingsAccount;
+  readonly onSignOut?: () => void;
 };
+
+function rowId(id: SettingsPaneId): string {
+  return `crewaid-settings-row-${id}`;
+}
 
 export function SettingsModal({
   isOpen,
   onOpenChange,
   onCredentialsSaved,
   initialPane,
+  account,
+  onSignOut,
 }: SettingsModalProps) {
   const t = useT();
-  const overlay = useOverlayState({ isOpen, onOpenChange });
-  const [active, setActive] = useState<SettingsPaneId>(DEFAULT_SETTINGS_PANE);
-  // Opened on a particular pane — the plan-use notice's button opens Plan &
-  // usage — and otherwise left where the operator last was.
+  const edition = useAppEdition();
+  const plan = useBillingGlance(edition === 'cloud');
+  const [active, setActive] = useState<SettingsView>('index');
+  // The pane the index was left for, so coming back puts focus on its row
+  // instead of dropping it on the document, where Escape would reach nothing.
+  const leftFor = useRef<SettingsPaneId | null>(null);
+  const backRef = useRef<HTMLButtonElement>(null);
+  const { refresh } = plan;
+
   useEffect(() => {
-    if (isOpen && initialPane !== undefined) setActive(initialPane);
-  }, [isOpen, initialPane]);
-  const pane = settingsPane(active);
-  const panes = panesFor(useAppEdition());
+    if (!isOpen) return;
+    setActive(initialPane ?? 'index');
+    leftFor.current = null;
+    refresh();
+  }, [isOpen, initialPane, refresh]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const frame = requestAnimationFrame(() => {
+      if (active !== 'index') backRef.current?.focus();
+      else if (leftFor.current !== null) document.getElementById(rowId(leftFor.current))?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [active, isOpen]);
+
+  const open = (id: SettingsPaneId) => {
+    leftFor.current = id;
+    setActive(id);
+  };
+  const back = () => setActive('index');
 
   return (
-    <Modal state={overlay}>
-      <Modal.Backdrop>
-        <Modal.Container size="lg" placement="center" className="sm:w-auto">
-          {/* `.modal__dialog` is `flex flex-col max-w-lg p-6`, so the direction,
-              the width cap and the padding all have to be overridden here — a
-              bare `flex` leaves the nav stacked on top of the body. */}
-          <Modal.Dialog
-            aria-label={t('settings.title')}
-            className="crewaid-settings-dialog flex h-[640px] max-h-[90vh] w-[920px] max-w-[94vw] flex-row overflow-hidden rounded-card bg-surface p-0"
+    <Sheet
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      aria-label={t('settings.title')}
+      onEscape={active === 'index' ? undefined : back}
+      className="crewaid-settings-dialog"
+    >
+      <div className="crewaid-sheet-bar window-drag flex h-16 shrink-0 items-center gap-3 px-6 pt-4">
+        {active === 'index' ? null : (
+          <Button
+            ref={backRef}
+            variant="secondary"
+            size="sm"
+            onPress={back}
+            aria-label={t('settings.backLabel')}
+            className="crewaid-sheet-button h-10 gap-1.5 rounded-full ps-3 pe-4"
           >
-            <nav
-              aria-label={t('settings.sections')}
-              className="crewaid-settings-nav flex w-[212px] shrink-0 flex-col gap-1 px-3.5 py-6"
-            >
-              <h2 className="crewaid-settings-title px-2.5 pb-3.5">{t('settings.title')}</h2>
-              {panes.map((entry) => {
-                const Icon = PANE_ICONS[entry.id];
-                const selected = entry.id === active;
-                return (
-                  <Button
-                    key={entry.id}
-                    variant="ghost"
-                    fullWidth
-                    {...(selected ? { 'aria-current': 'true' as const } : {})}
-                    onPress={() => setActive(entry.id)}
-                    className="crewaid-settings-nav-item flex h-[38px] items-center justify-start gap-2.5 rounded-xl px-3 text-[14px] font-normal"
-                  >
-                    <Icon className="size-4 shrink-0" stroke={1.8} />
-                    {entry.label}
-                  </Button>
-                );
-              })}
-            </nav>
-
-            <div className="crewaid-settings-content flex min-w-0 flex-1 flex-col">
-              <div className="crewaid-settings-header flex shrink-0 items-start justify-between gap-4 px-[30px] pb-[22px] pt-[26px]">
-                <div className="min-w-0">
-                  <h2 className="text-[19px] font-semibold text-foreground">{pane.label}</h2>
-                  <p className="mt-1 text-[12px] leading-[17px] text-muted">{pane.summary}</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  isIconOnly
-                  size="sm"
-                  aria-label={t('settings.close')}
-                  onPress={() => onOpenChange(false)}
-                  className="crewaid-settings-close size-8 shrink-0 rounded-full text-muted"
-                >
-                  <IconX className="size-4" stroke={1.8} />
-                </Button>
-              </div>
-              <div className="crewaid-settings-body min-h-0 flex-1 overflow-y-auto px-[30px] pb-7">
-                <SettingsPaneBody id={active} onCredentialsSaved={onCredentialsSaved} />
-              </div>
+            <IconChevronLeft className="size-4 rtl:-scale-x-100" stroke={1.8} aria-hidden />
+            {t('settings.title')}
+          </Button>
+        )}
+        <SheetButton
+          label={t('settings.close')}
+          onPress={() => onOpenChange(false)}
+          className="ms-auto"
+        />
+      </div>
+      <ScrollShadow hideScrollBar={false} className="min-h-0 flex-1 overflow-y-auto">
+        {active === 'index' ? (
+          <SettingsIndex
+            edition={edition}
+            account={account}
+            billing={plan.billing}
+            onOpen={open}
+            {...(onSignOut === undefined
+              ? {}
+              : {
+                  onSignOut: () => {
+                    onOpenChange(false);
+                    onSignOut();
+                  },
+                })}
+          />
+        ) : (
+          <div className="mx-auto flex w-full max-w-[640px] flex-col px-6 pt-2 pb-16">
+            <div className="crewaid-settings-header mb-5 px-1">
+              <h2>{settingsPane(active).label}</h2>
+              <p className="mt-1">{settingsPane(active).summary}</p>
             </div>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+            <SettingsPaneBody id={active} onCredentialsSaved={onCredentialsSaved} />
+          </div>
+        )}
+      </ScrollShadow>
+    </Sheet>
+  );
+}
+
+/**
+ * The sheet's first screen: who is signed in, the plan, then every pane as a
+ * row. Exported so it can be rendered — and asserted — without the overlay.
+ */
+export function SettingsIndex({
+  edition,
+  account,
+  billing,
+  onOpen,
+  onSignOut,
+}: {
+  readonly edition: Parameters<typeof panesFor>[0];
+  readonly account?: SettingsAccount | undefined;
+  readonly billing: BillingResponse | null;
+  readonly onOpen: (id: SettingsPaneId) => void;
+  readonly onSignOut?: () => void;
+}) {
+  const t = useT();
+  const panes = panesFor(edition);
+  const has = (id: SettingsPaneId) => panes.some((pane) => pane.id === id);
+  const row = (id: SettingsPaneId) => (
+    <ListView.Item
+      key={id}
+      id={rowId(id)}
+      icon={PANE_ICONS[id]}
+      label={settingsPane(id).label}
+      onPress={() => onOpen(id)}
+    />
+  );
+  return (
+    <div className="mx-auto flex w-full max-w-[580px] flex-col gap-4 px-6 pt-4 pb-16">
+      <h2 className="sr-only">{t('settings.title')}</h2>
+      {account === undefined ? null : <AccountIdentity {...account} />}
+
+      {/* The plan glance, where the plan pane exists and the server answered.
+          Without an answer the pane is still a row in the main group. */}
+      {!has('plan') || billing === null ? null : (
+        <ListView aria-label={t('account.planAndUsage')}>
+          <li className="crewaid-list-view-item">
+            <AccountUsage billing={billing} />
+          </li>
+          {row('plan')}
+        </ListView>
+      )}
+
+      <ListView aria-label={t('settings.sections')}>
+        {MAIN_GROUP.filter(has).map(row)}
+        {has('plan') && billing === null ? row('plan') : null}
+      </ListView>
+
+      <ListView aria-label={t('settings.pane.about')}>{row('about')}</ListView>
+
+      {onSignOut === undefined ? null : (
+        <ListView aria-label={t('account.logout')}>
+          <ListView.Item icon={IconLogout} label={t('account.logout')} onPress={onSignOut} />
+        </ListView>
+      )}
+    </div>
   );
 }
 
@@ -154,5 +255,7 @@ export function SettingsPaneBody({
       return <PlanPane />;
     case 'computer':
       return <ComputerPane />;
+    case 'about':
+      return <AboutPane />;
   }
 }

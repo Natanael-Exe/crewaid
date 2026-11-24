@@ -209,12 +209,12 @@ test('chat output cards retain their identity, safe previews and existing action
       // is on, asserted after the theme loop below.
       await expect(transcript.locator('[data-tool-call="browser_navigate"]')).toHaveCount(0);
       await expect(transcript.locator('[data-tool-call="shell"]')).toHaveCount(0);
-      const details = email.locator('summary', { hasText: 'Details' });
+      const details = email.getByRole('button', { name: 'Details', exact: true });
       await details.focus();
       await page.keyboard.press('Enter');
-      await expect(email.locator('details')).toHaveAttribute('open', '');
+      await expect(details).toHaveAttribute('aria-expanded', 'true');
       await page.keyboard.press('Enter');
-      await expect(email.locator('details')).not.toHaveAttribute('open', '');
+      await expect(details).toHaveAttribute('aria-expanded', 'false');
       await email.scrollIntoViewIfNeeded();
       await page.evaluate(() => document.fonts.ready);
       await page.screenshot({ path: test.info().outputPath(`email-preview-${theme}.png`) });

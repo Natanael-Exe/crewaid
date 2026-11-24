@@ -123,8 +123,8 @@ test('the rail gear opens the BOT profile, not the app settings', async () => {
     await expect(pane.getByLabel('Description')).toHaveValue('You research things.');
     await expect(page.getByRole('dialog', { name: 'Settings' })).toHaveCount(0);
 
-    // Save stays inert until something actually changes.
-    await expect(pane.getByRole('button', { name: 'Save' })).toBeDisabled();
+    // Save appears only once something actually changes.
+    await expect(pane.getByRole('button', { name: 'Save' })).toHaveCount(0);
     await pane.getByLabel('Name').fill('renamed');
     await expect(pane.getByRole('button', { name: 'Save' })).toBeEnabled();
 
@@ -148,11 +148,14 @@ test('a row menu opens from inside the virtualized list and offers the five back
     const row = page.getByRole('option', { name: /bot-02/ });
     await expect(row).toBeVisible();
     await page.getByRole('button', { name: 'Filter bots', exact: true }).click();
-    await expect(page.getByRole('textbox', { name: 'Search bots' })).toBeVisible();
+    await expect(page.getByRole('searchbox', { name: 'Search bots' })).toBeVisible();
     const geometry = await page.evaluate(() => {
-      const search = document.querySelector<HTMLInputElement>('input[aria-label="Search bots"]');
+      // The field's visible box is its group; the input starts after the icon.
+      const search = document
+        .querySelector<HTMLInputElement>('input[aria-label="Search bots"]')
+        ?.closest<HTMLElement>('[data-slot="search-field-group"]');
       const row = document.querySelector<HTMLElement>('[role="listbox"] [role="option"]');
-      if (search === null || row === null) return null;
+      if (search === null || search === undefined || row === null) return null;
       const searchRect = search.getBoundingClientRect();
       const rowRect = row.getBoundingClientRect();
       return {
@@ -343,7 +346,7 @@ test('File New Bot opens the creation dialog, including after closing the last m
     app = await launchDesktop(profileDir);
     let page = await app.firstWindow();
     await setUp(page);
-    await expect(page.getByRole('button', { name: /account menu/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /account and settings/i })).toBeVisible();
     await app.evaluate(({ Menu }) => {
       const item = Menu.getApplicationMenu()!.getMenuItemById('crewaid.new-bot')!;
       (item.click as () => void)();

@@ -8,25 +8,14 @@ import {
   type Icon,
 } from '@tabler/icons-react';
 import { MascotFace } from '../components/BotAvatar';
+import { ItemCard, ItemCardGroup } from '../components/ui';
 import { AVATAR_COLORS } from './botProfileForm';
 import { useT, t } from '../i18n/i18n';
 
 /**
  * What the transcript pane shows when the orchestrator answered and there are
  * no bots — in practice, a person's first minute in the app.
- *
- * "No bots yet" was true and useless: it named the state and left the reader
- * to guess what a bot is for. This names what one can do, in the order a
- * person meets it, and puts the one action beside it.
- *
- * Capabilities, never roles. Every line is something any bot can do, with no
- * suggestion of what a bot should BE — that is the operator's to write, and a
- * list of example jobs here would be the app deciding it for them.
- *
- * Every line names something that ships. A welcome that promises a feature the
- * next screen cannot find is worse than the blank pane it replaced.
  */
-
 export const WELCOME_POINTS: readonly {
   readonly icon: Icon;
   readonly title: string;
@@ -77,41 +66,47 @@ export function FirstBotWelcome({ onCreateBot }: { onCreateBot: () => void }) {
       <div className="crewaid-welcome-card m-auto flex w-full max-w-[600px] flex-col">
         <WelcomeCrew />
 
-        <h1 className="mt-6 text-[20px] font-semibold tracking-[-0.01em] text-foreground">
+        <h1 className="mt-6 text-heading font-semibold tracking-[-0.01em] text-foreground">
           {t('bots.firstBotWelcome.createYourFirstBot')}
         </h1>
-        <p className="mt-1.5 text-[13px] leading-5 text-muted">
+        <p className="mt-1.5 text-footnote leading-5 text-muted">
           {t('bots.firstBotWelcome.aBotIsAnAi')}
         </p>
 
-        <ul className="mt-6 flex flex-col gap-4">
+        <ItemCardGroup.Root layout="grid" columns={2} variant="transparent" className="mt-6 gap-3">
           {WELCOME_POINTS.map(({ icon: PointIcon, title, body }) => (
-            <li key={title} className="flex gap-3">
-              <span
+            <ItemCard.Root
+              key={title}
+              variant="outline"
+              className="items-start gap-3 rounded-card p-3.5"
+            >
+              <ItemCard.Icon
                 aria-hidden
-                className="grid size-8 shrink-0 place-items-center rounded-lg border border-border bg-surface"
+                className="grid size-8 shrink-0 place-items-center rounded-[10px] border border-border bg-surface text-foreground"
               >
-                <PointIcon className="size-4 text-foreground" stroke={1.8} />
-              </span>
-              <div className="min-w-0">
-                <div className="text-[13px] font-medium text-foreground">{title}</div>
-                <div className="text-[12.5px] leading-[18px] text-muted">{body}</div>
-              </div>
-            </li>
+                <PointIcon className="size-4" stroke={1.8} />
+              </ItemCard.Icon>
+              <ItemCard.Content>
+                <ItemCard.Title>{title}</ItemCard.Title>
+                <ItemCard.Description className="line-clamp-3 leading-[18px]">
+                  {body}
+                </ItemCard.Description>
+              </ItemCard.Content>
+            </ItemCard.Root>
           ))}
-        </ul>
+        </ItemCardGroup.Root>
 
         <div className="mt-7 flex items-center gap-3">
           <Button
             variant="primary"
             size="sm"
             onPress={onCreateBot}
-            className="h-9 rounded-[10px] px-4 text-[13px] font-medium"
+            className="h-9 rounded-[10px] px-4 text-footnote font-medium"
           >
             <IconPlus className="size-4" stroke={2} />
             {t('bots.firstBotWelcome.createABot')}
           </Button>
-          <span className="text-[12px] text-foreground-faint">
+          <span className="text-caption text-foreground-faint">
             {t('bots.firstBotWelcome.orPressN')}
           </span>
         </div>
@@ -121,11 +116,7 @@ export function FirstBotWelcome({ onCreateBot }: { onCreateBot: () => void }) {
 }
 
 /**
- * Three mascots, one of them busy — the product in one picture: several
- * separate creatures, each doing its own thing. Drawn with the same face the
- * sidebar will show once a real bot exists, so the first bot looks like it
- * belongs to the illustration that introduced it. Also heads the plan screen
- * before it, so the two first screens read as one introduction.
+ * Three mascots, one of them busy — the product in one picture.
  */
 export function WelcomeCrew() {
   return (

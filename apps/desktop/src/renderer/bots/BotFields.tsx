@@ -1,7 +1,7 @@
+import { ColorSwatchPicker, Disclosure, Input, TextArea } from '@heroui/react';
 import { IconLock } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { BotAvatar, MascotFace } from '../components/BotAvatar';
-import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
 import { AVATAR_COLORS, AVATAR_SHAPES, type BotDraft } from './botProfileForm';
 import { useT, t } from '../i18n/i18n';
 
@@ -26,6 +26,7 @@ export function BotFields({
   promptRows = 7,
   fallbackName = t('bots.newBot'),
   mainAssistant = false,
+  defaultLookOpen = true,
 }: {
   draft: BotDraft;
   onChange: (next: BotDraft) => void;
@@ -38,6 +39,8 @@ export function BotFields({
    * for in those words.
    */
   mainAssistant?: boolean;
+  /** Whether the avatar shape and colour start laid out (a new bot) or folded. */
+  defaultLookOpen?: boolean;
 }) {
   const t = useT();
   const nameId = `${idPrefix}-name`;
@@ -57,81 +60,99 @@ export function BotFields({
           }}
           size="md"
         />
-        {/* Shape first, then colour: the preview above shows both, and the
-            shape is the one an operator has to look for — the colour reads as
-            a swatch on its own, the silhouette only in context. */}
-        <div
-          role="radiogroup"
-          aria-label={t('bots.botFields.avatarShape')}
-          className="grid grid-cols-8 gap-1.5"
-        >
-          {AVATAR_SHAPES.map((shape) => (
-            <button
-              key={shape}
-              type="button"
-              role="radio"
-              aria-checked={draft.avatarShape === shape}
-              aria-label={t('bots.avatarShape', { shape })}
-              onClick={() => onChange({ ...draft, avatarShape: shape })}
-              className={`grid size-8 place-items-center rounded-lg p-1 outline-none transition-colors ${
-                draft.avatarShape === shape
-                  ? 'bg-background-tertiary ring-2 ring-focus'
-                  : 'hover:bg-background-secondary'
-              }`}
-            >
-              <MascotFace name={draft.name} color={draft.avatarColor} shape={shape} />
-            </button>
-          ))}
-        </div>
+        {/* The look is a once-in-a-while choice, so a profile opened to edit
+            the brief keeps it folded; a new bot opens with it laid out. */}
+        <Disclosure defaultExpanded={defaultLookOpen} className="w-full">
+          <Disclosure.Heading className="flex justify-center">
+            <Disclosure.Trigger className="crewaid-look-trigger flex cursor-[var(--cursor-interactive)] items-center gap-1.5 rounded-full bg-surface/60 px-3 py-1 text-caption font-medium text-muted outline-none data-[hovered]:bg-surface/90 data-[hovered]:text-foreground data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40">
+              {t('bots.botFields.customizeAppearance')}
+              <Disclosure.Indicator className="size-3.5" />
+            </Disclosure.Trigger>
+          </Disclosure.Heading>
+          <Disclosure.Content>
+            <Disclosure.Body className="flex flex-col items-center gap-3 pt-3">
+              {/* Shape first, then colour: the preview above shows both, and
+                  the shape is the one an operator has to look for — the colour
+                  reads as a swatch on its own, the silhouette only in context. */}
+              <div
+                role="radiogroup"
+                aria-label={t('bots.botFields.avatarShape')}
+                className="grid grid-cols-8 gap-1.5"
+              >
+                {AVATAR_SHAPES.map((shape) => (
+                  <button
+                    key={shape}
+                    type="button"
+                    role="radio"
+                    aria-checked={draft.avatarShape === shape}
+                    aria-label={t('bots.avatarShape', { shape })}
+                    onClick={() => onChange({ ...draft, avatarShape: shape })}
+                    className={`grid size-8 cursor-[var(--cursor-interactive)] place-items-center rounded-lg p-1 outline-none ${
+                      draft.avatarShape === shape
+                        ? 'bg-background-tertiary ring-2 ring-focus'
+                        : 'hover:bg-background-secondary'
+                    }`}
+                  >
+                    <MascotFace name={draft.name} color={draft.avatarColor} shape={shape} />
+                  </button>
+                ))}
+              </div>
 
-        <div
-          role="radiogroup"
-          aria-label={t('bots.botFields.avatarColour')}
-          className="flex flex-wrap justify-center gap-1.5"
-        >
-          {AVATAR_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              role="radio"
-              aria-checked={draft.avatarColor === color}
-              aria-label={t('bots.avatarColour', { color })}
-              onClick={() => onChange({ ...draft, avatarColor: color })}
-              style={{ backgroundColor: color }}
-              className={`size-5 rounded-full outline-none transition-transform ${
-                draft.avatarColor === color
-                  ? 'ring-2 ring-focus ring-offset-2 ring-offset-background'
-                  : 'hover:scale-110'
-              }`}
-            />
-          ))}
-        </div>
+              <ColorSwatchPicker
+                aria-label={t('bots.botFields.avatarColour')}
+                value={draft.avatarColor}
+                onChange={(color) => {
+                  // The picker answers in its own hex casing; the palette's
+                  // spelling is the one the server stores.
+                  const hex = color.toString('hex').toLowerCase();
+                  const match = AVATAR_COLORS.find((candidate) => candidate === hex);
+                  if (match !== undefined) onChange({ ...draft, avatarColor: match });
+                }}
+                size="sm"
+                className="flex-wrap justify-center"
+              >
+                {AVATAR_COLORS.map((color) => (
+                  <ColorSwatchPicker.Item
+                    key={color}
+                    color={color}
+                    aria-label={t('bots.avatarColour', { color })}
+                  >
+                    <ColorSwatchPicker.Swatch colorName={t('bots.avatarColour', { color })} />
+                    <ColorSwatchPicker.Indicator />
+                  </ColorSwatchPicker.Item>
+                ))}
+              </ColorSwatchPicker>
+            </Disclosure.Body>
+          </Disclosure.Content>
+        </Disclosure>
       </div>
 
       {mainAssistant ? (
-        <dl className="flex flex-col gap-2 text-[13px]">
+        <dl className="flex flex-col gap-2 text-footnote">
           <LockedRow label={t('bots.botFields.name')} value={draft.name} />
           <LockedRow label={t('bots.botFields.label')} value={draft.role} />
         </dl>
       ) : (
         <>
           <Field id={nameId} label={t('bots.botFields.name')}>
-            <input
+            <Input
               id={nameId}
+              variant="secondary"
               value={draft.name}
               onChange={(event) => onChange({ ...draft, name: event.target.value })}
-              className={SETTINGS_INPUT_CLASS}
+              className="w-full"
             />
           </Field>
 
           {/* "Label" is the reference app's word for what PRD §3 calls `role`. The
               reference marks it optional; the column is not, so neither is this. */}
           <Field id={roleId} label={t('bots.botFields.label')}>
-            <input
+            <Input
               id={roleId}
+              variant="secondary"
               value={draft.role}
               onChange={(event) => onChange({ ...draft, role: event.target.value })}
-              className={SETTINGS_INPUT_CLASS}
+              className="w-full"
             />
           </Field>
         </>
@@ -141,7 +162,7 @@ export function BotFields({
           the friendlier one — but this text is what the model is told, not a
           note about the bot, so the placeholder says so.
 
-          CC-50: it used to ask what the bot is FOR, and got job descriptions
+          It used to ask what the bot is FOR, and got job descriptions
           back. A brief that names a function produces a bot that reads like a
           function; the same field asked for a person produces a colleague, and
           it is the single largest lever this product has over how its bots
@@ -155,8 +176,9 @@ export function BotFields({
             : t('bots.botFields.description')
         }
       >
-        <textarea
+        <TextArea
           id={promptId}
+          variant="secondary"
           rows={promptRows}
           placeholder={
             mainAssistant
@@ -165,10 +187,10 @@ export function BotFields({
           }
           value={draft.systemPrompt}
           onChange={(event) => onChange({ ...draft, systemPrompt: event.target.value })}
-          className={`${SETTINGS_INPUT_CLASS} h-auto resize-none py-2 leading-[18px]`}
+          className="w-full resize-none"
         />
         {mainAssistant ? (
-          <p className="mt-1.5 text-[12px] text-muted">
+          <p className="mt-1.5 text-caption text-muted">
             {t('bots.mainPromptPrivate', { name: draft.name })}
           </p>
         ) : null}
@@ -180,7 +202,7 @@ export function BotFields({
 function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-[12px] text-muted">
+      <label htmlFor={id} className="mb-1.5 block text-caption text-muted">
         {label}
       </label>
       {children}

@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { CrewaidBridge, TokenStoreWriteResult } from '../src/preload.js';
 import { launchDesktop } from './launchDesktop';
+import { tokenColor } from './themeTokens';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const SERVER_ENTRY = path.join(REPO_ROOT, 'apps/orchestrator/scripts/e2e-server.mjs');
@@ -201,7 +202,11 @@ for (const reloadBeforeApproval of [false, true]) {
       expect(await rememberedTexts(baseUrl, botId)).toEqual([]);
 
       await first.emulateMedia({ colorScheme: 'light' });
-      await expect(prompt(first)).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+      await expect(first.locator('html')).toHaveAttribute('data-theme', 'crewaid');
+      await expect(prompt(first)).toHaveCSS(
+        'background-color',
+        await tokenColor(first, '--approval-pending-background'),
+      );
       const decline = first.getByRole('button', { name: 'Decline remember' });
       await expect(decline).toHaveCSS('color', 'rgb(255, 255, 255)');
       await expect(approve(first)).toHaveCSS('background-color', 'rgb(255, 255, 255)');
@@ -211,7 +216,11 @@ for (const reloadBeforeApproval of [false, true]) {
           path: path.resolve('../../.artifacts/cc79/pending-action-light.png'),
         });
       await first.emulateMedia({ colorScheme: 'dark' });
-      await expect(prompt(first)).toHaveCSS('background-color', 'rgb(16, 20, 48)');
+      await expect(first.locator('html')).toHaveAttribute('data-theme', 'crewaid-dark');
+      await expect(prompt(first)).toHaveCSS(
+        'background-color',
+        await tokenColor(first, '--approval-pending-background'),
+      );
       await expect(decline).toHaveCSS('color', 'rgb(255, 255, 255)');
       if (process.env['CC79_CAPTURE'] === '1')
         await first.screenshot({
@@ -224,8 +233,12 @@ for (const reloadBeforeApproval of [false, true]) {
         await expect(prompt(first)).toHaveCount(1);
       }
 
-      await prompt(first).locator('summary').click();
-      await first.getByLabel('Edit arguments before approving').check();
+      await prompt(first).getByRole('button', { name: 'Details', exact: true }).click();
+      // The input is react-aria's visually hidden one; a person clicks the label.
+      await prompt(first).getByText('Edit arguments before approving').click();
+      await expect(
+        prompt(first).getByRole('checkbox', { name: 'Edit arguments before approving' }),
+      ).toBeChecked();
       const input = first.getByLabel('Approval arguments as JSON');
       // The editor opens on the arguments the policy reviewed, so what the
       // operator edits is what they were asked about.

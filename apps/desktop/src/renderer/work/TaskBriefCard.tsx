@@ -57,24 +57,24 @@ export function TaskBriefCard({
         title={timeLabel}
         className="flex w-full max-w-[72%] flex-col gap-2 rounded-card border border-border bg-surface px-3.5 py-3"
       >
-        <div className="flex items-center gap-2 text-[11px] font-medium text-muted">
+        <div className="flex items-center gap-2 text-micro font-medium text-muted">
           <IconChecklist className="size-3.5" stroke={1.8} />
           {t('work.taskBriefCard.taskStarted')}
         </div>
         {brief.title === '' ? null : (
-          <div className="text-[14px] font-semibold leading-5 text-foreground">{brief.title}</div>
+          <div className="text-callout font-semibold leading-5 text-foreground">{brief.title}</div>
         )}
         {brief.context === null ? null : (
-          <div className="text-[12px] text-muted">{brief.context}</div>
+          <div className="text-caption text-muted">{brief.context}</div>
         )}
         {brief.body === '' ? null : (
-          <StreamingMarkdown source={brief.body} className="text-[13px] leading-5" />
+          <StreamingMarkdown source={brief.body} className="text-footnote leading-5" />
         )}
         {onOpenTask === undefined ? null : (
           <button
             type="button"
             onClick={() => onOpenTask(taskId)}
-            className="self-start text-[12px]! font-medium text-accent hover:underline"
+            className="self-start text-caption font-medium text-accent hover:underline"
           >
             {t('work.taskBriefCard.openTask')}
           </button>

@@ -1,10 +1,12 @@
+import { Avatar } from '@heroui/react';
 import { useState } from 'react';
 
 /**
  * The signed-in person's face, or their initials when there is no face to show.
  *
  * One component for every place the account appears, so the sidebar row, the
- * menu header and Settings cannot disagree about who is signed in.
+ * menu header and Settings cannot disagree about who is signed in. It is
+ * HeroUI's Avatar, so every account mark shares the design system's tokens.
  *
  * The photo is a third-party URL, so it can fail after the session is fine: an
  * expired Google link, a revoked GitHub avatar, no network. The failure is
@@ -23,16 +25,16 @@ export function AccountAvatar({
 }: {
   initials: string;
   image: string | undefined;
-  /** Size and type scale; the shape and colours are fixed here. */
+  /** Size and type scale; shape and tokens are owned by HeroUI Avatar. */
   className: string;
 }) {
   const [failed, setFailed] = useState<string | null>(null);
   const showImage = image !== undefined && failed !== image;
 
   return (
-    <span
+    <Avatar
       aria-hidden
-      className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-background-tertiary font-medium text-muted ${className}`}
+      className={`shrink-0 bg-surface-tertiary font-medium text-muted ${className}`}
     >
       {showImage ? (
         <img
@@ -40,12 +42,14 @@ export function AccountAvatar({
           alt=""
           referrerPolicy="no-referrer"
           draggable={false}
-          className="size-full object-cover"
+          className="avatar__image size-full object-cover"
           onError={() => setFailed(image)}
         />
       ) : (
-        initials
+        // Inherit the container's fill and ink: HeroUI's fallback paints its
+        // own grey default otherwise, which read dark-on-dark in the top bar.
+        <Avatar.Fallback className="bg-transparent text-inherit">{initials}</Avatar.Fallback>
       )}
-    </span>
+    </Avatar>
   );
 }

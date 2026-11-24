@@ -1,20 +1,13 @@
-import { createPortal } from 'react-dom';
 import { IconArrowDown, IconArrowUp, IconPencil, IconTrash } from '@tabler/icons-react';
-import { useEffect, useRef } from 'react';
 import type { BotGroup } from '@crewaid/shared';
-import { ContextMenuItem, ContextMenuSeparator, type BotMenuPosition } from './BotRowMenu';
+import { ContextMenu } from '../components/ui';
 import { useT } from '../i18n/i18n';
-
-const MENU_WIDTH = 200;
-const MENU_MARGIN = 8;
+import type { BotMenuPosition } from './BotRowMenu';
 
 /**
- * A group header's menu.
- *
- * Rendered by the sidebar OUTSIDE the virtualized list, like the bot row
- * menu, and for a reason that showed on screen: a React Aria menu mounted
- * inside the list's section inherits the list's layout, so it drew
- * full-width with every item a bot row tall.
+ * A group header's context menu, rendered outside the virtualized ListBox
+ * as a ContextMenu, so arrow-key navigation, disabled items and the glass
+ * overlay match every other menu.
  */
 export function GroupMenu({
   group,
@@ -27,7 +20,6 @@ export function GroupMenu({
   onDelete,
 }: {
   group: BotGroup;
-  /** Where the header was right-clicked. */
   position: BotMenuPosition;
   onClose: () => void;
   canMoveUp: boolean;
@@ -37,85 +29,62 @@ export function GroupMenu({
   onDelete: () => void;
 }) {
   const t = useT();
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const disabledKeys: string[] = [];
+  if (!canMoveUp) disabledKeys.push('up');
+  if (!canMoveDown) disabledKeys.push('down');
 
-  useEffect(() => {
-    const onPointerDown = (event: PointerEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node) || menuRef.current?.contains(target) !== true) onClose();
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      event.preventDefault();
-      onClose();
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    menuRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"] button')?.focus();
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [onClose]);
-
-  // Opens at the pointer, kept inside the window.
-  const left = Math.max(
-    MENU_MARGIN,
-    Math.min(
-      position.x,
-      (typeof window === 'undefined' ? Infinity : window.innerWidth) - MENU_WIDTH - MENU_MARGIN,
-    ),
-  );
-
-  const menu = (
-    <div
-      ref={menuRef}
-      role="menu"
-      aria-label={t('bots.group.label', { name: group.name })}
-      className="fixed z-50 overflow-hidden rounded-[14px] border border-border bg-surface p-1.5 text-foreground shadow-[0_18px_45px_rgba(28,25,23,0.16)]"
-      style={{ left, top: position.y, width: MENU_WIDTH }}
+  return (
+    <ContextMenu.Root
+      open
+      anchorPoint={position}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      <ContextMenuItem
-        icon={<IconPencil className="size-[17px]" stroke={1.8} />}
-        onPress={() => {
-          onClose();
-          onEdit();
-        }}
-      >
-        {t('bots.groupMenu.editGroup')}
-      </ContextMenuItem>
-      <ContextMenuItem
-        disabled={!canMoveUp}
-        icon={<IconArrowUp className="size-[17px]" stroke={1.8} />}
-        onPress={() => {
-          onClose();
-          onMove(-1);
-        }}
-      >
-        {t('bots.groupMenu.moveUp')}
-      </ContextMenuItem>
-      <ContextMenuItem
-        disabled={!canMoveDown}
-        icon={<IconArrowDown className="size-[17px]" stroke={1.8} />}
-        onPress={() => {
-          onClose();
-          onMove(1);
-        }}
-      >
-        {t('bots.groupMenu.moveDown')}
-      </ContextMenuItem>
-      <ContextMenuSeparator />
-      <ContextMenuItem
-        danger
-        icon={<IconTrash className="size-[17px]" stroke={1.8} />}
-        onPress={() => {
-          onClose();
-          onDelete();
-        }}
-      >
-        {t('bots.groupDialog.deleteGroup')}
-      </ContextMenuItem>
-    </div>
+      <ContextMenu.Popover className="min-w-[200px]">
+        <ContextMenu.Menu
+          aria-label={t('bots.group.label', { name: group.name })}
+          disabledKeys={disabledKeys}
+          onAction={(key) => {
+            onClose();
+            if (key === 'edit') onEdit();
+            else if (key === 'up') onMove(-1);
+            else if (key === 'down') onMove(1);
+            else if (key === 'delete') onDelete();
+          }}
+        >
+          <ContextMenu.Item
+            id="edit"
+            textValue={t('bots.groupMenu.editGroup')}
+            className="rounded-lg"
+          >
+            <IconPencil className="size-4 shrink-0 text-muted" stroke={1.8} />
+            <span>{t('bots.groupMenu.editGroup')}</span>
+          </ContextMenu.Item>
+          <ContextMenu.Item id="up" textValue={t('bots.groupMenu.moveUp')} className="rounded-lg">
+            <IconArrowUp className="size-4 shrink-0 text-muted" stroke={1.8} />
+            <span>{t('bots.groupMenu.moveUp')}</span>
+          </ContextMenu.Item>
+          <ContextMenu.Item
+            id="down"
+            textValue={t('bots.groupMenu.moveDown')}
+            className="rounded-lg"
+          >
+            <IconArrowDown className="size-4 shrink-0 text-muted" stroke={1.8} />
+            <span>{t('bots.groupMenu.moveDown')}</span>
+          </ContextMenu.Item>
+          <ContextMenu.Separator />
+          <ContextMenu.Item
+            id="delete"
+            variant="danger"
+            textValue={t('bots.groupDialog.deleteGroup')}
+            className="rounded-lg text-danger data-[hovered]:text-danger"
+          >
+            <IconTrash className="size-4 shrink-0 text-danger" stroke={1.8} />
+            <span className="text-danger">{t('bots.groupDialog.deleteGroup')}</span>
+          </ContextMenu.Item>
+        </ContextMenu.Menu>
+      </ContextMenu.Popover>
+    </ContextMenu.Root>
   );
-  return typeof document === 'undefined' ? menu : createPortal(menu, document.body);
 }

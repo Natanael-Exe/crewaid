@@ -1,8 +1,9 @@
-import { Button, Tabs } from '@heroui/react';
+import { Button, SearchField, Tabs } from '@heroui/react';
 import { IconArrowRight, IconSearch } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { templateMatches, type Template } from '@crewaid/shared';
 import { BotAvatar } from '../components/BotAvatar';
+import { EmptyState } from '../components/ui';
 import { useT } from '../i18n/i18n';
 
 export type BrowseState = {
@@ -62,16 +63,21 @@ export function TemplateBrowse({
             </Tabs.List>
           </Tabs.ListContainer>
         </Tabs>
-        <label className="crewaid-template-search flex min-w-[220px] flex-1 items-center gap-2.5 rounded-[10px] px-4">
-          <IconSearch className="size-4 shrink-0 text-muted" aria-hidden />
-          <input
-            aria-label={t('experience.templateBrowse.searchTemplates')}
-            placeholder={t('experience.templateBrowse.searchByRoleTaskOutcome')}
-            value={state.query}
-            onChange={(event) => onChange({ ...state, query: event.target.value })}
-            className="h-11 min-w-0 flex-1 bg-transparent text-[14px] outline-none"
-          />
-        </label>
+        <SearchField
+          variant="secondary"
+          aria-label={t('experience.templateBrowse.searchTemplates')}
+          value={state.query}
+          onChange={(query) => onChange({ ...state, query })}
+          className="min-w-[220px] flex-1"
+        >
+          <SearchField.Group className="h-11 rounded-[10px]">
+            <SearchField.SearchIcon />
+            <SearchField.Input
+              placeholder={t('experience.templateBrowse.searchByRoleTaskOutcome')}
+            />
+            <SearchField.ClearButton />
+          </SearchField.Group>
+        </SearchField>
       </div>
       <div
         role="group"
@@ -84,13 +90,13 @@ export function TemplateBrowse({
             type="button"
             aria-pressed={state.category === category}
             onClick={() => onChange({ ...state, category })}
-            className="crewaid-template-chip rounded-full px-3.5 py-1.5 text-[13px] cursor-pointer hover:opacity-90"
+            className="crewaid-template-chip cursor-pointer rounded-full px-3.5 py-1.5 text-footnote transition-colors hover:opacity-90"
           >
             {category || t('experience.templateBrowse.all')}
           </button>
         ))}
       </div>
-      <p className="px-8 pb-1 pt-[18px] text-[12px] text-muted">
+      <p className="px-8 pb-1 pt-[18px] text-caption text-muted tabular-nums">
         {state.kind === 'crew'
           ? shown.length === total
             ? t('experience.templateBrowse.crewCount', { count: total })
@@ -100,17 +106,26 @@ export function TemplateBrowse({
             : t('experience.templateBrowse.botShownOf', { shown: shown.length, count: total })}
       </p>
       {shown.length === 0 ? (
-        <div className="flex flex-col items-start gap-2 px-8 py-10">
-          <p className="text-[17px] font-semibold">
-            {state.query.trim()
-              ? t('experience.templateBrowse.noTemplatesMatch', { query: state.query.trim() })
-              : t('experience.templateBrowse.noTemplatesHereYet')}
-          </p>
-          <p className="text-[14px] text-muted">{t('experience.templateBrowse.tryARoleTaskOr')}</p>
-          <Button variant="ghost" onPress={() => onChange({ ...state, query: '', category: '' })}>
-            {t('experience.templateBrowse.clearSearchFilters')}
-          </Button>
-        </div>
+        <EmptyState size="sm" className="px-8 py-10">
+          <EmptyState.Header>
+            <EmptyState.Media variant="icon">
+              <IconSearch className="size-5 text-muted" aria-hidden />
+            </EmptyState.Media>
+            <EmptyState.Title>
+              {state.query.trim()
+                ? t('experience.templateBrowse.noTemplatesMatch', { query: state.query.trim() })
+                : t('experience.templateBrowse.noTemplatesHereYet')}
+            </EmptyState.Title>
+            <EmptyState.Description>
+              {t('experience.templateBrowse.tryARoleTaskOr')}
+            </EmptyState.Description>
+          </EmptyState.Header>
+          <EmptyState.Content>
+            <Button variant="ghost" onPress={() => onChange({ ...state, query: '', category: '' })}>
+              {t('experience.templateBrowse.clearSearchFilters')}
+            </Button>
+          </EmptyState.Content>
+        </EmptyState>
       ) : (
         <ul className="flex flex-col px-8">
           {shown.map((entry) => (
@@ -127,13 +142,13 @@ export function TemplateBrowse({
                 ) : null}
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="flex flex-wrap items-baseline gap-1.5">
-                    <span className="text-[17px] font-semibold">{entry.title}</span>
+                    <span className="text-headline font-semibold">{entry.title}</span>
                     {entry.kind === 'bot' ? (
-                      <span className="text-[13px] text-muted">· {entry.bots[0]?.role}</span>
+                      <span className="text-footnote text-muted">· {entry.bots[0]?.role}</span>
                     ) : null}
                   </span>
-                  <span className="text-[14px] leading-[21px] text-muted">{entry.summary}</span>
-                  <span className="text-[12px] text-muted">
+                  <span className="text-callout leading-[21px] text-muted">{entry.summary}</span>
+                  <span className="text-caption text-muted">
                     {entry.kind === 'crew'
                       ? entry.bots.map((bot) => bot.role).join(' · ')
                       : entry.memberOf.length > 0
@@ -149,10 +164,10 @@ export function TemplateBrowse({
                   </span>
                 ) : (
                   <span className="hidden w-[175px] shrink-0 flex-col gap-1 sm:flex">
-                    <span className="text-[12px] text-muted">
+                    <span className="text-caption text-muted">
                       {t('experience.templateBrowse.supportedTools')}
                     </span>
-                    <span className="text-[13px]">
+                    <span className="text-footnote">
                       {entry.tools
                         .slice(0, 2)
                         .map((tool) => tool.label)

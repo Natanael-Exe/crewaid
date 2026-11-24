@@ -18,7 +18,7 @@ export function ConnectionStatusBadge({ state }: { state: WsConnectionState }) {
           variant="soft"
           size="sm"
           aria-label={copy.label}
-          className="h-6 rounded-full px-2 text-[11px]"
+          className="h-6 rounded-full px-2 text-micro"
         >
           <Chip.Label>{copy.label}</Chip.Label>
         </Chip>

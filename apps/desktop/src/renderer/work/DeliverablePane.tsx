@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { IconDownload, IconExternalLink, IconMessage, IconTrash, IconX } from '@tabler/icons-react';
+import { IconDownload, IconExternalLink, IconMessage, IconTrash } from '@tabler/icons-react';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type {
   BotWithSandbox,
@@ -18,8 +18,11 @@ import { saveBlobAs } from '../components/attachments/saveBlob';
 import { BotAvatar } from '../components/BotAvatar';
 import { ExternalLink, isOpenableLink } from '../components/ExternalLink';
 import { StreamingMarkdown } from '../components/markdown/StreamingMarkdown';
+import { documentTitle } from '../components/reader/documentText';
+import { DocumentReaderOverlay } from '../components/reader/DocumentReaderOverlay';
 import { byteSize, parseCsv, TEXT_PREVIEW_MAX_BYTES } from './deliverablesState';
 import { Picker } from './Fields';
+import { WorkDetailRail } from './WorkDetailRail';
 import { workFailureText } from './workErrors';
 import { useT, currentLocale } from '../i18n/i18n';
 
@@ -77,163 +80,150 @@ export function DeliverablePane({
   };
 
   return (
-    <aside
-      aria-label={t('work.deliverablePane.deliverable')}
-      className="crewaid-work-detail flex h-full min-h-0 flex-col"
+    <WorkDetailRail
+      ariaLabel={t('work.deliverablePane.deliverable')}
+      title={t('work.deliverablePane.deliverable')}
+      closeLabel={t('work.deliverablePane.closePreview')}
+      onClose={onClose}
     >
-      <header className="window-drag flex h-12 shrink-0 items-center justify-between px-4">
-        <span className="text-[12px] font-medium text-muted">
-          {t('work.deliverablePane.deliverable')}
-        </span>
-        <Button
-          variant="ghost"
-          isIconOnly
-          size="sm"
-          aria-label={t('work.deliverablePane.closePreview')}
-          onPress={onClose}
-          className="window-no-drag size-7 rounded-lg text-muted"
-        >
-          <IconX className="size-4" stroke={1.8} />
-        </Button>
-      </header>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4">
-        <div>
-          <h2 className="break-words text-[15px] font-semibold leading-5">{item.title}</h2>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[12px] text-muted">
-            {bot === undefined ? null : (
-              <span className="flex items-center gap-1">
-                <BotAvatar bot={bot} size="sm" />
-                {bot.name}
-              </span>
-            )}
-            <span>{item.createdAt.toLocaleString(currentLocale())}</span>
-            {item.attachment === null ? null : <span>{byteSize(item.attachment.sizeBytes)}</span>}
-          </p>
-          {item.summary === null ? null : (
-            <p className="mt-2 text-[13px] text-foreground">{item.summary}</p>
+      <div>
+        <h2 className="break-words text-body font-semibold leading-5">{item.title}</h2>
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 text-caption tabular-nums text-muted">
+          {bot === undefined ? null : (
+            <span className="flex items-center gap-1">
+              <BotAvatar bot={bot} size="sm" />
+              {bot.name}
+            </span>
           )}
-          {item.sourcePath === null ? null : (
-            <p className="mt-1 break-all font-mono text-[11px] text-muted">{item.sourcePath}</p>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {item.attachment !== null ? (
-            <Button
-              variant="primary"
-              size="sm"
-              onPress={() =>
-                void downloadAttachment(client, item.attachment!.id)
-                  .then((blob) => saveBlobAs(blob, item.attachment!.filename))
-                  .catch((error: unknown) => setFailure(workFailureText(failureOf(error))))
-              }
-              className="h-8 gap-1 rounded-[10px] text-[12px] font-medium"
-            >
-              <IconDownload className="size-3.5" stroke={1.8} />
-              {t('work.deliverablePane.download')}
-            </Button>
-          ) : null}
-          {isOpenableLink(item.url) ? (
-            <ExternalLink
-              href={item.url}
-              className="flex h-8 items-center gap-1 rounded-[10px] bg-accent px-3 text-[12px] font-medium text-accent-foreground"
-            >
-              <IconExternalLink className="size-3.5" stroke={1.8} />
-              {t('work.deliverablePane.openLink')}
-            </ExternalLink>
-          ) : null}
-          {bot !== undefined ? (
-            <Button
-              variant="secondary"
-              size="sm"
-              onPress={() =>
-                onOpenConversation(bot.id, item.attachment?.messageId ?? item.messageId)
-              }
-              className="h-8 gap-1 rounded-[10px] text-[12px] font-medium"
-            >
-              <IconMessage className="size-3.5" stroke={1.8} />
-              {t('work.deliverablePane.openInConversation')}
-            </Button>
-          ) : null}
-        </div>
-
-        <section className="flex flex-col gap-2">
-          <h3 className="text-[11px] font-medium tracking-[0.02em] text-muted">
-            {t('work.deliverablePane.filedUnder')}
-          </h3>
-          <div className="grid grid-cols-[64px_1fr] items-center gap-x-3 gap-y-2 text-[13px]">
-            <span className="text-muted">{t('work.deliverablePane.task')}</span>
-            <Picker
-              label={t('work.deliverablePane.task')}
-              value={item.taskId}
-              noneLabel={t('work.deliverablePane.noTask')}
-              options={[
-                ...(item.task !== null && !tasks.some((task) => task.id === item.taskId)
-                  ? [{ id: item.task.id, label: item.task.title }]
-                  : []),
-                ...tasks.map((task) => ({ id: task.id, label: task.title })),
-              ]}
-              onChange={(taskId) => void refile({ taskId })}
-            />
-            <span className="text-muted">{t('work.deliverablePane.goal')}</span>
-            <Picker
-              label={t('work.deliverablePane.goal')}
-              value={item.goalId}
-              noneLabel={t('work.deliverablePane.noGoal')}
-              options={[
-                ...(item.goal !== null && !goals.some((goal) => goal.id === item.goalId)
-                  ? [{ id: item.goal.id, label: item.goal.title }]
-                  : []),
-                ...goals.map((goal) => ({ id: goal.id, label: goal.title })),
-              ]}
-              onChange={(goalId) => void refile({ goalId })}
-            />
-            <span className="text-muted">{t('work.deliverablePane.project')}</span>
-            <Picker
-              label={t('work.deliverablePane.project')}
-              value={item.projectId}
-              noneLabel={t('work.boardState.noProject')}
-              options={projects.map((project) => ({ id: project.id, label: project.name }))}
-              onChange={(projectId) => void refile({ projectId })}
-            />
-          </div>
-          {item.taskId === null ? null : (
-            <button
-              type="button"
-              onClick={() => onOpenTask(item.taskId!)}
-              className="self-start text-[12px]! text-accent hover:underline"
-            >
-              {t('work.deliverablePane.openTheTask')}
-            </button>
-          )}
-        </section>
-
-        {item.attachment === null ? null : <Preview client={client} attachment={item.attachment} />}
-
-        {failure === null ? null : (
-          <p role="alert" className="text-[12px] text-danger">
-            {failure}
-          </p>
+          <span>{item.createdAt.toLocaleString(currentLocale())}</span>
+          {item.attachment === null ? null : <span>{byteSize(item.attachment.sizeBytes)}</span>}
+        </p>
+        {item.summary === null ? null : (
+          <p className="mt-2 text-footnote text-foreground">{item.summary}</p>
         )}
+        {item.sourcePath === null ? null : (
+          <p className="mt-1 break-all font-mono text-micro text-muted">{item.sourcePath}</p>
+        )}
+      </div>
 
+      <div className="flex flex-wrap gap-2">
+        {item.attachment !== null ? (
+          <Button
+            variant="primary"
+            size="sm"
+            onPress={() =>
+              void downloadAttachment(client, item.attachment!.id)
+                .then((blob) => saveBlobAs(blob, item.attachment!.filename))
+                .catch((error: unknown) => setFailure(workFailureText(failureOf(error))))
+            }
+            className="h-8 gap-1 rounded-[10px] text-caption font-medium"
+          >
+            <IconDownload className="size-3.5" stroke={1.8} />
+            {t('work.deliverablePane.download')}
+          </Button>
+        ) : null}
+        {isOpenableLink(item.url) ? (
+          <ExternalLink
+            href={item.url}
+            className="flex h-8 items-center gap-1 rounded-[10px] bg-accent px-3 text-caption font-medium text-accent-foreground"
+          >
+            <IconExternalLink className="size-3.5" stroke={1.8} />
+            {t('work.deliverablePane.openLink')}
+          </ExternalLink>
+        ) : null}
+        {bot !== undefined ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            onPress={() => onOpenConversation(bot.id, item.attachment?.messageId ?? item.messageId)}
+            className="h-8 gap-1 rounded-[10px] text-caption font-medium"
+          >
+            <IconMessage className="size-3.5" stroke={1.8} />
+            {t('work.deliverablePane.openInConversation')}
+          </Button>
+        ) : null}
+      </div>
+
+      <section className="flex flex-col gap-2">
+        <h3 className="text-micro font-medium tracking-[0.02em] text-muted">
+          {t('work.deliverablePane.filedUnder')}
+        </h3>
+        <div className="grid grid-cols-[64px_1fr] items-center gap-x-3 gap-y-2 text-footnote">
+          <span className="text-muted">{t('work.deliverablePane.task')}</span>
+          <Picker
+            appearance="inline"
+            label={t('work.deliverablePane.task')}
+            value={item.taskId}
+            noneLabel={t('work.deliverablePane.noTask')}
+            options={[
+              ...(item.task !== null && !tasks.some((task) => task.id === item.taskId)
+                ? [{ id: item.task.id, label: item.task.title }]
+                : []),
+              ...tasks.map((task) => ({ id: task.id, label: task.title })),
+            ]}
+            onChange={(taskId) => void refile({ taskId })}
+          />
+          <span className="text-muted">{t('work.deliverablePane.goal')}</span>
+          <Picker
+            appearance="inline"
+            label={t('work.deliverablePane.goal')}
+            value={item.goalId}
+            noneLabel={t('work.deliverablePane.noGoal')}
+            options={[
+              ...(item.goal !== null && !goals.some((goal) => goal.id === item.goalId)
+                ? [{ id: item.goal.id, label: item.goal.title }]
+                : []),
+              ...goals.map((goal) => ({ id: goal.id, label: goal.title })),
+            ]}
+            onChange={(goalId) => void refile({ goalId })}
+          />
+          <span className="text-muted">{t('work.deliverablePane.project')}</span>
+          <Picker
+            appearance="inline"
+            label={t('work.deliverablePane.project')}
+            value={item.projectId}
+            noneLabel={t('work.boardState.noProject')}
+            options={projects.map((project) => ({ id: project.id, label: project.name }))}
+            onChange={(projectId) => void refile({ projectId })}
+          />
+        </div>
+        {item.taskId === null ? null : (
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={() => onOpenTask(item.taskId!)}
+            className="h-7 self-start rounded-lg px-1.5 text-caption text-accent"
+          >
+            {t('work.deliverablePane.openTheTask')}
+          </Button>
+        )}
+      </section>
+
+      {item.attachment === null ? null : <Preview client={client} attachment={item.attachment} />}
+
+      {failure === null ? null : (
+        <p role="alert" className="text-caption text-danger">
+          {failure}
+        </p>
+      )}
+
+      <div className="mt-auto flex flex-col gap-1.5 pt-2">
         <Button
-          variant="ghost"
+          variant="danger-soft"
           size="sm"
           onPress={() =>
             void deleteDeliverable(client, item.id)
               .then(onClose)
               .catch((error: unknown) => setFailure(workFailureText(failureOf(error))))
           }
-          className="mt-auto h-8 gap-1 self-start rounded-[10px] text-[12px] text-danger"
+          className="h-8 gap-1 self-start rounded-[10px] text-caption"
         >
           <IconTrash className="size-3.5" stroke={1.8} />
           {t('work.deliverablePane.removeFromDeliverables')}
         </Button>
-        <p className="-mt-3 text-[11px] text-muted">
-          {t('work.deliverablePane.theFileStaysInThe')}
-        </p>
+        <p className="text-micro text-muted">{t('work.deliverablePane.theFileStaysInThe')}</p>
       </div>
-    </aside>
+    </WorkDetailRail>
   );
 }
 
@@ -254,6 +244,7 @@ function Preview({
   const [text, setText] = useState<string | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  const [reading, setReading] = useState(false);
 
   useEffect(() => {
     if (kind === null || tooBig) return;
@@ -283,43 +274,74 @@ function Preview({
 
   if (kind === null)
     return (
-      <p className="text-[12px] text-muted">{t('work.deliverablePane.noPreviewForThisKind')}</p>
+      <p className="text-caption text-muted">{t('work.deliverablePane.noPreviewForThisKind')}</p>
     );
   if (tooBig)
     return (
-      <p className="text-[12px] text-muted">{t('work.deliverablePane.tooLargeToPreviewHere')}</p>
+      <p className="text-caption text-muted">{t('work.deliverablePane.tooLargeToPreviewHere')}</p>
     );
   if (failed)
     return (
-      <p className="text-[12px] text-danger">{t('work.deliverablePane.thePreviewCouldNotBe')}</p>
+      <p className="text-caption text-danger">{t('work.deliverablePane.thePreviewCouldNotBe')}</p>
     );
 
+  const readable = text !== null && (kind === 'markdown' || (kind === 'text' && !csv));
   return (
-    <section
-      aria-label={t('work.deliverablePane.preview')}
-      className="overflow-hidden rounded-[10px] border border-border bg-surface"
-    >
-      {kind === 'image' && url !== null ? (
-        <img src={url} alt={attachment.filename} className="w-full" />
+    <>
+      {/* A rail is a narrow place to read a report; the reader gives it the
+          whole window at a reading measure. */}
+      {readable ? (
+        <Button
+          variant="secondary"
+          size="sm"
+          onPress={() => setReading(true)}
+          className="h-8 self-start rounded-full px-3.5 text-caption"
+        >
+          {t('reader.openReader')}
+        </Button>
       ) : null}
-      {kind === 'video' && url !== null ? <video src={url} controls className="w-full" /> : null}
-      {kind === 'pdf' && blob !== null ? (
-        <Suspense fallback={<PdfPreviewLoading label={t('work.deliverablePane.openingPdf')} />}>
-          <div className="h-[480px]">
-            <PdfPreview file={blob} />
-          </div>
-        </Suspense>
+      {readable && (kind === 'markdown' || kind === 'text') ? (
+        <DocumentReaderOverlay
+          isOpen={reading}
+          onOpenChange={setReading}
+          document={{
+            title:
+              kind === 'markdown' ? documentTitle(text, attachment.filename) : attachment.filename,
+            label: t('reader.deliverable'),
+            format: kind,
+            source: text,
+          }}
+          onDownload={() =>
+            saveBlobAs(new Blob([text], { type: attachment.mimeType }), attachment.filename)
+          }
+        />
       ) : null}
-      {text === null ? null : kind === 'markdown' ? (
-        <StreamingMarkdown source={text} className="p-3 text-[13px] leading-5" />
-      ) : csv ? (
-        <CsvTable text={text} />
-      ) : (
-        <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words p-3 font-mono text-[11px] leading-4">
-          {text}
-        </pre>
-      )}
-    </section>
+      <section
+        aria-label={t('work.deliverablePane.preview')}
+        className="overflow-hidden rounded-[10px] border border-border bg-surface"
+      >
+        {kind === 'image' && url !== null ? (
+          <img src={url} alt={attachment.filename} className="w-full" />
+        ) : null}
+        {kind === 'video' && url !== null ? <video src={url} controls className="w-full" /> : null}
+        {kind === 'pdf' && blob !== null ? (
+          <Suspense fallback={<PdfPreviewLoading label={t('work.deliverablePane.openingPdf')} />}>
+            <div className="h-[480px]">
+              <PdfPreview file={blob} />
+            </div>
+          </Suspense>
+        ) : null}
+        {text === null ? null : kind === 'markdown' ? (
+          <StreamingMarkdown source={text} className="p-3 text-footnote leading-5" />
+        ) : csv ? (
+          <CsvTable text={text} />
+        ) : (
+          <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words p-3 font-mono text-micro leading-4">
+            {text}
+          </pre>
+        )}
+      </section>
+    </>
   );
 }
 
@@ -329,7 +351,7 @@ function CsvTable({ text }: { text: string }) {
   const [head, ...body] = rows;
   return (
     <div className="max-h-[520px] overflow-auto">
-      <table className="w-full border-collapse text-[12px]">
+      <table className="w-full border-collapse text-caption">
         {head === undefined ? null : (
           <thead className="sticky top-0 bg-background-secondary">
             <tr>
@@ -354,7 +376,7 @@ function CsvTable({ text }: { text: string }) {
         </tbody>
       </table>
       {truncated ? (
-        <p className="p-2 text-[11px] text-muted">
+        <p className="p-2 text-micro text-muted">
           {t('work.deliverablePane.showingTheFirstRowsDownload')}
         </p>
       ) : null}

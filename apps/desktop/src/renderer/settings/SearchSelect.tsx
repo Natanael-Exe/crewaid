@@ -82,7 +82,7 @@ export function SearchSelect({
     >
       <Autocomplete.Trigger
         data-search-select={label}
-        className="max-w-[min(340px,50vw)] items-center gap-1.5 text-[13px]"
+        className="max-w-[min(340px,50vw)] items-center gap-1.5 text-footnote"
       >
         <span className="min-w-0 truncate">{selected?.label ?? value}</span>
         <Autocomplete.Indicator className="size-3.5 shrink-0 text-muted" />
@@ -111,14 +111,14 @@ export function SearchSelect({
               aria-label={label}
               items={filtered}
               renderEmptyState={() => (
-                <p className="px-3 py-3 text-[12px] text-muted">{emptyText}</p>
+                <p className="px-3 py-3 text-caption text-muted">{emptyText}</p>
               )}
             >
               {(item) => (
                 <ListBox.Item id={item.id} textValue={item.label}>
                   <span className="min-w-0 flex-1 truncate">{item.label}</span>
                   {item.detail === undefined ? null : (
-                    <span className="ms-3 shrink-0 text-[12px] text-muted">{item.detail}</span>
+                    <span className="ms-3 shrink-0 text-caption text-muted">{item.detail}</span>
                   )}
                   {/* In its own slot after the detail: HeroUI's indicator is
                       absolutely placed and lands on top of the time. */}

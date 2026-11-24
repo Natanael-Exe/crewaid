@@ -1,11 +1,5 @@
-import { Button, Chip, Modal, Spinner, Switch } from '@heroui/react';
-import {
-  IconAlertTriangle,
-  IconPencil,
-  IconPlayerPlay,
-  IconPlus,
-  IconTrash,
-} from '@tabler/icons-react';
+import { Alert, Button, Chip, Input, Modal, Skeleton, Switch, TextArea } from '@heroui/react';
+import { IconPencil, IconPlayerPlay, IconPlus, IconTarget, IconTrash } from '@tabler/icons-react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type {
   CreateRoutineBody,
@@ -23,7 +17,7 @@ import {
   updateRoutine,
   type ApiClient,
 } from '../api';
-import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
+import { EmptyState, IconButtonTooltip } from '../components/ui';
 import { listGoals } from '../api/work';
 import { Picker } from '../work/Fields';
 import { EndsField, ScheduleField, TimezonePicker } from './RoutineScheduleFields';
@@ -182,6 +176,7 @@ export function RoutinesPanel({
     editing === null ? null : (
       <RoutineForm
         key={editing.kind === 'edit' ? editing.routine.id : 'new'}
+        isNew={editing.kind === 'new'}
         initial={
           editing.kind === 'edit'
             ? draftFromRoutine(editing.routine)
@@ -215,7 +210,7 @@ export function RoutinesPanel({
       className="crewaid-routines flex flex-col gap-2 pt-4"
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-[13px] font-semibold text-foreground">
+        <h2 className="text-footnote font-semibold text-foreground">
           {t('routines.routinesPanel.routines')}
         </h2>
         <div className="flex items-center gap-2">
@@ -224,16 +219,16 @@ export function RoutinesPanel({
               variant="ghost"
               size="sm"
               onPress={() => setManaging(true)}
-              className="h-8 px-1 text-[13px] text-muted"
+              className="h-8 px-1 text-footnote text-muted"
             >
               {t('routines.routinesPanel.manage')}
             </Button>
           )}
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
             onPress={() => setEditing({ kind: 'new' })}
-            className="crewaid-create-routine h-8 gap-1 rounded-full px-2.5 text-[13px]"
+            className="h-8 gap-1 rounded-full bg-surface/85 px-3 text-footnote text-foreground"
           >
             <IconPlus className="size-3.5" stroke={1.8} aria-hidden />{' '}
             {t('routines.routinesPanel.createRoutine')}
@@ -242,31 +237,39 @@ export function RoutinesPanel({
       </div>
 
       {problem !== null ? (
-        <p
-          role="alert"
-          className="flex items-start gap-1.5 rounded-[10px] bg-danger/10 px-3 py-2 text-[12px] leading-4 text-danger"
-        >
-          <IconAlertTriangle className="mt-px size-3.5 shrink-0" stroke={1.8} aria-hidden />
-          {problem}
-        </p>
+        <Alert status="danger" role="alert" className="py-2 text-caption">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description className="text-caption leading-4">{problem}</Alert.Description>
+          </Alert.Content>
+        </Alert>
       ) : null}
 
       {readProblem !== null && problem === null ? (
-        <p role="status" className="text-[12px] leading-4 text-muted">
+        <p role="status" className="text-caption leading-4 text-muted">
           {t('routines.loadFailed', { reason: readProblem })}
         </p>
       ) : null}
 
       {all === null && readProblem !== null ? null : all === null ? (
-        <div className="flex justify-center py-6">
-          <Spinner size="sm" aria-label={t('routines.routinesPanel.loadingRoutines')} />
+        <div
+          role="status"
+          aria-label={t('routines.routinesPanel.loadingRoutines')}
+          className="flex flex-col gap-3 py-3"
+        >
+          {[0, 1].map((index) => (
+            <div key={index} className="flex flex-col gap-2 px-1">
+              <Skeleton className="h-3.5 w-1/2 rounded-full" />
+              <Skeleton className="h-3 w-3/4 rounded-full" />
+            </div>
+          ))}
         </div>
       ) : mine.length === 0 && editing === null ? (
-        <div className="flex min-h-[160px] flex-col items-center justify-center gap-3 px-4 py-8 text-center">
-          <p className="max-w-[235px] text-[13px] leading-5 text-muted">
+        <EmptyState size="sm" className="min-h-[160px] py-8">
+          <EmptyState.Description className="max-w-[235px] text-footnote leading-5">
             {t('routines.routinesPanel.setAScheduleAndA')}
-          </p>
-        </div>
+          </EmptyState.Description>
+        </EmptyState>
       ) : (
         <ul className="flex flex-col gap-2">
           {mine.map((routine) => (
@@ -391,7 +394,9 @@ function RoutineRow({
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="truncate text-[13px] font-medium text-foreground">{routine.name}</span>
+            <span className="truncate text-footnote font-medium text-foreground">
+              {routine.name}
+            </span>
             {routine.origin === 'BOT' ? (
               // The operator must be able to tell what the bot
               // scheduled for itself from what they set up.
@@ -410,15 +415,16 @@ function RoutineRow({
                 variant="soft"
                 title={t('routines.routinesPanel.theGoalThisRoutineWorks')}
               >
-                <Chip.Label>◎ {goal}</Chip.Label>
+                <IconTarget className="size-3 shrink-0" stroke={1.8} aria-hidden />
+                <Chip.Label>{goal}</Chip.Label>
               </Chip>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] leading-4 text-muted" title={routine.cron}>
+          <p className="mt-0.5 text-caption leading-4 text-muted" title={routine.cron}>
             {scheduleText(routine.cron)} · {routine.timezone.replaceAll('_', ' ')}
           </p>
           {routine.endsOn !== null ? (
-            <p className={`mt-0.5 text-[11px] ${ended ? 'text-danger' : 'text-muted'}`}>
+            <p className={`mt-0.5 text-micro ${ended ? 'text-danger' : 'text-muted'}`}>
               {ended ? t('routines.routinesPanel.ended') : t('routines.routinesPanel.until')}{' '}
               {formatDay(routine.endsOn)}
             </p>
@@ -447,12 +453,12 @@ function RoutineRow({
         <span className="flex-1" />
         {confirmingDelete ? (
           <>
-            <span className="text-[12px] text-muted">{t('routines.routinesPanel.delete')}</span>
+            <span className="text-caption text-muted">{t('routines.routinesPanel.delete')}</span>
             <Button
-              variant="ghost"
+              variant="danger-soft"
               size="sm"
               onPress={onDelete}
-              className="h-7 rounded-lg px-2 text-[12px] text-danger"
+              className="h-7 rounded-lg px-2 text-caption"
             >
               {t('routines.routinesPanel.delete2')}
             </Button>
@@ -460,18 +466,15 @@ function RoutineRow({
               variant="ghost"
               size="sm"
               onPress={onCancelDelete}
-              className="h-7 rounded-lg px-2 text-[12px]"
+              className="h-7 rounded-lg px-2 text-caption"
             >
               {t('routines.routinesPanel.keep')}
             </Button>
           </>
         ) : (
           <>
-            <Button
-              variant="ghost"
-              isIconOnly
-              size="sm"
-              aria-label={t('routines.runNow', { name: routine.name })}
+            <IconButtonTooltip
+              label={t('routines.runNow', { name: routine.name })}
               // A disabled or ended routine is refused by the server (409,
               // D-120/D-127); the button says so up front instead.
               isDisabled={busy || !routine.enabled || ended}
@@ -479,29 +482,23 @@ function RoutineRow({
               className="size-7 rounded-lg text-muted"
             >
               <IconPlayerPlay className="size-3.5" stroke={1.8} />
-            </Button>
-            <Button
-              variant="ghost"
-              isIconOnly
-              size="sm"
-              aria-label={t('routines.edit', { name: routine.name })}
+            </IconButtonTooltip>
+            <IconButtonTooltip
+              label={t('routines.edit', { name: routine.name })}
               isDisabled={busy}
               onPress={onEdit}
               className="size-7 rounded-lg text-muted"
             >
               <IconPencil className="size-3.5" stroke={1.8} />
-            </Button>
-            <Button
-              variant="ghost"
-              isIconOnly
-              size="sm"
-              aria-label={t('routines.delete', { name: routine.name })}
+            </IconButtonTooltip>
+            <IconButtonTooltip
+              label={t('routines.delete', { name: routine.name })}
               isDisabled={busy}
               onPress={onAskDelete}
               className="size-7 rounded-lg text-muted"
             >
               <IconTrash className="size-3.5" stroke={1.8} />
-            </Button>
+            </IconButtonTooltip>
           </>
         )}
       </div>
@@ -510,6 +507,7 @@ function RoutineRow({
 }
 
 function RoutineForm({
+  isNew,
   initial,
   runsSkill,
   goals,
@@ -518,6 +516,7 @@ function RoutineForm({
   onCancel,
   onSubmit,
 }: {
+  readonly isNew: boolean;
   readonly initial: RoutineDraft;
   readonly runsSkill: boolean;
   readonly goals: readonly GoalWithProgress[];
@@ -538,9 +537,7 @@ function RoutineForm({
   return (
     <form
       aria-label={
-        submitLabel === 'Create'
-          ? t('routines.routinesPanel.newRoutine')
-          : t('routines.routinesPanel.editRoutine')
+        isNew ? t('routines.routinesPanel.newRoutine') : t('routines.routinesPanel.editRoutine')
       }
       className="crewaid-routine-form flex flex-col gap-2.5 rounded-[12px] border border-separator px-3 py-3"
       onSubmit={(event) => {
@@ -550,12 +547,13 @@ function RoutineForm({
       }}
     >
       <Field id={`${id}-name`} label={t('routines.routinesPanel.name')}>
-        <input
+        <Input
           id={`${id}-name`}
+          variant="secondary"
           value={draft.name}
           onChange={(event) => set('name')(event.target.value)}
           placeholder={t('routines.routinesPanel.morningDigest')}
-          className={SETTINGS_INPUT_CLASS}
+          className="w-full"
         />
       </Field>
       <ScheduleField
@@ -569,7 +567,7 @@ function RoutineForm({
       <EndsField endsOn={draft.endsOn} timezone={draft.timezone} onChange={setEndsOn} />
       {goals.length === 0 && draft.goalId === null ? null : (
         <div className="flex flex-col gap-1.5">
-          <span className="text-[12px] font-medium text-foreground">
+          <span className="text-caption font-medium text-foreground">
             {t('routines.routinesPanel.goal')}
           </span>
           <Picker
@@ -582,21 +580,22 @@ function RoutineForm({
         </div>
       )}
       {runsSkill ? (
-        <p className="text-[12px] text-muted">{t('routines.routinesPanel.runsASkillWithSaved')}</p>
+        <p className="text-caption text-muted">{t('routines.routinesPanel.runsASkillWithSaved')}</p>
       ) : (
         <Field id={`${id}-prompt`} label={t('routines.routinesPanel.whatShouldTheBotDo')}>
-          <textarea
+          <TextArea
             id={`${id}-prompt`}
+            variant="secondary"
             value={draft.prompt}
             onChange={(event) => set('prompt')(event.target.value)}
             rows={3}
             placeholder={t('routines.routinesPanel.summariseYesterdaySUnreadEmail')}
-            className={`${SETTINGS_INPUT_CLASS} h-auto py-2`}
+            className="w-full"
           />
         </Field>
       )}
       {touched && blocked !== null ? (
-        <p role="alert" className="text-[12px] text-danger">
+        <p role="alert" className="text-caption text-danger">
           {blocked}
         </p>
       ) : null}
@@ -605,7 +604,7 @@ function RoutineForm({
           variant="ghost"
           size="sm"
           onPress={onCancel}
-          className="h-8 rounded-[10px] px-3 text-[12px]"
+          className="h-8 rounded-[10px] px-3 text-caption"
         >
           {t('routines.routineScheduleFields.cancel')}
         </Button>
@@ -614,7 +613,7 @@ function RoutineForm({
           variant="primary"
           size="sm"
           isDisabled={busy}
-          className="h-8 rounded-[10px] px-3.5 text-[12px] font-medium"
+          className="h-8 rounded-[10px] px-3.5 text-caption font-medium"
         >
           {submitLabel}
         </Button>
@@ -634,7 +633,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-[12px] font-medium text-foreground">
+      <label htmlFor={id} className="text-caption font-medium text-foreground">
         {label}
       </label>
       {children}

@@ -81,11 +81,7 @@ test('creates a Telegram bot from a QR code, confirms the sender and disconnects
       });
     }, auth.baseUrl);
     await page.reload();
-    await page.getByRole('button', { name: /account menu/i }).click();
-    await page
-      .getByRole('menu', { name: 'Account' })
-      .getByRole('menuitem', { name: 'Settings' })
-      .click();
+    await page.getByRole('button', { name: /account and settings/i }).click();
     const dialog = page.getByRole('dialog', { name: 'Settings' });
     await dialog.getByRole('button', { name: 'Channels', exact: true }).click();
     await expect(dialog.getByRole('button', { name: 'Connect Telegram' })).toBeEnabled();

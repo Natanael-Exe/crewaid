@@ -11,9 +11,11 @@ import {
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { t, useT } from '../../i18n/i18n';
+import { botAccentTokens } from '../../styles/botAccent';
 import { BotAvatar } from '../BotAvatar';
 import { copyText } from '../copyText';
 import { StreamingMarkdown } from '../markdown/StreamingMarkdown';
+import { IconButtonTooltip } from '../ui';
 
 export type MessageWorkAction = 'task' | 'deliverable';
 
@@ -60,8 +62,14 @@ export function peerLabel(fromBotId: string, peers: readonly PeerSummary[] | und
 }
 
 export function InterBotAttribution({ peer }: { peer: PeerLabel }) {
+  const nameColor = peer.color.startsWith('#')
+    ? (() => {
+        const tokens = botAccentTokens(peer.color);
+        return `light-dark(${tokens['--bot-accent-ink-light']}, ${tokens['--bot-accent-ink-dark']})`;
+      })()
+    : peer.color;
   return (
-    <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold leading-none">
+    <div className="mb-1 flex items-center gap-1.5 text-micro font-semibold leading-none">
       <span data-interbot-mascot className="flex size-6 shrink-0 items-center justify-center">
         <BotAvatar
           bot={{
@@ -73,7 +81,7 @@ export function InterBotAttribution({ peer }: { peer: PeerLabel }) {
           size="sm"
         />
       </span>
-      <span style={{ color: peer.color }}>{peer.name}</span>
+      <span style={{ color: nameColor }}>{peer.name}</span>
     </div>
   );
 }
@@ -89,7 +97,11 @@ export function MessageWorkMenu({ onAction }: { onAction: (action: MessageAction
       <Dropdown.Trigger
         aria-label={t('transcript.more')}
         data-message-menu
-        className="rounded p-0.5 text-muted outline-none data-[hovered]:text-foreground data-[focus-visible]:outline-2 data-[focus-visible]:outline-focus/60"
+        // A ghost icon button sized to the 20px footer. Not HeroUI's `.button`:
+        // its press transform kept the trigger moving inside a footer that is
+        // itself fading in, and the trigger is already a button, so nesting a
+        // HeroUI Button inside it would nest interactive elements.
+        className="flex size-5 items-center justify-center rounded-full text-muted outline-none data-[hovered]:bg-default data-[hovered]:text-foreground data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40"
       >
         <IconDots aria-hidden className="size-3.5" stroke={1.8} />
       </Dropdown.Trigger>
@@ -135,12 +147,15 @@ export function MessageWorkMenu({ onAction }: { onAction: (action: MessageAction
  */
 export function BubbleFooter({
   timeLabel,
+  title,
   text,
   isUser,
   onAction,
   showTranscript = false,
 }: {
   timeLabel: string;
+  /** Full timestamp surfaced on the clock label rather than on the whole bubble. */
+  title?: string | undefined;
   text: string;
   isUser: boolean;
   onAction?: ((action: MessageAction) => void) | undefined;
@@ -177,7 +192,9 @@ export function BubbleFooter({
         isUser ? 'end-0 justify-end' : 'start-0 justify-start'
       }`}
     >
-      <span className="text-[10px] leading-none text-muted">{timeLabel}</span>
+      <span className="text-micro leading-none tabular-nums text-muted" title={title}>
+        {timeLabel}
+      </span>
       {showTranscript && text.trim() !== '' ? (
         <Popover isOpen={transcriptOpen} onOpenChange={setTranscriptOpen}>
           <Popover.Trigger
@@ -193,12 +210,12 @@ export function BubbleFooter({
             className="w-[360px] max-w-[calc(100vw-32px)] rounded-xl"
           >
             <Popover.Dialog aria-label={t('transcript.voice.dialog')} className="p-3">
-              <Popover.Heading className="mb-2 text-[12px] font-medium text-muted">
+              <Popover.Heading className="mb-2 text-caption font-medium text-muted">
                 {t('transcript.voice.heading')}
               </Popover.Heading>
               <div
                 data-voice-transcript
-                className="max-h-[min(50vh,360px)] overflow-y-auto overscroll-contain text-[14px] leading-[21px]"
+                className="max-h-[min(50vh,360px)] overflow-y-auto overscroll-contain text-callout leading-[21px]"
               >
                 {isUser ? (
                   <p className="crewaid-user-prose whitespace-pre-wrap break-words">{text}</p>
@@ -210,19 +227,19 @@ export function BubbleFooter({
           </Popover.Content>
         </Popover>
       ) : null}
-      <button
-        type="button"
+      <IconButtonTooltip
         data-copy-message
-        aria-label={copied ? t('transcript.copied') : t('transcript.copy')}
-        className="rounded p-0.5 text-muted outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus/60"
-        onClick={handleCopy}
+        label={copied ? t('transcript.copied') : t('transcript.copy')}
+        placement="top"
+        onPress={handleCopy}
+        className="size-5 min-w-5 rounded p-0.5 text-muted hover:text-foreground"
       >
         {copied ? (
           <IconCheck aria-hidden className="size-3.5" stroke={2} />
         ) : (
           <IconCopy aria-hidden className="size-3.5" stroke={1.8} />
         )}
-      </button>
+      </IconButtonTooltip>
       {onAction === undefined ? null : <MessageWorkMenu onAction={onAction} />}
     </div>
   );
@@ -257,8 +274,7 @@ export function Bubble({
         <div
           data-message-bubble={isUser ? 'user' : 'bot'}
           data-from-bot={peer === undefined ? undefined : 'true'}
-          title={title}
-          className={`whitespace-pre-wrap break-words rounded-message px-[18px] py-3 text-[15px] leading-[23px] ${
+          className={`whitespace-pre-wrap break-words rounded-message px-[18px] py-3 text-body leading-[23px] ${
             isUser
               ? 'bg-message-user text-message-user-foreground'
               : 'bg-message-bot text-message-bot-foreground'
@@ -268,7 +284,13 @@ export function Bubble({
         >
           {children}
         </div>
-        <BubbleFooter timeLabel={timeLabel} text={text} isUser={isUser} onAction={onAction} />
+        <BubbleFooter
+          timeLabel={timeLabel}
+          title={title}
+          text={text}
+          isUser={isUser}
+          onAction={onAction}
+        />
       </div>
     </div>
   );

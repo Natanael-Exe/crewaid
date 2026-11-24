@@ -1,11 +1,10 @@
-import { Button } from '@heroui/react';
-import { IconAlertTriangle } from '@tabler/icons-react';
+import { Alert, Button, Input } from '@heroui/react';
 import { useState } from 'react';
 import type { AuthStatus } from '../../preload';
 import { AccountAvatar } from '../components/AccountAvatar';
 import { accountLabel } from '../launch/launchState';
 import { accountSummary, canSignIn, readPastedCode, type AccountTone } from './accountState';
-import { SettingsSection, SETTINGS_INPUT_CLASS } from './SettingsLayout';
+import { SettingsSection } from './SettingsLayout';
 import { useT } from '../i18n/i18n';
 
 /**
@@ -20,12 +19,12 @@ import { useT } from '../i18n/i18n';
  *
  * So when there is an account, this renders the account: avatar, name, address,
  * and Sign out. The sign-in machinery appears only when there is no session,
- * which is the state it belongs to — and after V1-18 that state is rare here,
+ * which is the state it belongs to — and with session sign-in that state is rare here,
  * because the gate handles it before the shell ever opens.
  *
  * Presentational on purpose. It owns the paste field's local text and nothing
  * else; the status, the busy flag and every round trip belong to `GeneralPane`,
- * because a successful sign-in also changes what is in the CC-07 store and the
+ * because a successful sign-in also changes what is in the token store and the
  * pane above has a form bound to it. Two components reading that store
  * independently is how a Save button ends up writing back the token a sign-in
  * just replaced.
@@ -75,15 +74,15 @@ export function AccountSection({
           <AccountAvatar
             initials={account.initials}
             image={status.user.image}
-            className="crewaid-settings-account-avatar size-10 text-[13px]"
+            className="crewaid-settings-account-avatar size-10 text-footnote"
           />
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[13px] font-medium text-foreground">{account.name}</div>
+            <div className="truncate text-footnote font-medium text-foreground">{account.name}</div>
             {/* The address only when it is not already the name: a magic-link
                 account with no name falls back to its email, and printing it
                 twice reads as two different facts about the same person. */}
             {status.user.email === '' || status.user.email === account.name ? null : (
-              <div className="truncate text-[12px] text-muted">{status.user.email}</div>
+              <div className="truncate text-caption text-muted">{status.user.email}</div>
             )}
           </div>
           <Button
@@ -91,16 +90,20 @@ export function AccountSection({
             size="sm"
             isDisabled={busy}
             onPress={onSignOut}
-            className="h-8 shrink-0 rounded-[10px] px-3.5 text-[12px] font-medium"
+            className="h-8 shrink-0 rounded-[10px] px-3.5 text-caption font-medium"
           >
             {t('settings.account.signOut')}
           </Button>
         </div>
         {problem === null ? null : (
-          <p className={`px-4 pb-3.5 text-[12px] ${TONE_CLASS['danger']}`}>
-            <IconAlertTriangle className="me-1.5 inline size-4 shrink-0" stroke={1.8} aria-hidden />
-            {problem}
-          </p>
+          <div className="px-4 pb-3.5">
+            <Alert status="danger" role="alert">
+              <Alert.Indicator />
+              <Alert.Content>
+                <Alert.Description>{problem}</Alert.Description>
+              </Alert.Content>
+            </Alert>
+          </div>
         )}
       </SettingsSection>
     );
@@ -109,14 +112,14 @@ export function AccountSection({
   return (
     <SettingsSection title={t('settings.account.title')}>
       <div className="px-4 py-3.5">
-        <p className={`text-[12px] leading-[17px] ${TONE_CLASS[summary.tone]}`}>{summary.line}</p>
+        <p className={`text-caption leading-[17px] ${TONE_CLASS[summary.tone]}`}>{summary.line}</p>
         <div className="mt-2.5 flex flex-wrap items-center gap-2">
           <Button
             variant="primary"
             size="sm"
             isDisabled={busy || !canSignIn(status)}
             onPress={onSignIn}
-            className="h-8 rounded-[10px] px-3.5 text-[12px] font-medium"
+            className="h-8 rounded-[10px] px-3.5 text-caption font-medium"
           >
             {t('settings.account.signIn')}
           </Button>
@@ -124,17 +127,19 @@ export function AccountSection({
             variant="ghost"
             size="sm"
             onPress={() => setShowPaste((open) => !open)}
-            className="h-8 rounded-[10px] px-3 text-[12px] font-medium text-muted"
+            className="h-8 rounded-[10px] px-3 text-caption font-medium text-muted"
           >
             {showPaste ? t('settings.account.hideCode') : t('settings.account.pasteInstead')}
           </Button>
         </div>
 
         {problem === null ? null : (
-          <p className={`mt-2 text-[12px] ${TONE_CLASS['danger']}`}>
-            <IconAlertTriangle className="me-1.5 inline size-4 shrink-0" stroke={1.8} aria-hidden />
-            {problem}
-          </p>
+          <Alert status="danger" role="alert" className="mt-2.5">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Description>{problem}</Alert.Description>
+            </Alert.Content>
+          </Alert>
         )}
 
         {showPaste ? (
@@ -143,19 +148,20 @@ export function AccountSection({
                 browser failed to hand back — and the reason it failed is almost
                 always that the OS has no handler for a custom scheme, which is
                 not something they did wrong. */}
-            <p className="mb-2 text-[12px] leading-[17px] text-muted">
+            <p className="mb-2 text-caption leading-[17px] text-muted">
               {t('settings.account.pasteHint')}
             </p>
             <div className="flex items-center gap-2">
-              <input
+              <Input
                 id="settings-auth-code"
+                variant="secondary"
                 type="text"
                 autoComplete="off"
                 spellCheck={false}
                 placeholder={t('settings.account.codePlaceholder')}
                 value={code}
                 onChange={(event) => setCode(event.target.value)}
-                className={SETTINGS_INPUT_CLASS}
+                className="w-full"
                 aria-label={t('settings.account.codeLabel')}
               />
               <Button
@@ -167,7 +173,7 @@ export function AccountSection({
                   setCode('');
                   onPasteCode(pasted);
                 }}
-                className="h-9 shrink-0 rounded-[10px] px-3.5 text-[12px] font-medium"
+                className="h-9 shrink-0 rounded-[10px] px-3.5 text-caption font-medium"
               >
                 {t('settings.account.useCode')}
               </Button>

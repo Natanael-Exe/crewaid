@@ -1,7 +1,7 @@
 /**
  * Types for `@novnc/novnc`, which ships none.
  *
- * Deliberately NARROW: only the members M2-FE-01 uses. A fuller transcription
+ * Deliberately NARROW: only the members the screen viewer uses. A fuller transcription
  * would be a second, unverified copy of an API we do not control — and the
  * value of declaring it by hand is precisely that adding a call means noticing
  * you added one, rather than `any` making every future call invisible.

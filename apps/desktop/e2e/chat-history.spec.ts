@@ -119,9 +119,15 @@ test('earlier history shows progress, retries a failed page and preserves the re
       .poll(async () => Math.abs((await anchor.boundingBox())!.y - before))
       .toBeLessThan(2);
     // Keep scrolling during a slow request: the anchor must follow the reader.
-    await scroller.evaluate((el) => {
-      el.scrollTop -= 90;
-    });
+    // Wait for the browser's async scroll event to flush so `useTranscriptScroll`
+    // records the updated anchor before the stubbed older page resolves.
+    await scroller.evaluate(
+      (el) =>
+        new Promise<void>((resolve) => {
+          el.addEventListener('scroll', () => resolve(), { once: true });
+          el.scrollTop -= 90;
+        }),
+    );
     const readingId = await scroller.evaluate((el) => {
       const top = el.getBoundingClientRect().top;
       return [...el.querySelectorAll<HTMLElement>('[data-motion-message]')].find(

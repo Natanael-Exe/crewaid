@@ -113,12 +113,12 @@ test('main assistant, Templates discovery, setup retry and an explicit first tas
     await expect(page.getByRole('button', { name: 'Open Crewaid', exact: true })).toBeVisible();
     await expect(page.locator('[data-welcome-opening]')).toContainText('Welcome');
 
-    // The door sits outside the sidebar.
+    // D-239: the door is the Crew sidebar's footer action.
     const trigger = page.getByRole('button', { name: 'Templates', exact: true });
     await expect(trigger).toBeVisible();
     expect(
-      await trigger.evaluate((element) => element.closest('[data-pane="sidebar"]')),
-    ).toBeNull();
+      await trigger.evaluate((element) => element.closest('[data-pane="sidebar"]') !== null),
+    ).toBe(true);
 
     // Templates and Plugins share the same modal material in both appearances.
     const materials = async (modal: Locator) => {
@@ -154,14 +154,16 @@ test('main assistant, Templates discovery, setup retry and an explicit first tas
     await page.screenshot({ path: test.info().outputPath('templates-modal.png') });
 
     // Search, a crew, one of its members, and back again with the search kept.
-    await dialog.getByRole('textbox', { name: 'Search templates' }).fill('content');
+    await dialog.getByRole('searchbox', { name: 'Search templates' }).fill('content');
     await dialog.getByRole('button', { name: /^Content & Publishing/ }).click();
     await expect(dialog.getByText('Illustrative example')).toBeVisible();
     await dialog.getByRole('button', { name: /^Hannah/ }).click();
     await expect(dialog.getByText('Not available on this server').first()).toBeVisible();
     await dialog.getByRole('button', { name: 'Content & Publishing', exact: true }).click();
     await dialog.getByRole('button', { name: 'All templates', exact: true }).click();
-    await expect(dialog.getByRole('textbox', { name: 'Search templates' })).toHaveValue('content');
+    await expect(dialog.getByRole('searchbox', { name: 'Search templates' })).toHaveValue(
+      'content',
+    );
 
     // A single bot continues in the ordinary create form, prefilled.
     await dialog.getByRole('tab', { name: 'Bots', exact: true }).click();

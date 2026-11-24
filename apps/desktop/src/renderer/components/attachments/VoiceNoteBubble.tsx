@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Button, Spinner } from '@heroui/react';
+import { ProgressBar, Spinner } from '@heroui/react';
 import { IconPlayerPauseFilled, IconPlayerPlayFilled } from '@tabler/icons-react';
 import { downloadAttachment, isAbortError, useApiClient } from '../../api';
 import { formatClipTime } from '../../voice/recorder';
 import type { MessageAttachment } from './AttachmentCard';
+import { IconButtonTooltip } from '../ui';
 import { useT } from '../../i18n/i18n';
 
 /**
@@ -104,11 +105,11 @@ export function VoiceNoteBubble({
           : 'self-start bg-message-bot text-message-bot-foreground'
       }`}
     >
-      <Button
-        isIconOnly
+      <IconButtonTooltip
         size="sm"
         variant="primary"
-        aria-label={label}
+        label={label}
+        placement="top"
         isPending={state === 'loading'}
         isDisabled={state === 'loading'}
         onPress={() => (playing ? audio.current?.pause() : void play())}
@@ -121,22 +122,19 @@ export function VoiceNoteBubble({
         ) : (
           <IconPlayerPlayFilled className="size-3.5" />
         )}
-      </Button>
-      <div
+      </IconButtonTooltip>
+      <ProgressBar
         data-voice-track
-        role="progressbar"
         aria-label={t('attachments.voice.progress')}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(progress * 100)}
-        className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-foreground/15"
+        value={Math.round(progress * 100)}
+        size="sm"
+        className="min-w-0 flex-1"
       >
-        <div
-          className="h-full rounded-full bg-foreground"
-          style={{ width: `${progress * 100}%` }}
-        />
-      </div>
-      <span className="shrink-0 text-[12px] tabular-nums text-muted">
+        <ProgressBar.Track className="h-1 bg-foreground/15">
+          <ProgressBar.Fill className="bg-foreground" />
+        </ProgressBar.Track>
+      </ProgressBar>
+      <span className="shrink-0 text-caption tabular-nums text-muted">
         {state === 'failed'
           ? t('attachments.voice.cannotPlay')
           : formatClipTime(playing || positionMs > 0 ? positionMs : lengthMs)}

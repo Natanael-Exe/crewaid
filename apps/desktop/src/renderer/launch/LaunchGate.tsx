@@ -1,5 +1,5 @@
-import { Button } from '@heroui/react';
-import { IconAlertTriangle, IconArrowRight, IconLoader2 } from '@tabler/icons-react';
+import { Alert, Button, Input, Skeleton, Spinner } from '@heroui/react';
+import { IconArrowRight } from '@tabler/icons-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Edition } from '@crewaid/shared';
@@ -65,7 +65,7 @@ export type LaunchGateProps = {
    * caller that does not have one yet.
    */
   readonly children: (session: LaunchSession) => ReactNode;
-  /** Seams for tests; production uses the CC-07 bridge and a real round trip. */
+  /** Seams for tests; production uses the token-store bridge and a real round trip. */
   readonly auth?: AuthPort;
   readonly saveAddress?: (baseUrl: string) => Promise<boolean>;
   readonly probeAddress?: (baseUrl: string) => Promise<'unreachable' | number>;
@@ -225,7 +225,7 @@ export function LaunchGate({
             <h1 className="mt-7">
               {askingForAddress ? t('launch.launchGate.pointThisAppAtAn') : copy.title}
             </h1>
-            <p className="mt-2.5 text-[14px] leading-[21px] text-muted">
+            <p className="mt-2.5 text-callout leading-[21px] text-muted">
               {askingForAddress ? t('launch.launchGate.crewaidRunsItsAgentsOn') : copy.body}
             </p>
 
@@ -249,7 +249,7 @@ export function LaunchGate({
                   variant="primary"
                   isDisabled={busy}
                   onPress={() => void (copy.action === 'sign-in' ? signIn() : recheck())}
-                  className="h-11 w-full text-[14px] font-medium"
+                  className="h-11 w-full text-callout font-medium"
                 >
                   {busy
                     ? t('launch.launchGate.waitingForTheBrowser')
@@ -267,7 +267,7 @@ export function LaunchGate({
                       setEditingAddress(true);
                       setProblem(null);
                     }}
-                    className="text-[12px] text-muted underline-offset-2 hover:underline"
+                    className="text-caption text-muted underline-offset-2 hover:underline"
                   >
                     {t('launch.launchGate.changeOrchestratorAddress')}
                   </button>
@@ -282,7 +282,7 @@ export function LaunchGate({
                 <button
                   type="button"
                   onClick={() => setShowPaste((open) => !open)}
-                  className="text-[12px] text-muted underline-offset-2 hover:underline"
+                  className="text-caption text-muted underline-offset-2 hover:underline"
                 >
                   {/* Not "the browser could not return to this app": that is a
                         claim about something which has not happened yet, and it
@@ -294,19 +294,21 @@ export function LaunchGate({
                 </button>
                 {showPaste ? (
                   <div className="mt-3">
-                    <p className="mb-2 text-[12px] leading-[17px] text-muted">
+                    <p className="mb-2 text-caption leading-[17px] text-muted">
                       {t('launch.launchGate.theSignInPageShows')}
                     </p>
                     <div className="flex items-center gap-2">
-                      <input
+                      <Input
                         id="launch-auth-code"
+                        variant="secondary"
                         type="text"
+                        aria-label={t('launch.launchGate.pasteTheCodeFromThe')}
                         autoComplete="off"
                         spellCheck={false}
                         placeholder={t('launch.launchGate.pasteTheCodeFromThe')}
                         value={code}
                         onChange={(event) => setCode(event.target.value)}
-                        className={GATE_INPUT_CLASS}
+                        className="flex-1 text-start"
                       />
                       <Button
                         variant="tertiary"
@@ -317,7 +319,7 @@ export function LaunchGate({
                           setCode('');
                           void useCode(pasted);
                         }}
-                        className="h-9 shrink-0 rounded-[10px] px-3.5 text-[12px] font-medium"
+                        className="h-9 shrink-0 rounded-[10px] px-3.5 text-caption font-medium"
                       >
                         {t('launch.launchGate.useCode')}
                       </Button>
@@ -333,25 +335,6 @@ export function LaunchGate({
   );
 }
 
-// `text-start` is load-bearing, not decoration: the gate column is centred, and
-// without it an address field centres its own contents and shifts every
-// character as the user types.
-const GATE_INPUT_CLASS =
-  'h-9 w-full rounded-[10px] border border-separator bg-background px-3 text-start text-[13px] outline-none placeholder:text-muted/70 focus:border-focus focus:ring-2 focus:ring-focus/25';
-
-/**
- * The mark is the app icon itself, not a second drawing of it.
- *
- * It is imported rather than inlined so vite fingerprints it and the renderer
- * bundle does not carry ~30KB of base64 on every load; the orchestrator's
- * sign-in page cannot do that and carries a data URI instead, which is the one
- * place the two surfaces legitimately differ.
- *
- * The wordmark stays TEXT. The brand lockups are baked on an opaque
- * background — one light, one dark — so either one is wrong in the other
- * theme, while text follows the theme's foreground token for free and stays
- * sharp at any scale.
- */
 function Mark() {
   const t = useT();
   return (
@@ -363,7 +346,7 @@ function Mark() {
         width={64}
         height={64}
         draggable={false}
-        className="size-16 select-none drop-shadow-[0_10px_26px_rgba(20,18,16,0.22)]"
+        className="size-16 select-none drop-shadow-md"
       />
       <span className="crewaid-gate-wordmark mt-3">{t('launch.launchGate.crewaid')}</span>
     </div>
@@ -372,36 +355,25 @@ function Mark() {
 
 /**
  * The loading state, which is a real state and not a blank frame.
- *
- * Reachability is one network round trip to somebody else's machine, so this
- * is on screen long enough to be noticed whenever that machine is slow — and
- * an app that shows nothing during it reads as one that failed to start.
  */
 function Checking() {
   const t = useT();
   return (
     <div className="mt-7" role="status" aria-live="polite">
       <div className="flex items-center justify-center gap-2.5">
-        <IconLoader2 className="size-4 animate-spin text-muted" stroke={2} aria-hidden />
-        <span className="text-[13px] font-medium">{t('launch.launchGate.connecting')}</span>
+        <Spinner size="sm" aria-hidden />
+        <span className="text-footnote font-medium">{t('launch.launchGate.connecting')}</span>
       </div>
-      <p className="mt-2 text-[13px] leading-[19px] text-muted">
+      <p className="mt-2 text-footnote leading-[19px] text-muted">
         {t('launch.launchGate.checkingYourOrchestratorAndWho')}
       </p>
-      {/* items-center, so the tapering widths shorten from BOTH ends. Left-
-          anchored bars under centred text read as a broken layout rather
-          than as loading. */}
       <div className="mt-6 flex flex-col items-center gap-2.5" aria-hidden>
-        <SkeletonBar className="w-full" />
-        <SkeletonBar className="w-4/5" />
-        <SkeletonBar className="w-2/3" />
+        <Skeleton className="h-2.5 w-full rounded-full" />
+        <Skeleton className="h-2.5 w-4/5 rounded-full" />
+        <Skeleton className="h-2.5 w-2/3 rounded-full" />
       </div>
     </div>
   );
-}
-
-function SkeletonBar({ className }: { className: string }) {
-  return <div className={`h-2.5 animate-pulse rounded-full bg-background-tertiary ${className}`} />;
 }
 
 function AddressForm({
@@ -428,11 +400,12 @@ function AddressForm({
         onSubmit();
       }}
     >
-      <label htmlFor="launch-base-url" className="mb-1.5 block text-start text-[12px] font-medium">
+      <label htmlFor="launch-base-url" className="mb-1.5 block text-start text-caption font-medium">
         {t('launch.launchGate.orchestratorAddress')}
       </label>
-      <input
+      <Input
         id="launch-base-url"
+        variant="secondary"
         type="url"
         inputMode="url"
         autoComplete="off"
@@ -440,7 +413,7 @@ function AddressForm({
         placeholder={ORCHESTRATOR_ADDRESS_EXAMPLE}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={GATE_INPUT_CLASS}
+        className="w-full text-start"
       />
       {problem === null ? null : <GateAlert>{problem}</GateAlert>}
       <div className="mt-4 flex items-center gap-2">
@@ -448,7 +421,7 @@ function AddressForm({
           type="submit"
           variant="primary"
           isDisabled={busy}
-          className="h-11 flex-1 text-[14px] font-medium"
+          className="h-11 flex-1 text-callout font-medium"
         >
           {busy ? t('launch.launchGate.checking') : t('launch.launchGate.continue')}
           {busy ? null : (
@@ -460,7 +433,7 @@ function AddressForm({
             variant="ghost"
             isDisabled={busy}
             onPress={onCancel}
-            className="h-11 px-4 text-[14px] font-medium text-muted"
+            className="h-11 px-4 text-callout font-medium text-muted"
           >
             {t('launch.launchGate.cancel')}
           </Button>
@@ -472,9 +445,11 @@ function AddressForm({
 
 function GateAlert({ children }: { children: ReactNode }) {
   return (
-    <p className="mt-3 flex items-start justify-center gap-1.5 text-start text-[12px] leading-[17px] text-danger">
-      <IconAlertTriangle className="mt-px size-4 shrink-0" stroke={1.8} aria-hidden />
-      <span>{children}</span>
-    </p>
+    <Alert status="danger" role="alert" className="mt-3 text-start text-caption">
+      <Alert.Indicator />
+      <Alert.Content>
+        <Alert.Description className="text-caption leading-[17px]">{children}</Alert.Description>
+      </Alert.Content>
+    </Alert>
   );
 }

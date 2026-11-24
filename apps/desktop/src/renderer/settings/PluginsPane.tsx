@@ -1,5 +1,15 @@
-import { Button, ListBox, ListBoxItem, SearchField, Select, Spinner, Switch } from '@heroui/react';
-import { IconAlertTriangle, IconPlus } from '@tabler/icons-react';
+import {
+  Alert,
+  Button,
+  Input,
+  ListBox,
+  ListBoxItem,
+  SearchField,
+  Select,
+  Skeleton,
+  Switch,
+} from '@heroui/react';
+import { IconPlus, IconSearch } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type {
   Bot,
@@ -26,6 +36,7 @@ import {
   type ApiClient,
 } from '../api';
 import { systemBrowser } from '../bridge';
+import { EmptyState, IconButtonTooltip, Segment } from '../components/ui';
 import {
   ALL_CATEGORY_KEY,
   authorizeUrlOf,
@@ -48,7 +59,7 @@ import {
 } from './pluginsState';
 import { PluginAccessEditor, accessSummary } from './PluginAccessEditor';
 import { markFor } from './pluginMarks';
-import { SETTINGS_INPUT_CLASS, SettingsRow, SettingsSection } from './SettingsLayout';
+import { SettingsRow, SettingsSection } from './SettingsLayout';
 import { type MessageKey, useT } from '../i18n/i18n';
 
 /**
@@ -342,18 +353,37 @@ export function PluginsPane({
   );
 
   if (state.status === 'loading') {
+    // Card-shaped placeholders hold the grid's place, so the catalogue lands
+    // where the eye already is instead of after a spinner in an empty void.
     return (
-      <div className="flex justify-center py-10">
-        <Spinner aria-label={t('plugins.loading')} />
+      <div
+        role="status"
+        aria-label={t('plugins.loading')}
+        className="grid grid-cols-1 gap-2.5 pt-2 sm:grid-cols-2"
+      >
+        {[0, 1, 2, 3, 4, 5].map((index) => (
+          <div
+            key={index}
+            className="flex items-start gap-2.5 rounded-card bg-surface-secondary p-3"
+          >
+            <Skeleton className="size-9 shrink-0 rounded-xl" />
+            <div className="flex flex-1 flex-col gap-2 pt-0.5">
+              <Skeleton className="h-3.5 w-1/2 rounded-full" />
+              <Skeleton className="h-3 w-3/4 rounded-full" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
   if (state.status === 'failed') {
     return (
-      <div className="flex items-start gap-2 rounded-card bg-surface-secondary p-4 text-[13px] text-foreground">
-        <IconAlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" stroke={1.8} />
-        <span>{state.message}</span>
-      </div>
+      <Alert status="danger" role="alert">
+        <Alert.Indicator />
+        <Alert.Content>
+          <Alert.Description>{state.message}</Alert.Description>
+        </Alert.Content>
+      </Alert>
     );
   }
 
@@ -513,7 +543,7 @@ export function PluginsPaneView({
   return (
     <div>
       <div className="mb-3 flex items-start justify-between gap-3 px-1">
-        <p className="text-[12px] text-muted" data-testid="plugins-summary">
+        <p className="text-caption text-muted tabular-nums" data-testid="plugins-summary">
           {installedSummary(rows)}
         </p>
         {/* One button, not a menu. The references this follows carry an
@@ -528,37 +558,46 @@ export function PluginsPaneView({
         )}
       </div>
 
-      <div className="mb-3">
+      {/* Search and category share one row: they are one question ("which
+          plugin?"), and stacked they pushed the catalogue below the fold. */}
+      <div className="mb-4 flex flex-wrap items-center gap-2.5">
         <SearchField
           aria-label={t('plugins.search')}
           variant="secondary"
           value={query}
           onChange={onQuery}
+          className="min-w-[200px] flex-1"
         >
           <SearchField.Group>
             <SearchField.SearchIcon />
             <SearchField.Input placeholder={t('plugins.search')} />
+            <SearchField.ClearButton />
           </SearchField.Group>
         </SearchField>
-      </div>
 
-      {/* One dropdown, not a wall of chips. live catalog carries the
+        {/* One dropdown, not a wall of chips. live catalog carries the
           vendor's whole category taxonomy — dozens of them, lowercase, beside
           the curated entries' own — and a chip per category turned the filter
           into the tallest thing on the screen. A select reaches every category
           in one row; "All categories" is the sentinel that clears it. */}
-      {options.length === 1 ? null : (
-        <div className="mb-4">
-          <CategoryFilter options={options} category={category} onCategory={onCategory} />
-        </div>
-      )}
+        {options.length === 1 ? null : (
+          <div className="w-[190px] shrink-0">
+            <CategoryFilter options={options} category={category} onCategory={onCategory} />
+          </div>
+        )}
+      </div>
 
       {shown.length === 0 ? (
         <SettingsSection title={t('plugins.available')}>
-          <SettingsRow
-            label={t('plugins.nothingMatches')}
-            description={t('plugins.nothingMatches.hint')}
-          />
+          <EmptyState size="sm" className="py-6">
+            <EmptyState.Header>
+              <EmptyState.Media variant="icon">
+                <IconSearch className="size-4 text-muted" aria-hidden />
+              </EmptyState.Media>
+              <EmptyState.Title>{t('plugins.nothingMatches')}</EmptyState.Title>
+              <EmptyState.Description>{t('plugins.nothingMatches.hint')}</EmptyState.Description>
+            </EmptyState.Header>
+          </EmptyState>
         </SettingsSection>
       ) : (
         <>
@@ -597,7 +636,7 @@ export function PluginsPaneView({
             </CardSection>
           )}
           {hidden === 0 ? null : (
-            <p className="px-1 text-[12px] text-muted" data-testid="plugins-hidden">
+            <p className="px-1 text-caption text-muted tabular-nums" data-testid="plugins-hidden">
               {t('plugins.hidden', { count: hidden })}
             </p>
           )}
@@ -619,9 +658,10 @@ function CardSection({
 }) {
   return (
     <section className="mb-6">
-      <h3 className="px-1 text-[12px] font-medium text-muted">{title}</h3>
-      {hint === '' ? null : <p className="px-1 text-[12px] text-muted">{hint}</p>}
-      <div className="mb-2" />
+      <div className="mb-2 px-1">
+        <h3 className="text-caption font-medium text-muted">{title}</h3>
+        {hint === '' ? null : <p className="text-caption text-muted">{hint}</p>}
+      </div>
       {/* One column below ~520px so a narrowed window degrades to the list
           this replaced rather than to two unreadable columns. */}
       <div className="grid grid-cols-1 gap-2 min-[520px]:grid-cols-2">{children}</div>
@@ -674,7 +714,7 @@ function PluginTileView({ row }: { row: PluginRow }) {
   }
   return (
     <div
-      className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-[11px] font-semibold text-white"
+      className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-micro font-semibold text-white"
       style={{ backgroundColor: tile.color }}
       aria-hidden
     >
@@ -683,9 +723,10 @@ function PluginTileView({ row }: { row: PluginRow }) {
   );
 }
 
-/** Shapes of a server's name and address, shown in empty fields; not words. */
+/** Shapes of a server's name, address, and protocol label; not words to translate. */
 const NAME_EXAMPLE = 'Acme';
 const URL_EXAMPLE = 'https://mcp.example.com/mcp';
+const SSE_LABEL = 'SSE';
 
 const TONE_CLASS: Record<ReturnType<typeof statusView>['tone'], string> = {
   neutral: 'text-muted',
@@ -737,16 +778,28 @@ function PluginCard({
       <div className="flex items-start gap-2.5">
         <PluginTileView row={row} />
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[13px] font-medium text-foreground">{row.name}</div>
-          <div className="truncate text-[12px]">
-            <span className={TONE_CLASS[view.tone]}>{view.label}</span>
-            {row.category === null ? null : <span className="text-muted"> · {row.category}</span>}
+          <div className="truncate text-footnote font-medium text-foreground">{row.name}</div>
+          <div className="truncate text-caption">
+            {/* An uninstalled card sits under "Available" already; repeating
+                "Not installed" on every one of them was noise. */}
+            {row.server === null ? null : (
+              <span className={TONE_CLASS[view.tone]}>{view.label}</span>
+            )}
+            {row.category === null ? null : (
+              <span className="text-muted">
+                {row.server === null ? '' : ' · '}
+                {row.category}
+              </span>
+            )}
             {/* An available card's one "what is this" fact beyond the
                 category: this one connects through the deployment's Composio
                 account rather than a direct MCP endpoint. Once it is
                 installed the summary's status sentence takes over the line. */}
             {row.server === null && row.backend === 'COMPOSIO' ? (
-              <span className="text-muted"> · {t('plugins.viaComposio')}</span>
+              <span className="text-muted">
+                {row.category === null ? '' : ' · '}
+                {t('plugins.viaComposio')}
+              </span>
             ) : null}
           </div>
         </div>
@@ -755,21 +808,21 @@ function PluginCard({
             do to it, and a full-width button for it would make the catalogue
             read as eleven decisions instead of a list. */}
         {row.server === null ? (
-          <Button
+          <IconButtonTooltip
+            label={t('plugins.install', { name: row.name })}
             size="sm"
             variant="ghost"
             isDisabled={busy}
             onPress={onInstall}
-            aria-label={t('plugins.install', { name: row.name })}
             className="-me-1 -mt-1 size-7 shrink-0 rounded-full p-0"
           >
-            <IconPlus className="size-4" stroke={1.8} />
-          </Button>
+            <IconPlus className="size-4" stroke={1.8} aria-hidden />
+          </IconButtonTooltip>
         ) : null}
       </div>
 
       {view.sentence === '' ? null : (
-        <div className="text-[12px] leading-[16px] text-muted">
+        <div className="text-caption leading-[16px] text-muted">
           {awaiting ? t('plugins.waitingForBrowser') : view.sentence}
         </div>
       )}
@@ -778,15 +831,19 @@ function PluginCard({
 . Useful to whoever is debugging, useless to whoever has to
           press something — so it is never the headline. */}
       {row.server?.lastError == null || view.action === null ? null : (
-        <div className="text-[11px] leading-[15px] text-muted opacity-80">
+        <div className="text-micro leading-[15px] text-muted opacity-80">
           {row.server.lastError}
         </div>
       )}
-      {problem === '' ? null : <div className="text-[12px] text-warning">{problem}</div>}
+      {problem === '' ? null : (
+        <div role="alert" className="text-caption text-danger">
+          {problem}
+        </div>
+      )}
 
       {row.server && onManageAccess ? (
         <div className="mt-1 flex items-center justify-between gap-2 border-t border-separator pt-2">
-          <div className="min-w-0 text-[12px] text-muted">{accessSummary(row.server.access)}</div>
+          <div className="min-w-0 text-caption text-muted">{accessSummary(row.server.access)}</div>
           <Button
             size="sm"
             variant="ghost"
@@ -800,18 +857,19 @@ function PluginCard({
       ) : null}
       {asking ? (
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={`token-${row.key}`} className="text-[12px] text-muted">
+          <label htmlFor={`token-${row.key}`} className="text-caption text-muted">
             {t('plugins.newToken', { name: row.name })}
           </label>
-          <input
+          <Input
             id={`token-${row.key}`}
+            variant="secondary"
             type="password"
             autoComplete="off"
             spellCheck={false}
             placeholder={t('plugins.token.placeholder')}
             value={token}
             onChange={(event) => setToken(event.target.value)}
-            className={SETTINGS_INPUT_CLASS}
+            className="w-full"
           />
           <div className="flex justify-end gap-2">
             <Button
@@ -839,23 +897,21 @@ function PluginCard({
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-end gap-2">
+        <div className="mt-auto flex flex-col gap-2">
           {onManageAccess || row.enabledForBot === null || row.server === null ? null : (
             // `Switch.Content` is not decoration: HeroUI's Switch is React
             // Aria's SwitchField, a div with no control of its own, and the
-            // interactive element lives in the content slot. Composed without
-            // it this is a PICTURE of a switch — it reflects state, honours
-            // disabled, and does nothing when pressed (see ModelForm).
+            // interactive element lives in the content slot.
             <Switch
               size="sm"
               isSelected={row.enabledForBot}
               isDisabled={busy || row.server.status !== 'CONNECTED'}
               onChange={onToggle}
               aria-label={t('plugins.useOnBot', { name: row.name })}
-              className="me-auto"
+              className="w-full border-t border-separator pt-2"
             >
-              <Switch.Content>
-                <span className="text-[12px] text-muted">{t('plugins.use')}</span>
+              <Switch.Content className="flex w-full items-center justify-between gap-2">
+                <span className="text-caption text-muted">{t('plugins.use')}</span>
                 <Switch.Control>
                   <Switch.Thumb />
                 </Switch.Control>
@@ -863,7 +919,7 @@ function PluginCard({
             </Switch>
           )}
           {row.server === null ? null : (
-            <>
+            <div className="flex items-center justify-end gap-2">
               {view.action === null ? null : (
                 <Button
                   size="sm"
@@ -881,20 +937,10 @@ function PluginCard({
                   {t(ACTION_LABEL[view.action])}
                 </Button>
               )}
-              {/* Muted on purpose. `ghost` renders at full foreground weight,
-                  which put Remove level with the button that FIXES the card —
-                  and on a row that needs attention, the destructive action was
-                  reading as the suggested one. */}
-              <Button
-                size="sm"
-                variant="ghost"
-                isDisabled={busy}
-                onPress={onUninstall}
-                className="font-normal text-muted"
-              >
+              <Button size="sm" variant="danger-soft" isDisabled={busy} onPress={onUninstall}>
                 {t('plugins.remove')}
               </Button>
-            </>
+            </div>
           )}
         </div>
       )}
@@ -943,7 +989,7 @@ export function CustomServerFormView({
         size="sm"
         variant="ghost"
         onPress={onCancel}
-        className="mb-3 -ms-1 h-7 px-2 text-[12px] text-muted"
+        className="mb-3 -ms-2 h-7 px-2 text-caption text-muted"
       >
         {t('plugins.back')}
       </Button>
@@ -955,15 +1001,16 @@ export function CustomServerFormView({
           stacked
           description={t('plugins.custom.name.hint')}
           control={
-            <input
+            <Input
               id="custom-mcp-name"
+              variant="secondary"
               type="text"
               autoComplete="off"
               spellCheck={false}
               placeholder={NAME_EXAMPLE}
               value={draft.name}
               onChange={(event) => setDraft({ ...draft, name: event.target.value })}
-              className={SETTINGS_INPUT_CLASS}
+              className="w-full"
             />
           }
         />
@@ -973,15 +1020,16 @@ export function CustomServerFormView({
           stacked
           description={t('plugins.custom.url.hint')}
           control={
-            <input
+            <Input
               id="custom-mcp-url"
+              variant="secondary"
               type="url"
               autoComplete="off"
               spellCheck={false}
               placeholder={URL_EXAMPLE}
               value={draft.url}
               onChange={(event) => setDraft({ ...draft, url: event.target.value })}
-              className={SETTINGS_INPUT_CLASS}
+              className="w-full"
             />
           }
         />
@@ -989,16 +1037,17 @@ export function CustomServerFormView({
           label={t('plugins.custom.transport')}
           description={t('plugins.custom.transport.hint')}
           control={
-            <div className="flex gap-1.5">
-              {(['HTTP', 'SSE'] as const).map((transport) => (
-                <CategoryChip
-                  key={transport}
-                  label={transport === 'HTTP' ? t('plugins.custom.transport.http') : 'SSE'}
-                  selected={draft.transport === transport}
-                  onPress={() => setDraft({ ...draft, transport })}
-                />
-              ))}
-            </div>
+            <Segment
+              size="sm"
+              aria-label={t('plugins.custom.transport')}
+              selectedKey={draft.transport}
+              onSelectionChange={(value) => {
+                if (value === 'HTTP' || value === 'SSE') setDraft({ ...draft, transport: value });
+              }}
+            >
+              <Segment.Item id="HTTP">{t('plugins.custom.transport.http')}</Segment.Item>
+              <Segment.Item id="SSE">{SSE_LABEL}</Segment.Item>
+            </Segment>
           }
         />
         <SettingsRow
@@ -1007,27 +1056,35 @@ export function CustomServerFormView({
           stacked
           description={t('plugins.custom.token.hint')}
           control={
-            <input
+            <Input
               id="custom-mcp-token"
+              variant="secondary"
               type="password"
               autoComplete="off"
               spellCheck={false}
               placeholder={t('plugins.custom.token.placeholder')}
               value={draft.bearerToken}
               onChange={(event) => setDraft({ ...draft, bearerToken: event.target.value })}
-              className={SETTINGS_INPUT_CLASS}
+              className="w-full"
             />
           }
         />
       </SettingsSection>
 
       {touched && problems.name !== undefined ? (
-        <p className="mb-2 px-1 text-[12px] text-warning">{problems.name}</p>
+        <p className="mb-2 px-1 text-caption text-danger">{problems.name}</p>
       ) : null}
       {touched && problems.url !== undefined ? (
-        <p className="mb-2 px-1 text-[12px] text-warning">{problems.url}</p>
+        <p className="mb-2 px-1 text-caption text-danger">{problems.url}</p>
       ) : null}
-      {problem === '' ? null : <p className="mb-2 px-1 text-[12px] text-warning">{problem}</p>}
+      {problem === '' ? null : (
+        <Alert status="danger" role="alert" className="mb-3">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>{problem}</Alert.Description>
+          </Alert.Content>
+        </Alert>
+      )}
 
       <div className="flex justify-end gap-2 px-1">
         <Button size="sm" variant="ghost" isDisabled={busy} onPress={onCancel}>
@@ -1047,32 +1104,6 @@ export function CustomServerFormView({
         </Button>
       </div>
     </div>
-  );
-}
-
-function CategoryChip({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onPress={onPress}
-      aria-pressed={selected}
-      className={`h-7 rounded-full px-3 text-[12px] font-normal ${
-        selected
-          ? 'bg-background-tertiary text-foreground'
-          : 'text-muted data-[hovered]:bg-background-secondary'
-      }`}
-    >
-      {label}
-    </Button>
   );
 }
 
@@ -1106,7 +1137,7 @@ function CategoryFilter({
     >
       <Select.Trigger
         data-testid="plugins-category"
-        className="h-9 w-full max-w-72 items-center justify-between rounded-card border border-separator bg-surface-secondary px-3 text-[13px] text-foreground"
+        className="h-9 w-full max-w-72 items-center justify-between rounded-card border border-separator bg-surface-secondary px-3 text-footnote text-foreground"
       >
         {/* The label from props, not from SelectValue: the selected category is
             this component's own state, and reading it here keeps the trigger's
@@ -1122,7 +1153,7 @@ function CategoryFilter({
               key={option.id}
               id={option.id}
               textValue={option.label}
-              className="cursor-default rounded-[6px] px-2.5 py-1.5 text-[13px] text-foreground data-[focused]:bg-background-secondary"
+              className="cursor-default rounded-[6px] px-2.5 py-1.5 text-footnote text-foreground data-[focused]:bg-background-secondary"
             >
               {option.label}
             </ListBoxItem>

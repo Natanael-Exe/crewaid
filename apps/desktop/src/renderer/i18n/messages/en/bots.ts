@@ -4,6 +4,8 @@ export const bots = {
   'bots.botFields.name': 'Name',
   'bots.botFields.label': 'Label',
   'bots.botFields.fixed': 'Fixed',
+  'bots.botFields.customizeAppearance': 'Customize appearance',
+  'bots.botProfilePane.discard': 'Discard',
   'bots.botProfilePane.botProfile': 'Bot profile',
   'bots.botProfilePane.memory': 'Memory',
   'bots.botProfilePane.settings': 'Settings',

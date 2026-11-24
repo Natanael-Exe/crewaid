@@ -17,7 +17,7 @@ import { t } from '../i18n/i18n';
  * 1. URLs are built from `API_ROUTES` entries, never from string literals, so
  * a path typo is a compile error in `@crewaid/shared` rather than a 404 at
  * runtime (PRD §0 rule 2 — do not invent endpoints).
- * 2. Credentials come from the same CC-07 bag the WS client reads, so there
+ * 2. Credentials come from the same credential bag the WS client reads, so there
  * is one place the operator configures the orchestrator and one
  * fail-closed rule when they have not.
  * 3. Every body is parsed through the shared schema before it reaches a

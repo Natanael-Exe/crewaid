@@ -111,6 +111,10 @@ async function setUp(page: Page, bots: readonly Record<string, unknown>[]): Prom
   // The centre pane is a transcript rather than `ThreadNotice`; the rail this
   // test drives sits beside it.
   await expect(page.getByRole('region', { name: 'Transcript' })).toBeVisible();
+  // A bot whose computer is stopped opens with the rail tucked away. This suite
+  // drives the computer card, so it brings the rail out; the choice is kept
+  // across bot switches, which is what the selection test walks through.
+  await page.getByRole('button', { name: 'Expand panel' }).click();
 }
 
 /** Count every start the window issues, whoever issued it. */

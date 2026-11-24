@@ -1,5 +1,5 @@
-import { Button, Spinner } from '@heroui/react';
-import { IconAlertTriangle } from '@tabler/icons-react';
+import { Alert, Button, Input, Skeleton } from '@heroui/react';
+import { IconPlugConnected, IconPlus } from '@tabler/icons-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ProviderConnectionWithModels, ProviderModel } from '@crewaid/shared';
 import {
@@ -16,6 +16,7 @@ import {
   useApiClient,
   type ApiClient,
 } from '../api';
+import { EmptyState } from '../components/ui';
 import { ConnectionCard } from './ConnectionCard';
 import { IncludedModelsCard } from './IncludedModelsCard';
 import {
@@ -31,7 +32,7 @@ import {
   type ConnectionDraft,
   type ModelDraft,
 } from './connectionsState';
-import { SettingsRow, SettingsSection, SETTINGS_INPUT_CLASS } from './SettingsLayout';
+import { SettingsRow, SettingsSection } from './SettingsLayout';
 import { useT } from '../i18n/i18n';
 
 /**
@@ -204,23 +205,46 @@ export function ConnectionsPane({ load, act, onChanged }: ConnectionsPaneProps) 
   return (
     <>
       {state.status === 'loading' ? (
-        <div className="flex items-center gap-2 px-1 py-6 text-[13px] text-muted">
-          <Spinner size="sm" aria-label={t('settings.connections.loading')} />
-          {t('settings.connections.loading')}
+        <div
+          role="status"
+          aria-label={t('settings.connections.loading')}
+          className="mb-6 flex flex-col gap-3"
+        >
+          {[0, 1].map((index) => (
+            <div key={index} className="crewaid-settings-surface flex items-center gap-3 p-4">
+              <Skeleton className="size-9 shrink-0 rounded-xl" />
+              <div className="flex flex-1 flex-col gap-2">
+                <Skeleton className="h-3.5 w-2/5 rounded-full" />
+                <Skeleton className="h-3 w-3/5 rounded-full" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : null}
 
       {state.status === 'failed' ? (
-        <p className="px-1 py-6 text-[13px] text-muted">
-          {t('settings.connections.loadFailed', { reason: state.message })}
-        </p>
+        <Alert status="danger" role="alert" className="mb-6">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>
+              {t('settings.connections.loadFailed', { reason: state.message })}
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
       ) : null}
 
       {state.status === 'ready' && state.connections.length === 0 ? (
         <SettingsSection title={t('settings.connections.empty.title')}>
-          <div className="px-4 py-3.5 text-[12px] leading-[17px] text-muted">
-            {t('settings.connections.empty.body')}
-          </div>
+          <EmptyState size="sm" className="py-6">
+            <EmptyState.Header>
+              <EmptyState.Media variant="icon">
+                <IconPlugConnected className="size-4 text-muted" aria-hidden />
+              </EmptyState.Media>
+              <EmptyState.Description>
+                {t('settings.connections.empty.body')}
+              </EmptyState.Description>
+            </EmptyState.Header>
+          </EmptyState>
         </SettingsSection>
       ) : null}
 
@@ -290,158 +314,176 @@ export function ConnectionsPane({ load, act, onChanged }: ConnectionsPaneProps) 
           )
         : null}
 
-      {state.status === 'ready' ? (
+      {/* Closed, adding is one button; a heading, a card and a button that all
+          said "Add a connection" was the same words three times. */}
+      {state.status === 'ready' && addOpen ? (
         <SettingsSection title={t('settings.connections.add.title')}>
-          {addOpen ? (
-            <>
-              <SettingsRow
-                label={t('settings.connections.provider.label')}
-                description={t('settings.connections.provider.description')}
-                stacked
-                control={
-                  <div className="flex flex-wrap gap-2">
-                    {kinds.map((option) => (
-                      <Button
-                        key={option.kind}
-                        variant={draft.kind === option.kind ? 'primary' : 'tertiary'}
-                        size="sm"
-                        isDisabled={busy || option.blocked !== null}
-                        onPress={() => setDraft({ ...draft, kind: option.kind })}
-                        className="h-8 rounded-[10px] px-3.5 text-[12px] font-medium"
-                      >
-                        {option.label}
-                      </Button>
-                    ))}
-                  </div>
-                }
-              />
-              {kinds
-                .filter((option) => option.blocked !== null && option.kind === draft.kind)
-                .map((option) => (
-                  <p key={option.kind} className="px-4 pb-1 text-[12px] text-muted">
-                    {t('settings.connections.blocked', {
-                      provider: providerLabel(option.kind),
-                      reason: option.blocked ?? '',
-                    })}
-                  </p>
-                ))}
+          <>
+            <SettingsRow
+              label={t('settings.connections.provider.label')}
+              description={t('settings.connections.provider.description')}
+              stacked
+              control={
+                <div className="flex flex-wrap gap-2">
+                  {kinds.map((option) => (
+                    <Button
+                      key={option.kind}
+                      variant={draft.kind === option.kind ? 'primary' : 'tertiary'}
+                      size="sm"
+                      isDisabled={busy || option.blocked !== null}
+                      onPress={() => setDraft({ ...draft, kind: option.kind })}
+                      className="h-8 rounded-[10px] px-3.5 text-caption font-medium"
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+              }
+            />
+            {kinds
+              .filter((option) => option.blocked !== null && option.kind === draft.kind)
+              .map((option) => (
+                <p key={option.kind} className="px-4 pb-1 text-caption text-muted">
+                  {t('settings.connections.blocked', {
+                    provider: providerLabel(option.kind),
+                    reason: option.blocked ?? '',
+                  })}
+                </p>
+              ))}
 
-              <SettingsRow
-                label={t('settings.connections.name.label')}
-                htmlFor="new-connection-name"
-                stacked
-                control={
-                  <input
-                    id="new-connection-name"
-                    type="text"
-                    autoComplete="off"
-                    spellCheck={false}
-                    placeholder={t('settings.connections.name.placeholder')}
-                    value={draft.name}
-                    onChange={(event) => setDraft({ ...draft, name: event.target.value })}
-                    className={SETTINGS_INPUT_CLASS}
-                  />
-                }
-              />
-
-              {draft.kind === 'custom' ? (
-                <SettingsRow
-                  label={t('settings.connections.baseUrl.label')}
-                  htmlFor="new-connection-endpoint"
-                  description={t('settings.connections.baseUrl.description')}
-                  stacked
-                  control={
-                    <input
-                      id="new-connection-endpoint"
-                      type="url"
-                      inputMode="url"
-                      autoComplete="off"
-                      spellCheck={false}
-                      placeholder={ENDPOINT_EXAMPLE}
-                      value={draft.endpoint}
-                      onChange={(event) => setDraft({ ...draft, endpoint: event.target.value })}
-                      className={SETTINGS_INPUT_CLASS}
-                    />
-                  }
+            <SettingsRow
+              label={t('settings.connections.name.label')}
+              htmlFor="new-connection-name"
+              stacked
+              control={
+                <Input
+                  id="new-connection-name"
+                  variant="secondary"
+                  type="text"
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder={t('settings.connections.name.placeholder')}
+                  value={draft.name}
+                  onChange={(event) => setDraft({ ...draft, name: event.target.value })}
+                  className="w-full"
                 />
-              ) : null}
+              }
+            />
 
+            {draft.kind === 'custom' ? (
               <SettingsRow
-                label={t('settings.connections.apiKey.label')}
-                htmlFor="new-connection-key"
-                // Optional, and saying so matters: the alternative reading is
-                // that a connection cannot exist without one, which would make
-                // "define it now, key it later" look unsupported when it is
-                // the normal shape on a shared install.
-                description={t('settings.connections.apiKey.description')}
+                label={t('settings.connections.baseUrl.label')}
+                htmlFor="new-connection-endpoint"
+                description={t('settings.connections.baseUrl.description')}
                 stacked
                 control={
-                  <input
-                    id="new-connection-key"
-                    type="password"
+                  <Input
+                    id="new-connection-endpoint"
+                    variant="secondary"
+                    type="url"
+                    inputMode="url"
                     autoComplete="off"
                     spellCheck={false}
-                    placeholder={t('settings.connections.apiKey.placeholder')}
-                    value={draft.apiKey}
-                    onChange={(event) => setDraft({ ...draft, apiKey: event.target.value })}
-                    className={SETTINGS_INPUT_CLASS}
+                    placeholder={ENDPOINT_EXAMPLE}
+                    value={draft.endpoint}
+                    onChange={(event) => setDraft({ ...draft, endpoint: event.target.value })}
+                    className="w-full"
                   />
                 }
               />
+            ) : null}
 
-              {draftProblem === null ? null : (
-                <p className="px-4 pb-1 text-[12px] text-danger">{draftProblem}</p>
-              )}
+            <SettingsRow
+              label={t('settings.connections.apiKey.label')}
+              htmlFor="new-connection-key"
+              // Optional, and saying so matters: the alternative reading is
+              // that a connection cannot exist without one, which would make
+              // "define it now, key it later" look unsupported when it is
+              // the normal shape on a shared install.
+              description={t('settings.connections.apiKey.description')}
+              stacked
+              control={
+                <Input
+                  id="new-connection-key"
+                  variant="secondary"
+                  type="password"
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder={t('settings.connections.apiKey.placeholder')}
+                  value={draft.apiKey}
+                  onChange={(event) => setDraft({ ...draft, apiKey: event.target.value })}
+                  className="w-full"
+                />
+              }
+            />
 
-              <div className="flex flex-wrap items-center gap-2 px-4 py-3.5">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  isDisabled={busy || draftProblem !== null}
-                  onPress={() => {
-                    const submitted = draft;
-                    setDraft(EMPTY_CONNECTION_DRAFT);
-                    setAddOpen(false);
-                    void run('', t('settings.action.addConnection'), (a) => a.create(submitted));
-                  }}
-                  className="h-8 rounded-[10px] px-3.5 text-[12px] font-medium"
-                >
-                  {t('settings.connections.add')}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onPress={() => {
-                    setDraft(EMPTY_CONNECTION_DRAFT);
-                    setAddOpen(false);
-                  }}
-                  className="h-8 rounded-[10px] px-3.5 text-[12px] font-medium text-muted"
-                >
-                  {t('settings.cancel')}
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center gap-2 px-4 py-3.5">
+            {draftProblem === null ? null : (
+              <p className="px-4 pb-1 text-caption text-danger">{draftProblem}</p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2 px-4 py-3.5">
               <Button
-                variant="tertiary"
+                variant="primary"
                 size="sm"
-                isDisabled={busy}
-                onPress={() => setAddOpen(true)}
-                className="h-8 rounded-[10px] px-3.5 text-[12px] font-medium"
+                isDisabled={busy || draftProblem !== null}
+                onPress={() => {
+                  const submitted = draft;
+                  setDraft(EMPTY_CONNECTION_DRAFT);
+                  setAddOpen(false);
+                  void run('', t('settings.action.addConnection'), (a) => a.create(submitted));
+                }}
+                className="h-8 rounded-[10px] px-3.5 text-caption font-medium"
               >
-                {t('settings.connections.add.title')}
+                {t('settings.connections.add')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={() => {
+                  setDraft(EMPTY_CONNECTION_DRAFT);
+                  setAddOpen(false);
+                }}
+                className="h-8 rounded-[10px] px-3.5 text-caption font-medium text-muted"
+              >
+                {t('settings.cancel')}
               </Button>
             </div>
-          )}
-
+          </>
           {addProblem === undefined || addProblem === '' ? null : (
-            <p className="flex items-start gap-1.5 px-4 py-3 text-[12px] leading-[17px] text-danger">
-              <IconAlertTriangle className="mt-px size-4 shrink-0" stroke={1.8} aria-hidden />
-              {addProblem}
-            </p>
+            <div className="px-4 py-3">
+              <Alert status="danger" role="alert">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Description>{addProblem}</Alert.Description>
+                </Alert.Content>
+              </Alert>
+            </div>
           )}
         </SettingsSection>
+      ) : null}
+      {state.status === 'ready' && !addOpen ? (
+        <div className="mb-6 flex flex-col items-start gap-3 px-1">
+          <Button
+            variant="secondary"
+            size="sm"
+            isDisabled={busy}
+            onPress={() => setAddOpen(true)}
+            className="rounded-full"
+          >
+            <IconPlus className="size-4" stroke={1.8} aria-hidden />
+            {t('settings.connections.add.title')}
+          </Button>
+          {addProblem === undefined || addProblem === '' ? null : (
+            <div className="w-full">
+              <Alert status="danger" role="alert">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Description>{addProblem}</Alert.Description>
+                </Alert.Content>
+              </Alert>
+            </div>
+          )}
+        </div>
       ) : null}
     </>
   );

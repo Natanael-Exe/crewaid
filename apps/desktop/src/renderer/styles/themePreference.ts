@@ -1,4 +1,5 @@
 import { useLayoutEffect, useSyncExternalStore } from 'react';
+import { reportTheme } from '../bridge';
 
 export type ThemePreference = 'light' | 'dark' | 'system';
 export const THEME_PREFERENCE_KEY = 'crewaid.appearance.theme';
@@ -57,6 +58,7 @@ export function useAppTheme(): void {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const update = () => applyTheme(preference, media.matches);
     update();
+    reportTheme(preference);
     media.addEventListener('change', update);
     const storageChanged = (event: StorageEvent) => {
       if (event.key === THEME_PREFERENCE_KEY) {

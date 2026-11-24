@@ -1,4 +1,4 @@
-import { Button, Modal, Switch, useOverlayState } from '@heroui/react';
+import { Button, Input, Modal, Switch, TextArea, useOverlayState } from '@heroui/react';
 import { useEffect, useState } from 'react';
 import type { BotWithSandbox, GoalWithProgress, ProjectWithCounts } from '@crewaid/shared';
 import { failureOf } from '../api';
@@ -7,7 +7,6 @@ import { createTask, startTask } from '../api/work';
 import { BotAvatar } from '../components/BotAvatar';
 import { EndsField, ScheduleField, TimezonePicker } from '../routines/RoutineScheduleFields';
 import { defaultTimezone } from '../settings/accountSettings';
-import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
 import { FIELD_LABEL, Picker } from './Fields';
 import { workFailureText } from './workErrors';
 import { useT } from '../i18n/i18n';
@@ -115,153 +114,148 @@ export function NewTaskDialog({
   return (
     <Modal state={overlay}>
       <Modal.Backdrop>
-        <Modal.Container
-          size="cover"
-          placement="center"
-          className="h-fit sm:w-auto"
-          scroll="inside"
-        >
-          <Modal.Dialog
-            aria-label={heading}
-            className="flex h-fit max-h-[86vh] w-[480px] max-w-[92vw] flex-col gap-4 overflow-y-auto rounded-card bg-surface p-5"
-          >
-            <h2 className="text-[15px] font-semibold">{heading}</h2>
-            <div>
-              <label htmlFor="task-title" className={FIELD_LABEL}>
-                {t('work.messageWorkDialogs.title')}
-              </label>
-              <input
-                id="task-title"
-                autoFocus
-                value={title}
-                maxLength={200}
-                placeholder={t('work.newTaskDialog.apiAuth')}
-                onChange={(event) => setTitle(event.target.value)}
-                className={SETTINGS_INPUT_CLASS}
-              />
-            </div>
-            <div>
-              <label htmlFor="task-brief" className={FIELD_LABEL}>
-                {t('work.newTaskDialog.brief')}
-              </label>
-              <textarea
-                id="task-brief"
-                rows={4}
-                value={brief}
-                placeholder={t('work.newTaskDialog.whatNeedsDoingWhatIt')}
-                onChange={(event) => setBrief(event.target.value)}
-                className={`${SETTINGS_INPUT_CLASS} h-auto resize-none py-2 leading-[18px]`}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+        <Modal.Container size="md" placement="center" scroll="inside">
+          <Modal.Dialog aria-label={heading} className="sm:max-w-[480px]">
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading className="text-body font-semibold">{heading}</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body className="flex flex-col gap-4">
               <div>
-                <span className={FIELD_LABEL}>{t('work.newTaskDialog.assignee')}</span>
-                <Picker
-                  label={t('work.newTaskDialog.assignee')}
-                  value={assignee}
-                  noneLabel={t('work.newTaskDialog.youUnassigned')}
-                  options={bots.map((bot) => ({
-                    id: bot.id,
-                    label: bot.name,
-                    adornment: <BotAvatar bot={bot} size="sm" />,
-                  }))}
-                  onChange={setAssignee}
+                <label htmlFor="task-title" className={FIELD_LABEL}>
+                  {t('work.messageWorkDialogs.title')}
+                </label>
+                <Input
+                  id="task-title"
+                  variant="secondary"
+                  autoFocus
+                  value={title}
+                  maxLength={200}
+                  placeholder={t('work.newTaskDialog.apiAuth')}
+                  onChange={(event) => setTitle(event.target.value)}
+                  className="w-full"
                 />
               </div>
-              {repeats ? null : (
+              <div>
+                <label htmlFor="task-brief" className={FIELD_LABEL}>
+                  {t('work.newTaskDialog.brief')}
+                </label>
+                <TextArea
+                  id="task-brief"
+                  variant="secondary"
+                  rows={4}
+                  value={brief}
+                  placeholder={t('work.newTaskDialog.whatNeedsDoingWhatIt')}
+                  onChange={(event) => setBrief(event.target.value)}
+                  className="w-full resize-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="task-due" className={FIELD_LABEL}>
-                    {t('work.newTaskDialog.due')}
-                  </label>
-                  <input
-                    id="task-due"
-                    type="date"
-                    value={dueOn}
-                    onChange={(event) => setDueOn(event.target.value)}
-                    className={SETTINGS_INPUT_CLASS}
+                  <span className={FIELD_LABEL}>{t('work.newTaskDialog.assignee')}</span>
+                  <Picker
+                    label={t('work.newTaskDialog.assignee')}
+                    value={assignee}
+                    noneLabel={t('work.newTaskDialog.youUnassigned')}
+                    options={bots.map((bot) => ({
+                      id: bot.id,
+                      label: bot.name,
+                      adornment: <BotAvatar bot={bot} size="sm" />,
+                    }))}
+                    onChange={setAssignee}
                   />
                 </div>
-              )}
-              {subtask ? null : (
-                <>
+                {repeats ? null : (
                   <div>
-                    <span className={FIELD_LABEL}>{t('work.deliverablePane.project')}</span>
-                    <Picker
-                      label={t('work.deliverablePane.project')}
-                      value={projectId}
-                      noneLabel={t('work.tasksView.inbox')}
-                      options={projects
-                        .filter((project) => project.status === 'ACTIVE')
-                        .map((project) => ({
-                          id: project.id,
-                          label: project.name,
-                          adornment: (
-                            <span
-                              className="size-2 rounded-full"
-                              style={{ backgroundColor: project.color }}
-                            />
-                          ),
-                        }))}
-                      onChange={setProjectId}
+                    <label htmlFor="task-due" className={FIELD_LABEL}>
+                      {t('work.newTaskDialog.due')}
+                    </label>
+                    <Input
+                      id="task-due"
+                      variant="secondary"
+                      type="date"
+                      value={dueOn}
+                      onChange={(event) => setDueOn(event.target.value)}
+                      className="w-full tabular-nums"
                     />
                   </div>
-                  <div>
-                    <span className={FIELD_LABEL}>{t('work.deliverablePane.goal')}</span>
-                    <Picker
-                      label={t('work.deliverablePane.goal')}
-                      value={goalId}
-                      noneLabel={t('work.deliverablePane.noGoal')}
-                      options={goals
-                        .filter((goal) => goal.status === 'ACTIVE')
-                        .map((goal) => ({ id: goal.id, label: goal.title }))}
-                      onChange={setGoalId}
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-
-            {subtask ? null : (
-              <div className="flex flex-col gap-3 rounded-[10px] bg-background-secondary/50 p-3">
-                <Switch size="sm" isSelected={repeats} onChange={setRepeats}>
-                  <Switch.Content>
-                    <Switch.Control>
-                      <Switch.Thumb />
-                    </Switch.Control>
-                    <span className="text-[13px]">{t('work.newTaskDialog.repeat')}</span>
-                  </Switch.Content>
-                </Switch>
-                {repeats ? (
+                )}
+                {subtask ? null : (
                   <>
-                    <ScheduleField
-                      cron={cron}
-                      timezone={timezone}
-                      endsOn={endsOn}
-                      onCronChange={setCron}
-                      onEndsChange={setEndsOn}
-                    />
-                    <TimezonePicker value={timezone} onChange={setTimezone} />
-                    <EndsField endsOn={endsOn} timezone={timezone} onChange={setEndsOn} />
-                    <p className="text-[11px] leading-4 text-muted">
-                      {t('work.newTaskDialog.aFreshCopyLandsIn')}
-                    </p>
+                    <div>
+                      <span className={FIELD_LABEL}>{t('work.deliverablePane.project')}</span>
+                      <Picker
+                        label={t('work.deliverablePane.project')}
+                        value={projectId}
+                        noneLabel={t('work.tasksView.inbox')}
+                        options={projects
+                          .filter((project) => project.status === 'ACTIVE')
+                          .map((project) => ({
+                            id: project.id,
+                            label: project.name,
+                            adornment: (
+                              <span
+                                className="size-2 rounded-full"
+                                style={{ backgroundColor: project.color }}
+                              />
+                            ),
+                          }))}
+                        onChange={setProjectId}
+                      />
+                    </div>
+                    <div>
+                      <span className={FIELD_LABEL}>{t('work.deliverablePane.goal')}</span>
+                      <Picker
+                        label={t('work.deliverablePane.goal')}
+                        value={goalId}
+                        noneLabel={t('work.deliverablePane.noGoal')}
+                        options={goals
+                          .filter((goal) => goal.status === 'ACTIVE')
+                          .map((goal) => ({ id: goal.id, label: goal.title }))}
+                        onChange={setGoalId}
+                      />
+                    </div>
                   </>
-                ) : null}
+                )}
               </div>
-            )}
 
-            {failure === null ? null : (
-              <p role="alert" className="text-[12px] text-danger">
-                {failure}
-              </p>
-            )}
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="tertiary"
-                size="sm"
-                onPress={() => onOpenChange(false)}
-                className="h-8 rounded-[10px] text-[12px] font-medium"
-              >
+              {subtask ? null : (
+                <div className="flex flex-col gap-3 rounded-[10px] bg-background-secondary/50 p-3">
+                  <Switch size="sm" isSelected={repeats} onChange={setRepeats} className="w-full">
+                    <Switch.Content className="flex w-full items-center justify-between gap-3">
+                      <span className="text-footnote">{t('work.newTaskDialog.repeat')}</span>
+                      <Switch.Control>
+                        <Switch.Thumb />
+                      </Switch.Control>
+                    </Switch.Content>
+                  </Switch>
+                  {repeats ? (
+                    <>
+                      <ScheduleField
+                        cron={cron}
+                        timezone={timezone}
+                        endsOn={endsOn}
+                        onCronChange={setCron}
+                        onEndsChange={setEndsOn}
+                      />
+                      <TimezonePicker value={timezone} onChange={setTimezone} />
+                      <EndsField endsOn={endsOn} timezone={timezone} onChange={setEndsOn} />
+                      <p className="text-micro leading-4 text-muted">
+                        {t('work.newTaskDialog.aFreshCopyLandsIn')}
+                      </p>
+                    </>
+                  ) : null}
+                </div>
+              )}
+
+              {failure === null ? null : (
+                <p role="alert" className="text-caption text-danger">
+                  {failure}
+                </p>
+              )}
+            </Modal.Body>
+            <Modal.Footer className="gap-2">
+              <Button variant="tertiary" size="sm" onPress={() => onOpenChange(false)}>
                 {t('work.goalsView.cancel')}
               </Button>
               {assignee !== null && !repeats ? (
@@ -270,7 +264,6 @@ export function NewTaskDialog({
                   size="sm"
                   isDisabled={saving || problem !== null}
                   onPress={() => void save(true)}
-                  className="h-8 rounded-[10px] text-[12px] font-medium"
                 >
                   {t('work.newTaskDialog.addStart')}
                 </Button>
@@ -280,11 +273,10 @@ export function NewTaskDialog({
                 size="sm"
                 isDisabled={saving || problem !== null}
                 onPress={() => void save(false)}
-                className="h-8 rounded-[10px] text-[12px] font-medium"
               >
                 {saving ? t('work.goalsView.adding') : t('work.newTaskDialog.add')}
               </Button>
-            </div>
+            </Modal.Footer>
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

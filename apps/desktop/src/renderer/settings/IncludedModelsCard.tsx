@@ -14,14 +14,14 @@ import { useT } from '../i18n/i18n';
 export function IncludedModelsCard({ connection }: { connection: ProviderConnectionWithModels }) {
   const t = useT();
   return (
-    <section className="mb-4 overflow-hidden rounded-card bg-surface-secondary">
+    <section className="crewaid-connection-card mb-4 overflow-hidden rounded-card border border-separator bg-surface">
       <div className="flex items-center gap-2 px-4 py-3">
-        <span className="text-[13px] font-medium text-foreground">{connection.name}</span>
+        <span className="text-footnote font-medium text-foreground">{connection.name}</span>
         <Chip size="sm" variant="soft" color="accent">
           <Chip.Label>{t('settings.included.chip')}</Chip.Label>
         </Chip>
       </div>
-      <p className="border-t border-separator px-4 py-2.5 text-[12px] leading-[17px] text-muted">
+      <p className="border-t border-separator px-4 py-2.5 text-caption leading-[17px] text-muted">
         {t('settings.included.body')}
       </p>
       {connection.models.map((model) => (
@@ -31,7 +31,7 @@ export function IncludedModelsCard({ connection }: { connection: ProviderConnect
         >
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="truncate text-[13px] text-foreground">{model.label}</span>
+              <span className="truncate text-footnote text-foreground">{model.label}</span>
               {capabilityLabels(model.capabilities).map((capability) => (
                 <Chip key={capability} size="sm" variant="soft" color="accent">
                   <Chip.Label>{capability}</Chip.Label>
@@ -39,7 +39,7 @@ export function IncludedModelsCard({ connection }: { connection: ProviderConnect
               ))}
             </div>
           </div>
-          <span className="shrink-0 text-[11px] text-foreground-faint">
+          <span className="shrink-0 text-micro text-foreground-faint tabular-nums">
             {contextWindowLabel(model.contextWindow)}
           </span>
         </div>

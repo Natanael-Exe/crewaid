@@ -2,28 +2,9 @@ import type { BotStatus } from '@crewaid/shared';
 import { type PlainKey, useT } from '../i18n/i18n';
 
 /**
- * Role + status presentation for sidebar rows.
- *
- * The ROLE chip is the tiny bordered pill from ref-01. Truncates FIRST so the
- * bot name stays readable ("Warden — Pipeline M…").
- *
- * The STATUS dot uses the contractual BotStatus enum (D-006 vocabulary):
- * IDLE/THINKING/ACTING/AWAITING_APPROVAL/ERROR. ref-01's shell only shows
- * presence implicitly; the PRD makes status a first-class field, so the row
- * renders a small colored dot next to the timestamp.
+ * Status presentation for sidebar rows, over the contractual BotStatus enum:
+ * IDLE/THINKING/ACTING/AWAITING_APPROVAL/ERROR.
  */
-
-export function RoleChip({ role }: { role: string }) {
-  return (
-    <span
-      className="min-w-0 max-w-[92px] shrink-2 truncate rounded-md bg-background-tertiary px-1.5 py-px text-[10px] leading-[16px] text-muted"
-      title={role}
-    >
-      {role}
-    </span>
-  );
-}
-
 /**
  * Colour AND shape, because the palette has four status colours for five
  * states. AWAITING_APPROVAL and ERROR share the danger colour — both want the

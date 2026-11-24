@@ -57,7 +57,8 @@ describe('previewKindOf', () => {
 describe('the card’s preview affordance', () => {
   it('offers Preview exactly for the kinds that can render', () => {
     expect(render(attachment('video/mp4'))).toContain('Preview');
-    expect(render(attachment('text/markdown'))).toContain('Preview');
+    // Markdown is prose: the whole card is the way into the reader.
+    expect(render(attachment('text/markdown'))).toContain('data-document-preview');
     expect(render(attachment('application/pdf'))).toContain('Preview');
   });
 

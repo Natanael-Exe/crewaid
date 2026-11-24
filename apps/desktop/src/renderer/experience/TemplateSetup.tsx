@@ -1,12 +1,11 @@
-import { Button } from '@heroui/react';
+import { Alert, Button, Checkbox, Input, TextArea } from '@heroui/react';
 import { IconArrowRight, IconArrowUp, IconCircleCheck, IconClock } from '@tabler/icons-react';
 import { useState } from 'react';
 import type { Template, TemplateInstallation } from '@crewaid/shared';
 import { BotAvatar } from '../components/BotAvatar';
-import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
 import { BackLink } from './TemplateDetail';
 import { TOOL_STATE_LABEL, serverFor, toolState, type Connections } from './templateView';
-import { useT } from '../i18n/i18n';
+import { currentLocale, useT } from '../i18n/i18n';
 
 /** What a person can change before a crew is added: its brief and its tools. */
 export type SetupDraft = {
@@ -58,58 +57,61 @@ export function CrewSetup({
         <h2 className="crewaid-template-title">
           {t('experience.templateSetup.reviewYourCrew', { title: template.title })}
         </h2>
-        <p className="text-[14px] text-muted">
+        <p className="text-callout text-muted">
           {t('experience.templateSetup.aShortBriefHelpsEvery')}
         </p>
       </header>
       <div className="grid gap-8 px-8 py-6 md:grid-cols-[minmax(0,1fr)_minmax(0,280px)]">
         <div className="flex min-w-0 flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label htmlFor="template-goal" className="text-[14px] font-semibold">
+            <label htmlFor="template-goal" className="text-callout font-semibold">
               {t('experience.templateSetup.whatShouldThisCrewHelp')}
             </label>
-            <input
+            <Input
               id="template-goal"
+              variant="secondary"
               maxLength={1000}
               value={draft.goal}
-              placeholder={template.starterTask.replace(/^Ask the .+? crew to /, '')}
+              placeholder={template.starterTask}
               onChange={(event) => onChange({ ...draft, goal: event.target.value })}
-              className={SETTINGS_INPUT_CLASS}
+              className="w-full"
             />
           </div>
           <div className="flex flex-col gap-2 border-t border-separator pt-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex min-w-0 flex-col gap-1">
-                <span className="text-[14px] font-semibold">
+                <span className="text-callout font-semibold">
                   {t('experience.templateSetup.sharedContext')}
                 </span>
                 {contextOpen ? null : (
-                  <span className="truncate text-[13px] text-muted">
+                  <span className="truncate text-footnote text-muted">
                     {draft.context ||
                       t('experience.templateSetup.yourBusinessAudienceAndPreferences')}
                   </span>
                 )}
               </div>
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="ghost"
                 aria-expanded={contextOpen}
-                onClick={() => setContextOpen((open) => !open)}
-                className="shrink-0 text-[13px] cursor-pointer hover:opacity-80"
+                onPress={() => setContextOpen((open) => !open)}
+                className="shrink-0 text-footnote"
               >
                 {contextOpen ? t('experience.templateSetup.done') : t('experience.memoryView.edit')}
-              </button>
+              </Button>
             </div>
             {contextOpen ? (
               <>
-                <textarea
+                <TextArea
+                  variant="secondary"
                   aria-label={t('experience.templateSetup.sharedContext')}
                   rows={4}
                   maxLength={4000}
                   value={draft.context}
                   onChange={(event) => onChange({ ...draft, context: event.target.value })}
-                  className={`${SETTINGS_INPUT_CLASS} h-auto resize-none py-2 leading-5`}
+                  className="w-full resize-none"
                 />
-                <span className="text-[12px] text-muted">
+                <span className="text-caption text-muted">
                   {t('experience.templateSetup.sharedWithTheseSpecialistsLeave')}
                 </span>
               </>
@@ -118,25 +120,26 @@ export function CrewSetup({
           <div className="flex flex-col gap-2 border-t border-separator pt-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1">
-                <span className="text-[14px] font-semibold">
+                <span className="text-callout font-semibold">
                   {t('experience.templateSetup.toolsOptional')}
                 </span>
-                <span className="text-[13px] text-muted">
+                <span className="text-footnote text-muted">
                   {connected === 0
                     ? t('experience.templateSetup.startWithChatNoTools')
                     : t('experience.templateSetup.startWithChatTools', { count: connected })}
                 </span>
               </div>
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="ghost"
                 aria-expanded={toolsOpen}
-                onClick={() => setToolsOpen((open) => !open)}
-                className="shrink-0 text-[13px] cursor-pointer hover:opacity-80"
+                onPress={() => setToolsOpen((open) => !open)}
+                className="shrink-0 text-footnote"
               >
                 {toolsOpen
                   ? t('experience.templateSetup.done')
                   : t('experience.templateSetup.chooseTools')}
-              </button>
+              </Button>
             </div>
             {toolsOpen ? (
               <ul className="flex flex-col">
@@ -147,29 +150,35 @@ export function CrewSetup({
                   return (
                     <li
                       key={tool.slug}
-                      className="flex items-center gap-3 border-b border-separator py-2.5 text-[13px]"
+                      className="flex items-center gap-3 border-b border-separator py-2.5 text-footnote"
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         aria-label={t('experience.templateSetup.useTool', { tool: tool.label })}
-                        disabled={!usable}
-                        checked={usable && draft.serverIds.includes(server.id)}
-                        onChange={(event) => server && toggle(server.id, event.target.checked)}
-                      />
-                      <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="font-medium">{tool.label}</span>
-                        <span className="text-[12px] text-muted">
-                          {state === 'connected'
-                            ? t('experience.templateSetup.connectedForTheSpecialistsThat')
-                            : TOOL_STATE_LABEL[state]}
-                        </span>
-                      </span>
+                        isDisabled={!usable}
+                        isSelected={usable && draft.serverIds.includes(server.id)}
+                        onChange={(selected) => server && toggle(server.id, selected)}
+                        className="min-w-0 flex-1"
+                      >
+                        <Checkbox.Content className="flex items-center gap-3">
+                          <Checkbox.Control>
+                            <Checkbox.Indicator />
+                          </Checkbox.Control>
+                          <span className="flex min-w-0 flex-1 flex-col">
+                            <span className="font-medium">{tool.label}</span>
+                            <span className="text-caption text-muted">
+                              {state === 'connected'
+                                ? t('experience.templateSetup.connectedForTheSpecialistsThat')
+                                : TOOL_STATE_LABEL[state]}
+                            </span>
+                          </span>
+                        </Checkbox.Content>
+                      </Checkbox>
                       {state === 'available' || state === 'reconnect' ? (
-                        <button type="button" onClick={onConnect} className="text-[13px]">
+                        <Button size="sm" variant="ghost" onPress={onConnect} className="shrink-0">
                           {state === 'reconnect'
                             ? t('experience.templateSetup.reconnect')
                             : t('experience.templateSetup.connect')}
-                        </button>
+                        </Button>
                       ) : null}
                     </li>
                   );
@@ -179,7 +188,7 @@ export function CrewSetup({
           </div>
         </div>
         <aside className="flex min-w-0 flex-col gap-4">
-          <h3 className="text-[14px] font-semibold">
+          <h3 className="text-callout font-semibold">
             {t('experience.templateSetup.yourCrew', { title: template.title })}
           </h3>
           <ul className="flex flex-col gap-3">
@@ -187,36 +196,39 @@ export function CrewSetup({
               <li key={bot.key} className="flex items-center gap-3">
                 <BotAvatar bot={bot} size="sm" />
                 <span className="flex flex-col">
-                  <span className="text-[14px] font-semibold">{bot.name}</span>
-                  <span className="text-[12px] text-muted">{bot.role}</span>
+                  <span className="text-callout font-semibold">{bot.name}</span>
+                  <span className="text-caption text-muted">{bot.role}</span>
                 </span>
               </li>
             ))}
           </ul>
-          <p className="text-[13px] leading-5 text-muted">
+          <p className="text-footnote leading-5 text-muted">
             {t('experience.templateSetup.addsAllTogether', { count: template.bots.length })}
           </p>
-          <p className="text-[13px] leading-5 text-muted">
+          <p className="text-footnote leading-5 text-muted">
             {t('experience.templateSetup.usesYourDefaultModelAnd')}
           </p>
-          <span className="crewaid-template-note flex items-center gap-2 self-start rounded-[10px] px-3 py-2 text-[12px] text-muted">
+          <span className="crewaid-template-note flex items-center gap-2 self-start rounded-[10px] px-3 py-2 text-caption text-muted">
             <IconClock className="size-3.5" aria-hidden />
             {t('experience.templateSetup.noRoutinesScheduled')}
           </span>
         </aside>
       </div>
       {failed ? (
-        <div role="alert" className="crewaid-template-failure mx-8 mb-4 rounded-card px-5 py-4">
-          <p className="text-[15px] font-semibold">
-            {t('experience.templateSetup.weCouldnTAddThis')}
-          </p>
-          <p className="text-[14px] text-muted">
-            {t('experience.templateSetup.yourGoalSharedContextAnd')}
-          </p>
+        <div className="mx-8 mb-4">
+          <Alert status="danger" role="alert">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>{t('experience.templateSetup.weCouldnTAddThis')}</Alert.Title>
+              <Alert.Description>
+                {t('experience.templateSetup.yourGoalSharedContextAnd')}
+              </Alert.Description>
+            </Alert.Content>
+          </Alert>
         </div>
       ) : null}
       <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-separator px-8 py-5">
-        <p className="text-[13px] text-muted">
+        <p className="text-footnote text-muted">
           {t('experience.templateSetup.addsSpecialistsAndBrief', { count: template.bots.length })}
         </p>
         <div className="flex gap-2">
@@ -257,19 +269,21 @@ export function CrewAdded({
   const t = useT();
   const names = template.bots.map((bot) => bot.name);
   const joined =
-    names.length > 1 ? `${names.slice(0, -1).join(', ')} & ${names.at(-1)}` : (names[0] ?? '');
+    names.length > 0
+      ? new Intl.ListFormat(currentLocale(), { style: 'long', type: 'conjunction' }).format(names)
+      : '';
   return (
     <>
       <header className="flex flex-wrap items-start justify-between gap-4 pb-6 ps-8 pe-20">
         <div className="flex flex-col gap-3">
-          <span className="flex items-center gap-2 text-[13px] font-medium text-success">
+          <span className="flex items-center gap-2 text-footnote font-medium text-success">
             <IconCircleCheck className="size-4" aria-hidden />
             {t('experience.templateSetup.crewAdded')}
           </span>
           <h2 className="crewaid-template-title">
             {t('experience.templateSetup.crewIsReady', { title: template.title })}
           </h2>
-          <p className="text-[14px] text-muted">
+          <p className="text-callout text-muted">
             {t('experience.templateSetup.specialistsOneBrief', {
               count: installation.botIds.length,
             })}
@@ -287,30 +301,31 @@ export function CrewAdded({
           ))}
         </span>
         <span className="flex min-w-0 flex-col">
-          <span className="text-[14px] font-semibold">{joined}</span>
-          <span className="text-[13px] text-muted">
+          <span className="text-callout font-semibold">{joined}</span>
+          <span className="text-footnote text-muted">
             {t('experience.templateSetup.readyToWorkFromYour')}
           </span>
         </span>
       </div>
       {canStart ? (
         <section className="flex flex-col gap-3 px-8 py-6">
-          <label htmlFor="template-first-task" className="text-[17px] font-semibold">
+          <label htmlFor="template-first-task" className="text-headline font-semibold">
             {t('experience.templateSetup.giveThemAFirstTask')}
           </label>
-          <p className="text-[14px] text-muted">
+          <p className="text-callout text-muted">
             {t('experience.templateSetup.crewaidCanBriefTheSpecialists')}
           </p>
-          <textarea
+          <TextArea
             id="template-first-task"
+            variant="secondary"
             rows={3}
             maxLength={4000}
             value={firstTask}
             onChange={(event) => onFirstTask(event.target.value)}
-            className={`${SETTINGS_INPUT_CLASS} h-auto resize-none py-3 leading-6`}
+            className="w-full resize-none"
           />
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-[13px] text-muted">
+            <span className="text-footnote text-muted">
               {t('experience.templateSetup.sentToCrewaidExactlyAs')}
             </span>
             <Button isDisabled={firstTask.trim() === ''} onPress={onStart}>

@@ -3,6 +3,7 @@ import {
   BrowserWindow,
   ipcMain,
   Menu,
+  nativeTheme,
   safeStorage,
   session,
   shell,
@@ -17,7 +18,8 @@ import {
   matchSupportedLocale,
   type Locale,
 } from '@crewaid/shared';
-import { WINDOW_FULLSCREEN_CHANNEL } from './windowPresentation.js';
+import { WINDOW_FULLSCREEN_CHANNEL, windowBackgroundColor } from './windowPresentation.js';
+import { registerThemeIpc } from './windowThemeIpc.js';
 import { NEW_BOT_CHANNEL, applicationMenuTemplate } from './applicationMenu.js';
 import { menuLabels, registerLocaleIpc } from './menuLocale.js';
 import { createAuthExchange } from './authExchange.js';
@@ -101,7 +103,7 @@ function canInstallUpdates(): boolean {
 const SIGN_IN_SCHEME = desktopAuthScheme(EDITION.edition);
 
 // `app.getPath('userData')` follows `productName` (Crewaid) in package.json,
-// and the CC-07 credential bag lives there: changing that name signs every
+// and the credential bag lives there: changing that name signs every
 // operator out, because the next launch looks in a new, empty directory.
 
 // encrypted token storage and authenticated IPC
@@ -109,7 +111,7 @@ const SIGN_IN_SCHEME = desktopAuthScheme(EDITION.edition);
 /**
  * The windows this app created to host the Crewaid renderer.
  *
- * A set rather than a `mainWindow` handle because the CC-07 IPC fence asks
+ * A set rather than a `mainWindow` handle because the IPC fence asks
  * "did this come from one of our windows", not "is this THE window". PRD M1
  * requires two windows against the same orchestrator to both receive
  * the same frames, and each window reads its own credentials over this IPC —
@@ -167,7 +169,16 @@ function registerIpc(): void {
     },
   });
 
-  // M9-FE-01. Registered in development too, so the renderer always gets an
+  registerThemeIpc({
+    ipcMain,
+    isTrustedSender,
+    onTheme: (theme) => {
+      nativeTheme.themeSource = theme;
+      syncWindowBackgrounds();
+    },
+  });
+
+  // Registered in development too, so the renderer always gets an
   // answer ("idle"); only a packaged build has a feed to check.
   updateController = createUpdateController({
     updater: realUpdater((message) => console.log(`[crewaid:update] ${message}`)),
@@ -319,6 +330,13 @@ function registerSignInProtocol(): void {
 
 // Window
 
+function syncWindowBackgrounds(): void {
+  const color = windowBackgroundColor(nativeTheme.shouldUseDarkColors);
+  for (const win of rendererWindows) {
+    if (!win.isDestroyed()) win.setBackgroundColor(color);
+  }
+}
+
 function createMainWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1440,
@@ -326,8 +344,7 @@ function createMainWindow(): BrowserWindow {
     minWidth: 980,
     minHeight: 600,
     title: 'Crewaid',
-    // Warm near-white background to avoid a white flash before the renderer paints.
-    backgroundColor: '#F7F6F4',
+    backgroundColor: windowBackgroundColor(nativeTheme.shouldUseDarkColors),
     show: false,
     ...(process.platform === 'darwin'
       ? {
@@ -441,6 +458,7 @@ if (app.requestSingleInstanceLock()) {
         ),
     });
     installApplicationMenu();
+    nativeTheme.on('updated', syncWindowBackgrounds);
     createMainWindow();
 
     // A cold start: the app was not running when the browser bounced, so the

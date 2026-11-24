@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { launchDesktop } from './launchDesktop';
+import { tokenColor } from './themeTokens';
 import { routeChat } from './stubChat';
 import { startStubAuthServer, type StubAuthServer } from './stubAuthServer';
 import type { CrewaidBridge, TokenStoreWriteResult } from '../src/preload.js';
@@ -74,6 +75,8 @@ test('routine form chooses a schedule, timezone and end date without cron input'
     // The centre pane is a transcript, not `ThreadNotice`: everything below is
     // about the rail beside it.
     await expect(page.getByRole('region', { name: 'Transcript' })).toBeVisible();
+    // The bot has no computer, so the rail starts tucked away.
+    await page.getByRole('button', { name: 'Expand panel' }).click();
     await expect(page.getByRole('button', { name: 'Create Routine' })).toBeVisible();
     await page.getByRole('button', { name: 'Create Routine' }).click();
     const form = page.getByRole('form', { name: 'New routine' });
@@ -104,19 +107,23 @@ test('routine form chooses a schedule, timezone and end date without cron input'
     await expect(custom.getByText('Repetition frequency')).toBeVisible();
     await expect(custom.getByRole('button', { name: 'Confirm' })).toHaveCSS(
       'color',
-      'rgb(255, 255, 255)',
+      await tokenColor(page, '--app-accent-foreground', 'color'),
     );
     expect(
       await custom
         .locator('.radio[data-selected] .radio__indicator')
         .first()
         .evaluate((node) => getComputedStyle(node, '::before').backgroundColor),
-    ).toBe('rgb(255, 255, 255)');
+    ).toBe(await tokenColor(page, '--app-accent-foreground'));
     if (process.env['CC79_CAPTURE'] === '1') {
       await page.evaluate(async () => {
-        const finite = document
-          .getAnimations()
-          .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity);
+        const finite = document.getAnimations().filter(
+          (animation) =>
+            animation.effect?.getComputedTiming().iterations !== Infinity &&
+            // Scroll-driven and idle animations never finish.
+            animation.timeline instanceof DocumentTimeline &&
+            animation.playState !== 'idle',
+        );
         await Promise.allSettled(finite.map((animation) => animation.finished));
       });
       await page.screenshot({

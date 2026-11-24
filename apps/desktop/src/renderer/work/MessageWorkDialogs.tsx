@@ -1,4 +1,4 @@
-import { Button, Modal, useOverlayState } from '@heroui/react';
+import { Button, Input, Modal, useOverlayState } from '@heroui/react';
 import { useEffect, useMemo, useState } from 'react';
 import type {
   BotWithSandbox,
@@ -10,7 +10,6 @@ import { failureOf } from '../api';
 import type { ApiClient } from '../api/apiClient';
 import { createDeliverable, listGoals } from '../api/work';
 import type { MessageWorkAction } from '../components/Transcript';
-import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
 import { FIELD_LABEL } from './Fields';
 import { taskDraftFromMessage, titleFromMessage } from './fromMessage';
 import { NewTaskDialog } from './NewTaskDialog';
@@ -136,48 +135,49 @@ function SaveDeliverableDialog({
   return (
     <Modal state={overlay}>
       <Modal.Backdrop>
-        <Modal.Container size="cover" placement="center" className="h-fit sm:w-auto">
+        <Modal.Container size="sm" placement="center" scroll="inside">
           <Modal.Dialog
             aria-label={t('work.messageWorkDialogs.saveAsDeliverable')}
-            className="flex h-fit w-[420px] max-w-[92vw] flex-col gap-4 rounded-card bg-surface p-5"
+            className="sm:max-w-[420px]"
           >
-            <h2 className="text-[15px] font-semibold">
-              {t('work.messageWorkDialogs.saveAsDeliverable')}
-            </h2>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading className="text-body font-semibold">
+                {t('work.messageWorkDialogs.saveAsDeliverable')}
+              </Modal.Heading>
+            </Modal.Header>
             {saved === null ? (
               <>
-                <div>
-                  <label htmlFor="deliverable-title" className={FIELD_LABEL}>
-                    {t('work.messageWorkDialogs.title')}
-                  </label>
-                  <input
-                    id="deliverable-title"
-                    autoFocus
-                    value={title}
-                    maxLength={200}
-                    placeholder={t('work.messageWorkDialogs.weeklyReport')}
-                    onChange={(event) => setTitle(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') void save();
-                    }}
-                    className={SETTINGS_INPUT_CLASS}
-                  />
-                  <p className="mt-1.5 text-[12px] text-muted">
-                    {t('work.messageWorkDialogs.filedWhereTheMessageS')}
-                  </p>
-                </div>
-                {failure === null ? null : (
-                  <p role="alert" className="text-[12px] text-danger">
-                    {failure}
-                  </p>
-                )}
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="tertiary"
-                    size="sm"
-                    onPress={() => onOpenChange(false)}
-                    className="h-8 rounded-[10px] text-[12px] font-medium"
-                  >
+                <Modal.Body className="flex flex-col gap-3">
+                  <div>
+                    <label htmlFor="deliverable-title" className={FIELD_LABEL}>
+                      {t('work.messageWorkDialogs.title')}
+                    </label>
+                    <Input
+                      id="deliverable-title"
+                      variant="secondary"
+                      autoFocus
+                      value={title}
+                      maxLength={200}
+                      placeholder={t('work.messageWorkDialogs.weeklyReport')}
+                      onChange={(event) => setTitle(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') void save();
+                      }}
+                      className="w-full"
+                    />
+                    <p className="mt-1.5 text-caption text-muted">
+                      {t('work.messageWorkDialogs.filedWhereTheMessageS')}
+                    </p>
+                  </div>
+                  {failure === null ? null : (
+                    <p role="alert" className="text-caption text-danger">
+                      {failure}
+                    </p>
+                  )}
+                </Modal.Body>
+                <Modal.Footer className="gap-2">
+                  <Button variant="tertiary" size="sm" onPress={() => onOpenChange(false)}>
                     {t('work.goalsView.cancel')}
                   </Button>
                   <Button
@@ -185,22 +185,23 @@ function SaveDeliverableDialog({
                     size="sm"
                     isDisabled={saving || title.trim() === ''}
                     onPress={() => void save()}
-                    className="h-8 rounded-[10px] text-[12px] font-medium"
                   >
                     {saving
                       ? t('work.messageWorkDialogs.saving')
                       : t('work.messageWorkDialogs.save')}
                   </Button>
-                </div>
+                </Modal.Footer>
               </>
             ) : (
               <>
-                <p role="status" className="text-[13px]">
-                  {saved.task === null
-                    ? t('work.saved.toDeliverables', { title: saved.title })
-                    : t('work.saved.underTask', { title: saved.title, task: saved.task.title })}
-                </p>
-                <div className="flex justify-end gap-2">
+                <Modal.Body>
+                  <p role="status" className="text-footnote">
+                    {saved.task === null
+                      ? t('work.saved.toDeliverables', { title: saved.title })
+                      : t('work.saved.underTask', { title: saved.title, task: saved.task.title })}
+                  </p>
+                </Modal.Body>
+                <Modal.Footer className="gap-2">
                   <Button
                     variant="secondary"
                     size="sm"
@@ -208,19 +209,13 @@ function SaveDeliverableDialog({
                       onOpenChange(false);
                       onOpenDeliverable(saved);
                     }}
-                    className="h-8 rounded-[10px] text-[12px] font-medium"
                   >
                     {t('work.messageWorkDialogs.openInDeliverables')}
                   </Button>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onPress={() => onOpenChange(false)}
-                    className="h-8 rounded-[10px] text-[12px] font-medium"
-                  >
+                  <Button variant="primary" size="sm" onPress={() => onOpenChange(false)}>
                     {t('work.messageWorkDialogs.done')}
                   </Button>
-                </div>
+                </Modal.Footer>
               </>
             )}
           </Modal.Dialog>

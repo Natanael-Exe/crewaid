@@ -1,28 +1,14 @@
-import { Chip, Button } from '@heroui/react';
+import { Button, Spinner, Tooltip } from '@heroui/react';
+import { IconAlertTriangle } from '@tabler/icons-react';
 import { attachmentErrorTone, type PendingAttachment } from './attachmentState';
+import { ChatAttachment, ChatAttachmentGroup } from '../ui';
 import { useT } from '../../i18n/i18n';
 import { formatFileSize } from '../../i18n/fileSize';
 
 /**
- * Pending-attachment chips (composer).
- *
- * Formal acceptance note (PO): chips are the free HeroUI `Chip` from
- * '@heroui/react' — NOT hand-rolled badges. API verified in-tree
- * (@heroui/styles 3.2.4): color default|accent|success|warning|danger,
- * variant primary|secondary|tertiary|soft, size sm|md|lg, Chip.Label slot.
- *
- * PO state mapping:
- * pending (queued/uploading) → accent/soft
- * uploaded (ready) → default/secondary
- * error (D-020/D-021 fences) → danger (hard failures) /
- * warning (recoverable: expired, too large)
- *
- * Each chip keeps its filename, a status line, and remove/retry actions.
- * The remove button is HeroUI Button (PO requirement 1); the bare-glyph
- * child is wrapped in a span because react-aria press semantics reject
- * text-only children.
+ * Staged composer attachments as ChatAttachment chips: a file-type icon, the
+ * size or upload status, retry on failure, and a remove button with a tooltip.
  */
-
 export function PendingAttachmentChip({
   item,
   onRemove,
@@ -33,63 +19,77 @@ export function PendingAttachmentChip({
   onRetry: (localId: string) => void;
 }) {
   const t = useT();
-  const statusLabel =
-    item.status === 'uploading' || item.status === 'queued'
-      ? t('attachments.uploading')
-      : item.status === 'error'
-        ? (item.error?.message ?? t('attachments.uploadFailed'))
-        : formatFileSize(item.file.size);
+  const isUploading = item.status === 'uploading' || item.status === 'queued';
+  const statusLabel = isUploading
+    ? t('attachments.uploading')
+    : item.status === 'error'
+      ? (item.error?.message ?? t('attachments.uploadFailed'))
+      : formatFileSize(item.file.size);
 
-  const tone =
-    item.status === 'error'
-      ? attachmentErrorTone(item.error?.code ?? 'UNKNOWN')
-      : item.status === 'ready'
-        ? { color: 'default' as const, variant: 'secondary' as const }
-        : { color: 'accent' as const, variant: 'soft' as const };
+  const errorTone =
+    item.status === 'error' ? attachmentErrorTone(item.error?.code ?? 'UNKNOWN') : null;
+  const status: 'default' | 'warning' | 'danger' =
+    errorTone === null ? 'default' : errorTone.color === 'warning' ? 'warning' : 'danger';
 
   return (
-    <Chip
-      color={tone.color}
-      variant={tone.variant}
-      size="sm"
-      className="h-auto gap-1.5 rounded-lg px-2.5 py-1.5"
+    <ChatAttachment.Root
+      role="listitem"
+      mimeType={item.file.type}
+      name={item.file.name}
+      status={status}
+      className={
+        status === 'danger'
+          ? 'border-danger/35 bg-danger/10'
+          : status === 'warning'
+            ? 'border-warning/35 bg-warning/10'
+            : ''
+      }
     >
-      <span aria-hidden className="text-[11px] leading-none opacity-60">
-        {item.status === 'error' ? '⚠' : '📄'}
-      </span>
-      <span className="min-w-0">
-        <span className="block max-w-[180px] truncate text-[13px] font-medium">
-          {item.file.name}
-        </span>
-        <Chip.Label
-          className={`block truncate text-[11px] normal-case ${
-            item.status === 'error' ? 'font-medium' : 'opacity-70'
+      <ChatAttachment.Icon
+        className={
+          status === 'danger' ? 'text-danger' : status === 'warning' ? 'text-warning' : undefined
+        }
+      >
+        {isUploading ? (
+          <Spinner size="sm" color="current" aria-hidden className="size-3.5" />
+        ) : item.status === 'error' ? (
+          <IconAlertTriangle className="size-4" stroke={1.8} aria-hidden />
+        ) : undefined}
+      </ChatAttachment.Icon>
+      <ChatAttachment.Info>
+        <ChatAttachment.Name>{item.file.name}</ChatAttachment.Name>
+        <ChatAttachment.Size
+          className={`tabular-nums ${
+            status === 'danger'
+              ? 'font-medium text-danger'
+              : status === 'warning'
+                ? 'font-medium text-warning'
+                : ''
           }`}
         >
           {statusLabel}
-        </Chip.Label>
-      </span>
+        </ChatAttachment.Size>
+      </ChatAttachment.Info>
       {item.status === 'error' ? (
         <Button
           variant="ghost"
           size="sm"
           onPress={() => onRetry(item.localId)}
-          className="h-6 min-w-0 rounded px-1.5 text-[12px]"
+          className="h-6 min-w-0 rounded-md px-2 text-caption"
         >
           {t('attachments.retry')}
         </Button>
       ) : null}
-      <Button
-        variant="ghost"
-        size="sm"
-        isIconOnly
-        aria-label={t('attachments.remove', { name: item.file.name })}
-        onPress={() => onRemove(item.localId)}
-        className="ms-auto size-5 min-w-0 rounded-full px-0 text-[12px] text-muted"
-      >
-        <span aria-hidden>✕</span>
-      </Button>
-    </Chip>
+      <Tooltip delay={400}>
+        <ChatAttachment.Remove
+          aria-label={t('attachments.remove', { name: item.file.name })}
+          onPress={() => onRemove(item.localId)}
+        />
+        <Tooltip.Content placement="top">
+          {t('attachments.remove', { name: item.file.name })}
+        </Tooltip.Content>
+      </Tooltip>
+    </ChatAttachment.Root>
   );
 }
 
@@ -105,8 +105,8 @@ export function PendingAttachmentRow({
   const t = useT();
   if (items.length === 0) return null;
   return (
-    <div
-      className="mx-auto flex w-full max-w-[900px] flex-wrap gap-1.5 pb-1.5"
+    <ChatAttachmentGroup
+      className="mx-auto w-full max-w-(--chat-column) pb-1.5"
       role="list"
       aria-label={t('attachments.pending')}
     >
@@ -118,6 +118,6 @@ export function PendingAttachmentRow({
           onRetry={onRetry}
         />
       ))}
-    </div>
+    </ChatAttachmentGroup>
   );
 }

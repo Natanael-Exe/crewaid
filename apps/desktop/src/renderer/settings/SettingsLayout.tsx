@@ -11,8 +11,8 @@ import type { ReactNode } from 'react';
 export function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="crewaid-settings-section mb-6">
-      <h3 className="mb-2 px-1 text-[12px] font-medium text-muted">{title}</h3>
-      <div className="crewaid-settings-surface divide-y divide-separator overflow-hidden rounded-card bg-surface-secondary">
+      <h3 className="mb-2 px-1 text-caption font-medium text-muted">{title}</h3>
+      <div className="crewaid-settings-surface overflow-hidden rounded-card bg-surface-secondary">
         {children}
       </div>
     </section>
@@ -43,14 +43,14 @@ export function SettingsRow({
     <div className={`px-4 py-3.5 ${stacked ? '' : 'flex items-center justify-between gap-4'}`}>
       <div className="min-w-0">
         {htmlFor === undefined ? (
-          <div className="text-[13px] font-medium text-foreground">{label}</div>
+          <div className="text-footnote font-medium text-foreground">{label}</div>
         ) : (
-          <label htmlFor={htmlFor} className="block text-[13px] font-medium text-foreground">
+          <label htmlFor={htmlFor} className="block text-footnote font-medium text-foreground">
             {label}
           </label>
         )}
         {description === undefined ? null : (
-          <div className="mt-1 text-[12px] leading-[17px] text-muted">{description}</div>
+          <div className="mt-1 text-caption leading-[17px] text-muted">{description}</div>
         )}
       </div>
       {control === undefined ? null : (
@@ -59,7 +59,3 @@ export function SettingsRow({
     </div>
   );
 }
-
-/** The field styling the sidebar search already uses, so the app has one input. */
-export const SETTINGS_INPUT_CLASS =
-  'h-9 w-full rounded-[10px] border border-field-border bg-field px-3 text-[13px] text-field-foreground outline-none transition-colors placeholder:text-muted focus:ring-2 focus:ring-focus/15';

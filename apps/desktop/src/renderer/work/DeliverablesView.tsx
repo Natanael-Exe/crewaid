@@ -1,5 +1,5 @@
-import { Button } from '@heroui/react';
-import { IconLink, IconMessage, IconFile } from '@tabler/icons-react';
+import { Button, Chip } from '@heroui/react';
+import { IconChecklist, IconFile, IconLink, IconMessage, IconTarget } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
 import type {
   BotWithSandbox,
@@ -193,9 +193,14 @@ export function DeliverablesView({
   );
   useEffect(() => onHeaderActions(actions), [actions, onHeaderActions]);
 
+  const botById = useMemo(() => new Map(bots.map((bot) => [bot.id, bot])), [bots]);
+  const projectById = useMemo(
+    () => new Map(projects.map((project) => [project.id, project])),
+    [projects],
+  );
   if (items === null) {
     return failure === null ? null : (
-      <p role="alert" className="p-6 text-[13px] text-danger">
+      <p role="alert" className="p-6 text-footnote text-danger">
         {failure}
       </p>
     );
@@ -211,11 +216,9 @@ export function DeliverablesView({
     return filtered ? <WorkNoMatch query={search} /> : <WorkEmptyState view="deliverables" />;
   }
 
-  const botById = new Map(bots.map((bot) => [bot.id, bot]));
-  const projectById = new Map(projects.map((project) => [project.id, project]));
   return (
-    <div className="grid grid-cols-1 gap-3 px-4 py-3 md:grid-cols-2 xl:grid-cols-3">
-      <span className="col-span-full px-2 pb-1 text-[11px] text-muted">
+    <div className="mx-auto grid w-full max-w-[1160px] grid-cols-1 gap-3 px-4 py-3 md:grid-cols-2 xl:grid-cols-3">
+      <span className="col-span-full px-2 pb-1 text-micro tabular-nums text-muted">
         {t('work.deliverables.count', { count: total })}
       </span>
       {items.map((item) => (
@@ -229,14 +232,16 @@ export function DeliverablesView({
         />
       ))}
       {cursor === null ? null : (
-        <Button
-          variant="ghost"
-          size="sm"
-          onPress={() => void more()}
-          className="mt-2 h-8 self-center rounded-[10px] text-[12px]"
-        >
-          {t('work.deliverablesView.loadMore')}
-        </Button>
+        <div className="col-span-full flex justify-center pt-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={() => void more()}
+            className="h-8 rounded-[10px] text-caption"
+          >
+            {t('work.deliverablesView.loadMore')}
+          </Button>
+        </div>
       )}
     </div>
   );
@@ -275,7 +280,7 @@ export function DeliverableRow({
       type="button"
       onClick={onOpen}
       aria-pressed={selected}
-      className={`crewaid-deliverable-row flex items-start gap-3 rounded-[10px] px-2 py-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-focus/40 ${
+      className={`crewaid-deliverable-row flex cursor-[var(--cursor-interactive)] items-start gap-3 rounded-[10px] px-2 py-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-focus/40 ${
         selected ? 'bg-background-tertiary' : 'hover:bg-background-secondary'
       }`}
     >
@@ -287,31 +292,39 @@ export function DeliverableRow({
         )}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="mb-1 block text-[11px] text-muted">{typeLabel}</span>
-        <span className="block truncate text-[13px]! font-medium text-foreground">
+        <span className="mb-1 block text-micro text-muted">{typeLabel}</span>
+        <span className="block truncate text-footnote font-medium text-foreground">
           {item.title}
         </span>
         {item.summary === null ? null : (
-          <span className="mt-1 line-clamp-2 block text-[12px] leading-5 text-muted">
+          <span className="mt-1 line-clamp-2 block text-caption leading-5 text-muted">
             {item.summary}
           </span>
         )}
-        <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted">
+        <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-micro text-muted">
           {bot === undefined ? null : (
             <span className="flex items-center gap-1">
               <BotAvatar bot={bot} size="sm" />
               {bot.name}
             </span>
           )}
-          <span>
+          <span className="tabular-nums">
             {item.createdAt.toLocaleDateString(currentLocale(), { month: 'short', day: 'numeric' })}
           </span>
-          {item.attachment === null ? null : <span>{byteSize(item.attachment.sizeBytes)}</span>}
+          {item.attachment === null ? null : (
+            <span className="tabular-nums">{byteSize(item.attachment.sizeBytes)}</span>
+          )}
           {item.task === null ? null : (
-            <span className="rounded bg-background-secondary px-1">☐ {item.task.title}</span>
+            <Chip size="sm" variant="soft" className="h-5 gap-1 px-1.5 text-micro">
+              <IconChecklist className="size-3 shrink-0" stroke={1.8} aria-hidden />
+              <Chip.Label className="max-w-[140px] truncate">{item.task.title}</Chip.Label>
+            </Chip>
           )}
           {item.goal === null ? null : (
-            <span className="rounded bg-background-secondary px-1">◎ {item.goal.title}</span>
+            <Chip size="sm" variant="soft" className="h-5 gap-1 px-1.5 text-micro">
+              <IconTarget className="size-3 shrink-0" stroke={1.8} aria-hidden />
+              <Chip.Label className="max-w-[140px] truncate">{item.goal.title}</Chip.Label>
+            </Chip>
           )}
           {project === undefined ? null : (
             <span className="flex items-center gap-1">

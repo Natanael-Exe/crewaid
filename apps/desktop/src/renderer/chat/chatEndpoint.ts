@@ -11,7 +11,7 @@ import { t } from '../i18n/i18n';
  * reads a whole JSON body, or `download`, which reads a whole Blob. The
  * properties D-025 actually asks for are kept: the path comes from
  * `API_ROUTES` through the same `resolveRoute` every REST call uses, the
- * credentials come from the same CC-07 bag, and every request is a `fetch`
+ * credentials come from the same credential bag, and every request is a `fetch`
  * carrying an `Authorization` header. `buildWsUrl` in `connection/wsClient.ts`
  * is the precedent — the WebSocket resolves its own URL from the same bag
  * for the same reason.

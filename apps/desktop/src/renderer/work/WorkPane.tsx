@@ -1,6 +1,7 @@
-import { IconChecklist, IconFileStack, IconTarget } from '@tabler/icons-react';
+import { IconChecklist, IconFileStack, IconSearchOff, IconTarget } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import type { ProjectWithCounts } from '@crewaid/shared';
+import { EmptyState } from '../components/ui';
 import {
   WORK_VIEW_LABELS,
   WORK_VIEW_PURPOSE,
@@ -15,9 +16,7 @@ const VIEW_ICONS = { tasks: IconChecklist, goals: IconTarget, deliverables: Icon
 /**
  * The centre pane when a Work row is selected: the view's name, the
  * project it is narrowed to when it is, and whatever the view renders under
- * them. The project is chosen in the view's filter menu with everything else
- * it filters by, so the header only names it. A header rather than a toolbar,
- * so each view adds its own controls without the shell knowing what they are.
+ * them.
  */
 export function WorkPane({
   view,
@@ -44,14 +43,10 @@ export function WorkPane({
           still moves by its top edge while a Work view is open. */}
       <header className="window-drag flex h-12 shrink-0 items-center gap-2 border-b border-separator px-4">
         <Glyph className="size-4 shrink-0 text-muted" stroke={1.8} />
-        <h1 className="text-[13px] font-semibold">{WORK_VIEW_LABELS[view]}</h1>
-        {
-          <>
-            <span data-work-scope className="max-w-[220px] truncate text-[13px] text-muted">
-              {scope.kind === 'all' ? t('work.workPane.allProjects') : scopeLabel(scope, projects)}
-            </span>
-          </>
-        }
+        <h1 className="text-footnote font-semibold">{WORK_VIEW_LABELS[view]}</h1>
+        <span data-work-scope className="max-w-[220px] truncate text-footnote text-muted">
+          {scope.kind === 'all' ? t('work.workPane.allProjects') : scopeLabel(scope, projects)}
+        </span>
         <div className="window-no-drag ms-auto flex items-center gap-2">{actions}</div>
       </header>
       {/* A column, so an empty state can centre itself with m-auto. */}
@@ -65,14 +60,16 @@ export function WorkEmptyState({ view, action }: { view: WorkView; action?: Reac
   const Glyph = VIEW_ICONS[view];
   const { title, body } = WORK_VIEW_PURPOSE[view];
   return (
-    <div className="m-auto flex max-w-[360px] flex-col items-center gap-3 px-6 py-16 text-center">
-      <Glyph className="size-7 text-foreground-faint" stroke={1.5} />
-      <div>
-        <h2 className="text-[15px] font-medium text-foreground">{title}</h2>
-        <p className="mt-1.5 text-[13px] leading-5 text-muted">{body}</p>
-      </div>
-      {action}
-    </div>
+    <EmptyState size="md" className="m-auto max-w-[360px] py-16">
+      <EmptyState.Header>
+        <EmptyState.Media variant="icon">
+          <Glyph className="size-7 text-foreground-faint" stroke={1.5} aria-hidden />
+        </EmptyState.Media>
+        <EmptyState.Title>{title}</EmptyState.Title>
+        <EmptyState.Description>{body}</EmptyState.Description>
+      </EmptyState.Header>
+      {action === undefined ? null : <EmptyState.Content>{action}</EmptyState.Content>}
+    </EmptyState>
   );
 }
 
@@ -83,20 +80,22 @@ export function WorkEmptyState({ view, action }: { view: WorkView; action?: Reac
 export function WorkNoMatch({ query }: { query: string }) {
   const t = useT();
   return (
-    <div
-      data-work-no-match
-      className="m-auto flex max-w-[360px] flex-col items-center gap-1.5 px-6 py-16 text-center"
-    >
-      <h2 className="text-[15px] font-medium text-foreground">
-        {query === ''
-          ? t('work.workPane.nothingMatchesTheseFilters')
-          : t('work.nothingMatches', { query })}
-      </h2>
-      <p className="text-[13px] leading-5 text-muted">
-        {query === ''
-          ? t('work.workPane.changeOrResetTheFilters')
-          : t('work.workPane.tryFewerOrOtherWords')}
-      </p>
-    </div>
+    <EmptyState data-work-no-match size="md" className="m-auto max-w-[360px] py-16">
+      <EmptyState.Header>
+        <EmptyState.Media variant="icon">
+          <IconSearchOff className="size-6 text-foreground-faint" stroke={1.5} aria-hidden />
+        </EmptyState.Media>
+        <EmptyState.Title>
+          {query === ''
+            ? t('work.workPane.nothingMatchesTheseFilters')
+            : t('work.nothingMatches', { query })}
+        </EmptyState.Title>
+        <EmptyState.Description>
+          {query === ''
+            ? t('work.workPane.changeOrResetTheFilters')
+            : t('work.workPane.tryFewerOrOtherWords')}
+        </EmptyState.Description>
+      </EmptyState.Header>
+    </EmptyState>
   );
 }

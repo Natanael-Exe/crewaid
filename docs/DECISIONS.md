@@ -9523,7 +9523,8 @@ approval policies are the account's defaults.
 **Entry points.** A floating **Templates** pill sits bottom-left outside the sidebar on the Crew
 tab only — it belongs to the crew, and the Work views (Tasks, Goals, Deliverables) leave it out.
 The sidebar column stops short of it so it never covers a bot, and over a narrow sidebar it is
-icon-only. The sidebar `+` still creates a bot from scratch. In chat,
+icon-only. The sidebar `+` still creates a bot from scratch. *(Placement superseded by D-239: Templates now sits
+in the sidebar's footer.)* In chat,
 `read_template` (optionally carrying a goal and context Crewaid drafted) renders a card whose
 **Set up crew** opens the library's review step prefilled; `install_template` is one authority
 action for the whole reviewed setup. After adding, **Start first task** sends Crewaid exactly the
@@ -10003,3 +10004,19 @@ what changes from here on.
 - **What stays AGPL.** The desktop app, including its plan, usage and call UI (it does nothing
   without the server's `ee/` routes); the shared wire contracts; the Prisma schema and migrations
   (the cloud tables exist, empty, on self-hosted servers); magic-link sign-in; the ports above.
+
+## D-239 — Templates moves into the Crew sidebar's footer (2026-11-23)
+
+**Status:** accepted by the product owner · **Amends:** D-229 (entry points)
+
+**Why.** The floating pill sat on the wallpaper beside the sidebar, attached to nothing, and the
+sidebar column had to stop 54px short of the window so the pill never covered a bot. The room's
+left column was the only panel that did not run the full height, and the entry point read as an
+afterthought rather than part of the crew.
+
+**Decision.** **Templates** is the sidebar's footer action on the Crew tab, below the roster and
+the usage notice; the sidebar runs the full height of the room. What D-229 asked of the entry point
+still holds: it belongs to the crew, so the Work views (Tasks, Goals, Deliverables), which hide the
+sidebar, leave it out; under a narrow sidebar it is an icon-only button with a tooltip; it never
+covers a bot, now because it lives in the column instead of over it. The sidebar `+` still creates
+a bot from scratch.

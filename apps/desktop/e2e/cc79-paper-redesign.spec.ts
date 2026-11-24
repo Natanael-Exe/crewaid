@@ -5,6 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { launchDesktop } from './launchDesktop';
+import { tokenColor } from './themeTokens';
 import { chatMessage, routeChat, routeScreenStream, routeSocket } from './stubChat';
 import { startStubAuthServer, type StubAuthServer } from './stubAuthServer';
 import type { CrewaidBridge } from '../src/preload.js';
@@ -259,8 +260,15 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(transcript.locator('[data-history-loading]')).toBeHidden();
     await expect(transcript).toHaveAttribute('aria-busy', 'false');
     await expect(transcript.locator('[data-motion-message]')).toHaveCount(2);
+    // A bot with no computer opens with the rail tucked away; expanding it is
+    // remembered, so the rest of this walk-through sees it out.
+    await expect(page.locator('[data-pane-rail-state="collapsed"]')).toBeVisible();
+    await page.getByRole('button', { name: 'Expand panel' }).click();
+    await expect(page.locator('[data-pane-rail-state="expanded"]')).toBeVisible();
     await expect(transcript.getByText(/Paused after 25 steps/)).toHaveCount(0);
-    await expect(page.locator('[data-screen-surface="rail"] > div:last-child')).toBeHidden();
+    await expect(
+      page.locator('[data-screen-surface="rail"] > [data-screen-slot="controls"]'),
+    ).toBeHidden();
     await expect(page.locator('button[aria-label="Record a voice message"]')).toHaveCSS(
       'color',
       'rgb(255, 255, 255)',
@@ -272,9 +280,15 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     const screenshot = async (name: string) => {
       // Compare settled surfaces while the screencast retains the transition.
       await page.evaluate(async () => {
-        const finite = document
-          .getAnimations()
-          .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity);
+        const finite = document.getAnimations().filter(
+          (animation) =>
+            animation.effect?.getComputedTiming().iterations !== Infinity &&
+            // Scroll-driven animations (HeroUI's ScrollShadow fades) follow
+            // the scroll position, not the clock, and never finish; an idle
+            // one (an overlay's exit that never ran) never will either.
+            animation.timeline instanceof DocumentTimeline &&
+            animation.playState !== 'idle',
+        );
         await Promise.allSettled(finite.map((animation) => animation.finished));
       });
       await page.screenshot({ path: testInfo.outputPath(`${name}.png`) });
@@ -324,10 +338,13 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     ).toBeLessThanOrEqual(1);
     const pinnedScout = pinned.getByRole('button', { name: 'Open Scout' });
     await pinnedScout.hover();
-    await expect(pinnedScout).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.5)');
+    await expect(pinnedScout).toHaveCSS('background-color', await tokenColor(page, '--crew-hover'));
     const pinnedQuill = pinned.getByRole('button', { name: 'Open Quill' });
     await pinnedQuill.hover();
-    await expect(pinnedQuill).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(pinnedQuill).toHaveCSS(
+      'background-color',
+      await tokenColor(page, '--crew-selected'),
+    );
     await page.mouse.move(700, 90);
     await screenshot('pinned-bots-light');
     await page.route('**/api/v1/bots', (route) => route.fulfill({ json: bots }));
@@ -335,7 +352,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(transcript).toBeVisible();
     const scoutRow = page.getByRole('option', { name: /Scout/ });
     await scoutRow.hover();
-    await expect(scoutRow).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.5)');
+    await expect(scoutRow).toHaveCSS('background-color', await tokenColor(page, '--crew-hover'));
     await page.mouse.move(700, 90);
     const sidebarSash = page.getByRole('separator', { name: 'Resize sidebar' });
     await sidebarSash.press('Home');
@@ -363,7 +380,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(page.getByText('Full access', { exact: true })).toBeVisible();
     await expect(page.locator('button[data-approval-mode]')).toHaveCSS(
       'color',
-      'rgb(110, 110, 115)',
+      await tokenColor(page, '--muted', 'color'),
     );
     await screenshot('approval-menu-light');
     await page.keyboard.press('Escape');
@@ -374,7 +391,9 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
       await botMenu.evaluate((node) => {
         const bounds = node.getBoundingClientRect();
         const point = document.elementFromPoint(bounds.right - 10, bounds.bottom - 10);
-        return node.contains(point) && node.parentElement === document.body;
+        // Rendered in the overlay layer, outside the sidebar that would clip it.
+        const sidebar = document.querySelector('[data-pane="sidebar"]');
+        return node.contains(point) && sidebar !== null && !sidebar.contains(node);
       }),
     ).toBe(true);
     await screenshot('bot-menu-light');
@@ -383,7 +402,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     const newBot = page.getByRole('dialog', { name: 'New Bot' });
     await expect(newBot.getByRole('button', { name: 'Create', exact: true })).toHaveCSS(
       'color',
-      'rgb(255, 255, 255)',
+      await tokenColor(page, '--app-accent-foreground', 'color'),
     );
     await expect(newBot.getByRole('button', { name: 'Create', exact: true })).toHaveCSS(
       'background-color',
@@ -407,12 +426,12 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
         .toBe(color);
       await expect(transcript.locator('[data-message-bubble="user"]')).toHaveCSS(
         'background-color',
-        'rgba(255, 255, 255, 0.58)',
+        await tokenColor(page, '--message-user'),
       );
     }
     await expect(transcript.locator('[data-message-bubble="user"]')).toHaveCSS(
       'color',
-      'rgb(29, 24, 48)',
+      await tokenColor(page, '--message-user-foreground', 'color'),
     );
     await transcript.getByRole('textbox', { name: 'Message Exe' }).fill('Check white send arrow.');
     await expect(transcript.locator('button[aria-label="Send message"]')).toHaveCSS(
@@ -429,21 +448,16 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expectReadableMention();
     await screenshot('room-quill-light');
     // Account lives in the top bar; appearance uses HeroUI's existing theme root.
-    await page.getByRole('button', { name: /account menu/i }).click();
-    await page.getByRole('menuitem', { name: 'Settings', exact: true }).click();
+    await page.getByRole('button', { name: /account and settings/i }).click();
     const settings = page.getByRole('dialog', { name: 'Settings' });
-    await expect(settings.locator('.button--primary').first()).toHaveCSS(
-      'background-color',
-      'rgb(0, 0, 0)',
-    );
-    await expect(settings).toHaveCSS('border-radius', '28px');
-    await expect(settings).toHaveCSS('width', '920px');
-    await expect(settings).toHaveCSS('height', '640px');
-    await expect(settings.getByRole('navigation', { name: 'Settings sections' })).toHaveCSS(
-      'width',
-      '212px',
-    );
-    await expect(settings.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+    // A full-window frosted sheet with a grouped index, not a fixed box.
+    const sheet = await settings.boundingBox();
+    const windowSize = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
+    expect(Math.abs((sheet?.width ?? 0) - windowSize.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs((sheet?.height ?? 0) - windowSize.height)).toBeLessThanOrEqual(1);
+    await expect(settings.getByRole('heading', { name: 'Settings', exact: true })).toBeAttached();
+    await screenshot('settings-index-light');
+    await settings.getByRole('button', { name: 'General', exact: true }).click();
     const showWork = settings.getByRole('switch', { name: 'Show thinking and actions' });
     await settings.locator('[data-show-bot-work] .switch__control').click();
     await expect(showWork).toBeChecked();
@@ -453,18 +467,19 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(showWork).not.toBeChecked();
     await expect(transcript.locator('[data-motion-message]')).toHaveCount(2);
     await screenshot('settings-general-light');
-    const settingsNav = settings.getByRole('navigation', { name: 'Settings sections' });
-    await settingsNav.getByRole('button', { name: 'Models', exact: true }).click();
+    await settings.getByRole('button', { name: 'Back to settings' }).click();
+    await settings.getByRole('button', { name: 'Models', exact: true }).click();
     await settings.getByRole('button', { name: 'Work Anthropic details' }).click();
     await expect(settings.getByText('Claude Sonnet 4', { exact: true })).toBeVisible();
     await screenshot('settings-models-light');
-    await settingsNav.getByRole('button', { name: 'General', exact: true }).click();
+    await settings.getByRole('button', { name: 'Back to settings' }).click();
+    await settings.getByRole('button', { name: 'General', exact: true }).click();
     await settings.getByLabel('Night', { exact: true }).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'crewaid-dark');
     await screenshot('settings-night');
     await settings.getByRole('button', { name: 'Close settings' }).click();
     await scoutRow.hover();
-    await expect(scoutRow).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.05)');
+    await expect(scoutRow).toHaveCSS('background-color', await tokenColor(page, '--crew-hover'));
     await page.mouse.move(700, 90);
     await expectReadableMention();
     await screenshot('room-night');
@@ -480,15 +495,15 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
         .toBe(color);
       await expect(transcript.locator('[data-message-bubble="bot"]')).toHaveCSS(
         'background-color',
-        'rgb(30, 35, 70)',
+        await tokenColor(page, '--message-bot'),
       );
       await expect(transcript.locator('[data-message-bubble="user"]')).toHaveCSS(
         'background-color',
-        'rgba(255, 255, 255, 0.12)',
+        await tokenColor(page, '--message-user'),
       );
       await expect(transcript.locator('[data-message-bubble="user"]')).toHaveCSS(
         'color',
-        'rgb(244, 242, 255)',
+        await tokenColor(page, '--message-user-foreground', 'color'),
       );
     }
     await page.reload();
@@ -500,14 +515,14 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     // Opening and dismissing Search returns keyboard focus to the trigger.
     const search = page.getByRole('button', { name: 'Search', exact: true });
     await search.click();
-    await expect(page.getByRole('textbox', { name: 'Search everything' })).toBeFocused();
+    await expect(page.getByRole('searchbox', { name: 'Search everything' })).toBeFocused();
     await screenshot('search-night');
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'Search everything' })).toBeHidden();
     await expect(search).toBeFocused();
     for (let i = 0; i < 3; i++) {
       await page.keyboard.press(process.platform === 'darwin' ? 'Meta+k' : 'Control+k');
-      await expect(page.getByRole('textbox', { name: 'Search everything' })).toBeFocused();
+      await expect(page.getByRole('searchbox', { name: 'Search everything' })).toBeFocused();
       await page.keyboard.press('Escape');
     }
     const createRoutine = page.getByRole('button', { name: 'Create routine', exact: true });
@@ -557,7 +572,8 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
           .locator('[data-pane-rail-state="collapsed"]')
           .evaluate((node) => node.getBoundingClientRect().height),
       )
-      .toBeLessThanOrEqual(98);
+      // Expand, the computer, bot settings and call: four round controls.
+      .toBeLessThanOrEqual(170);
     await screenshot('rail-collapsed');
     await page.getByRole('button', { name: 'Expand panel' }).click();
     for (const view of ['Tasks', 'Goals', 'Deliverables']) {
@@ -570,9 +586,22 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
         await page
           .getByRole('region', { name: view, exact: true })
           .evaluate((node) => getComputedStyle(node).getPropertyValue('--accent').trim()),
-      ).toBe('#f4f2ff');
+      ).toBe(
+        // Work belongs to no bot, so it keeps the app's own accent.
+        await page.evaluate(() =>
+          getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim(),
+        ),
+      );
       await expect(page.getByRole('tab', { selected: true })).toHaveCount(1);
       await screenshot(`${view.toLowerCase()}-night`);
+      if (capture) {
+        // Evidence only: the same view in Day, to compare its panes with Crew's.
+        await page.locator('html').evaluate((node) => node.setAttribute('data-theme', 'crewaid'));
+        await screenshot(`${view.toLowerCase()}-light`);
+        await page
+          .locator('html')
+          .evaluate((node) => node.setAttribute('data-theme', 'crewaid-dark'));
+      }
     }
     await page.getByRole('tab', { name: 'Crew', exact: true }).click();
     await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]!.setSize(980, 760));
@@ -585,7 +614,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await screenshot('room-constrained');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await search.click();
-    await expect(page.getByRole('textbox', { name: 'Search everything' })).toBeFocused();
+    await expect(page.getByRole('searchbox', { name: 'Search everything' })).toBeFocused();
     expect(
       await page
         .locator('.crewaid-search-container')
@@ -605,8 +634,8 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await page.keyboard.press('Escape');
     await expect(createRoutine).toBeFocused();
     await page.locator('html').evaluate((node) => node.removeAttribute('data-reduce-motion'));
-    await page.getByRole('button', { name: /account menu/i }).click();
-    await page.getByRole('menuitem', { name: 'Settings', exact: true }).click();
+    await page.getByRole('button', { name: /account and settings/i }).click();
+    await settings.getByRole('button', { name: 'General', exact: true }).click();
     await settings.getByLabel('System', { exact: true }).click();
     await page.emulateMedia({ colorScheme: 'light' });
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'crewaid');
@@ -619,7 +648,7 @@ test('Paper room follows bot colors, persists Night and preserves keyboard/chat/
     await expect(page.getByRole('heading', { name: 'Create your first bot' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Create a bot', exact: true })).toHaveCSS(
       'background-color',
-      'rgb(244, 242, 255)',
+      await tokenColor(page, '--app-accent'),
     );
     await screenshot('no-bots-night');
     await page.getByRole('button', { name: 'Create a bot', exact: true }).click();
@@ -784,9 +813,10 @@ test('expanded viewer requests the lease, waits, cancels and hands control back'
     }, auth.baseUrl);
     await page.reload();
     await expect(page.getByRole('region', { name: 'Transcript' })).toBeVisible();
+    // At rest the header carries no badge; only work in progress gets one.
     await expect(
       page.getByRole('region', { name: 'Transcript' }).getByText('Idle', { exact: true }),
-    ).toBeVisible();
+    ).toHaveCount(0);
     await expect(page.getByText('Connected', { exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Take over', exact: true })).toHaveCount(0);
     await expect(page.locator('[data-screen-loading]')).toHaveCount(0);
@@ -826,9 +856,15 @@ test('expanded viewer requests the lease, waits, cancels and hands control back'
     await expect(page.locator('button[aria-label="Close full screen"]')).toBeInViewport();
     if (process.env['CC79_CAPTURE'] === '1') {
       await page.evaluate(async () => {
-        const finite = document
-          .getAnimations()
-          .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity);
+        const finite = document.getAnimations().filter(
+          (animation) =>
+            animation.effect?.getComputedTiming().iterations !== Infinity &&
+            // Scroll-driven animations (HeroUI's ScrollShadow fades) follow
+            // the scroll position, not the clock, and never finish; an idle
+            // one (an overlay's exit that never ran) never will either.
+            animation.timeline instanceof DocumentTimeline &&
+            animation.playState !== 'idle',
+        );
         await Promise.allSettled(finite.map((animation) => animation.finished));
       });
       await page.screenshot({

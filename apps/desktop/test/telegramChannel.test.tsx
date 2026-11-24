@@ -134,7 +134,7 @@ describe('Telegram account controls', () => {
   });
   it('shows a problem as an alert', () => {
     expect(render({ problem: 'Your code expired.' })).toMatch(
-      /role="alert"[^>]*>Your code expired\./,
+      /role="alert"[\s\S]*?>Your code expired\./,
     );
   });
 });

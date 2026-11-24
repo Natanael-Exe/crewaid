@@ -1,10 +1,11 @@
-import { Button, Modal, useOverlayState } from '@heroui/react';
-import { IconArrowLeft, IconX } from '@tabler/icons-react';
+import { Alert, Button, Modal, ScrollShadow, Spinner, useOverlayState } from '@heroui/react';
+import { IconArrowLeft, IconSparkles, IconX } from '@tabler/icons-react';
 import { useCallback, useEffect, useState } from 'react';
 import type { Template, TemplateInstallation } from '@crewaid/shared';
 import { listDirectory, listServers, useApiClient } from '../api';
 import { installTemplate, listTemplates } from '../api/experience';
 import type { BotDraft } from '../bots/botProfileForm';
+import { EmptyState, IconButtonTooltip, Stepper } from '../components/ui';
 import { PluginsPane } from '../settings/PluginsPane';
 import type { TemplatesTarget } from './ExperienceGate';
 import { INITIAL_BROWSE, TemplateBrowse, type BrowseState } from './TemplateBrowse';
@@ -135,18 +136,38 @@ export function TemplatesModal({
     }
   }
 
+  const activeTemplate = view.kind === 'browse' ? undefined : find(view.id);
+  const crewFlowStep =
+    activeTemplate?.kind === 'crew'
+      ? view.kind === 'detail'
+        ? 0
+        : view.kind === 'added'
+          ? 2
+          : 1
+      : null;
+
   function body() {
     if (templates === null)
       return (
         <div className="flex flex-col items-start gap-3 px-8 py-12">
-          <p className="text-muted">
-            {loadFailed
-              ? t('experience.templatesModal.templatesCouldNotBeLoaded')
-              : t('experience.templatesModal.loadingTemplates')}
-          </p>
           {loadFailed ? (
-            <Button onPress={load}>{t('experience.templatesModal.tryAgain')}</Button>
-          ) : null}
+            <Alert status="danger" className="max-w-md">
+              <Alert.Indicator />
+              <Alert.Content>
+                <Alert.Description>
+                  {t('experience.templatesModal.templatesCouldNotBeLoaded')}
+                </Alert.Description>
+              </Alert.Content>
+              <Button size="sm" variant="secondary" onPress={load}>
+                {t('experience.templatesModal.tryAgain')}
+              </Button>
+            </Alert>
+          ) : (
+            <div className="flex items-center gap-2.5 text-sm text-muted">
+              <Spinner size="sm" />
+              <span>{t('experience.templatesModal.loadingTemplates')}</span>
+            </div>
+          )}
         </div>
       );
     if (view.kind === 'browse')
@@ -158,15 +179,24 @@ export function TemplatesModal({
           onOpen={(id) => setView({ kind: 'detail', id, from: null })}
         />
       );
-    const template = find(view.id);
+    const template = activeTemplate;
     if (template === undefined)
       return (
-        <div className="flex flex-col items-start gap-3 px-8 py-12">
-          <p>{t('experience.templatesModal.thisTemplateIsNoLonger')}</p>
-          <Button variant="ghost" onPress={() => setView({ kind: 'browse' })}>
-            {t('experience.templateDetail.allTemplates')}
-          </Button>
-        </div>
+        <EmptyState size="sm" className="px-8 py-12">
+          <EmptyState.Header>
+            <EmptyState.Media variant="icon">
+              <IconSparkles className="size-5 text-muted" aria-hidden />
+            </EmptyState.Media>
+            <EmptyState.Title>
+              {t('experience.templatesModal.thisTemplateIsNoLonger')}
+            </EmptyState.Title>
+          </EmptyState.Header>
+          <EmptyState.Content>
+            <Button variant="ghost" onPress={() => setView({ kind: 'browse' })}>
+              {t('experience.templateDetail.allTemplates')}
+            </Button>
+          </EmptyState.Content>
+        </EmptyState>
       );
     if (view.kind === 'detail')
       return template.kind === 'crew' ? (
@@ -218,17 +248,18 @@ export function TemplatesModal({
     if (view.kind === 'connections')
       return (
         <div className="flex flex-col gap-4 px-8 pb-6">
-          <button
-            type="button"
-            onClick={() => {
+          <Button
+            size="sm"
+            variant="ghost"
+            onPress={() => {
               void loadConnections();
               setView({ kind: 'setup', id: template.id });
             }}
-            className="flex items-center gap-2 self-start text-[13px] text-muted hover:text-foreground"
+            className="self-start -ms-2 text-footnote text-muted hover:text-foreground"
           >
             <IconArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden />
             {t('experience.templatesModal.backToSetup')}
-          </button>
+          </Button>
           <PluginsPane />
         </div>
       );
@@ -258,28 +289,63 @@ export function TemplatesModal({
             aria-label={t('experience.templatesModal.templates')}
             className="crewaid-templates-dialog relative flex h-fit max-h-[90vh] w-[min(1056px,94vw)] max-w-[94vw] flex-col overflow-hidden p-0"
           >
-            <Button
-              isIconOnly
+            <IconButtonTooltip
+              label={t('experience.templatesModal.closeTemplates')}
               variant="ghost"
-              aria-label={t('experience.templatesModal.closeTemplates')}
               onPress={onClose}
               className="absolute end-5 top-5 z-10"
             >
-              <IconX className="size-4" />
-            </Button>
-            <div className="min-h-0 flex-1 overflow-y-auto pt-7">
+              <IconX className="size-4" aria-hidden />
+            </IconButtonTooltip>
+            <ScrollShadow hideScrollBar={false} className="min-h-0 flex-1 overflow-y-auto pt-7">
               {view.kind === 'browse' ? (
                 <div className="flex flex-col gap-1.5 px-8 pb-5 pe-20">
                   <Modal.Heading className="crewaid-template-title">
                     {t('experience.templatesModal.templates')}
                   </Modal.Heading>
-                  <p className="text-[14px] text-muted">
+                  <p className="text-callout text-muted">
                     {t('experience.templatesModal.aStartingCrewOrA')}
                   </p>
                 </div>
+              ) : crewFlowStep !== null && activeTemplate !== undefined ? (
+                <div className="px-8 pb-5 pe-20">
+                  <Stepper
+                    currentStep={crewFlowStep}
+                    {...(view.kind !== 'added'
+                      ? {
+                          onStepChange: (step: number) => {
+                            if (step === 0) {
+                              setView({ kind: 'detail', id: activeTemplate.id, from: null });
+                            } else if (step === 1) {
+                              if (view.kind === 'connections') void loadConnections();
+                              openSetup(activeTemplate.id);
+                            }
+                          },
+                        }
+                      : {})}
+                    className="max-w-md"
+                  >
+                    <Stepper.Step>
+                      <Stepper.Indicator />
+                      <Stepper.Title>
+                        {t('experience.templateResultCard.viewDetails')}
+                      </Stepper.Title>
+                      <Stepper.Separator />
+                    </Stepper.Step>
+                    <Stepper.Step>
+                      <Stepper.Indicator />
+                      <Stepper.Title>{t('experience.templateResultCard.setUpCrew')}</Stepper.Title>
+                      <Stepper.Separator />
+                    </Stepper.Step>
+                    <Stepper.Step>
+                      <Stepper.Indicator />
+                      <Stepper.Title>{t('experience.templateSetup.crewAdded')}</Stepper.Title>
+                    </Stepper.Step>
+                  </Stepper>
+                </div>
               ) : null}
               {body()}
-            </div>
+            </ScrollShadow>
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

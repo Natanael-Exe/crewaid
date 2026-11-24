@@ -339,6 +339,9 @@ test('loading playback shows a contrasting spinner and Call has a visible label'
     expect(
       await loading.locator('.spinner').evaluate((element) => getComputedStyle(element).color),
     ).not.toBe(await loading.evaluate((element) => getComputedStyle(element).backgroundColor));
+    // The rail starts tucked away for a bot with no computer; the labelled
+    // Call button is the expanded rail's.
+    await page.getByRole('button', { name: 'Expand panel' }).click();
     await expect(page.locator('button[aria-label="Call Nathan"]')).toHaveText('Call Nathan');
     // Both colours read together, each time: the record button's fill was
     // read once before, sometimes mid-transition, and one channel off for good.

@@ -115,7 +115,7 @@ function ModelCapabilities({ model }: { model: ModelOptionData }) {
       ))}
     </span>
   ) : (
-    <span className="text-[11px] text-muted">{t('composer.model.noCapabilities')}</span>
+    <span className="text-micro text-muted">{t('composer.model.noCapabilities')}</span>
   );
 }
 
@@ -138,9 +138,9 @@ function ModelOption({ model, isDefault }: { model: ModelOptionData; isDefault: 
     >
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-center gap-1.5">
-          <span className="truncate text-[13px] font-medium text-foreground">{model.label}</span>
+          <span className="truncate text-footnote font-medium text-foreground">{model.label}</span>
           {/*
-            V1-13: which option the `default` alias resolves to, marked in the
+            Which option the `default` alias resolves to, marked in the
             list rather than only on the trigger. A bot left on `default`
             follows this row, so seeing WHICH one is how an operator
             understands that changing their default moves that bot too.
@@ -152,12 +152,12 @@ function ModelOption({ model, isDefault }: { model: ModelOptionData; isDefault: 
           ) : null}
         </span>
         {model.kind === 'crewaid' ? null : (
-          <span className="block truncate font-mono text-[10px] text-muted">
+          <span className="block truncate font-mono text-micro text-muted">
             {model.upstreamModelId}
           </span>
         )}
         {unavailable === null ? null : (
-          <span className="block truncate text-[10px] text-foreground-faint">{unavailable}</span>
+          <span className="block truncate text-micro text-foreground-faint">{unavailable}</span>
         )}
       </span>
       <ModelCapabilities model={model} />
@@ -182,7 +182,7 @@ export function ModelPicker({
   // and a fresh closure per render would refetch the catalog on every render.
   const load = useMemo(
     // `GET /models` answers `{ models, defaultModelId }` since D-086, and
-    // V1-13 needs both halves: the alias is resolved per user at call time, so
+    // The picker needs both halves: the alias is resolved per user at call time, so
     // marking which option it lands on takes no second round trip.
     () => loadCatalog ?? (() => fetchModelCatalog(client)),
     [loadCatalog, client],
@@ -355,7 +355,8 @@ export function ModelPicker({
         placeholder={triggerText}
       >
         <Autocomplete.Trigger className="group flex min-w-0 items-center rounded-2xl border border-transparent px-1.5 py-1 text-start outline-none transition-colors bg-transparent shadow-none">
-          <Autocomplete.Value className="pe-4 truncate max-w-40">
+          {/* Quiet beside the draft: the model is a setting, not the message. */}
+          <Autocomplete.Value className="pe-4 truncate max-w-[260px] text-caption text-muted transition-none group-hover:text-foreground">
             {({ defaultChildren, isPlaceholder }) =>
               isPlaceholder ? defaultChildren : triggerText
             }
@@ -389,16 +390,16 @@ export function ModelPicker({
             <ListBox
               aria-label={t('composer.model.available')}
               renderEmptyState={() => (
-                <div className="px-3 py-4 text-center text-[12px] text-muted">
+                <div className="px-3 py-4 text-center text-caption text-muted">
                   {t('composer.model.noMatch')}
                 </div>
               )}
             >
               {groups.map((group) => (
                 <ListBox.Section key={group.connectionId} aria-label={group.connectionName}>
-                  <Header className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">
+                  <Header className="px-3 pb-1 pt-2 text-micro font-semibold text-muted">
                     {group.connectionName}{' '}
-                    <span className="text-foreground-faint">
+                    <span className="font-normal text-foreground-faint">
                       · {providerDisplayName(group.kind)}
                     </span>
                   </Header>
@@ -428,7 +429,7 @@ export function ModelPicker({
             size="sm"
             aria-label={t('composer.model.retryLabel')}
             onPress={() => setReloadKey((key) => key + 1)}
-            className="ms-1 h-7 rounded-md px-1.5 text-[11px] text-muted"
+            className="ms-1 h-7 rounded-md px-1.5 text-micro text-muted"
           >
             {t('composer.model.retry')}
           </Button>
@@ -451,7 +452,11 @@ export function ModelPicker({
         only evidence is a label that quietly changed twice.
       */}
       {saveError === null ? null : (
-        <span className="sr-only" role="alert">
+        <span
+          role="alert"
+          title={t('composer.model.saveFailed', { reason: saveError })}
+          className="ms-1 max-w-[160px] truncate text-micro text-danger"
+        >
           {t('composer.model.saveFailed', { reason: saveError })}
         </span>
       )}

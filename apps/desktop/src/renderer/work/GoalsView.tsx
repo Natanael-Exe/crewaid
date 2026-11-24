@@ -1,11 +1,10 @@
-import { Button, Modal, ProgressBar, useOverlayState } from '@heroui/react';
+import { Button, Chip, Input, Modal, ProgressBar, TextArea, useOverlayState } from '@heroui/react';
 import { IconPlus, IconRepeat, IconClock } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { GoalStatus, GoalWithProgress, ProjectWithCounts } from '@crewaid/shared';
 import { failureOf } from '../api';
 import type { ApiClient } from '../api/apiClient';
 import { createGoal, listGoals } from '../api/work';
-import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
 import { shortDate } from './boardState';
 import { FIELD_LABEL, Picker } from './Fields';
 import { FilterMenu, projectFilterField, type FilterField, type ProjectFilter } from './FilterMenu';
@@ -113,7 +112,7 @@ export function GoalsView({
           variant="primary"
           size="sm"
           onPress={() => setAdding(true)}
-          className="h-8 gap-1 rounded-[10px] text-[12px] font-medium"
+          className="h-8 gap-1 rounded-[10px] text-caption font-medium"
         >
           <IconPlus className="size-3.5" stroke={2} />
           {t('work.goalsView.newGoal')}
@@ -140,7 +139,7 @@ export function GoalsView({
 
   if (goals === null) {
     return failure === null ? null : (
-      <p role="alert" className="p-6 text-[13px] text-danger">
+      <p role="alert" className="p-6 text-footnote text-danger">
         {failure}
       </p>
     );
@@ -170,7 +169,7 @@ export function GoalsView({
               variant="secondary"
               size="sm"
               onPress={() => setAdding(true)}
-              className="h-8 rounded-[10px] text-[12px]"
+              className="h-8 rounded-[10px] text-caption"
             >
               {t('work.goalsView.addAGoal')}
             </Button>
@@ -229,8 +228,8 @@ export function GoalCard({
           />
         ) : null}
         <div className="min-w-0 flex-1">
-          <div className="text-[14px] font-semibold leading-5 text-foreground">{goal.title}</div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[12px] text-muted">
+          <div className="text-callout font-semibold leading-5 text-foreground">{goal.title}</div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-caption text-muted">
             {goal.targetOn === null ? null : (
               <span className="flex items-center gap-1">
                 <IconClock className="size-3" stroke={1.8} />
@@ -247,9 +246,9 @@ export function GoalCard({
           </div>
         </div>
         {readyToClose(goal) ? (
-          <span className="shrink-0 rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-medium text-success">
-            {t('work.goalDetailsPane.readyToClose')}
-          </span>
+          <Chip size="sm" variant="soft" color="success" className="shrink-0">
+            <Chip.Label>{t('work.goalDetailsPane.readyToClose')}</Chip.Label>
+          </Chip>
         ) : null}
       </div>
 
@@ -265,14 +264,14 @@ export function GoalCard({
               <ProgressBar.Fill />
             </ProgressBar.Track>
           </ProgressBar>
-          <span className="text-[12px] text-muted">
+          <span className="text-caption tabular-nums text-muted">
             {progress} · {pct}%
           </span>
         </div>
       )}
 
       {goal.series.length === 0 ? null : (
-        <ul className="flex flex-col gap-0.5 text-[12px]">
+        <ul className="flex flex-col gap-0.5 text-caption">
           {goal.series.map((series) => (
             <li key={series.seriesId} className="flex items-center gap-1.5 text-foreground">
               <IconRepeat className="size-3 text-muted" stroke={1.8} />
@@ -285,7 +284,7 @@ export function GoalCard({
       )}
 
       {goal.routineCount === 0 ? null : (
-        <span className="text-[12px] text-muted">
+        <span className="text-caption text-muted">
           {t('work.goal.routines', { count: goal.routineCount })}
         </span>
       )}
@@ -348,76 +347,78 @@ function NewGoalDialog({
   return (
     <Modal state={overlay}>
       <Modal.Backdrop>
-        <Modal.Container size="cover" placement="center" className="h-fit sm:w-auto">
-          <Modal.Dialog
-            aria-label={t('work.goalsView.newGoal')}
-            className="flex h-fit w-[440px] max-w-[92vw] flex-col gap-4 rounded-card bg-surface p-5"
-          >
-            <h2 className="text-[15px] font-semibold">{t('work.goalsView.newGoal')}</h2>
-            <div>
-              <label htmlFor="goal-title" className={FIELD_LABEL}>
-                {t('work.deliverablePane.goal')}
-              </label>
-              <input
-                id="goal-title"
-                autoFocus
-                value={title}
-                maxLength={200}
-                placeholder={t('work.goalsView.shipTheMvp')}
-                onChange={(event) => setTitle(event.target.value)}
-                className={SETTINGS_INPUT_CLASS}
-              />
-            </div>
-            <div>
-              <label htmlFor="goal-outcome" className={FIELD_LABEL}>
-                {t('work.goalDetailsPane.whatItLooksLikeWhen')}
-              </label>
-              <textarea
-                id="goal-outcome"
-                rows={3}
-                value={outcome}
-                onChange={(event) => setOutcome(event.target.value)}
-                className={`${SETTINGS_INPUT_CLASS} h-auto resize-none py-2 leading-[18px]`}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+        <Modal.Container size="md" placement="center" scroll="inside">
+          <Modal.Dialog aria-label={t('work.goalsView.newGoal')}>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading className="text-body font-semibold">
+                {t('work.goalsView.newGoal')}
+              </Modal.Heading>
+            </Modal.Header>
+            <Modal.Body className="flex flex-col gap-4">
               <div>
-                <label htmlFor="goal-target" className={FIELD_LABEL}>
-                  {t('work.goalDetailsPane.targetDate')}
+                <label htmlFor="goal-title" className={FIELD_LABEL}>
+                  {t('work.deliverablePane.goal')}
                 </label>
-                <input
-                  id="goal-target"
-                  type="date"
-                  value={targetOn}
-                  onChange={(event) => setTargetOn(event.target.value)}
-                  className={SETTINGS_INPUT_CLASS}
+                <Input
+                  id="goal-title"
+                  variant="secondary"
+                  autoFocus
+                  value={title}
+                  maxLength={200}
+                  placeholder={t('work.goalsView.shipTheMvp')}
+                  onChange={(event) => setTitle(event.target.value)}
+                  className="w-full"
                 />
               </div>
               <div>
-                <span className={FIELD_LABEL}>{t('work.deliverablePane.project')}</span>
-                <Picker
-                  label={t('work.deliverablePane.project')}
-                  value={projectId}
-                  noneLabel={t('work.boardState.noProject')}
-                  options={projects
-                    .filter((project) => project.status === 'ACTIVE')
-                    .map((project) => ({ id: project.id, label: project.name }))}
-                  onChange={setProjectId}
+                <label htmlFor="goal-outcome" className={FIELD_LABEL}>
+                  {t('work.goalDetailsPane.whatItLooksLikeWhen')}
+                </label>
+                <TextArea
+                  id="goal-outcome"
+                  variant="secondary"
+                  rows={3}
+                  value={outcome}
+                  onChange={(event) => setOutcome(event.target.value)}
+                  className="w-full resize-none"
                 />
               </div>
-            </div>
-            {failure === null ? null : (
-              <p role="alert" className="text-[12px] text-danger">
-                {failure}
-              </p>
-            )}
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="tertiary"
-                size="sm"
-                onPress={() => onOpenChange(false)}
-                className="h-8 rounded-[10px] text-[12px] font-medium"
-              >
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="goal-target" className={FIELD_LABEL}>
+                    {t('work.goalDetailsPane.targetDate')}
+                  </label>
+                  <Input
+                    id="goal-target"
+                    variant="secondary"
+                    type="date"
+                    value={targetOn}
+                    onChange={(event) => setTargetOn(event.target.value)}
+                    className="w-full tabular-nums"
+                  />
+                </div>
+                <div>
+                  <span className={FIELD_LABEL}>{t('work.deliverablePane.project')}</span>
+                  <Picker
+                    label={t('work.deliverablePane.project')}
+                    value={projectId}
+                    noneLabel={t('work.boardState.noProject')}
+                    options={projects
+                      .filter((project) => project.status === 'ACTIVE')
+                      .map((project) => ({ id: project.id, label: project.name }))}
+                    onChange={setProjectId}
+                  />
+                </div>
+              </div>
+              {failure === null ? null : (
+                <p role="alert" className="text-caption text-danger">
+                  {failure}
+                </p>
+              )}
+            </Modal.Body>
+            <Modal.Footer className="gap-2">
+              <Button variant="tertiary" size="sm" onPress={() => onOpenChange(false)}>
                 {t('work.goalsView.cancel')}
               </Button>
               <Button
@@ -425,11 +426,10 @@ function NewGoalDialog({
                 size="sm"
                 isDisabled={saving || title.trim() === ''}
                 onPress={() => void save()}
-                className="h-8 rounded-[10px] text-[12px] font-medium"
               >
                 {saving ? t('work.goalsView.adding') : t('work.goalsView.addGoal')}
               </Button>
-            </div>
+            </Modal.Footer>
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

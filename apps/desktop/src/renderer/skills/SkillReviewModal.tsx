@@ -186,10 +186,10 @@ export function SkillReviewModal({
   return (
     <Modal state={overlay}>
       <Modal.Backdrop>
-        <Modal.Container size="cover" placement="center" className="h-fit sm:w-auto">
+        <Modal.Container size="lg" placement="center" scroll="inside">
           <Modal.Dialog
             aria-label={t('skills.skillReviewBody.reviewSkill')}
-            className="flex h-[620px] max-h-[85vh] w-[880px] max-w-[92vw] flex-col overflow-hidden rounded-card bg-surface p-5"
+            className="flex max-h-[85vh] w-[min(880px,92vw)] max-w-none flex-col overflow-hidden rounded-card bg-surface p-5"
           >
             <SkillReviewBody
               load={load}

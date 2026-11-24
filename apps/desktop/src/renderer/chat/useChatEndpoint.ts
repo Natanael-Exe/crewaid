@@ -6,7 +6,7 @@ import { chatEndpoint, ChatEndpointError, type ChatEndpoint } from './chatEndpoi
 import { t } from '../i18n/i18n';
 
 /**
- * This bot's chat endpoint, once the CC-07 credentials have been read.
+ * This bot's chat endpoint, once the stored credentials have been read.
  *
  * The read is async (it crosses IPC into `safeStorage`) and the stock SSE
  * adapter resolves its URL synchronously, so the endpoint is resolved before a

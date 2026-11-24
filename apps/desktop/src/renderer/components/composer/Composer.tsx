@@ -1,11 +1,11 @@
 import type { ApprovalMode } from '@crewaid/shared';
-import { Button, Tooltip } from '@heroui/react';
 import { IconArrowUp, IconSquareFilled } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ToolInfo } from '@crewaid/shared';
 import { AttachButton, ComposerDropZone } from '../attachments/AttachmentDropZone';
 import { claimableIds, type PendingAttachment } from '../attachments/attachmentState';
 import { PendingAttachmentRow } from '../attachments/PendingAttachmentChip';
+import { clipboardImageFiles, IconButtonTooltip } from '../ui';
 import { shouldSubmitOnEnter, useAutoGrow } from './autoGrow';
 import { useComposerLayout } from './composerLayout';
 import {
@@ -20,7 +20,7 @@ import { ApprovalModeMenu } from './ApprovalModeMenu';
 import { ModelPicker } from './ModelPicker';
 import { QueuedMessageList } from './QueuedMessageRow';
 import type { QueuedMessage } from '../../state/messageQueue';
-import { ToolPalette } from './ToolPalette';
+import { ToolPalette, TOOL_PALETTE_LIST_ID, toolPaletteOptionId } from './ToolPalette';
 import { useVoiceCapture, type ComposerVoice } from './useVoiceCapture';
 import {
   DictationButton,
@@ -36,7 +36,7 @@ import {
   withoutSlashToken,
   type ComposerCommand,
 } from './composerCommands';
-import { BotPalette } from './BotPalette';
+import { BotPalette, BOT_PALETTE_LIST_ID, botPaletteOptionId } from './BotPalette';
 import {
   activeBotQuery,
   applyBotMention,
@@ -49,14 +49,14 @@ import {
 import { useT } from '../../i18n/i18n';
 
 /**
- * Composer — M1-FE-07 + M1-FE-08.
+ * Composer.
  *
  * Pill per ref-01: `+` attach at left inside, auto-growing textarea, black
  * circular send/stop at right inside. In the idle+empty state that circle
  * records a voice message instead, in the same place and size, so the
  * layout never shifts; dictation sits beside the send/stop control.
  *
- * M1-FE-08 additions: the pill sits inside a DropZone (drop anywhere on it
+ * Attachments: the pill sits inside a DropZone (drop anywhere on it
  * to stage files), the `+` opens the OS picker via FileTrigger, and staged
  * uploads render as chips above the pill. Ready uploads are claimed by the
  * next send via attachmentIds; failed uploads offer Retry.
@@ -70,9 +70,9 @@ import { useT } from '../../i18n/i18n';
  * CSS grid areas, so it re-flows on sidebar/rail resizes and never re-mounts
  * the textarea.
  *
- * All buttons are HeroUI Button (PO requirement 1) — no hand-rolled
+ * All buttons are HeroUI Button — no hand-rolled
  * <button> remains. Auto-grow stays hand-rolled: HeroUI TextArea has no
- * auto-grow (verified M1-FE-02).
+ * auto-grow.
  */
 export function Composer({
   botId,
@@ -162,8 +162,8 @@ export function Composer({
   placeholder?: string | undefined;
 }) {
   const t = useT();
-  // Seed-era state machine instance; M1-FE-06 replaces `streaming` with real
-  // bot status, but the transitions stay identical.
+  // `streaming` comes from the bot's real status; the transitions are the
+  // same ones the state machine has always had.
   const [state, setState] = useState<ComposerState>(() => ({
     mode: streaming ? 'active' : 'idle',
     draft: '',
@@ -343,7 +343,8 @@ export function Composer({
   }, [onModelChanged]);
 
   // Keep the machine honest if the parent-driven streaming flag changes
-  // (bot switch, completed turn).
+  // (bot switch, completed turn). Done during render so the composer never
+  // paints one stale frame with the previous turn's Send/Stop control.
   if (streaming !== (state.mode === 'active')) {
     setState(botSwitched(state, streaming));
   }
@@ -354,7 +355,7 @@ export function Composer({
   const readyIds = claimableIds(Object.fromEntries(pending.map((p) => [p.localId, p])));
 
   /**
-   * CC-45. While the bot is working, a draft is QUEUED rather than sent.
+   * While the bot is working, a draft is QUEUED rather than sent.
    *
    * The server would take it — it defers a message that arrives mid-turn and
    * answers it when the current one settles — and that is exactly
@@ -422,7 +423,7 @@ export function Composer({
   };
 
   return (
-    <div className="mx-auto w-full max-w-[900px]">
+    <div className="mx-auto w-full max-w-(--chat-column)">
       <QueuedMessageList
         items={queued ?? []}
         onEdit={(localId, text) => onEditQueued?.(localId, text)}
@@ -453,7 +454,7 @@ export function Composer({
           <div
             ref={pillRef}
             data-composer-stacked={stacked || undefined}
-            className={`crewaid-composer-pill gap-2.5 border border-field-border bg-surface ps-4 pe-2 py-2 ${
+            className={`crewaid-composer-pill gap-2.5 border border-transparent ps-4 pe-2 py-2 ${
               // `rounded-full` resolves to half the height, so a stacked pill
               // would bow its corners into the text. 23px is the inline pill's
               // own radius (36px picker trigger + py-1 + border = 46px tall),
@@ -481,6 +482,24 @@ export function Composer({
               hidden={recordingMessage}
               ref={taRef}
               aria-label={t('composer.message', { bot: botName })}
+              aria-controls={
+                palette === null
+                  ? undefined
+                  : palette.kind === 'tool'
+                    ? TOOL_PALETTE_LIST_ID
+                    : BOT_PALETTE_LIST_ID
+              }
+              aria-activedescendant={
+                palette === null
+                  ? undefined
+                  : palette.kind === 'tool'
+                    ? matchingCommands.length + matchingTools.length > 0
+                      ? toolPaletteOptionId(palette.selected)
+                      : undefined
+                    : matchingBots.length > 0
+                      ? botPaletteOptionId(palette.selected)
+                      : undefined
+              }
               placeholder={
                 queueing
                   ? t('composer.queueing')
@@ -488,6 +507,12 @@ export function Composer({
               }
               rows={1}
               value={state.draft}
+              onPaste={(event) => {
+                const pasted = clipboardImageFiles(event);
+                if (pasted.length === 0) return;
+                event.preventDefault();
+                onFiles(pasted);
+              }}
               onChange={(e) => {
                 const next = e.target.value;
                 const caret = e.target.selectionStart ?? next.length;
@@ -548,7 +573,7 @@ export function Composer({
                   if (state.mode === 'idle' || queueing) submit();
                 }
               }}
-              className="max-h-[160px] min-h-[24px] min-w-0 resize-none overflow-hidden bg-transparent px-1 py-[7px] text-[14px] leading-[22px] text-field-foreground outline-none placeholder:text-field-placeholder"
+              className="max-h-[160px] min-h-[24px] min-w-0 resize-none overflow-hidden bg-transparent px-1 py-[7px] text-callout leading-[22px] text-field-foreground outline-none placeholder:text-field-placeholder"
             />
             <div
               ref={controlsRef}
@@ -566,35 +591,29 @@ export function Composer({
               {recordingMessage ? (
                 <VoiceMessageButton voice={voice} capture={capture} />
               ) : state.mode === 'active' ? (
-                <Tooltip>
-                  <Tooltip.Trigger>
-                    <Button
-                      variant="primary"
-                      isIconOnly
-                      aria-label={t('composer.stop')}
-                      onPress={handleStop}
-                      className="crewaid-compose-action me-0.5 size-8 shrink-0 rounded-full"
-                    >
-                      <IconSquareFilled className="size-4" />
-                    </Button>
-                  </Tooltip.Trigger>
-                  <Tooltip.Content>{t('composer.stop.hint')}</Tooltip.Content>
-                </Tooltip>
+                <IconButtonTooltip
+                  variant="primary"
+                  size="sm"
+                  label={t('composer.stop')}
+                  tooltip={t('composer.stop.hint')}
+                  placement="top"
+                  onPress={handleStop}
+                  className="crewaid-compose-action me-0.5 size-8 min-w-8 shrink-0 rounded-full"
+                >
+                  <IconSquareFilled className="size-4" />
+                </IconButtonTooltip>
               ) : canSend(state, readyIds.length > 0) ? (
-                <Tooltip>
-                  <Tooltip.Trigger>
-                    <Button
-                      variant="primary"
-                      isIconOnly
-                      aria-label={t('composer.send')}
-                      onPress={submit}
-                      className="crewaid-compose-action me-0.5 size-8 shrink-0 rounded-full"
-                    >
-                      <IconArrowUp className="size-4" stroke={1.8} />
-                    </Button>
-                  </Tooltip.Trigger>
-                  <Tooltip.Content>{t('composer.send.hint')}</Tooltip.Content>
-                </Tooltip>
+                <IconButtonTooltip
+                  variant="primary"
+                  size="sm"
+                  label={t('composer.send')}
+                  tooltip={t('composer.send.hint')}
+                  placement="top"
+                  onPress={submit}
+                  className="crewaid-compose-action me-0.5 size-8 min-w-8 shrink-0 rounded-full"
+                >
+                  <IconArrowUp className="size-4" stroke={1.8} />
+                </IconButtonTooltip>
               ) : (
                 <VoiceMessageButton voice={voice} capture={capture} />
               )}

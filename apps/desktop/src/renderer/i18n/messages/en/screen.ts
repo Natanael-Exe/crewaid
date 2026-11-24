@@ -1,5 +1,6 @@
 export const screen = {
   'screen.screenCard.viewFullScreen': 'View full screen',
+  'screen.railTitle': 'Computer',
   'screen.screenCard.open': 'Open',
   'screen.screenCard.someoneElseIsInControl': 'Someone else is in control',
   'screen.screenCard.closeFullScreen': 'Close full screen',

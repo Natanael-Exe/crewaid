@@ -32,7 +32,9 @@ describe('Installation bot access', () => {
     expect(markup).toContain('Current and future bots');
     expect(markup).toContain('Except these bots');
     expect(markup).toContain('Checked bots cannot use this connection.');
-    expect(markup).toMatch(/checked=""[^>]*\/><span[^>]*>Scout/);
+    expect(markup).toMatch(
+      /<label[^>]*data-selected="true"[^>]*>[\s\S]*?checked=""[\s\S]*?<span[^>]*>Scout<\/span><\/label>/,
+    );
     expect(markup).toContain('Reconnect after those permissions change.');
   });
   it('makes selected-only access and an empty selection explicit', () => {

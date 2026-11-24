@@ -43,7 +43,7 @@ export type ConnectionCheck =
   | { readonly kind: 'reachable' }
   | { readonly kind: 'failed'; readonly message: string };
 
-/** Pre-fill from the CC-07 store so changing the URL does not mean retyping the token. */
+/** Pre-fill from the token store so changing the URL does not mean retyping the token. */
 export function draftFromStore(result: TokenStoreReadResult): ConnectionDraft {
   if (result.status !== 'configured') return EMPTY_DRAFT;
   return {

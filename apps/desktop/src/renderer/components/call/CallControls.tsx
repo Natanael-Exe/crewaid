@@ -14,6 +14,7 @@ import { systemBrowser } from '../../bridge';
 import { formatClipTime } from '../../voice/recorder';
 import type { BotCall } from '../../voice/useBotCall';
 import { liveBotProgress } from '../../voice/callProgress';
+import { IconButtonTooltip } from '../ui';
 import { useT } from '../../i18n/i18n';
 
 /** Where "Learn about Cloud" leads: the plans on the public site. */
@@ -84,7 +85,7 @@ export function CallButton({
           : () => setExplaining(true)
       }
       className={`crewaid-bot-context window-no-drag shrink-0 rounded-full font-medium shadow-sm ${
-        iconOnly ? 'size-[34px] min-w-[34px]' : 'h-8 max-w-[220px] gap-1.5 px-3 text-[12px]'
+        iconOnly ? 'size-[34px] min-w-[34px]' : 'h-8 max-w-[220px] gap-1.5 px-3 text-caption'
       }`}
     >
       {inCall ? (
@@ -98,7 +99,7 @@ export function CallButton({
   if (offer === 'call' || inCall) {
     return (
       <Tooltip>
-        <Tooltip.Trigger>{button}</Tooltip.Trigger>
+        {button}
         <Tooltip.Content>
           {spent && !inCall ? t('call.spent') : label}
           {!inCall && !spent && left !== null
@@ -141,14 +142,15 @@ export function CallButton({
             <IconPhone className="size-4" stroke={1.8} />
           </span>
           <div className="min-w-0 flex-1">
-            <Popover.Heading className="text-[15px] leading-[22px] font-semibold">
+            <Popover.Heading className="text-body leading-[22px] font-semibold">
               {copy.title}
             </Popover.Heading>
-            <p className="mt-1 text-[14px] leading-[21px] text-muted">{copy.body}</p>
+            <p className="mt-1 text-callout leading-[21px] text-muted">{copy.body}</p>
             <div className="mt-3 flex items-center gap-2">
               <Button
+                variant="primary"
                 size="sm"
-                className="rounded-full bg-foreground px-4 text-background"
+                className="rounded-full px-4"
                 onPress={() => {
                   setExplaining(false);
                   copy.act();
@@ -182,19 +184,17 @@ export function CallBar({ call, botName }: { call: BotCall; botName: string }) {
     return (
       <div
         role="alert"
-        className="mx-auto mb-2 flex w-full max-w-[900px] items-center gap-2 px-5 text-[12px] text-danger"
+        className="mx-auto mb-2 flex w-full max-w-[calc(var(--chat-column)+48px)] items-center gap-2 px-(--transcript-gutter) text-caption text-danger"
       >
         <span className="min-w-0 flex-1">{snapshot.error}</span>
-        <Button
-          variant="ghost"
-          isIconOnly
-          size="sm"
-          aria-label={t('call.dismiss')}
+        <IconButtonTooltip
+          label={t('call.dismiss')}
+          placement="top"
           onPress={call.dismissError}
           className="size-5 min-w-5 rounded-full text-muted"
         >
           <IconX className="size-3" stroke={2} />
-        </Button>
+        </IconButtonTooltip>
       </div>
     );
   }
@@ -204,12 +204,12 @@ export function CallBar({ call, botName }: { call: BotCall; botName: string }) {
       ? null
       : Math.max(0, snapshot.maxDurationSeconds * 1000 - elapsed);
   return (
-    <div className="mx-auto mb-2 w-full max-w-[900px] px-4">
+    <div className="mx-auto mb-2 w-full max-w-[calc(var(--chat-column)+48px)] px-(--transcript-gutter)">
       <div
         data-call-bar={snapshot.phase}
         role="status"
         aria-live="polite"
-        className="flex items-center gap-3 rounded-full border border-divider bg-background-secondary py-1.5 pe-1.5 ps-4"
+        className="flex items-center gap-3 rounded-full border border-glass-border bg-glass-strong py-1.5 pe-1.5 ps-4 shadow-surface backdrop-blur-xl"
       >
         {live ? (
           <span
@@ -220,7 +220,7 @@ export function CallBar({ call, botName }: { call: BotCall; botName: string }) {
           <Spinner size="sm" aria-hidden />
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2 text-[12px]">
+          <div className="flex items-baseline gap-2 text-caption">
             <span className="font-medium text-field-foreground">
               {live
                 ? t('call.onCall', { name: botName })
@@ -235,17 +235,15 @@ export function CallBar({ call, botName }: { call: BotCall; botName: string }) {
               </span>
             ) : null}
           </div>
-          <div className="truncate text-[12px] text-muted">
+          <div className="truncate text-caption text-muted">
             {snapshot.waitingOnBot
               ? t('call.working', { name: botName })
               : (snapshot.caption ?? (live ? t('call.listening') : ''))}
           </div>
         </div>
-        <Button
-          variant="ghost"
-          isIconOnly
-          size="sm"
-          aria-label={snapshot.muted ? t('call.unmute') : t('call.mute')}
+        <IconButtonTooltip
+          label={snapshot.muted ? t('call.unmute') : t('call.mute')}
+          placement="top"
           aria-pressed={snapshot.muted}
           isDisabled={!live}
           onPress={() => call.setMuted(!snapshot.muted)}
@@ -256,18 +254,17 @@ export function CallBar({ call, botName }: { call: BotCall; botName: string }) {
           ) : (
             <IconMicrophone className="size-4" stroke={1.8} />
           )}
-        </Button>
-        <Button
+        </IconButtonTooltip>
+        <IconButtonTooltip
           variant="danger"
-          isIconOnly
-          size="sm"
-          aria-label={t('call.hangUp')}
+          label={t('call.hangUp')}
+          placement="top"
           isDisabled={snapshot.phase === 'ending'}
           onPress={call.hangUp}
           className="size-8 rounded-full"
         >
           <IconPhoneOff className="size-4" stroke={1.8} />
-        </Button>
+        </IconButtonTooltip>
       </div>
     </div>
   );

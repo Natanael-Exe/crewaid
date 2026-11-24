@@ -1,8 +1,9 @@
 import type { Bot, ProviderExplanation } from '@crewaid/shared';
-import { Spinner } from '@heroui/react';
-import { IconAlertCircle, IconArrowDown } from '@tabler/icons-react';
+import { Alert, Button, Spinner } from '@heroui/react';
+import { IconArrowDown } from '@tabler/icons-react';
 import { useT } from '../../i18n/i18n';
 import { BotAvatar } from '../BotAvatar';
+import { IconButtonTooltip } from '../ui';
 
 /** Centered prompt shown once history has loaded and the thread is empty. */
 export function EmptyConversation({ bot }: { bot: Bot }) {
@@ -11,10 +12,10 @@ export function EmptyConversation({ bot }: { bot: Bot }) {
     <div className="crewaid-empty-conversation m-auto flex flex-col items-center gap-4 px-6 py-10 text-center">
       <BotAvatar bot={bot} size="md" />
       <div>
-        <h2 className="text-[20px] font-medium tracking-[-0.01em] text-foreground">
+        <h2 className="text-heading font-medium tracking-[-0.01em] text-foreground">
           {t('transcript.empty.title', { bot: bot.name })}
         </h2>
-        <p className="mt-1.5 text-[13px] text-muted">{t('transcript.empty.hint')}</p>
+        <p className="mt-1.5 text-footnote text-muted">{t('transcript.empty.hint')}</p>
       </div>
     </div>
   );
@@ -26,7 +27,7 @@ export function ConversationLoading() {
     <div
       data-transcript-loading
       role="status"
-      className="m-auto flex items-center gap-2.5 py-8 text-[13px] text-room-muted"
+      className="m-auto flex items-center gap-2.5 py-8 text-footnote text-room-muted"
     >
       <Spinner size="sm" aria-hidden="true" />
       <span>{t('transcript.loading')}</span>
@@ -35,8 +36,8 @@ export function ConversationLoading() {
 }
 
 /**
- * Last send or turn failure rendered above the composer. Keeps the normalized
- * summary in ordinary foreground text so recoverable errors do not read like crashes.
+ * Last send or turn failure rendered above the composer. Uses HeroUI Alert so
+ * recoverable failures share semantic styling and screen-reader semantics.
  */
 export function ErrorBanner({
   message,
@@ -47,28 +48,31 @@ export function ErrorBanner({
 }) {
   const t = useT();
   return (
-    <div
-      role="status"
+    <Alert
+      status="danger"
+      role="alert"
       data-transcript-error
-      className="mb-2 flex items-start gap-2 rounded-message border border-danger/25 bg-danger/5 px-3.5 py-2.5 text-[13px] leading-[19px] text-foreground"
+      className="mb-2 rounded-message text-footnote leading-[19px]"
     >
-      <IconAlertCircle aria-hidden className="mt-0.5 size-4 shrink-0 text-danger" stroke={1.8} />
-      <div className="min-w-0 select-text">
-        <p>{message}</p>
-        {explanation ? (
-          <p data-provider-explanation className="mt-1 text-muted [overflow-wrap:anywhere]">
-            {t('transcript.providerSays', { source: explanation.source, text: explanation.text })}
-          </p>
-        ) : null}
-      </div>
-    </div>
+      <Alert.Indicator />
+      <Alert.Content className="min-w-0 select-text">
+        <Alert.Description className="text-footnote leading-[19px] text-foreground">
+          <p>{message}</p>
+          {explanation ? (
+            <p data-provider-explanation className="mt-1 text-muted [overflow-wrap:anywhere]">
+              {t('transcript.providerSays', { source: explanation.source, text: explanation.text })}
+            </p>
+          ) : null}
+        </Alert.Description>
+      </Alert.Content>
+    </Alert>
   );
 }
 
 /** Muted note placed under a reply that stopped before normal completion. */
 export function IncompleteNote({ text }: { text: string }) {
   return (
-    <div data-incomplete-reason className="px-2 text-[11px] italic text-muted">
+    <div data-incomplete-reason className="px-2 text-micro italic text-muted">
       {text}
     </div>
   );
@@ -81,16 +85,19 @@ export function IncompleteNote({ text }: { text: string }) {
 export function JumpToLatestButton({ onClick }: { onClick: () => void }) {
   const t = useT();
   return (
-    <button
-      type="button"
-      data-transcript-jump
-      aria-label={t('transcript.jump')}
-      title={t('transcript.jump')}
-      onClick={onClick}
-      className="absolute inset-x-0 bottom-3 z-10 mx-auto flex size-8 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-[0_8px_22px_rgba(28,25,23,0.18)] transition-colors hover:bg-background-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-    >
-      <IconArrowDown aria-hidden className="size-4" stroke={1.8} />
-    </button>
+    <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center">
+      <IconButtonTooltip
+        variant="secondary"
+        size="sm"
+        data-transcript-jump
+        label={t('transcript.jump')}
+        placement="top"
+        onPress={onClick}
+        className="pointer-events-auto size-8 min-w-8 rounded-full border border-border bg-surface text-foreground shadow-overlay"
+      >
+        <IconArrowDown aria-hidden="true" className="size-4" stroke={1.8} />
+      </IconButtonTooltip>
+    </div>
   );
 }
 
@@ -110,7 +117,7 @@ export function OlderHistoryBanner({
       <div
         data-history-loading={loading ? 'true' : 'false'}
         role="status"
-        className="pointer-events-auto flex items-center gap-2 rounded-full border border-room-border bg-room-surface px-4 py-2 text-[12px] text-room-muted shadow-sm backdrop-blur-xl"
+        className="pointer-events-auto flex items-center gap-2 rounded-full border border-glass-border bg-glass-strong px-4 py-2 text-caption text-room-muted shadow-surface backdrop-blur-xl"
       >
         {loading ? (
           <>
@@ -120,13 +127,14 @@ export function OlderHistoryBanner({
         ) : (
           <>
             <span>{error}</span>
-            <button
-              type="button"
-              className="font-medium text-room-foreground underline underline-offset-2"
-              onClick={onRetry}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 rounded-md px-1.5 text-caption font-medium text-room-foreground underline underline-offset-2"
+              onPress={onRetry}
             >
               {t('transcript.retry')}
-            </button>
+            </Button>
           </>
         )}
       </div>

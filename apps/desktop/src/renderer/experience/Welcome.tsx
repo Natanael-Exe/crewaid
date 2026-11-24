@@ -1,8 +1,8 @@
-import { Button } from '@heroui/react';
 import { IconPencil } from '@tabler/icons-react';
 import { useState } from 'react';
 import { isWelcomeLine, welcomeCopy, type WelcomeCopyData } from '@crewaid/shared';
 import { MascotFace, type AvatarBot } from '../components/BotAvatar';
+import { PromptSuggestion } from '../components/ui';
 import { textOfPart } from '../state/transcriptRows';
 import type { TranscriptMessage } from '../state/viewTypes';
 import { t, useLocale, useT } from '../i18n/i18n';
@@ -75,7 +75,7 @@ export function WelcomeOpening({ bot, greeting }: { bot: AvatarBot; greeting: bo
         />
       </div>
       <h2 className="crewaid-welcome-title pt-2">{t('experience.welcome.welcome')}</h2>
-      <p className="max-w-[380px] text-[14px] leading-[22px] text-room-muted">
+      <p className="max-w-[380px] text-callout leading-[22px] text-room-muted">
         {t('experience.welcome.everyTaskCrewAndResult')}
       </p>
     </div>
@@ -96,31 +96,33 @@ export function WelcomeReplies({
   const [failed, setFailed] = useState(false);
   return (
     <div className="flex flex-col items-end gap-2 pt-2">
-      <div
-        role="group"
-        aria-label={t('experience.welcome.replies')}
-        className="flex flex-wrap items-center justify-end gap-2"
-      >
-        {replies.map((reply) => (
-          <Button
-            key={reply}
-            variant="secondary"
-            isDisabled={busy}
-            className="crewaid-welcome-choice"
-            onPress={() => {
-              setBusy(true);
-              setFailed(false);
-              onReply(reply)
-                .catch(() => setFailed(true))
-                .finally(() => setBusy(false));
-            }}
-          >
-            {welcomeCopy(locale).replies[reply]}
-          </Button>
-        ))}
-      </div>
+      <PromptSuggestion.Root className="w-auto items-end">
+        <PromptSuggestion.Items
+          role="group"
+          aria-label={t('experience.welcome.replies')}
+          className="justify-end"
+        >
+          {replies.map((reply) => (
+            <PromptSuggestion.Item
+              key={reply}
+              showEndIcon={false}
+              isDisabled={busy}
+              className="crewaid-welcome-choice"
+              onPress={() => {
+                setBusy(true);
+                setFailed(false);
+                onReply(reply)
+                  .catch(() => setFailed(true))
+                  .finally(() => setBusy(false));
+              }}
+            >
+              {welcomeCopy(locale).replies[reply]}
+            </PromptSuggestion.Item>
+          ))}
+        </PromptSuggestion.Items>
+      </PromptSuggestion.Root>
       {failed ? (
-        <p role="alert" className="text-[13px] text-danger">
+        <p role="alert" className="text-footnote text-danger">
           {t('experience.welcome.thatDidnTGoThrough')}
         </p>
       ) : null}
@@ -132,22 +134,26 @@ export function WelcomeReplies({
 export function StartingPoints({ onCompose }: { onCompose: (text: string) => void }) {
   const t = useT();
   return (
-    <div
-      role="group"
-      aria-label={t('experience.welcome.startingPoints')}
-      className="flex flex-col items-end gap-2 pt-2"
-    >
-      {exampleTasks().map((task) => (
-        <Button
-          key={task}
-          variant="secondary"
-          className="crewaid-welcome-choice gap-2"
-          onPress={() => onCompose(task)}
-        >
-          <IconPencil aria-hidden className="size-3.5 shrink-0 text-room-muted" stroke={1.8} />
-          {task}
-        </Button>
-      ))}
-    </div>
+    <PromptSuggestion.Root className="w-auto items-end pt-2">
+      <PromptSuggestion.Items
+        role="group"
+        aria-label={t('experience.welcome.startingPoints')}
+        className="flex-col items-end"
+      >
+        {exampleTasks().map((task) => (
+          <PromptSuggestion.Item
+            key={task}
+            showEndIcon={false}
+            className="crewaid-welcome-choice gap-2"
+            onPress={() => onCompose(task)}
+          >
+            <span className="inline-flex items-center gap-2">
+              <IconPencil aria-hidden className="size-3.5 shrink-0 text-room-muted" stroke={1.8} />
+              <span>{task}</span>
+            </span>
+          </PromptSuggestion.Item>
+        ))}
+      </PromptSuggestion.Items>
+    </PromptSuggestion.Root>
   );
 }

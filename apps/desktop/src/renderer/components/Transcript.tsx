@@ -215,22 +215,24 @@ export function Transcript({
       aria-busy={(!historyLoaded && error == null) || loadingOlder}
       className="crewaid-bot-context flex h-full min-w-0 flex-1 flex-col"
     >
-      <header className="crewaid-transcript-header flex shrink-0 items-center gap-4 px-6">
-        <BotAvatar bot={bot} size="header" status={bot.status} />
-        <div className="min-w-0">
-          <h1>{bot.name}</h1>
-          <p className="truncate text-[13px] text-room-muted">{bot.role}</p>
-        </div>
-        <div className="ms-auto flex items-center gap-2">
-          {activity === undefined ? (
-            <span className="px-3 py-1.5 rounded-full text-muted border border-divider bg-accent-soft text-[13px] inline-flex items-center gap-1">
-              <span className="size-1.5 rounded-full bg-muted" />
-              {t('transcript.idle')}
-            </span>
-          ) : (
-            <span className="crewaid-working-pill">{t('transcript.working')}</span>
-          )}
-          <ConnectionStatusBadge state={connection} />
+      <header className="crewaid-transcript-header shrink-0">
+        {/* On the reading column, so the name sits above the conversation it
+            names instead of out at the pane's edge. */}
+        <div className="crewaid-transcript-header-row mx-auto flex w-full max-w-[calc(var(--chat-column)+48px)] items-center gap-3 px-6">
+          <BotAvatar bot={bot} size="collapsed" status={bot.status} />
+          {/* Name and role share one line so the conversation gets the height. */}
+          <div className="flex min-w-0 items-baseline gap-2">
+            <h1 className="shrink-0">{bot.name}</h1>
+            <p className="truncate text-footnote text-room-muted">{bot.role}</p>
+          </div>
+          <div className="ms-auto flex items-center gap-2">
+            {/* Rest is the default and says nothing; only work in progress is
+              worth a badge. */}
+            {activity === undefined ? null : (
+              <span className="crewaid-working-pill">{t('transcript.working')}</span>
+            )}
+            <ConnectionStatusBadge state={connection} />
+          </div>
         </div>
       </header>
 
@@ -253,7 +255,7 @@ export function Transcript({
           <div
             ref={contentRef}
             data-transcript-content
-            className="mx-auto flex min-h-full w-full max-w-[900px] flex-col gap-2 px-6 py-4 [overflow-anchor:auto]"
+            className="mx-auto flex min-h-full w-full max-w-[calc(var(--chat-column)+48px)] flex-col gap-2 px-6 py-4 [overflow-anchor:auto]"
           >
             {!historyLoaded && error == null ? <ConversationLoading /> : null}
             {historyLoaded &&
@@ -338,12 +340,12 @@ export function Transcript({
 
       <footer className="crewaid-transcript-footer shrink-0 pb-4">
         {error ? (
-          <div className="mx-auto w-full max-w-[900px] px-4">
+          <div className="mx-auto w-full max-w-[calc(var(--chat-column)+48px)] px-(--transcript-gutter)">
             <ErrorBanner message={error.message} explanation={error.explanation} />
           </div>
         ) : null}
         {aboveComposer}
-        <div className="px-4">
+        <div className="px-(--transcript-gutter)">
           <Composer
             seed={composerSeed}
             placeholder={composerPlaceholder}

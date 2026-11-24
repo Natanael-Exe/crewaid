@@ -1,13 +1,12 @@
-import { Button } from '@heroui/react';
+import { Button, Checkbox, Input, TextArea } from '@heroui/react';
 import {
   IconArrowUpRight,
-  IconCheck,
   IconExternalLink,
   IconMessage,
+  IconPencil,
   IconPlayerPlay,
   IconRepeat,
   IconTrash,
-  IconX,
 } from '@tabler/icons-react';
 import { useCallback, useEffect, useState } from 'react';
 import type {
@@ -36,12 +35,13 @@ import { AttachmentCard } from '../components/attachments/AttachmentCard';
 import { BotAvatar } from '../components/BotAvatar';
 import { ExternalLink, isOpenableLink } from '../components/ExternalLink';
 import { StreamingMarkdown } from '../components/markdown/StreamingMarkdown';
+import { IconButtonTooltip, Timeline } from '../components/ui';
 import { EndsField, ScheduleField, TimezonePicker } from '../routines/RoutineScheduleFields';
 import { describeSchedule, relativeTime } from '../routines/routinesState';
-import { SETTINGS_INPUT_CLASS } from '../settings/SettingsLayout';
 import { STATUS_LABELS, isOverdue, localToday, shortDate } from './boardState';
 import { eventConversation, eventDetail, eventText } from './detailsState';
 import { Picker } from './Fields';
+import { WorkDetailRail } from './WorkDetailRail';
 import { workFailureText } from './workErrors';
 import { usageText } from './workState';
 import { useT } from '../i18n/i18n';
@@ -56,13 +56,8 @@ const STATUSES: readonly TaskStatus[] = [
 ];
 
 /**
- * A task's details in the right rail: every field editable in
- * place, its subtasks, its deliverables, and its activity — who did what and
- * when, each row with its note and a jump to the message it came from.
- *
- * Start and "Assign & start" go through the one Start route with a key made
- * once per press; changing the status here, like dragging, starts
- * nothing. Re-reads whenever a `task.changed` frame moves `revision`.
+ * A task's details in the right rail: every field editable in place, its
+ * subtasks, its deliverables, and its activity timeline.
  */
 export function TaskDetailsPane({
   client,
@@ -128,15 +123,23 @@ export function TaskDetailsPane({
   );
   const patch = (body: UpdateTaskBody) => act(() => updateTask(client, taskId, body));
 
+  const frameProps = {
+    ariaLabel: t('work.taskDetailsPane.taskDetails'),
+    title: t('work.deliverablePane.task'),
+    closeLabel: t('work.taskDetailsPane.closeTaskDetails'),
+    onClose,
+    bodyClassName: 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-0',
+  };
+
   if (task === null) {
     return (
-      <RailFrame onClose={onClose}>
+      <WorkDetailRail {...frameProps}>
         {failure === null ? null : (
-          <p role="alert" className="text-[12px] text-danger">
+          <p role="alert" className="text-caption text-danger">
             {failure}
           </p>
         )}
-      </RailFrame>
+      </WorkDetailRail>
     );
   }
 
@@ -151,18 +154,20 @@ export function TaskDetailsPane({
     });
 
   return (
-    <RailFrame onClose={onClose}>
+    <WorkDetailRail {...frameProps}>
       <InlineText
         key={`title-${task.id}-${task.title}`}
         label={t('work.messageWorkDialogs.title')}
         value={task.title}
-        className="text-[15px] font-semibold"
+        required
+        className="text-body font-semibold"
         onSave={(title) => void patch({ title })}
       />
 
-      <div className="grid grid-cols-[88px_1fr] items-center gap-x-3 gap-y-2 text-[13px]">
+      <div className="grid grid-cols-[88px_1fr] items-center gap-x-3 gap-y-2 text-footnote">
         <span className="text-muted">{t('work.taskDetailsPane.status')}</span>
         <Picker
+          appearance="inline"
           label={t('work.taskDetailsPane.status')}
           value={task.status}
           options={STATUSES.map((status) => ({ id: status, label: STATUS_LABELS[status] }))}
@@ -184,6 +189,7 @@ export function TaskDetailsPane({
         ) : null}
         <span className="text-muted">{t('work.newTaskDialog.assignee')}</span>
         <Picker
+          appearance="inline"
           label={t('work.newTaskDialog.assignee')}
           value={task.assigneeBotId}
           noneLabel={t('work.newTaskDialog.youUnassigned')}
@@ -198,6 +204,7 @@ export function TaskDetailsPane({
           <>
             <span className="text-muted">{t('work.deliverablePane.project')}</span>
             <Picker
+              appearance="inline"
               label={t('work.deliverablePane.project')}
               value={task.projectId}
               noneLabel={t('work.tasksView.inbox')}
@@ -217,6 +224,7 @@ export function TaskDetailsPane({
             />
             <span className="text-muted">{t('work.deliverablePane.goal')}</span>
             <Picker
+              appearance="inline"
               label={t('work.deliverablePane.goal')}
               value={task.goalId}
               noneLabel={t('work.deliverablePane.noGoal')}
@@ -226,14 +234,15 @@ export function TaskDetailsPane({
           </>
         )}
         <span className="text-muted">{t('work.newTaskDialog.due')}</span>
-        <input
+        <Input
+          variant="secondary"
           aria-label={t('work.taskDetailsPane.dueDate')}
           type="date"
           value={task.dueOn ?? ''}
           onChange={(event) =>
             void patch({ dueOn: event.target.value === '' ? null : event.target.value })
           }
-          className={`${SETTINGS_INPUT_CLASS} h-8 ${isOverdue(task, localToday()) ? 'text-danger' : ''}`}
+          className={`h-8 w-full tabular-nums ${isOverdue(task, localToday()) ? 'text-danger' : ''}`}
         />
       </div>
 
@@ -271,29 +280,29 @@ export function TaskDetailsPane({
                   ? undefined
                   : bots.find((bot) => bot.id === row.assigneeBotId);
               return (
-                <li key={row.id} className="flex items-center gap-2 text-[13px]">
-                  <button
-                    type="button"
+                <li key={row.id} className="flex items-center gap-2 text-footnote">
+                  <Checkbox
+                    isSelected={row.status === 'DONE'}
                     aria-label={
                       row.status === 'DONE'
                         ? t('work.subtask.reopen', { title: row.title })
                         : t('work.subtask.done', { title: row.title })
                     }
-                    onClick={() =>
+                    onChange={(selected) =>
                       void act(() =>
                         updateTask(client, row.id, {
-                          status: row.status === 'DONE' ? 'TODO' : 'DONE',
+                          status: selected ? 'DONE' : 'TODO',
                         }),
                       )
                     }
-                    className={`flex size-4 shrink-0 items-center justify-center rounded border ${
-                      row.status === 'DONE'
-                        ? 'border-success bg-success text-white'
-                        : 'border-border'
-                    }`}
+                    className="shrink-0"
                   >
-                    {row.status === 'DONE' ? <IconCheck className="size-3" stroke={3} /> : null}
-                  </button>
+                    <Checkbox.Content>
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                    </Checkbox.Content>
+                  </Checkbox>
                   <button
                     type="button"
                     onClick={() => onOpenTask(row.id)}
@@ -331,13 +340,13 @@ export function TaskDetailsPane({
                 <ExternalLink
                   key={item.id}
                   href={item.url}
-                  className="flex items-center gap-1.5 text-[13px] text-accent hover:underline"
+                  className="flex items-center gap-1.5 text-footnote text-accent hover:underline"
                 >
                   <IconExternalLink className="size-3.5" stroke={1.8} />
                   {item.title}
                 </ExternalLink>
               ) : (
-                <span key={item.id} className="text-[13px]">
+                <span key={item.id} className="text-footnote">
                   {item.title}
                 </span>
               ),
@@ -348,56 +357,59 @@ export function TaskDetailsPane({
 
       <Section title={t('work.taskDetailsPane.activity')}>
         {usageText(task.usage) === null ? null : (
-          <p data-task-usage className="text-[11px] text-muted">
+          <p data-task-usage className="text-micro tabular-nums text-muted">
             {t('work.usage.used', { usage: usageText(task.usage) ?? '' })}
           </p>
         )}
         <NoteInput onAdd={(text) => void act(() => addTaskNote(client, task.id, text))} />
-        <ol className="mt-2 flex flex-col gap-2.5">
+        <Timeline.Root density="compact" size="sm" className="mt-2">
           {task.events.map((event) => {
             const detail = eventDetail(event);
             const conversation = eventConversation(event, task.assigneeBotId);
             return (
-              <li key={event.id} className="text-[12px] leading-4">
-                <span className="font-medium text-foreground">{event.actorLabel}</span>{' '}
-                <span className="text-muted">{eventText(event)}</span>{' '}
-                <span className="text-foreground-faint">
-                  · {relativeTime(event.createdAt, new Date())}
-                </span>
-                {conversation !== null && event.messageId !== null ? (
-                  <button
-                    type="button"
-                    aria-label={t('work.taskDetailsPane.openTheMessage')}
-                    onClick={() => onOpenConversation(conversation, event.messageId)}
-                    className="ms-1 inline-flex align-middle text-muted hover:text-foreground"
-                  >
-                    <IconArrowUpRight className="size-3.5" stroke={1.8} />
-                  </button>
-                ) : null}
-                {detail === null ? null : (
-                  <p className="mt-1 whitespace-pre-wrap rounded-lg bg-background-secondary/60 px-2 py-1.5 text-[12px] text-foreground">
-                    {detail}
-                  </p>
-                )}
-              </li>
+              <Timeline.Item key={event.id}>
+                <Timeline.Rail />
+                <Timeline.Content className="text-caption leading-4">
+                  <span className="font-medium text-foreground">{event.actorLabel}</span>{' '}
+                  <span className="text-muted">{eventText(event)}</span>{' '}
+                  <span className="tabular-nums text-foreground-faint">
+                    · {relativeTime(event.createdAt, new Date())}
+                  </span>
+                  {conversation !== null && event.messageId !== null ? (
+                    <IconButtonTooltip
+                      label={t('work.taskDetailsPane.openTheMessage')}
+                      placement="top"
+                      onPress={() => onOpenConversation(conversation, event.messageId)}
+                      className="ms-1 inline-flex size-5 min-w-5 align-middle rounded text-muted hover:text-foreground"
+                    >
+                      <IconArrowUpRight className="size-3.5" stroke={1.8} />
+                    </IconButtonTooltip>
+                  ) : null}
+                  {detail === null ? null : (
+                    <p className="mt-1 whitespace-pre-wrap rounded-lg bg-background-secondary/60 px-2 py-1.5 text-caption text-foreground">
+                      {detail}
+                    </p>
+                  )}
+                </Timeline.Content>
+              </Timeline.Item>
             );
           })}
-        </ol>
+        </Timeline.Root>
       </Section>
 
       {failure === null ? null : (
-        <p role="alert" className="text-[12px] text-danger">
+        <p role="alert" className="text-caption text-danger">
           {failure}
         </p>
       )}
 
-      <footer className="sticky bottom-0 -mx-4 mt-auto flex flex-wrap items-center gap-2 border-t border-separator bg-background px-4 py-3">
+      <footer className="sticky bottom-0 -mx-5 mt-auto flex flex-wrap items-center gap-2 border-t border-separator bg-surface px-5 py-3">
         {assignee !== undefined && task.status === 'TODO' ? (
           <Button
             variant="primary"
             size="sm"
             onPress={() => void start()}
-            className="h-8 gap-1 rounded-[10px] text-[12px] font-medium"
+            className="h-8 gap-1 rounded-[10px] text-caption font-medium"
           >
             <IconPlayerPlay className="size-3.5" stroke={2} />
             {t('work.taskDetailsPane.start')}
@@ -411,7 +423,7 @@ export function TaskDetailsPane({
             variant="secondary"
             size="sm"
             onPress={() => onOpenConversation(assignee.id, task.lastLinkedMessageId)}
-            className="h-8 gap-1 rounded-[10px] text-[12px] font-medium"
+            className="h-8 gap-1 rounded-[10px] text-caption font-medium"
           >
             <IconMessage className="size-3.5" stroke={1.8} />
             {t('work.taskDetailsPane.openConversation')}
@@ -426,39 +438,14 @@ export function TaskDetailsPane({
           }
         />
       </footer>
-    </RailFrame>
-  );
-}
-
-function RailFrame({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
-  const t = useT();
-  return (
-    <aside
-      aria-label={t('work.taskDetailsPane.taskDetails')}
-      className="crewaid-work-detail flex h-full min-h-0 flex-col"
-    >
-      <header className="window-drag flex h-12 shrink-0 items-center justify-between px-4">
-        <span className="text-[12px] font-medium text-muted">{t('work.deliverablePane.task')}</span>
-        <Button
-          variant="ghost"
-          isIconOnly
-          size="sm"
-          aria-label={t('work.taskDetailsPane.closeTaskDetails')}
-          onPress={onClose}
-          className="window-no-drag size-7 rounded-lg text-muted"
-        >
-          <IconX className="size-4" stroke={1.8} />
-        </Button>
-      </header>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-0">{children}</div>
-    </aside>
+    </WorkDetailRail>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-[11px] font-medium tracking-[0.02em] text-muted">{title}</h3>
+      <h3 className="text-micro font-medium tracking-[0.02em] text-muted">{title}</h3>
       {children}
     </section>
   );
@@ -469,12 +456,14 @@ function InlineText({
   label,
   value,
   placeholder,
+  required = false,
   className,
   onSave,
 }: {
   label: string;
   value: string;
   placeholder?: string;
+  required?: boolean;
   className?: string;
   onSave: (value: string) => void;
 }) {
@@ -487,7 +476,7 @@ function InlineText({
       onChange={(event) => setDraft(event.target.value)}
       onBlur={() => {
         const next = draft.trim();
-        if (next !== value.trim() && (next !== '' || label !== 'Title')) onSave(next);
+        if (next !== value.trim() && (next !== '' || !required)) onSave(next);
         else setDraft(value);
       }}
       onKeyDown={(event) => {
@@ -497,12 +486,16 @@ function InlineText({
           event.currentTarget.blur();
         }
       }}
-      className={`w-full rounded-lg border border-transparent bg-transparent px-1.5 py-1 outline-none hover:border-border focus:border-field-border focus:bg-field ${className ?? 'text-[13px]!'}`}
+      className={`w-full rounded-lg border border-transparent bg-transparent px-1.5 py-1 outline-none hover:border-border focus:border-field-border focus:bg-field ${className ?? 'text-footnote'}`}
     />
   );
 }
 
-/** The brief, rendered as markdown; Edit turns it into a text box. */
+/**
+ * The brief, rendered as markdown; Edit turns it into a HeroUI TextArea.
+ * Avoids wrapping StreamingMarkdown (which may contain links) inside a native
+ * `<button>` element.
+ */
 function BriefEditor({
   brief,
   onSave,
@@ -516,20 +509,21 @@ function BriefEditor({
   if (editing) {
     return (
       <div className="flex flex-col gap-2">
-        <textarea
+        <TextArea
+          variant="secondary"
           aria-label={t('work.newTaskDialog.brief')}
           autoFocus
           rows={8}
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          className={`${SETTINGS_INPUT_CLASS} h-auto resize-y py-2 leading-[18px]`}
+          className="w-full resize-y"
         />
         <div className="flex justify-end gap-2">
           <Button
             variant="tertiary"
             size="sm"
             onPress={() => setEditing(false)}
-            className="h-7 rounded-lg text-[12px]"
+            className="h-7 rounded-lg text-caption"
           >
             {t('work.goalsView.cancel')}
           </Button>
@@ -540,7 +534,7 @@ function BriefEditor({
               setEditing(false);
               onSave(draft.trim() === '' ? null : draft);
             }}
-            className="h-7 rounded-lg text-[12px]"
+            className="h-7 rounded-lg text-caption"
           >
             {t('work.messageWorkDialogs.save')}
           </Button>
@@ -548,19 +542,33 @@ function BriefEditor({
       </div>
     );
   }
+  if (brief === null) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        onPress={() => setEditing(true)}
+        aria-label={t('work.taskDetailsPane.editBrief')}
+        className="h-auto justify-start rounded-lg px-1.5 py-1.5 text-start text-footnote font-normal text-muted"
+      >
+        {t('work.taskDetailsPane.addABriefWhatNeeds')}
+      </Button>
+    );
+  }
   return (
-    <button
-      type="button"
-      onClick={() => setEditing(true)}
-      aria-label={t('work.taskDetailsPane.editBrief')}
-      className="rounded-lg px-1.5 py-1 text-start text-[13px] hover:bg-background-secondary/60"
-    >
-      {brief === null ? (
-        <span className="text-muted">{t('work.taskDetailsPane.addABriefWhatNeeds')}</span>
-      ) : (
+    <div className="group/brief relative rounded-lg px-1.5 py-1 text-footnote hover:bg-background-secondary/60">
+      <div className="pe-7">
         <StreamingMarkdown source={brief} />
-      )}
-    </button>
+      </div>
+      <IconButtonTooltip
+        label={t('work.taskDetailsPane.editBrief')}
+        placement="top"
+        onPress={() => setEditing(true)}
+        className="absolute top-1 end-1 size-6 min-w-6 rounded-md text-muted opacity-0 transition-opacity focus-visible:opacity-100 group-hover/brief:opacity-100"
+      >
+        <IconPencil className="size-3.5" stroke={1.8} />
+      </IconButtonTooltip>
+    </div>
   );
 }
 
@@ -581,7 +589,8 @@ function SubtaskAdder({
   };
   return (
     <div className="flex items-center gap-2">
-      <input
+      <Input
+        variant="secondary"
         aria-label={t('work.taskDetailsPane.newSubtask')}
         value={title}
         placeholder={t('work.taskDetailsPane.addSubtask')}
@@ -589,9 +598,10 @@ function SubtaskAdder({
         onKeyDown={(event) => {
           if (event.key === 'Enter') add();
         }}
-        className={`${SETTINGS_INPUT_CLASS} h-8 flex-1 text-[13px]!`}
+        className="h-8 flex-1 text-footnote"
       />
       <Picker
+        appearance="inline"
         label={t('work.taskDetailsPane.subtaskAssignee')}
         value={assignee}
         noneLabel={t('work.tasksView.you')}
@@ -607,7 +617,8 @@ function NoteInput({ onAdd }: { onAdd: (text: string) => void }) {
   const t = useT();
   const [text, setText] = useState('');
   return (
-    <input
+    <Input
+      variant="secondary"
       aria-label={t('work.taskDetailsPane.addANote')}
       value={text}
       placeholder={t('work.taskDetailsPane.addANote')}
@@ -617,7 +628,7 @@ function NoteInput({ onAdd }: { onAdd: (text: string) => void }) {
         onAdd(text.trim());
         setText('');
       }}
-      className={`${SETTINGS_INPUT_CLASS} h-8 text-[13px]!`}
+      className="h-8 w-full text-footnote"
     />
   );
 }
@@ -654,10 +665,10 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
   const [armed, setArmed] = useState(false);
   return (
     <Button
-      variant="ghost"
+      variant="danger-soft"
       size="sm"
       onPress={() => (armed ? onDelete() : setArmed(true))}
-      className="ms-auto h-8 gap-1 rounded-[10px] text-[12px] text-danger"
+      className="ms-auto h-8 gap-1 rounded-[10px] text-caption"
     >
       <IconTrash className="size-3.5" stroke={1.8} />
       {armed ? t('work.taskDetailsPane.deleteItAndItsSubtasks') : t('work.goalDetailsPane.delete')}
@@ -666,9 +677,7 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
 }
 
 /**
- * A recurring task's schedule and its recent occurrences (PRD-WORK §3.6):
- * edit the schedule (future occurrences only), stop it, and reach an older
- * occurrence that is still open.
+ * A recurring task's schedule and its recent occurrences (PRD-WORK §3.6).
  */
 function SeriesSection({
   client,
@@ -701,12 +710,10 @@ function SeriesSection({
   };
   return (
     <Section title={t('work.taskDetailsPane.repeats')}>
-      <p className="flex items-center gap-1.5 text-[13px]">
+      <p className="flex items-center gap-1.5 text-footnote">
         <IconRepeat className="size-3.5 text-muted" stroke={1.8} />
         {series.enabled ? describeSchedule(series.cron) : t('work.taskDetailsPane.stopped')}
-        {series.enabled ? (
-          <span className="text-[11px] text-muted">({series.timezone})</span>
-        ) : null}
+        {series.enabled ? <span className="text-micro text-muted">({series.timezone})</span> : null}
       </p>
       {editing ? (
         <div className="flex flex-col gap-3 rounded-[10px] bg-background-secondary/50 p-3">
@@ -719,7 +726,7 @@ function SeriesSection({
           />
           <TimezonePicker value={timezone} onChange={setTimezone} />
           <EndsField endsOn={endsOn} timezone={timezone} onChange={setEndsOn} />
-          <p className="text-[11px] text-muted">
+          <p className="text-micro text-muted">
             {t('work.taskDetailsPane.changesApplyToFutureCopies')}
           </p>
           <div className="flex justify-end gap-2">
@@ -727,7 +734,7 @@ function SeriesSection({
               variant="tertiary"
               size="sm"
               onPress={() => setEditing(false)}
-              className="h-7 rounded-lg text-[12px]"
+              className="h-7 rounded-lg text-caption"
             >
               {t('work.goalsView.cancel')}
             </Button>
@@ -735,7 +742,7 @@ function SeriesSection({
               variant="primary"
               size="sm"
               onPress={() => void save({ cron, timezone, endsOn, enabled: true })}
-              className="h-7 rounded-lg text-[12px]"
+              className="h-7 rounded-lg text-caption"
             >
               {t('work.messageWorkDialogs.save')}
             </Button>
@@ -747,7 +754,7 @@ function SeriesSection({
             variant="secondary"
             size="sm"
             onPress={() => setEditing(true)}
-            className="h-7 rounded-lg text-[12px]"
+            className="h-7 rounded-lg text-caption"
           >
             {t('work.taskDetailsPane.editSchedule')}
           </Button>
@@ -755,7 +762,7 @@ function SeriesSection({
             variant="ghost"
             size="sm"
             onPress={() => void save({ enabled: !series.enabled })}
-            className="h-7 rounded-lg text-[12px]"
+            className="h-7 rounded-lg text-caption"
           >
             {series.enabled
               ? t('work.taskDetailsPane.stopRepeating')
@@ -770,11 +777,13 @@ function SeriesSection({
               type="button"
               onClick={() => onOpenTask(row.id)}
               aria-current={row.id === currentId ? 'true' : undefined}
-              className={`flex w-full items-center justify-between rounded-md px-1.5 py-1 text-start text-[12px] hover:bg-background-secondary/60 ${
+              className={`flex w-full items-center justify-between rounded-md px-1.5 py-1 text-start text-caption hover:bg-background-secondary/60 ${
                 row.id === currentId ? 'bg-background-secondary/60' : ''
               }`}
             >
-              <span>{row.occursOn === null ? '' : shortDate(row.occursOn)}</span>
+              <span className="tabular-nums">
+                {row.occursOn === null ? '' : shortDate(row.occursOn)}
+              </span>
               <span
                 className={
                   row.status === 'DONE' ? 'text-success' : row.status === 'TODO' ? 'text-muted' : ''

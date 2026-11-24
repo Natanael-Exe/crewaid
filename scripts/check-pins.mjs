@@ -35,7 +35,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const LOAD_BEARING = {
   '@composio/core': '0.22.0',
   '@ai-sdk/harness': '1.0.98',
-  '@heroui/react': '3.2.4',
+  '@heroui/react': '3.2.8',
   '@novnc/novnc': '1.7.0',
   // D-011: zod is the ONLY runtime dependency packages/shared may have (M0
   // acceptance) — a major mismatch breaks schema inference across both apps.

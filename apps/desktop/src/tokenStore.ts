@@ -250,7 +250,7 @@ export function createTokenStore(options: CreateTokenStoreOptions): TokenStore {
       // `missing` means NOTHING is stored — the same question `set` asks
       // before deleting the file, deliberately through the same predicate.
       // It used to mean "no token", which stopped being the same thing the
-      // moment V1-11 gave this store an address-only shape: signing out
+      // moment session sign-in gave this store an address-only shape: signing out
       // rewrites the bag as `{ orchestratorBaseUrl }` on purpose, so that
       // ending a session does not also forget which server it was with.
       // Reading that back as `missing` threw the address away on the way out,
@@ -353,7 +353,7 @@ export type GuardedIpcOptions = {
  * normalized result rather than an exception carrying platform detail across
  * the preload boundary.
  *
- * It is a returned closure rather than a convention because V1-11 is the first
+ * It is a returned closure rather than a convention because session sign-in is the first
  * time a second feature needed the same rule. The tempting shape was a fresh
  * `ipcMain.handle` beside the existing pair with its own sender check — and
  * two fences with slightly different rules is precisely how the looser one
