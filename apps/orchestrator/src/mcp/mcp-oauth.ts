@@ -85,7 +85,7 @@ import {
  */
 
 /** How long one round trip to a third party may take (the nearest budget). */
-const REQUEST_TIMEOUT_MS = 10_000;
+const REQUEST_TIMEOUT_MS = 25_000;
 
 /**
  * How long the user has to finish in the browser.
