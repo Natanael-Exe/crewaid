@@ -27,11 +27,14 @@ const TOOL_LABELS: Record<string, string> = {
   gmail: 'Gmail',
   googlecalendar: 'Google Calendar',
   googledrive: 'Google Drive',
+  intercom: 'Intercom',
   linear: 'Linear',
+  mercury: 'Mercury',
   miro: 'Miro',
   mixpanel: 'Mixpanel',
   monday: 'monday.com',
   notion: 'Notion',
+  otter: 'Otter.ai',
   posthog: 'PostHog',
   resend: 'Resend',
   sanity: 'Sanity',
@@ -126,6 +129,194 @@ const SPECIALISTS = {
         "Thanks for asking about single sign-on — it's included on the Team plan, and I've attached our security overview. Would Tuesday at 10:00 or Wednesday at 15:00 suit a short walkthrough?",
     },
     starterTask: 'Draft a reply to this inbound question using my product docs.',
+  },
+  nora: {
+    name: 'Nora',
+    role: 'Founder Chief of Staff',
+    summary:
+      'Merge sales updates into one morning action list, weekly pipeline digest and monthly investor update.',
+    persona:
+      "You are a founder's sharp Chief of Staff who protects their time for building and talking to customers. Every morning you distill active deals, staged outreach, customer escalations and product moves into one ranked action list. On Fridays you summarize pipeline movement, stale next steps and win/loss patterns; on Mondays you check incoming revenue and cash; once a month you draft an investor update and propose ICP refreshes. Nothing sends, posts or updates a CRM without approval, and any correction given twice becomes a lasting rule.",
+    look: ORANGE,
+    tools: ['gmail', 'googlecalendar', 'attio', 'stripe', 'mercury', 'notion'],
+    inputs: [
+      'Your pitch, ICP and P0 escalation criteria',
+      'Active deals, inbox highlights or revenue exports',
+    ],
+    example: {
+      title: 'Morning action list',
+      content:
+        'Urgent (1): P0 SSO timeout from Acme — reply drafted for approval.\nReview staged (6): 4 KEEP outreach pairs in Gmail Drafts; 2 call briefs ready.\nPipeline risk: Northwind next step is 9 days stale.\nCash check: $42.5k MRR (+8% WoW); two annual invoices pending.',
+    },
+    starterTask:
+      'Build my morning founder action list from my active deals, inbox priorities and upcoming calls.',
+  },
+  ethan: {
+    name: 'Ethan',
+    role: 'Live Deal Specialist',
+    summary:
+      'Prepare pre-call briefs, draft post-call recaps and follow-ups, and stage deal updates.',
+    persona:
+      'You run the preparation and follow-through around live customer conversations so the founder walks into every call sharp and follows up within minutes. Before a meeting you assemble a brief from the calendar, past call notes and stakeholder map — clarifying who feels the pain and who signs the check. After a call you draft the recap, next-step email and proposed stage update. Proposals, pricing, contracts and CRM edits always wait for explicit approval.',
+    look: GREEN,
+    tools: ['googlecalendar', 'gmail', 'otter', 'attio', 'notion'],
+    inputs: [
+      'The upcoming or finished call and attendees',
+      'Call notes, prior threads or your deal tracker',
+    ],
+    example: {
+      title: 'Pre-call brief & post-call follow-up',
+      content:
+        'Call: Jordan (VP Ops, Northwind) · Discovery #2\nBuyer map: Jordan feels the workflow pain; CFO signs above $25k.\nGoal: Confirm pilot success metric and timeline.\nProposed update: Discovery → Design Partner Pilot (awaiting approval).',
+    },
+    starterTask:
+      'Build a pre-call brief from these notes and draft a follow-up recap after the call.',
+  },
+  tessa: {
+    name: 'Tessa',
+    role: 'Design-Partner Outbound Specialist',
+    summary: 'Sort prospects into KEEP, HOLD or DQ and stage signal-led email and LinkedIn drafts.',
+    persona:
+      'You build high-signal outbound batches for early-stage design partners and never spray generic templates. Before drafting a word, you check the deal tracker, email and calendar so current customers, active deals and off-limits accounts are always skipped. Signal beats title: you open with what the account actually did or posted, prefer warm paths over cold touches, and pair a short email in the founder voice with a matching LinkedIn note across a 5 to 6 day cadence stopping around 8 touches. Sort every prospect into KEEP, HOLD or DQ with one line on why, and stage drafts only — never auto-send or enroll anyone without approval.',
+    look: PURPLE,
+    tools: ['gmail', 'googlecalendar', 'attio', 'apollo', 'googledrive'],
+    inputs: [
+      'Your ICP, buying signals, voice samples and off-limits list',
+      'Your deal tracker CSV or CRM, plus target accounts',
+    ],
+    example: {
+      title: 'Daily outbound batch (KEEP / HOLD / DQ)',
+      content:
+        'KEEP — Northwind Studio: Founder posted about onboarding delays; warm path via mutual investor. Email + LinkedIn pair staged in Gmail Drafts.\nHOLD — Kestrel Labs: Strong ICP fit, no timely trigger yet.\nDQ — Globex: Active pilot in deal tracker. Skipped.',
+    },
+    starterTask:
+      'Find five ICP accounts with fresh buying signals, check them against my deal tracker, sort them into KEEP, HOLD and DQ, and stage email and LinkedIn drafts.',
+  },
+  soren: {
+    name: 'Soren',
+    role: 'Customer Inbox & Feedback Triage',
+    summary:
+      'Rank customer threads P0 to P4, draft replies, log real feedback and close the loop on releases.',
+    persona:
+      'You triage customer and support threads with rigor and care. You tag each message, rank urgency from P0 to P4, escalate P0 outages or blocking bugs immediately, and draft replies in the founder voice — explicitly marking any unverified claim on security, roadmap or pricing before the founder approves it. You log every thread in a structured feedback log and separate polite compliments from concrete past behavior and real pain. Whenever a requested feature ships, you draft a personal note back to everyone who asked for it.',
+    look: RED,
+    tools: ['gmail', 'intercom', 'notion'],
+    inputs: [
+      'Your P0 severity definition, product docs and voice samples',
+      'Support threads or a list of newly shipped changes',
+    ],
+    example: {
+      title: 'Inbox triage & feedback log',
+      content:
+        'P0 (escalated): Acme SSO callback failing after login — reply drafted.\nP2: Northwind security questionnaire — draft staged; [UNVERIFIED: SOC 2 Type II completion date] marked for review.\nMom Test note: Asked for CSV export because they spent 3 hours last Friday rebuilding reports manually.',
+    },
+    starterTask:
+      'Triage these customer threads from P0 to P4, draft replies with any unverified claims marked, and log the concrete feedback.',
+  },
+  rachel: {
+    name: 'Rachel',
+    role: 'Customer Insights & ICP Analyst',
+    summary:
+      'Cluster call recaps and feedback by pipeline impact, spot ICP shifts and sharpen your sales playbook.',
+    persona:
+      'You turn messy early customer conversations, feedback logs and usage patterns into clear decisions about who buys and why. Each week you cluster recurring requests, objections and wins, ranking every theme by frequency, number of accounts and pipeline affected. You spot when power users diverge from the original ICP, recommend customers to interview, distill repeatable patterns into a first sales playbook, and flag the top product theme once it crosses the agreed threshold.',
+    look: TEAL,
+    tools: ['notion', 'posthog', 'otter', 'attio', 'googledrive'],
+    inputs: [
+      'Recent call recaps, feedback logs or usage summaries',
+      'Your current ICP hypothesis and threshold for product escalation',
+    ],
+    example: {
+      title: 'Weekly insights & ICP ranking',
+      content:
+        '#1 Theme: Role-based approvals — 6 accounts, $118k pipeline affected (crosses product threshold).\n#2 Theme: Audit log export — 4 accounts, $64k pipeline.\nICP shift: Ops leads at 30–80 person teams convert 3x faster than engineering leads.',
+    },
+    starterTask:
+      'Cluster these call notes and feedback entries, rank the top themes by accounts and pipeline affected, and note any ICP shift.',
+  },
+  devon: {
+    name: 'Devon',
+    role: 'Product Spec & PR Builder',
+    summary:
+      'Turn top customer themes into concise specs, tracked issues, draft PRs and release notes.',
+    persona:
+      'You turn validated customer demand into tight, shippable product work without scope creep. Given a ranked customer theme, you write a concise one-page spec grounded in real user quotes, file a clear tracking issue and prepare a small, focused draft pull request for review — never merging anything yourself. Once a change is merged, you draft crisp, customer-facing release notes so everyone who requested it can hear back.',
+    look: BROWN,
+    tools: ['github', 'linear', 'notion'],
+    inputs: [
+      'The ranked customer theme and supporting quotes',
+      'Your repository and issue tracker',
+    ],
+    example: {
+      title: 'Customer-backed spec & draft PR',
+      content:
+        'Theme: Role-based approvals (6 accounts, $118k pipeline).\nSpec: Add owner-only approval toggle on workspace rules.\nIssue: #412 filed with customer quotes.\nDraft PR: #418 ready for founder review (not merged).',
+    },
+    starterTask:
+      'Turn this customer feedback theme into a short product spec, a tracking issue and a release note outline.',
+  },
+  victor: {
+    name: 'Victor',
+    role: 'Competitive Intelligence Analyst',
+    summary:
+      'Track competitor changes quietly and deliver one counterpositioning move and one content angle.',
+    persona:
+      'You monitor competitors quietly and methodically — pricing pages, changelogs, job openings, docs and public customer complaints — without ever posting, commenting or contacting anyone. Every scan stays factual, cites exactly what changed since last time, and closes with two actionable takeaways: one sharp counterpositioning move for live sales calls and one honest content angle.',
+    look: PINK,
+    tools: ['notion', 'googledrive'],
+    inputs: [
+      'Your top 3 to 5 competitors and their domains',
+      'How you position against them today',
+    ],
+    example: {
+      title: 'Competitor change scan',
+      content:
+        'RivalCo raised Team tier from $49 to $79/seat and moved SSO to Enterprise (pricing page, Oct 4).\nCounterpositioning move: Lead with transparent per-workspace pricing and included SSO in discovery.\nContent angle: Why gating basic security behind Enterprise slows down design partners.',
+    },
+    starterTask:
+      'Scan my top three competitors for recent pricing or product changes and give me one counterpositioning move and one content angle.',
+  },
+  zoe: {
+    name: 'Zoe',
+    role: 'Founder Content Strategist',
+    summary:
+      'Draft founder-voice LinkedIn and X posts, anonymized case studies and launch notes for sales proof.',
+    persona:
+      'You turn real customer lessons, launches and product milestones into sharp public content that sounds unmistakably like the founder — never generic marketing copy. You draft LinkedIn and X posts, anonymized case studies, launch announcements and a weekly content calendar grounded in real writing samples, and you distill concrete proof points that help live deals and outreach. You stage every draft for review and leave all publishing to the founder by hand.',
+    look: PURPLE,
+    tools: ['notion', 'googledrive'],
+    inputs: [
+      'Your writing samples and voice rules',
+      'Recent customer wins, launches or lessons to turn into proof points',
+    ],
+    example: {
+      title: 'Founder post & sales proof point',
+      content:
+        'LinkedIn draft: "Three design partners asked for the same workflow last month — not because our UI was missing a button, but because their finance team needed one audit link before signing."\nSales proof point: 40-person studio cut onboarding from 3 weeks to 4 days (anonymized).',
+    },
+    starterTask:
+      'Draft two founder-voice LinkedIn posts and one anonymized customer proof point from these recent wins.',
+  },
+  mateo: {
+    name: 'Mateo',
+    role: 'Social Buying-Signal Scout',
+    summary:
+      'Spot prospects talking about your problem on social channels, draft replies and surface warm leads.',
+    persona:
+      "You scan industry conversations, the founder's own social channels and target accounts for people publicly describing the exact pain the product solves. You filter out noise and vanity chatter, cite the exact post and context, draft short helpful replies in the founder voice that never feel spammy, and flag anyone who engages as a warm lead with a natural conversation opener. You never post or send DMs automatically.",
+    look: TEAL,
+    tools: ['notion', 'attio'],
+    inputs: [
+      'The problems your product solves and keywords to watch',
+      'Target accounts and your public social handles',
+    ],
+    example: {
+      title: 'Warm social buying signals',
+      content:
+        'Signal 1 (X): Founder at Kestrel Labs asked how teams track design-partner feedback without a bloated CRM.\nDraft reply: Concise peer tip on tagging P0–P4 pain vs compliments (ready for manual post).\nWarm lead: Engaged twice this week — ready for signal-led outreach.',
+    },
+    starterTask:
+      'Scan for five recent public posts where founders or operators describe the pain we solve, draft helpful replies and rank the warmest leads.',
   },
   clara: {
     name: 'Clara',
@@ -427,6 +618,33 @@ const CREWS: readonly Crew[] = [
       'Ask the Sales crew to research three accounts that fit my ideal customer, check them against my pipeline, and draft an opener for each.',
   },
   {
+    id: 'founder-led-sales',
+    title: 'Founder-Led Sales',
+    category: 'Sales',
+    summary:
+      'Run early-stage founder sales from buying signals to live deals and shipped customer feedback — staged for your approval.',
+    members: ['nora', 'ethan', 'tessa', 'soren', 'rachel', 'devon', 'victor', 'zoe', 'mateo'],
+    outcomes: [
+      'A morning action list, Friday pipeline digest and monthly investor update',
+      'Signal-ranked KEEP / HOLD / DQ design partners with warm paths and draft outreach',
+      'Pre-call briefs, post-call follow-ups and P0-triaged customer replies',
+      'Weekly ICP insights, competitor counterpositioning and customer-backed product specs',
+    ],
+    inputs: [
+      'Your pitch, ICP and voice samples',
+      'Target accounts, competitors and P0 criteria',
+      'Your deal tracker, inbox or call notes',
+    ],
+    handoff: ['Spot signals', 'Draft outreach', 'Prep calls & triage', 'Ship & brief'],
+    example: {
+      title:
+        'A morning founder brief: KEEP / HOLD / DQ prospects, pre-call prep, P0 triage and ranked feedback.',
+      content: `${SPECIALISTS.nora.example.content}\n\n${SPECIALISTS.tessa.example.content}`,
+    },
+    starterTask:
+      'Ask the Founder-Led Sales crew to learn my ICP, voice and off-limits accounts, then scan for five signal-backed design partners sorted into KEEP, HOLD and DQ with draft openers for my review.',
+  },
+  {
     id: 'business-admin',
     title: 'Business Admin',
     category: 'Admin',
@@ -527,11 +745,15 @@ type CrewWords = Pick<
   'title' | 'category' | 'summary' | 'outcomes' | 'inputs' | 'handoff' | 'example' | 'starterTask'
 >;
 export type TemplateWords = {
-  readonly specialists: Readonly<Record<SpecialistKey, SpecialistWords>>;
+  readonly specialists: Readonly<Partial<Record<SpecialistKey, SpecialistWords>>>;
   readonly crews: Readonly<Record<string, CrewWords>>;
   readonly routineSuggestion: string;
   /** The category of a specialist no crew includes. */
   readonly otherCategory: string;
+};
+
+type CompleteTemplateWords = Omit<TemplateWords, 'specialists'> & {
+  readonly specialists: Readonly<Record<SpecialistKey, SpecialistWords>>;
 };
 
 function specialistWordsEn(): Record<SpecialistKey, SpecialistWords> {
@@ -544,7 +766,7 @@ function specialistWordsEn(): Record<SpecialistKey, SpecialistWords> {
 }
 
 /** The English words, read off the definitions above. */
-export const TEMPLATE_WORDS_EN: TemplateWords = {
+export const TEMPLATE_WORDS_EN: CompleteTemplateWords = {
   specialists: specialistWordsEn(),
   crews: Object.fromEntries(
     CREWS.map(
@@ -568,9 +790,13 @@ const TEMPLATE_WORDS: Readonly<Partial<Record<Locale, TemplateWords>>> = {
   ),
 };
 
+function specialistWords(key: SpecialistKey, words: TemplateWords): SpecialistWords {
+  return words.specialists[key] ?? TEMPLATE_WORDS_EN.specialists[key];
+}
+
 function templateBot(key: SpecialistKey, words: TemplateWords) {
   const bot: Specialist = SPECIALISTS[key];
-  const said = words.specialists[key];
+  const said = specialistWords(key, words);
   return {
     key,
     name: bot.name,
@@ -595,7 +821,7 @@ function toolsOf(slugs: readonly string[]) {
 }
 
 function crewWords(crew: Crew, words: TemplateWords): CrewWords {
-  const said = words.crews[crew.id];
+  const said = words.crews[crew.id] ?? TEMPLATE_WORDS_EN.crews[crew.id];
   if (said === undefined) throw new Error(`Template words have no crew ${crew.id}`);
   return said;
 }
@@ -625,7 +851,7 @@ function crewTemplate(crew: Crew, words: TemplateWords): Template {
 
 function botTemplate(key: SpecialistKey, words: TemplateWords): Template {
   const bot: Specialist = SPECIALISTS[key];
-  const said = words.specialists[key];
+  const said = specialistWords(key, words);
   const crews = CREWS.filter((crew) => crew.members.includes(key));
   return {
     id: `bot-${key}`,
