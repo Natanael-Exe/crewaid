@@ -1,6 +1,6 @@
 import { Modal, useOverlayState } from '@heroui/react';
 import { IconX } from '@tabler/icons-react';
-import type { KeyboardEvent, ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { cx } from './compose';
 import { IconButtonTooltip } from './IconButtonTooltip';
 
@@ -36,13 +36,21 @@ export function Sheet({
   children,
 }: SheetProps) {
   const state = useOverlayState({ isOpen, onOpenChange });
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    // Popovers inside the sheet stop their own Escape; one that reaches here
-    // is meant for the sheet.
-    if (onEscape === undefined || event.key !== 'Escape' || event.defaultPrevented) return;
-    event.preventDefault();
-    onEscape();
-  };
+  // On the document, not the sheet's own element: right after a drill-down the
+  // control that had focus is gone and focus can sit on the document, where a
+  // listener inside the sheet never hears the key. The document hears it after
+  // any popover inside the sheet has claimed its own Escape, and before the
+  // shell's window-level Escape (which closes an open task behind the sheet).
+  useEffect(() => {
+    if (!isOpen || onEscape === undefined) return;
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      event.preventDefault();
+      onEscape();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onEscape]);
   return (
     <Modal state={state}>
       <Modal.Backdrop
@@ -51,9 +59,7 @@ export function Sheet({
       >
         <Modal.Container size="full" className="crewaid-sheet-container">
           <Modal.Dialog aria-label={ariaLabel} className={cx('crewaid-sheet', className)}>
-            <div className="flex h-full min-h-0 w-full flex-col" onKeyDown={onKeyDown}>
-              {children}
-            </div>
+            <div className="flex h-full min-h-0 w-full flex-col">{children}</div>
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>

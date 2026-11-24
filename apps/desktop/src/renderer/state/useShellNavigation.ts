@@ -99,11 +99,12 @@ export function useShellNavigation({
 
   const [screenExpanded, setScreenExpanded] = useState(false);
   const [profileBotId, setProfileBotIdState] = useState<string | null>(null);
-  // Opening a profile brings the rail out; closing it lets the rail settle
-  // back to where the user had it.
+  // Opening a profile brings the rail out. Clearing it does not put the rail
+  // away: it is cleared on every bot switch and conversation jump, including
+  // the jump from an open task, whose details must stay in the rail.
   const setProfileBotId = useCallback((botId: string | null) => {
     setProfileBotIdState(botId);
-    setOpened(botId !== null);
+    if (botId !== null) setOpened(true);
   }, []);
   const [workView, setWorkView] = useState<WorkView | null>(null);
   const [workScope, setWorkScope] = useState<ProjectScope>(ALL_PROJECTS);
