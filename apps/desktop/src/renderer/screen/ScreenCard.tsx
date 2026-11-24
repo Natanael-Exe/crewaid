@@ -485,7 +485,12 @@ function ScreenViewer({
 
     // Order matters: the handshake has to be able to reach noVNC's handlers,
     // which `new RFB` installed above, and frames must not arrive before it.
-    const onDisconnect = () => setFailure(t('screen.screenStreamClient.theDisplayDisconnected'));
+    // Close the stream if noVNC tears itself down so a dead decoder does not
+    // leave the WebSocket and upstream x11vnc pump running in the background.
+    const onDisconnect = () => {
+      streamRef.current?.close();
+      setFailure(t('screen.screenStreamClient.theDisplayDisconnected'));
+    };
     rfb.addEventListener('disconnect', onDisconnect);
     channel.start();
 

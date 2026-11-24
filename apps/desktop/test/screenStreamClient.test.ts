@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ScreenGrantResponse } from '@crewaid/shared';
 
 import { ApiRequestError } from '../src/renderer/api';
@@ -6,7 +6,9 @@ import {
   buildScreenStreamUrl,
   openScreenStream,
   SCREEN_STREAM_RETRY_DELAYS_MS,
+  SCREEN_STREAM_STABLE_MS,
   type ScreenSocket,
+  type ScreenSocketCloseEvent,
   type ScreenStreamEnding,
 } from '../src/renderer/screen/screenStreamClient';
 
@@ -15,7 +17,7 @@ class FakeScreenSocket implements ScreenSocket {
   readyState = 0;
   onopen: (() => void) | null = null;
   onmessage: ((event: { data: unknown }) => void) | null = null;
-  onclose: (() => void) | null = null;
+  onclose: ((event?: ScreenSocketCloseEvent) => void) | null = null;
   onerror: (() => void) | null = null;
   readonly sent: unknown[] = [];
   closedWith: number | undefined;
@@ -34,9 +36,16 @@ class FakeScreenSocket implements ScreenSocket {
     this.readyState = 1;
     this.onopen?.();
   }
-  drop(): void {
+  drop(code?: number, reason?: string): void {
     this.readyState = 3;
-    this.onclose?.();
+    if (code === undefined && reason === undefined) {
+      this.onclose?.();
+      return;
+    }
+    const event: { code?: number; reason?: string } = {};
+    if (code !== undefined) event.code = code;
+    if (reason !== undefined) event.reason = reason;
+    this.onclose?.(event);
   }
   text(message: unknown): void {
     this.onmessage?.({ data: JSON.stringify(message) });
@@ -299,6 +308,10 @@ describe('openScreenStream', () => {
     expect(h.endings).toEqual([{ kind: 'lost', message: 'The display disconnected.' }]);
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('closes its socket and never comes back once the viewer closes it', async () => {
     const h = harness();
     await h.settle();
@@ -309,5 +322,40 @@ describe('openScreenStream', () => {
     socket.drop();
     expect(h.timers).toEqual([]);
     expect(h.endings).toEqual([]);
+  });
+
+  it('renews immediately without retry backoff when a stable stream closes for grant renewal', async () => {
+    vi.useFakeTimers();
+    let n = 0;
+    const h = harness(async () => grantFor(`t${++n}`));
+    await h.settle();
+    h.latest().open();
+    vi.advanceTimersByTime(SCREEN_STREAM_STABLE_MS);
+
+    h.latest().drop(1000, 'renew screen grant');
+    await h.settle();
+
+    expect(h.timers).toEqual([]);
+    expect(h.grants()).toBe(2);
+    expect(h.latest().url).toBe('wss://orchestrator.example.com/ws/screen?ticket=t2&quality=3');
+    expect(h.endings).toEqual([]);
+  });
+
+  it('keeps bounded retries if grant renewal fires before the stream stabilized', async () => {
+    vi.useFakeTimers();
+    let n = 0;
+    const h = harness(async () => grantFor(`t${++n}`));
+    await h.settle();
+    h.latest().open();
+    h.latest().drop(1000, 'renew screen grant');
+
+    for (let attempt = 0; attempt < SCREEN_STREAM_RETRY_DELAYS_MS.length; attempt += 1) {
+      h.timers[attempt]?.callback();
+      await h.settle();
+      h.latest().open();
+      h.latest().drop(1000, 'renew screen grant');
+    }
+    expect(h.timers.map((timer) => timer.delay)).toEqual([...SCREEN_STREAM_RETRY_DELAYS_MS]);
+    expect(h.endings).toEqual([{ kind: 'lost', message: 'The display disconnected.' }]);
   });
 });

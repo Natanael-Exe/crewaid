@@ -76,13 +76,19 @@ export interface ScreenStreamHandle {
 export type ScreenStreamEnding =
   { readonly kind: 'not-running' } | { readonly kind: 'lost'; readonly message: string };
 
+/** Close details read from a WebSocket close event. */
+export interface ScreenSocketCloseEvent {
+  readonly code?: number;
+  readonly reason?: string;
+}
+
 /** The subset of `WebSocket` this client uses, so tests need no browser. */
 export interface ScreenSocket {
   binaryType: string;
   readonly readyState: number;
   onopen: (() => void) | null;
   onmessage: ((event: { data: unknown }) => void) | null;
-  onclose: (() => void) | null;
+  onclose: ((event?: ScreenSocketCloseEvent) => void) | null;
   onerror: (() => void) | null;
   send(data: string): void;
   close(code?: number, reason?: string): void;
@@ -224,7 +230,7 @@ class ScreenStreamClient implements ScreenStreamHandle {
       if (this.socket === socket) this.receive(event.data);
     };
     socket.onerror = () => undefined;
-    socket.onclose = () => {
+    socket.onclose = (event?: ScreenSocketCloseEvent) => {
       if (this.socket !== socket) return;
       this.socket = null;
       if (this.closed) return;
@@ -235,9 +241,24 @@ class ScreenStreamClient implements ScreenStreamHandle {
         this.end(ending);
         return;
       }
+      const livedMs = this.openedAt === 0 ? 0 : Date.now() - this.openedAt;
+      // A healthy stream closed for grant renewal is not an outage: renew at
+      // once without retry backoff. Guarded by the stability floor so a
+      // misconfigured server closing immediately still hits bounded retries.
+      if (
+        ending === null &&
+        livedMs >= SCREEN_STREAM_STABLE_MS &&
+        event?.code === CLOSE_NORMAL &&
+        event.reason === RENEW_SCREEN_GRANT_REASON
+      ) {
+        this.openedAt = 0;
+        this.retries = 0;
+        void this.connect();
+        return;
+      }
       // A stream that held for a while and then dropped is a new outage, not
       // the last one continuing, so it gets the whole retry budget.
-      if (this.openedAt !== 0 && Date.now() - this.openedAt >= SCREEN_STREAM_STABLE_MS) {
+      if (livedMs >= SCREEN_STREAM_STABLE_MS) {
         this.retries = 0;
       }
       this.openedAt = 0;
@@ -311,3 +332,5 @@ function asBytes(data: unknown): Uint8Array | null {
 
 /** WebSocket's numeric OPEN state. */
 const OPEN = 1;
+const CLOSE_NORMAL = 1000;
+const RENEW_SCREEN_GRANT_REASON = 'renew screen grant';

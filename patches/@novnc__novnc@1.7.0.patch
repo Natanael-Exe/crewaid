@@ -1,0 +1,21 @@
+diff --git a/vendor/pako/lib/zlib/inflate.js b/vendor/pako/lib/zlib/inflate.js
+index 1d2063bc40548522d366aed162268cadebf2596e..87ff77550d2137e2245dfbd61e294054fe1fd5b5 100644
+--- a/vendor/pako/lib/zlib/inflate.js
++++ b/vendor/pako/lib/zlib/inflate.js
+@@ -321,11 +321,14 @@ function updatewindow(strm, src, end, copy) {
+ 
+   /* if it hasn't been done already, allocate space for the window */
+   if (state.window === null) {
++    state.window = new utils.Buf8(1 << state.wbits);
++  }
++
++  /* if window not in use yet, initialize (inflateReset zeroes wsize while keeping window) */
++  if (state.wsize === 0) {
+     state.wsize = 1 << state.wbits;
+     state.wnext = 0;
+     state.whave = 0;
+-
+-    state.window = new utils.Buf8(state.wsize);
+   }
+ 
+   /* copy state->wsize or less output bytes into the circular window */

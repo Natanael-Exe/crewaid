@@ -6,6 +6,7 @@ RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
 # Install from manifests before copying sources, so a source-only deploy can
 # reuse the dependency layer. The build context is the repository root.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY patches patches
 COPY apps/desktop/package.json apps/desktop/package.json
 COPY apps/orchestrator/package.json apps/orchestrator/package.json
 COPY packages/brand/package.json packages/brand/package.json
