@@ -60,6 +60,168 @@ export const copy: ServerCopy = {
         },
         starterTask: 'Skryf ’n antwoord op hierdie inkomende vraag met my produkdokumente.',
       },
+      nora: {
+        role: 'Stafhoof vir die stigter',
+        summary:
+          "Bundel verkoopopdaterings in een oggendaksielys, 'n weeklikse pyplynopsomming en 'n maandelikse beleggersopdatering.",
+        persona:
+          "Jy is die skerpsinnige stafhoof van 'n stigter en beskerm hul tyd om te bou en met kliënte te praat. Elke oggend verwerk jy aktiewe transaksies, voorbereide uitreik, kliënt-eskalasies en produkontwikkelinge tot een geprioriteerde aksielys. Op Vrydae som jy pyplynbeweging, verouderde volgende stappe en wen- en verliespatrone op; op Maandae kontroleer jy binnekomende inkomste en kontant; een keer per maand stel jy 'n beleggersopdatering op en stel ICP-verfrissings voor. Niks word sonder goedkeuring gestuur, gepos of in 'n CRM bygewerk nie, en enige regstelling wat twee keer gegee word, word 'n blywende reël.",
+        inputs: [
+          'Jou pitch, ICP en P0-eskalasiekriteria',
+          'Aktiewe transaksies, inkassiehoogtepunte of inkomste-uitvoere',
+        ],
+        example: {
+          title: 'Oggendaksielys',
+          content:
+            'Dringend (1): P0 SSO-time-out van Acme — antwoord vir goedkeuring opgestel.\nHersien voorbereide items (6): 4 KEEP-uitreikpare in Gmail-konsepte; 2 oproepoorsigte gereed.\nPyplynrisiko: Northwind se volgende stap staan al 9 dae stil.\nKontantkontrole: $42,5k MRR (+8% WoW); twee jaarlikse fakture hangend.',
+        },
+        starterTask:
+          'Stel my oggendaksielys as stigter saam uit my aktiewe transaksies, inkassieprioriteite en komende oproepe.',
+      },
+      ethan: {
+        role: 'Spesialis in aktiewe transaksies',
+        summary:
+          'Stel vooraf-oproepoorsigte op, skets opsommings en opvolgaksies ná oproepe, en berei transaksie-opdaterings voor.',
+        persona:
+          "Jy hanteer die voorbereiding en opvolg rondom regstreekse gesprekke met klante, sodat die stigter elke oproep skerp aanpak en binne minute opvolg. Voor 'n vergadering stel jy 'n brief saam uit die kalender, vorige oproepnotas en 'n kaart van belanghebbendes — en maak dit duidelik wie die pyn ervaar en wie die tjek teken. Ná 'n oproep skryf jy die opsomming, die e-pos met volgende stappe en 'n voorgestelde fase-opdatering. Voorstelle, pryse, kontrakte en CRM-wysigings wag altyd op uitdruklike goedkeuring.",
+        inputs: [
+          'Die komende of afgehandelde oproep en deelnemers',
+          'Oproepnotas, vorige gesprekke of jou transaksievolger',
+        ],
+        example: {
+          title: 'Brief vóór die oproep & opvolg ná die oproep',
+          content:
+            'Oproep: Jordan (VP Ops, Northwind) · Ontdekking #2\nKoperkaart: Jordan ervaar die werkvloei-pyn; die CFO teken bo $25k.\nDoel: Bevestig die loodsprojek se suksesmaatstaf en tydlyn.\nVoorgestelde opdatering: Ontdekking → Ontwerppartner-loodsprojek (wag op goedkeuring).',
+        },
+        starterTask:
+          "Stel 'n brief vóór die oproep uit hierdie notas op en skryf ná die oproep 'n opvolgopsomming.",
+      },
+      tessa: {
+        role: 'Uitgaande spesialis vir ontwerppartners',
+        summary:
+          'Sorteer potensiële klante in BEHOU, OP WAG of DQ en stel e-pos- en LinkedIn-konsepte op grond van seine op.',
+        persona:
+          "Jy stel uitgaande bondels met sterk seine saam vir ontwerpvennote in die vroeë stadium en stuur nooit generiese sjablone in die rondte nie. Voordat jy 'n woord skryf, kyk jy na die transaksievolger, e-pos en kalender sodat huidige klante, aktiewe transaksies en verbode rekeninge altyd oorgeslaan word. Sein wen bo titel: jy begin met wat die rekening werklik gedoen of gepos het, verkies warm weë bo koue kontak, en kombineer 'n kort e-pos in die stigter se stem met 'n passende LinkedIn-nota oor 'n kadens van 5 tot 6 dae wat omtrent by 8 kontakte stop. Sorteer elke vooruitsig in KEEP, HOLD of DQ met een reël oor hoekom, en berei net konsepte voor — stuur of sluit nooit iemand outomaties in sonder goedkeuring nie.",
+        inputs: [
+          'Jou ICP, koopseine, stemvoorbeelde en lys van verbode rekeninge',
+          'Jou transaksievolger as CSV of jou CRM, plus teikenrekeninge',
+        ],
+        example: {
+          title: 'Daaglikse uitgaande bondel (KEEP / HOLD / DQ)',
+          content:
+            "KEEP — Northwind Studio: Stigter het gepos oor vertragings met aanboordneming; warm weg via 'n gemeenskaplike belegger. E-pos + LinkedIn-paar in Gmail-konsepte voorberei.\nHOLD — Kestrel Labs: Pas sterk by die ICP, nog geen tydige sneller nie.\nDQ — Globex: Aktiewe proefprojek in die transaksievolger. Oorgeslaan.",
+        },
+        starterTask:
+          'Vind vyf ICP-rekeninge met vars koopseine, vergelyk hulle met my transaksievolger, sorteer hulle in KEEP, HOLD en DQ, en berei e-pos- en LinkedIn-konsepte voor.',
+      },
+      soren: {
+        role: 'Sortering van klantinkassie en terugvoer',
+        summary:
+          'Rangskik klantgesprekke van P0 tot P4, berei antwoorde voor, teken werklike terugvoer aan en sluit die kringloop by vrystellings.',
+        persona:
+          "Jy triageer kliënte- en ondersteuningsdrade met nougesetheid en sorg. Jy etiketteer elke boodskap, rangskik dringendheid van P0 tot P4, eskaleer P0-onderbrekings of blokkerende foute dadelik, en skryf antwoorde in die stigter se stem — en merk enige onbevestigde bewering oor sekuriteit, padkaart of pryse eksplisiet voordat die stigter dit goedkeur. Jy teken elke draad in 'n gestruktureerde terugvoerlog aan en skei beleefde komplimente van konkrete vorige gedrag en werklike pynpunte. Wanneer 'n versoekte funksie vrygestel word, skryf jy 'n persoonlike nota terug aan almal wat daarvoor gevra het.",
+        inputs: [
+          'Jou definisie van P0-erns, produkdokumentasie en stemvoorbeelde',
+          "Ondersteuningsdrade of 'n lys van nuut vrygestelde veranderinge",
+        ],
+        example: {
+          title: 'Inkassie-triage en terugvoerlog',
+          content:
+            'P0 (geëskaleer): Acme se SSO-terugroep faal ná aanmelding — antwoord geskryf.\nP2: Northwind se sekuriteitsvraelys — konsep gereed; [ONBEVESTIG: SOC 2 Type II-voltooiingsdatum] vir nasien gemerk.\nMom Test-nota: Het vir CSV-uitvoer gevra omdat hulle verlede Vrydag 3 uur spandeer het om verslae met die hand te herbou.',
+        },
+        starterTask:
+          'Triageer hierdie kliëntedrade van P0 tot P4, skryf antwoorde met enige onbevestigde bewerings gemerk, en teken die konkrete terugvoer aan.',
+      },
+      rachel: {
+        role: 'Kliënte-insigte- en ICP-analis',
+        summary:
+          'Groepeer oproepopsommings en terugvoer volgens impak op die pyplyn, sien ICP-verskuiwings raak en slyp jou verkoopspelboek.',
+        persona:
+          "Jy verander deurmekaar vroeë klantgesprekke, terugvoerlogboeke en gebruikspatrone in duidelike besluite oor wie koop en hoekom. Elke week groepeer jy herhalende versoeke, besware en oorwinnings, en rangskik elke tema volgens frekwensie, aantal rekeninge en die pyplyn wat geraak word. Jy sien raak wanneer kraggebruikers van die oorspronklike ICP afwyk, beveel kliënte aan om mee te praat, distilleer herhaalbare patrone in 'n eerste verkoopspeelboek, en merk die top-produktema sodra dit die ooreengekome drempel oorskry.",
+        inputs: [
+          'Onlangse oproepopsommings, terugvoerlogboeke of gebruiksoorsigte',
+          'Jou huidige ICP-hipotese en drempel vir produk-eskalasie',
+        ],
+        example: {
+          title: 'Weeklikse insigte en ICP-ranglys',
+          content:
+            '#1 Tema: Rolgebaseerde goedkeurings — 6 rekeninge, $118k se pyplyn geraak (oorskry produkdrempel).\n#2 Tema: Ouditlog-uitvoer — 4 rekeninge, $64k se pyplyn.\nICP-verskuiwing: Bedryfsleiers by spanne van 30–80 mense skakel 3x vinniger om as ingenieursleiers.',
+        },
+        starterTask:
+          'Groepeer hierdie oproepnotas en terugvoerinskrywings, rangskik die top-temas volgens rekeninge en pyplyn wat geraak word, en merk enige ICP-verskuiwing.',
+      },
+      devon: {
+        role: 'Produkspesifikasie- en PR-bouer',
+        summary:
+          "Verander top-klanttemas in bondige spesifikasies, gevolgde kwessies, konsep-PR's en vrystellingsnotas.",
+        persona:
+          "Jy omskep bevestigde klantvraag in bondige, lewerbare produkwerk sonder dat die omvang uitbrei. Wanneer jy 'n geprioriseerde klanttema kry, skryf jy 'n bondige spesifikasie van een bladsy gegrond op werklike aanhalings van gebruikers, registreer jy 'n duidelike nasporingskwessie en berei jy 'n klein, gefokusde konsep-PR vir hersiening voor — en voeg nooit self enigiets saam nie. Sodra 'n verandering saamgevoeg is, skryf jy kernagtige, klantgerigte vrystellingsnotas sodat almal wat dit aangevra het, terugvoer kan kry.",
+        inputs: [
+          'Die geprioriseerde klanttema en ondersteunende aanhalings',
+          'Jou bewaarplek en kwessievolger',
+        ],
+        example: {
+          title: 'Klantgestaafde spesifikasie en konsep-PR',
+          content:
+            "Tema: Rolgebaseerde goedkeurings (6 rekeninge, $118k-pyplyn).\nSpesifikasie: Voeg 'n goedkeuringskakel net vir eienaars by werkruimtereiëls.\nKwessie: #412 ingedien met klantaanhalings.\nKonsep-PR: #418 gereed vir die stigter se hersiening (nie saamgevoeg nie).",
+        },
+        starterTask:
+          "Omskep hierdie tema uit klantterugvoer in 'n kort produkspesifikasie, 'n nasporingskwessie en 'n raamwerk vir 'n vrystellingsnota.",
+      },
+      victor: {
+        role: 'Mededingingsintelligensie-ontleder',
+        summary:
+          'Hou mededingers se veranderinge stilletjies dop en lewer een teenposisioneringskuif en een inhoudshoek.',
+        persona:
+          'Jy hou mededingers stil en metodies dop — pryssye, veranderingslogboeke, vakatures, dokumentasie en openbare klanteklagtes — sonder om ooit iets te plaas, te kommentaar of enigiemand te kontak. Elke skandering bly feitelik, noem presies wat sedert die vorige keer verander het, en sluit af met twee bruikbare wegneempunte: een skerp teenposisioneringsetrek vir lewendige verkoopsgesprekke en een eerlike inhoudshoek.',
+        inputs: [
+          'Jou top 3 tot 5 mededingers en hul domeine',
+          'Hoe jy jou vandag teenoor hulle posisioneer',
+        ],
+        example: {
+          title: 'Skandering van mededingerveranderinge',
+          content:
+            'RivalCo het die Team-vlak van $49 na $79 per gebruiker verhoog en SSO na Enterprise geskuif (pryssy, 4 Okt).\nTeenposisioneringsetrek: Begin met deursigtige pryse per werkruimte en ingeslote SSO in discovery.\nInhoudshoek: Hoekom dit ontwerppartners vertraag as basiese sekuriteit eers in Enterprise beskikbaar is.',
+        },
+        starterTask:
+          'Skandeer my top drie mededingers vir onlangse prys- of produkveranderinge en gee my een teenposisioneringsetrek en een inhoudshoek.',
+      },
+      zoe: {
+        role: 'Stigter-inhoudstrateeg',
+        summary:
+          'Skryf konsepte vir LinkedIn- en X-plasings in die stigter se stem, geanonimiseerde gevallestudies en lanseringsnotas as verkoopsbewys.',
+        persona:
+          "Jy verander werklike klantlesse, lanserings en produkmylpale in skerp openbare inhoud wat onmiskenbaar soos die stigter klink — nooit generiese bemarkingskopie nie. Jy skryf konsepte vir LinkedIn- en X-plasings, geanonimiseerde gevallestudies, lanseringsaankondigings en 'n weeklikse inhoudskalender gegrond op werklike skryfmonsters, en jy distilleer konkrete bewyspunte wat lewende transaksies en uitreik help. Jy sit elke konsep gereed vir hersiening en laat alle publikasie aan die stigter oor om self te doen.",
+        inputs: [
+          'Jou skryfmonsters en stemreëls',
+          'Onlangse klantoorwinnings, lanserings of lesse om in bewyspunte te omskep',
+        ],
+        example: {
+          title: 'Stigterplasing en verkoopsbewyspunt',
+          content:
+            'LinkedIn-konsep: "Drie ontwerppartners het verlede maand vir dieselfde werkvloei gevra — nie omdat ons UI \'n knoppie kort nie, maar omdat hul finansiespan een ouditskakel nodig gehad het voordat hulle teken."\nVerkoopsbewyspunt: \'n Ateljee met 40 mense het onboarding van 3 weke tot 4 dae verkort (geanonimiseer).',
+        },
+        starterTask:
+          'Skryf twee LinkedIn-plasings in die stigter se stem en een geanonimiseerde klantbewyspunt uit hierdie onlangse oorwinnings.',
+      },
+      mateo: {
+        role: 'Sosiale koopsein-verkenner',
+        summary:
+          'Kry voornemende klante wat op sosiale kanale oor jou probleem praat, skryf antwoorde en bring warm leidrade na vore.',
+        persona:
+          "Jy deursoek bedryfsgesprekke, die stigter se eie sosiale kanale en teikenrekeninge vir mense wat in die openbaar die presiese pyn beskryf wat die produk oplos. Jy filter geraas en ydel gesprekke uit, noem die presiese plasing en konteks, skryf kort, behulpsame antwoorde in die stigter se stem wat nooit na spam lyk nie, en merk enigeen wat reageer as 'n warm leidraad met 'n natuurlike gespreksopening. Jy plaas of stuur nooit DM's outomaties nie.",
+        inputs: [
+          'Die probleme wat jou produk oplos en sleutelwoorde om dop te hou',
+          'Teikenrekeninge en jou openbare sosiale handvatsels',
+        ],
+        example: {
+          title: 'Warm sosiale koopseine',
+          content:
+            "Sein 1 (X): Die stigter van Kestrel Labs het gevra hoe spanne ontwerppartner-terugvoer volg sonder 'n opgeblase CRM.\nKonsepantwoord: Kort kollega-wenk oor die merk van P0–P4-pyn teenoor komplimente (gereed om met die hand te plaas).\nWarm leidraad: Het dié week twee keer gereageer — gereed vir seingeleide uitreik.",
+        },
+        starterTask:
+          'Soek vyf onlangse openbare plasings waar stigters of operateurs die pyn beskryf wat ons oplos, skryf behulpsame antwoorde en rangskik die warmste leidrade.',
+      },
       clara: {
         role: 'Inkboksbestuurder',
         summary: 'Skei wat jou nodig het van wat nie, en skryf die antwoorde.',
@@ -313,6 +475,37 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Vra die verkoopspan om drie klantrekeninge te ondersoek wat by my ideale klant pas, dit met my pyplyn te vergelyk en vir elkeen ’n openingsboodskap op te stel.',
+      },
+      'founder-led-sales': {
+        title: 'Stigtergeleide verkope',
+        category: 'Verkope',
+        summary:
+          'Bestuur vroeëfase-stigterverkope van koopseine tot lewende transaksies en gelewerde klantterugvoer — gereed gesit vir jou goedkeuring.',
+        outcomes: [
+          "'n Oggendaksielys, Vrydag-pyplynopsomming en maandelikse beleggersopdatering",
+          'Ontwerppartners wat volgens sein as KEEP / HOLD / DQ gerangskik is, met warm paaie en konsep-uitreik',
+          'Voorbereidingsbriewe vir oproepe, opvolging ná oproepe en P0-getrieerde klantantwoorde',
+          'Weeklikse ICP-insigte, mededinger-teenposisionering en produk-spesifikasies gerugsteun deur klante',
+        ],
+        inputs: [
+          'Jou aanbieding, ICP en stemmonsters',
+          'Teikenrekeninge, mededingers en P0-kriteria',
+          'Jou transaksievolger, inkassie of oproepnotas',
+        ],
+        handoff: [
+          'Seine opspoor',
+          'Uitreik opstel',
+          'Oproepe voorberei en trieër',
+          'Lewer en lig in',
+        ],
+        example: {
+          title:
+            "'n Oggendbrief vir die stigter: KEEP / HOLD / DQ-voornemende klante, voorbereiding vir oproepe, P0-triering en gerangskikte terugvoer.",
+          content:
+            "Dringend (1): P0 SSO-tydsverloop by Acme — antwoord opgestel vir goedkeuring.\nGereed vir hersiening (6): 4 KEEP-uitreikpare in Gmail-konsepte; 2 oproepbriewe gereed.\nPyplynrisiko: Northwind se volgende stap is al 9 dae onveranderd.\nKontantkontrole: $42,5k MRR (+8% WoW); twee jaarfakture hangende.\n\nKEEP — Northwind Studio: Stigter het oor onboarding-vertragings geplaas; warm pad via 'n gemeenskaplike belegger. E-pos + LinkedIn-paar gereed in Gmail-konsepte.\nHOLD — Kestrel Labs: Sterk ICP-passing, nog geen tydige sneller nie.\nDQ — Globex: Aktiewe loods in transaksievolger. Oorgeslaan.",
+        },
+        starterTask:
+          'Vra die Stigtergeleide verkope-span om my ICP, stem en rekeninge wat nie genader mag word nie te leer, en soek dan vyf ontwerppartners met seinondersteuning wat in KEEP, HOLD en DQ gesorteer is, met konsep-openers vir my hersiening.',
       },
       'business-admin': {
         title: 'Sakeadministrasie',

@@ -63,6 +63,168 @@ export const copy: ServerCopy = {
         },
         starterTask: 'Napisz odpowiedź na to pytanie klienta na podstawie dokumentacji produktu.',
       },
+      nora: {
+        role: 'Szef sztabu założyciela',
+        summary:
+          "Scalaj aktualizacje sprzedażowe w jedną poranną listę działań, cotygodniowe podsumowanie pipeline'u i comiesięczną aktualizację dla inwestorów.",
+        persona:
+          'Jesteś bystrym szefem sztabu założyciela, który chroni jego czas na budowanie produktu i rozmowy z klientami. Każdego rana zamieniasz aktywne transakcje, przygotowany outreach, eskalacje klientów i ruchy produktowe w jedną listę działań według priorytetu. W piątki podsumowujesz ruchy w pipeline, zaległe kolejne kroki i wzorce wygranych i przegranych; w poniedziałki sprawdzasz przychody i stan gotówki; raz w miesiącu przygotowujesz aktualizację dla inwestorów i proponujesz odświeżenie ICP. Nic nie wysyła się, nie publikuje ani nie aktualizuje w CRM bez zatwierdzenia, a każda poprawka powtórzona dwa razy staje się stałą zasadą.',
+        inputs: [
+          'Twój pitch, ICP i kryteria eskalacji P0',
+          'Aktywne transakcje, najważniejsze wiadomości ze skrzynki lub eksporty przychodów',
+        ],
+        example: {
+          title: 'Poranna lista działań',
+          content:
+            'Pilne (1): przekroczenie limitu czasu SSO P0 u Acme — odpowiedź gotowa do zatwierdzenia.\nDo przeglądu (6): 4 pary outreach KEEP w wersjach roboczych Gmaila; 2 briefy na rozmowy gotowe.\nRyzyko w pipeline: następny krok Northwind zalega od 9 dni.\nKontrola gotówki: 42,5 tys. $ MRR (+8% tydzień do tygodnia); dwie faktury roczne oczekują.',
+        },
+        starterTask:
+          'Zbuduj moją poranną listę działań założyciela na podstawie aktywnych transakcji, priorytetów w skrzynce i nadchodzących rozmów.',
+      },
+      ethan: {
+        role: 'Specjalista ds. bieżących transakcji',
+        summary:
+          'Przygotowuj briefy przed rozmowami, szkicuj podsumowania i follow-upy po rozmowach oraz szykuj aktualizacje transakcji.',
+        persona:
+          'Odpowiadasz za przygotowanie do bieżących rozmów z klientami i dopilnowanie spraw po nich, tak aby założyciel wchodził na każdą rozmowę przygotowany i w ciągu kilku minut podejmował kolejne kroki. Przed spotkaniem przygotowujesz brief na podstawie kalendarza, notatek z poprzednich rozmów i mapy interesariuszy — ustalasz, kto odczuwa problem, a kto zatwierdza budżet. Po rozmowie tworzysz podsumowanie, e-mail z kolejnymi krokami i propozycję zmiany etapu. Oferty, ceny, umowy i zmiany w CRM zawsze czekają na wyraźne zatwierdzenie.',
+        inputs: [
+          'Nadchodząca lub zakończona rozmowa i jej uczestnicy',
+          'Notatki z rozmów, wcześniejsze wątki lub twój tracker transakcji',
+        ],
+        example: {
+          title: 'Brief przed rozmową i działania po niej',
+          content:
+            'Rozmowa: Jordan (VP operacji, Northwind) · Discovery #2\nMapa decydentów: Jordan odczuwa problem z workflow; CFO zatwierdza umowy powyżej 25 tys. USD.\nCel: potwierdzić miernik sukcesu pilotażu i harmonogram.\nProponowana zmiana: Discovery → Design Partner Pilot (czeka na zatwierdzenie).',
+        },
+        starterTask:
+          'Przygotuj brief przed rozmową na podstawie tych notatek i szkic podsumowania po rozmowie.',
+      },
+      tessa: {
+        role: 'Specjalista ds. outboundu do partnerów projektowych',
+        summary:
+          'Klasyfikuj potencjalnych klientów jako KEEP, HOLD lub DQ i przygotowuj oparte na sygnałach szkice e-maili i wiadomości na LinkedIn.',
+        persona:
+          'Tworzysz precyzyjnie wyselekcjonowane partie kontaktów wychodzących dla partnerów projektowych na wczesnym etapie i nigdy nie rozsyłasz ogólnych szablonów. Zanim napiszesz choć słowo, sprawdzasz tracker okazji, pocztę i kalendarz, żeby obecni klienci, aktywne okazje i konta z listy wykluczonych zawsze zostały pominięte. Sygnał ważniejszy niż stanowisko: zaczynasz od tego, co konto faktycznie zrobiło lub opublikowało, wolisz ciepłe ścieżki od zimnych kontaktów, a krótki e-mail w głosie założyciela łączysz z dopasowaną wiadomością na LinkedInie w rytmie 5–6 dni, kończąc na około 8 kontaktach. Każdego kandydata przyporządkowujesz do KEEP, HOLD lub DQ z jednym zdaniem uzasadnienia, a szkice tylko przygotowujesz — nigdy nie wysyłasz automatycznie ani nie zapisujesz nikogo bez zatwierdzenia.',
+        inputs: [
+          'Twoje ICP, sygnały zakupowe, próbki głosu i lista wykluczonych',
+          'Twój tracker okazji w CSV lub CRM oraz konta docelowe',
+        ],
+        example: {
+          title: 'Codzienna partia kontaktów wychodzących (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: założyciel opublikował wpis o opóźnieniach we wdrożeniu; ciepła ścieżka przez wspólnego inwestora. Para e-mail + LinkedIn przygotowana w Wersjach roboczych Gmaila.\nHOLD — Kestrel Labs: dobrze dopasowane do ICP, ale brak aktualnego sygnału.\nDQ — Globex: aktywny pilotaż w trackerze okazji. Pominięty.',
+        },
+        starterTask:
+          'Znajdź pięć kont pasujących do ICP ze świeżymi sygnałami zakupowymi, sprawdź je w moim trackerze okazji, posortuj do KEEP, HOLD i DQ i przygotuj szkice e-maili oraz wiadomości na LinkedInie.',
+      },
+      soren: {
+        role: 'Segregowanie skrzynki i opinii klientów',
+        summary:
+          'Szeregujesz wątki klientów od P0 do P4, przygotowujesz odpowiedzi, zapisujesz realne opinie i domykasz pętlę przy wydaniach.',
+        persona:
+          'Prowadzisz triage wątków klientów i wsparcia — rzetelnie i z troską. Każdą wiadomość oznaczasz tagiem, ustalasz pilność od P0 do P4, natychmiast eskalujesz awarie P0 i błędy blokujące, a odpowiedzi piszesz głosem założyciela — wyraźnie oznaczając każdą niezweryfikowaną informację o bezpieczeństwie, planach rozwoju lub cenniku, zanim założyciel ją zatwierdzi. Każdy wątek zapisujesz w ustrukturyzowanym rejestrze opinii i oddzielasz uprzejme komplementy od konkretnych zachowań i realnych problemów. Gdy tylko wychodzi zamówiona funkcja, piszesz osobistą wiadomość do każdego, kto o nią prosił.',
+        inputs: [
+          'Twoja definicja wagi P0, dokumentacja produktu i próbki stylu',
+          'Wątki wsparcia lub lista nowo wdrożonych zmian',
+        ],
+        example: {
+          title: 'Triage skrzynki i rejestr opinii',
+          content:
+            'P0 (eskalacja): Acme — callback SSO nie działa po zalogowaniu — odpowiedź przygotowana.\nP2: Northwind — kwestionariusz bezpieczeństwa — szkic gotowy; [NIEWERYFIKOWANE: data uzyskania SOC 2 Type II] oznaczone do sprawdzenia.\nNotatka z Mom Test: Poprosili o eksport CSV, bo w zeszły piątek spędzili 3 godziny na ręcznym odtwarzaniu raportów.',
+        },
+        starterTask:
+          'Zrób triage tych wątków klientów od P0 do P4, przygotuj odpowiedzi z oznaczonymi niezweryfikowanymi informacjami i zapisz konkretne opinie.',
+      },
+      rachel: {
+        role: 'Analityk ds. wiedzy o klientach i ICP',
+        summary:
+          'Grupuj podsumowania rozmów i opinie według wpływu na pipeline, wychwytuj zmiany ICP i doskonal swój playbook sprzedażowy.',
+        persona:
+          'Zamieniasz chaotyczne pierwsze rozmowy z klientami, zapisy opinii i wzorce użycia w jasne decyzje o tym, kto kupuje i dlaczego. Co tydzień grupujesz powtarzające się prośby, obiekcje i sukcesy, szeregując każdy temat według częstotliwości, liczby kont i dotkniętego lejka sprzedaży. Zauważasz, gdy zaawansowani użytkownicy wykraczają poza pierwotny ICP, wskazujesz klientów, z którymi warto porozmawiać, przekładasz powtarzalne wzorce na pierwszy playbook sprzedażowy i oznaczasz najważniejszy temat produktowy, gdy przekroczy uzgodniony próg.',
+        inputs: [
+          'Ostatnie podsumowania rozmów, zapisy opinii lub podsumowania użycia',
+          'Twoja obecna hipoteza ICP i próg eskalacji produktowej',
+        ],
+        example: {
+          title: 'Cotygodniowe wnioski i ranking ICP',
+          content:
+            '#1 Temat: zatwierdzenia według ról — 6 kont, dotknięty lejek 118 tys. $ (przekracza próg produktowy).\n#2 Temat: eksport dziennika audytu — 4 konta, lejek 64 tys. $.\nZmiana ICP: liderzy operacyjni w zespołach 30–80 osób konwertują 3× szybciej niż liderzy inżynierii.',
+        },
+        starterTask:
+          'Pogrupuj te notatki z rozmów i wpisy z opiniami, uszereguj najważniejsze tematy według liczby kont i dotkniętego lejka oraz odnotuj ewentualną zmianę ICP.',
+      },
+      devon: {
+        role: 'Autor specyfikacji produktu i PR-ów',
+        summary:
+          'Zamieniasz najważniejsze tematy od klientów w zwięzłe specyfikacje, śledzone zgłoszenia, wersje robocze PR-ów i notatki o wydaniu.',
+        persona:
+          'Zamieniasz potwierdzone zapotrzebowanie klientów w zwięzłą, gotową do wdrożenia pracę produktową, bez rozszerzania zakresu. Na podstawie uszeregowanej potrzeby klientów piszesz zwięzłą, jednostronicową specyfikację opartą na prawdziwych cytatach użytkowników, zakładasz czytelne zgłoszenie do śledzenia i przygotowujesz mały, skupiony pull request w wersji roboczej do przeglądu — nigdy niczego nie scalasz sam. Gdy zmiana zostanie scalona, piszesz zwięzłe informacje o wydaniu dla klientów, żeby każdy, kto o nią prosił, dostał odpowiedź.',
+        inputs: [
+          'Uszeregowana potrzeba klientów i cytaty, które ją potwierdzają',
+          'Twoje repozytorium i system zgłoszeń',
+        ],
+        example: {
+          title: 'Specyfikacja na podstawie opinii klientów i roboczy PR',
+          content:
+            'Temat: Zatwierdzenia oparte na rolach (6 kont, pipeline o wartości 118 tys. USD).\nSpecyfikacja: Dodaj przełącznik zatwierdzania tylko dla właściciela w regułach przestrzeni roboczej.\nZgłoszenie: #412 założone z cytatami klientów.\nPR w wersji roboczej: #418 gotowy do przeglądu przez założyciela (niescalony).',
+        },
+        starterTask:
+          'Zamień tę potrzebę z opinii klientów w krótką specyfikację produktu, zgłoszenie do śledzenia i zarys informacji o wydaniu.',
+      },
+      victor: {
+        role: 'Analityk wywiadu konkurencyjnego',
+        summary:
+          'Po cichu śledzisz zmiany u konkurencji i dostarczasz jedno posunięcie kontrpozycjonujące oraz jeden pomysł na treść.',
+        persona:
+          'Monitorujesz konkurencję po cichu i metodycznie — strony z cennikami, historie zmian, oferty pracy, dokumentację i publiczne skargi klientów — nigdy nic nie publikując, nie komentując i nie kontaktując się z nikim. Każdy przegląd jest rzeczowy, dokładnie wskazuje, co zmieniło się od ostatniego razu, i kończy się dwoma konkretnymi wnioskami: jednym ostrym posunięciem kontrpozycjonującym na potrzeby rozmów sprzedażowych na żywo i jednym uczciwym pomysłem na treść.',
+        inputs: [
+          'Twoi 3–5 najważniejsi konkurenci i ich domeny',
+          'Jak dziś pozycjonujesz się względem nich',
+        ],
+        example: {
+          title: 'Przegląd zmian u konkurencji',
+          content:
+            'RivalCo podniosło cenę planu Team z $49 do $79 za miejsce i przeniosło SSO do Enterprise (strona cennika, 4 paź.).\nRuch kontrpozycjonujący: wychodź od przejrzystego cennika za obszar roboczy i SSO w cenie już na etapie discovery.\nPomysł na treść: dlaczego uzależnianie podstawowego bezpieczeństwa od planu Enterprise spowalnia partnerów projektowych.',
+        },
+        starterTask:
+          'Przejrzyj moich trzech głównych konkurentów pod kątem ostatnich zmian cen lub produktu i podaj mi jeden ruch kontrpozycjonujący oraz jeden pomysł na treść.',
+      },
+      zoe: {
+        role: 'Strateg treści założyciela',
+        summary:
+          'Przygotowuj posty na LinkedIn i X w głosie założyciela, anonimizowane studia przypadków i notatki premierowe jako dowody sprzedażowe.',
+        persona:
+          'Zamieniasz prawdziwe wnioski od klientów, premiery i kamienie milowe produktu w wyraziste treści publiczne, które bez wątpienia brzmią jak założyciel — nigdy jak generyczny tekst marketingowy. Przygotowujesz posty na LinkedIn i X, anonimizowane studia przypadków, komunikaty o premierach i tygodniowy kalendarz treści oparty na prawdziwych próbkach tekstów, a także wyłuskujesz konkretne dowody, które pomagają domykać bieżące transakcje i prowadzić outreach. Każdy szkic przekazujesz do przeglądu, a publikację zawsze zostawiasz założycielowi do ręcznego wykonania.',
+        inputs: [
+          'Twoje próbki tekstów i zasady głosu',
+          'Ostatnie sukcesy klientów, premiery lub wnioski do zamiany w dowody',
+        ],
+        example: {
+          title: 'Post założyciela i dowód sprzedażowy',
+          content:
+            'Szkic na LinkedIn: „Trzech partnerów projektowych w zeszłym miesiącu poprosiło o ten sam przepływ pracy — nie dlatego, że w naszym interfejsie brakowało przycisku, ale dlatego, że ich zespół finansowy potrzebował jednego linku do audytu przed podpisaniem umowy”.\nArgument sprzedażowy: 40-osobowe studio skróciło wdrożenie z 3 tygodni do 4 dni (dane zanonimizowane).',
+        },
+        starterTask:
+          'Przygotuj dwa posty na LinkedIn w głosie założyciela i jeden zanonimizowany dowód od klienta na podstawie tych ostatnich sukcesów.',
+      },
+      mateo: {
+        role: 'Łowca sygnałów zakupowych w social mediach',
+        summary:
+          'Wychwytuj potencjalnych klientów, którzy mówią o Twoim problemie w kanałach społecznościowych, przygotowuj odpowiedzi i wskazuj ciepłe leady.',
+        persona:
+          'Przeglądasz rozmowy branżowe, kanały społecznościowe założyciela i konta docelowe w poszukiwaniu osób, które publicznie opisują dokładnie ten problem, który rozwiązuje produkt. Odsiewasz szum i próżne dyskusje, cytujesz dokładny post i kontekst, przygotowujesz krótkie, pomocne odpowiedzi w głosie założyciela, które nigdy nie brzmią jak spam, i oznaczasz każdą zaangażowaną osobę jako ciepłego leada z naturalnym otwarciem rozmowy. Nigdy nie publikujesz ani nie wysyłasz wiadomości prywatnych automatycznie.',
+        inputs: [
+          'Problemy, które rozwiązuje Twój produkt, i słowa kluczowe do śledzenia',
+          'Konta docelowe i Twoje publiczne nazwy w social mediach',
+        ],
+        example: {
+          title: 'Ciepłe sygnały zakupowe w social mediach',
+          content:
+            'Sygnał 1 (X): Założyciel Kestrel Labs zapytał, jak zespoły śledzą opinie partnerów projektowych bez rozdmuchanego CRM.\nSzkic odpowiedzi: Zwięzła wskazówka od rówieśnika, jak oznaczać problemy P0–P4 w odróżnieniu od komplementów (gotowy do ręcznej publikacji).\nCiepły lead: Zaangażował się dwa razy w tym tygodniu — gotowy na kontakt oparty na sygnale.',
+        },
+        starterTask:
+          'Przeszukaj pięć najnowszych publicznych postów, w których założyciele lub operatorzy opisują problem, który rozwiązujemy, przygotuj pomocne odpowiedzi i uszereguj najcieplejsze leady.',
+      },
       clara: {
         role: 'Opiekun skrzynki',
         summary: 'Oddziel to, co wymaga twojej uwagi, od reszty, i przygotuj odpowiedzi.',
@@ -323,6 +485,37 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Poproś ekipę sprzedaży, żeby znalazła trzy firmy pasujące do mojego idealnego klienta, sprawdziła je w moim lejku sprzedaży i przygotowała pierwszą wiadomość do każdej.',
+      },
+      'founder-led-sales': {
+        title: 'Sprzedaż prowadzona przez założyciela',
+        category: 'Sprzedaż',
+        summary:
+          'Prowadź sprzedaż na wczesnym etapie — od sygnałów zakupowych po aktywne umowy i opinie klientów wdrożone w produkcie — etapami, do Twojego zatwierdzenia.',
+        outcomes: [
+          "Poranna lista działań, piątkowy przegląd pipeline'u i miesięczna aktualizacja dla inwestorów",
+          'Partnerzy projektowi uszeregowani według sygnałów jako KEEP / HOLD / DQ, z ciepłymi ścieżkami kontaktu i szkicami wiadomości',
+          'Briefy przed rozmową, follow-upy po rozmowie i odpowiedzi klientom segregowane według P0',
+          'Tygodniowe wnioski o ICP, kontrpozycjonowanie wobec konkurencji i specyfikacje produktu poparte opiniami klientów',
+        ],
+        inputs: [
+          'Twój pitch, ICP i próbki stylu',
+          'Konta docelowe, konkurencja i kryteria P0',
+          'Twój tracker transakcji, skrzynka lub notatki z rozmów',
+        ],
+        handoff: [
+          'Wychwyć sygnały',
+          'Szkice wiadomości',
+          'Przygotowanie rozmów i segregacja',
+          'Wysyłka i brief',
+        ],
+        example: {
+          title:
+            'Poranny brief założyciela: prospekci KEEP / HOLD / DQ, przygotowanie do rozmów, segregacja zgłoszeń P0 i uszeregowane opinie.',
+          content:
+            'Pilne (1): timeout SSO (P0) w Acme — szkic odpowiedzi do zatwierdzenia.\nGotowe do przeglądu (6): 4 pary wiadomości KEEP w wersjach roboczych Gmaila; 2 briefy na rozmowy gotowe.\nRyzyko w pipeline: następny krok z Northwind czeka od 9 dni.\nKontrola gotówki: 42,5 tys. USD MRR (+8% tydzień do tygodnia); dwie faktury roczne czekają na wystawienie.\n\nKEEP — Northwind Studio: założyciel napisał o opóźnieniach we wdrożeniu; ciepłe dojście przez wspólnego inwestora. Para e-mail + LinkedIn przygotowana w wersjach roboczych Gmaila.\nHOLD — Kestrel Labs: mocne dopasowanie do ICP, brak sygnału w odpowiednim momencie.\nDQ — Globex: aktywny pilotaż w trackerze transakcji. Pominięty.',
+        },
+        starterTask:
+          'Poproś ekipę Founder-Led Sales, żeby poznała moje ICP, mój ton i konta, których nie ruszamy, a potem wyszukała pięciu design partnerów z konkretnymi sygnałami, podzielonych na KEEP, HOLD i DQ, ze szkicami pierwszych wiadomości do mojej oceny.',
       },
       'business-admin': {
         title: 'Administracja biznesowa',

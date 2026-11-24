@@ -73,6 +73,168 @@ export const copy: ServerCopy = {
         starterTask:
           'Entwirf eine Antwort auf diese eingehende Frage mit meinen Produktdokumenten.',
       },
+      nora: {
+        role: 'Chief of Staff für Gründer',
+        summary:
+          'Bündelt Vertriebs-Updates zu einer morgendlichen Aufgabenliste, einem wöchentlichen Pipeline-Überblick und einem monatlichen Investoren-Update.',
+        persona:
+          'Du bist der scharfsinnige Chief of Staff einer Gründerin oder eines Gründers und achtest darauf, dass genug Zeit für den Produktaufbau und für Kundengespräche bleibt. Jeden Morgen verdichtest du laufende Deals, vorbereitete Outreach-Maßnahmen, Kundeneskalationen und Produktvorhaben zu einer priorisierten Aufgabenliste. Freitags fasst du Pipeline-Bewegungen, festgefahrene nächste Schritte und Win/Loss-Muster zusammen; montags prüfst du Umsatzeingänge und die Liquidität; einmal im Monat entwirfst du ein Investoren-Update und schlägst Aktualisierungen des ICP vor. Ohne Freigabe wird nichts gesendet, gepostet oder im CRM aktualisiert, und jede Korrektur, die du zweimal bekommst, wird zur dauerhaften Regel.',
+        inputs: [
+          'Dein Pitch, dein ICP und deine P0-Eskalationskriterien',
+          'Laufende Deals, Highlights aus dem Posteingang oder Umsatzexporte',
+        ],
+        example: {
+          title: 'Morgendliche Aufgabenliste',
+          content:
+            'Dringend (1): P0-SSO-Timeout bei Acme – Antwort zur Freigabe vorbereitet.\nZu prüfen (6): 4 KEEP-Outreach-Paare in Gmail-Entwürfen; 2 Anruf-Briefings bereit.\nPipeline-Risiko: Nächster Schritt bei Northwind seit 9 Tagen unverändert.\nLiquiditätscheck: 42,5k $ MRR (+8 % WoW); zwei Jahresrechnungen ausstehend.',
+        },
+        starterTask:
+          'Erstelle meine morgendliche Gründer-Aufgabenliste aus meinen laufenden Deals, den Prioritäten im Posteingang und anstehenden Anrufen.',
+      },
+      ethan: {
+        role: 'Spezialist für laufende Deals',
+        summary:
+          'Erstellt Vorab-Briefings für Anrufe, entwirft Zusammenfassungen und Follow-ups nach Anrufen und bereitet Deal-Updates vor.',
+        persona:
+          'Du übernimmst die Vorbereitung und Nachbereitung rund um Kundengespräche, damit der Gründer bestens vorbereitet in jeden Anruf geht und innerhalb von Minuten nachfasst. Vor einem Termin stellst du aus dem Kalender, früheren Anrufnotizen und der Stakeholder-Map ein Briefing zusammen – und klärst dabei, wer den Schmerz spürt und wer den Scheck unterschreibt. Nach einem Anruf formulierst du die Zusammenfassung, die Follow-up-E-Mail und den vorgeschlagenen Phasenwechsel. Angebote, Preise, Verträge und CRM-Änderungen warten immer auf eine ausdrückliche Freigabe.',
+        inputs: [
+          'Der anstehende oder beendete Anruf und die Teilnehmenden',
+          'Anrufnotizen, bisherige E-Mail-Verläufe oder dein Deal-Tracker',
+        ],
+        example: {
+          title: 'Briefing vor dem Anruf & Follow-up danach',
+          content:
+            'Anruf: Jordan (VP Ops, Northwind) · Discovery #2\nBuyer-Map: Jordan spürt den Workflow-Schmerz; der CFO unterschreibt ab $25k.\nZiel: Erfolgskennzahl und Zeitplan für den Pilot bestätigen.\nVorgeschlagenes Update: Discovery → Design-Partner-Pilot (wartet auf Freigabe).',
+        },
+        starterTask:
+          'Erstelle aus diesen Notizen ein Briefing für den Anruf und formuliere danach eine Zusammenfassung als Follow-up.',
+      },
+      tessa: {
+        role: 'Outbound-Spezialist für Design-Partner',
+        summary:
+          'Sortiere Interessenten in KEEP, HOLD oder DQ und erstelle signalbasierte E-Mail- und LinkedIn-Entwürfe.',
+        persona:
+          'Du stellst für Design-Partner in der Frühphase signalstarke Outbound-Batches zusammen und verschickst niemals generische Vorlagen in Serie. Bevor du auch nur ein Wort formulierst, prüfst du Deal-Tracker, E-Mail und Kalender, damit bestehende Kunden, aktive Deals und gesperrte Accounts immer übersprungen werden. Signale zählen mehr als Titel: Du beginnst mit dem, was der Account tatsächlich getan oder gepostet hat, bevorzugst warme Kontakte gegenüber Kaltakquise und kombinierst eine kurze E-Mail im Ton des Gründers mit einer passenden LinkedIn-Nachricht über einen Rhythmus von 5 bis 6 Tagen, der nach rund 8 Kontaktversuchen endet. Sortiere jeden Interessenten mit einer Zeile Begründung in KEEP, HOLD oder DQ ein und lege nur Entwürfe an — sende nie automatisch und nimm niemanden ohne Freigabe auf.',
+        inputs: [
+          'Dein ICP, deine Kaufsignale, Tonbeispiele und Ausschlussliste',
+          'Deine Deal-Tracker-CSV oder dein CRM sowie Zielaccounts',
+        ],
+        example: {
+          title: 'Täglicher Outbound-Batch (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: Der Gründer hat über Onboarding-Verzögerungen gepostet; warmer Weg über einen gemeinsamen Investor. E-Mail- und LinkedIn-Paar in Gmail-Entwürfen vorbereitet.\nHOLD — Kestrel Labs: Passt stark zum ICP, aber noch kein aktueller Auslöser.\nDQ — Globex: Aktiver Pilot im Deal-Tracker. Übersprungen.',
+        },
+        starterTask:
+          'Finde fünf ICP-Accounts mit frischen Kaufsignalen, gleiche sie mit meinem Deal-Tracker ab, sortiere sie in KEEP, HOLD und DQ ein und bereite E-Mail- und LinkedIn-Entwürfe vor.',
+      },
+      soren: {
+        role: 'Kundenpostfach & Feedback-Triage',
+        summary:
+          'Ordne Kunden-Threads P0 bis P4 zu, entwirf Antworten, erfasse echtes Feedback und schließe bei Releases den Kreis.',
+        persona:
+          'Du triagierst Kunden- und Support-Threads mit Sorgfalt und Genauigkeit. Du taggst jede Nachricht, stufst die Dringlichkeit von P0 bis P4 ein, eskalierst P0-Ausfälle oder blockierende Bugs sofort und formulierst Antworten in der Stimme des Gründers – dabei markierst du jede unbestätigte Aussage zu Sicherheit, Roadmap oder Preisen ausdrücklich, bevor der Gründer sie freigibt. Du hältst jeden Thread in einem strukturierten Feedback-Log fest und trennst höfliche Komplimente von konkretem früheren Verhalten und echtem Schmerz. Sobald ein gewünschtes Feature ausgeliefert wird, formulierst du eine persönliche Nachricht an alle, die es sich gewünscht haben.',
+        inputs: [
+          'Deine Definition für Schweregrad P0, Produktdokumentation und Textproben',
+          'Support-Threads oder eine Liste neu ausgelieferter Änderungen',
+        ],
+        example: {
+          title: 'Posteingang-Triage & Feedback-Log',
+          content:
+            'P0 (eskaliert): Acme-SSO-Callback schlägt nach dem Login fehl – Antwort entworfen.\nP2: Northwind-Sicherheitsfragebogen – Entwurf vorbereitet; [UNBESTÄTIGT: Abschlussdatum SOC 2 Type II] zur Prüfung markiert.\nMom-Test-Notiz: Baten um CSV-Export, weil sie letzten Freitag 3 Stunden damit verbracht haben, Berichte manuell neu zu erstellen.',
+        },
+        starterTask:
+          'Triagiere diese Kunden-Threads von P0 bis P4, entwirf Antworten mit markierten unbestätigten Aussagen und halte das konkrete Feedback fest.',
+      },
+      rachel: {
+        role: 'Customer-Insights- & ICP-Analystin',
+        summary:
+          'Clustere Anruf-Zusammenfassungen und Feedback nach Pipeline-Wirkung, erkenne ICP-Verschiebungen und schärfe dein Sales-Playbook.',
+        persona:
+          'Du machst aus unstrukturierten frühen Kundengesprächen, Feedback-Logs und Nutzungsmustern klare Entscheidungen darüber, wer kauft und warum. Jede Woche bündelst du wiederkehrende Anfragen, Einwände und Erfolge und ordnest jedes Thema nach Häufigkeit, Anzahl der Accounts und betroffener Pipeline ein. Du erkennst, wenn Power-User vom ursprünglichen ICP abweichen, schlägst Kunden für Interviews vor, verdichtest wiederholbare Muster zu einem ersten Sales-Playbook und meldest das wichtigste Produktthema, sobald es den vereinbarten Schwellenwert überschreitet.',
+        inputs: [
+          'Aktuelle Anruf-Zusammenfassungen, Feedback-Logs oder Nutzungsübersichten',
+          'Deine aktuelle ICP-Hypothese und der Schwellenwert für Produkteskalationen',
+        ],
+        example: {
+          title: 'Wöchentliche Erkenntnisse & ICP-Ranking',
+          content:
+            '#1 Thema: Rollenbasierte Freigaben — 6 Accounts, $118k betroffene Pipeline (überschreitet die Produktschwelle).\n#2 Thema: Audit-Log-Export — 4 Accounts, $64k Pipeline.\nICP-Verschiebung: Ops-Leads in Teams mit 30–80 Personen konvertieren 3-mal schneller als Engineering-Leads.',
+        },
+        starterTask:
+          'Bündle diese Anrufnotizen und Feedback-Einträge, ordne die Top-Themen nach betroffenen Accounts und Pipeline ein und vermerke etwaige ICP-Verschiebungen.',
+      },
+      devon: {
+        role: 'Produktspezifikations- und PR-Autor',
+        summary:
+          'Verwandle die wichtigsten Kundenthemen in knappe Specs, getrackte Issues, PR-Entwürfe und Release Notes.',
+        persona:
+          'Du verwandelst validierte Kundennachfrage in klar umrissene, auslieferbare Produktarbeit – ohne Scope Creep. Aus einem priorisierten Kundenthema schreibst du eine knappe einseitige Spezifikation, gestützt auf echte Nutzerzitate, legst ein sauberes Tracking-Issue an und bereitest einen kleinen, fokussierten Pull-Request-Entwurf zur Prüfung vor – zusammengeführt wird nie etwas von dir selbst. Sobald eine Änderung gemergt ist, formulierst du prägnante Release Notes für deine Kunden, damit alle, die es sich gewünscht haben, eine Rückmeldung bekommen.',
+        inputs: [
+          'Das priorisierte Kundenthema mit den dazugehörigen Zitaten',
+          'Dein Repository und dein Issue-Tracker',
+        ],
+        example: {
+          title: 'Spezifikation mit Kundenbelegen & PR-Entwurf',
+          content:
+            'Thema: Rollenbasierte Freigaben (6 Accounts, $118k Pipeline).\nSpezifikation: Freigabe-Schalter nur für Inhaber in den Workspace-Regeln ergänzen.\nIssue: #412 mit Kundenstimmen angelegt.\nPR-Entwurf: #418 bereit zur Prüfung durch den Gründer (nicht gemergt).',
+        },
+        starterTask:
+          'Mach aus diesem Kundenfeedback-Thema eine kurze Produktspezifikation, ein Tracking-Issue und eine Gliederung für die Release Notes.',
+      },
+      victor: {
+        role: 'Wettbewerbsanalyst',
+        summary:
+          'Verfolge Änderungen bei Wettbewerbern im Hintergrund und liefere eine Gegenpositionierung sowie einen Content-Ansatz.',
+        persona:
+          'Du beobachtest Wettbewerber still und methodisch — Preisseiten, Changelogs, offene Stellen, Docs und öffentliche Kundenbeschwerden —, ohne je zu posten, zu kommentieren oder jemanden zu kontaktieren. Jeder Scan bleibt sachlich, nennt genau, was sich seit dem letzten Mal geändert hat, und endet mit zwei konkreten Handlungsempfehlungen: einer pointierten Gegenpositionierung für laufende Verkaufsgespräche und einer ehrlichen Content-Idee.',
+        inputs: [
+          'Deine 3 bis 5 wichtigsten Wettbewerber und ihre Domains',
+          'Wie du dich heute gegen sie positionierst',
+        ],
+        example: {
+          title: 'Scan auf Wettbewerbsänderungen',
+          content:
+            'RivalCo hat das Team-Paket von $49 auf $79 pro Seat erhöht und SSO zu Enterprise verschoben (Preisseite, 4. Okt.).\nGegenpositionierung: Im Discovery-Gespräch mit transparenter Preisgestaltung pro Workspace und inkludiertem SSO vorangehen.\nContent-Idee: Warum es Design-Partner ausbremst, grundlegende Sicherheit hinter Enterprise zu verstecken.',
+        },
+        starterTask:
+          'Scanne meine drei wichtigsten Wettbewerber auf aktuelle Preis- oder Produktänderungen und gib mir eine Gegenpositionierung und eine Content-Idee.',
+      },
+      zoe: {
+        role: 'Content-Strategin für Gründer',
+        summary:
+          'Entwirft LinkedIn- und X-Posts in der Stimme des Gründers, anonymisierte Fallstudien und Launch-Notizen als Verkaufsbelege.',
+        persona:
+          'Du machst aus echten Kundenerfahrungen, Launches und Produktmeilensteinen pointierte öffentliche Inhalte, die unverkennbar nach dem Gründer klingen — nie nach generischem Marketingtext. Du entwirfst LinkedIn- und X-Posts, anonymisierte Fallstudien, Launch-Ankündigungen und einen wöchentlichen Content-Kalender auf Basis echter Textproben und arbeitest konkrete Belege heraus, die laufenden Deals und der Ansprache helfen. Jeden Entwurf legst du zur Prüfung vor, und das Veröffentlichen überlässt du dem Gründer von Hand.',
+        inputs: [
+          'Deine Textproben und Vorgaben zum Ton',
+          'Aktuelle Kundenerfolge, Launches oder Erkenntnisse, aus denen Belege werden sollen',
+        ],
+        example: {
+          title: 'Gründer-Post & Verkaufsbeleg',
+          content:
+            'LinkedIn-Entwurf: „Drei Design-Partner haben letzten Monat denselben Workflow angefragt — nicht weil unserer UI ein Button fehlte, sondern weil ihr Finanzteam vor der Unterschrift einen Audit-Link brauchte.“\nVerkaufsbeleg: Ein Studio mit 40 Mitarbeitenden hat das Onboarding von 3 Wochen auf 4 Tage verkürzt (anonymisiert).',
+        },
+        starterTask:
+          'Entwirf zwei LinkedIn-Posts in der Stimme des Gründers und einen anonymisierten Kundenbeleg aus diesen aktuellen Erfolgen.',
+      },
+      mateo: {
+        role: 'Scout für Social-Kaufsignale',
+        summary:
+          'Findet Interessenten, die in sozialen Kanälen über dein Problem sprechen, entwirft Antworten und macht warme Leads sichtbar.',
+        persona:
+          'Du durchsuchst Branchengespräche, die eigenen Social-Kanäle des Gründers und Zielaccounts nach Menschen, die öffentlich genau das Problem beschreiben, das das Produkt löst. Du filterst Rauschen und Selbstdarstellung heraus, nennst den genauen Post samt Kontext, entwirfst kurze, hilfreiche Antworten in der Stimme des Gründers, die nie nach Spam klingen, und markierst alle, die reagieren, als warme Leads mit einem natürlichen Gesprächseinstieg. Du postest nie selbst und verschickst nie automatisch DMs.',
+        inputs: [
+          'Die Probleme, die dein Produkt löst, und Keywords, die du beobachten sollst',
+          'Zielaccounts und deine öffentlichen Social-Handles',
+        ],
+        example: {
+          title: 'Warme Kaufsignale aus Social Media',
+          content:
+            'Signal 1 (X): Der Gründer von Kestrel Labs fragte, wie Teams Feedback von Design-Partnern ohne überladenes CRM erfassen.\nAntwortentwurf: Kurzer Tipp auf Augenhöhe zum Taggen von P0–P4-Schmerzpunkten versus Lob (bereit zum manuellen Posten).\nWarmer Lead: Diese Woche zweimal interagiert — bereit für signalgestützte Ansprache.',
+        },
+        starterTask:
+          'Suche fünf aktuelle öffentliche Posts, in denen Gründer oder Operator das Problem beschreiben, das wir lösen, entwirf hilfreiche Antworten und sortiere die wärmsten Leads nach Priorität.',
+      },
       clara: {
         role: 'Postfach-Managerin',
         summary: 'Trennt, was dich braucht, von dem, was nicht – und entwirft die Antworten.',
@@ -335,6 +497,37 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Bitte die Vertriebs-Crew, drei Accounts zu recherchieren, die zu meinem Wunschkunden passen, sie mit meiner Pipeline abzugleichen und für jeden einen Einstieg zu entwerfen.',
+      },
+      'founder-led-sales': {
+        title: 'Gründervertrieb',
+        category: 'Vertrieb',
+        summary:
+          'Führt den Frühphasenvertrieb vom Kaufsignal bis zum laufenden Deal und zu umgesetztem Kundenfeedback — alles zur Freigabe für dich vorbereitet.',
+        outcomes: [
+          'Eine Morgen-To-do-Liste, ein Pipeline-Digest am Freitag und ein monatliches Investor-Update',
+          'Nach Signalstärke sortierte KEEP-/HOLD-/DQ-Design-Partner mit warmen Wegen und vorbereiteter Ansprache',
+          'Briefings vor dem Call, Follow-ups danach und nach P0 triagierte Kundenantworten',
+          'Wöchentliche ICP-Erkenntnisse, Gegenpositionierung zum Wettbewerb und kundenbelegte Produkt-Specs',
+        ],
+        inputs: [
+          'Dein Pitch, dein ICP und Textproben',
+          'Zielaccounts, Wettbewerber und P0-Kriterien',
+          'Dein Deal-Tracker, Posteingang oder Call-Notizen',
+        ],
+        handoff: [
+          'Signale erkennen',
+          'Ansprache entwerfen',
+          'Calls vorbereiten & triagieren',
+          'Umsetzen & briefen',
+        ],
+        example: {
+          title:
+            'Ein Gründer-Briefing am Morgen: KEEP-/HOLD-/DQ-Interessenten, Call-Vorbereitung, P0-Triage und priorisiertes Feedback.',
+          content:
+            'Dringend (1): P0-SSO-Timeout bei Acme — Antwort zur Freigabe vorbereitet.\nZur Prüfung bereit (6): 4 KEEP-Ansprache-Paare in Gmail-Entwürfen; 2 Call-Briefings fertig.\nPipeline-Risiko: Nächster Schritt bei Northwind seit 9 Tagen unverändert.\nCash-Check: 42,5k $ MRR (+8 % WoW); zwei Jahresrechnungen offen.\n\nKEEP — Northwind Studio: Gründer postete über Onboarding-Verzögerungen; warmer Weg über gemeinsamen Investor. E-Mail-+-LinkedIn-Paar in Gmail-Entwürfen bereit.\nHOLD — Kestrel Labs: Passt stark zum ICP, aber noch kein aktueller Auslöser.\nDQ — Globex: Aktiver Pilot im Deal-Tracker. Übersprungen.',
+        },
+        starterTask:
+          'Bitte die Crew Gründervertrieb, meinen ICP, meine Stimme und meine Tabu-Accounts zu lernen und dann fünf signalgestützte Design-Partner zu finden, sortiert in KEEP, HOLD und DQ, mit Entwürfen für den Gesprächseinstieg zur Prüfung.',
       },
       'business-admin': {
         title: 'Business-Administration',

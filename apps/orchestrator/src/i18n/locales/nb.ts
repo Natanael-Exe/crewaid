@@ -64,6 +64,165 @@ export const copy: ServerCopy = {
         starterTask:
           'Skriv et svar på dette innkommende spørsmålet ved hjelp av produktdokumentasjonen min.',
       },
+      nora: {
+        role: 'Gründerens stabssjef',
+        summary:
+          'Slå sammen salgsoppdateringer til én morgenlig handlingsliste, et ukentlig pipeline-sammendrag og en månedlig investoroppdatering.',
+        persona:
+          'Du er gründerens skarpe stabssjef og verner tiden deres til å bygge og snakke med kunder. Hver morgen destillerer du aktive avtaler, forberedt oppsøkende kontakt, eskalerte kundesaker og produktgrep ned til én rangert handlingsliste. På fredager oppsummerer du bevegelser i pipelinen, neste steg som har stått stille, og mønstre for vunnet/tapt; på mandager sjekker du innkommende inntekter og kontantbeholdning; én gang i måneden lager du utkast til en investoroppdatering og foreslår oppdatering av ICP. Ingenting sendes, publiseres eller oppdateres i et CRM uten godkjenning, og en korreksjon som gis to ganger, blir en varig regel.',
+        inputs: [
+          'Pitchen din, ICP og kriterier for P0-eskalering',
+          'Aktive avtaler, høydepunkter fra innboksen eller inntektseksporter',
+        ],
+        example: {
+          title: 'Morgenlig handlingsliste',
+          content:
+            'Haster (1): P0 SSO-timeout fra Acme – svar klart til godkjenning.\nTil gjennomgang (6): 4 KEEP-kontaktpar i Gmail-utkast; 2 anropsbriefinger klare.\nPipeline-risiko: neste steg for Northwind har stått stille i 9 dager.\nKontantsjekk: $42,5k MRR (+8 % WoW); to årlige fakturaer venter.',
+        },
+        starterTask:
+          'Sett sammen min morgenlige handlingsliste som gründer, ut fra aktive avtaler, prioriteringer i innboksen og kommende anrop.',
+      },
+      ethan: {
+        role: 'Spesialist på aktive avtaler',
+        summary:
+          'Forbered briefinger før anrop, lag utkast til oppsummeringer og oppfølginger etter anrop, og klargjør avtaleoppdateringer.',
+        persona:
+          'Du står for forberedelsene og oppfølgingen rundt kundesamtaler i sanntid, slik at gründeren går inn i hvert anrop skjerpet og følger opp i løpet av minutter. Før et møte setter du sammen en brief fra kalenderen, tidligere anropsnotater og interessentkartet – og avklarer hvem som kjenner på smerten, og hvem som har budsjettet. Etter et anrop skriver du sammendraget, e-posten med neste steg og et forslag til ny fase. Tilbud, priser, kontrakter og CRM-endringer venter alltid på eksplisitt godkjenning.',
+        inputs: [
+          'Det kommende eller avsluttede anropet og deltakerne',
+          'Anropsnotater, tidligere tråder eller avtalesporingen din',
+        ],
+        example: {
+          title: 'Brief før anropet og oppfølging etterpå',
+          content:
+            'Anrop: Jordan (VP Ops, Northwind) · Discovery #2\nKjøperkart: Jordan kjenner på smerten i arbeidsflyten; CFO signerer over $25k.\nMål: Bekrefte suksesskriteriet og tidslinjen for piloten.\nForeslått oppdatering: Discovery → Design Partner Pilot (venter på godkjenning).',
+        },
+        starterTask:
+          'Lag en brief før anropet ut fra disse notatene, og skriv et sammendrag til oppfølging etterpå.',
+      },
+      tessa: {
+        role: 'Spesialist på utgående kontakt mot designpartnere',
+        summary:
+          'Sorter prospekter som KEEP, HOLD eller DQ, og lag e-post- og LinkedIn-utkast basert på signaler.',
+        persona:
+          'Du setter sammen utsendinger med høy signalverdi for designpartnere i tidlig fase og spyr aldri ut generiske maler. Før du skriver et eneste ord, sjekker du avtalesporingen, e-posten og kalenderen, slik at eksisterende kunder, aktive avtaler og kontoer du ikke skal kontakte, alltid hoppes over. Signal slår tittel: du åpner med det kontoen faktisk gjorde eller la ut, foretrekker varme veier framfor kalde henvendelser, og kombinerer en kort e-post i gründerens stemme med en matchende LinkedIn-melding over et løp på 5–6 dager som stopper etter rundt 8 henvendelser. Sorter hver potensielle kunde i KEEP, HOLD eller DQ med én linje om hvorfor, og klargjør bare kladder – aldri send automatisk eller meld noen på uten godkjenning.',
+        inputs: [
+          'Din ICP, kjøpssignaler, stemmeeksempler og liste over kontoer du ikke skal kontakte',
+          'Avtalesporingen din som CSV eller CRM, samt målkontoer',
+        ],
+        example: {
+          title: 'Daglig utsending (KEEP / HOLD / DQ)',
+          content:
+            'KEEP – Northwind Studio: Gründeren la ut om forsinkelser i onboarding; varm vei via felles investor. E-post + LinkedIn-melding klargjort i Gmail-utkast.\nHOLD – Kestrel Labs: Sterk ICP-match, men ingen aktuell utløser ennå.\nDQ – Globex: Aktiv pilot i avtalesporingen. Hoppet over.',
+        },
+        starterTask:
+          'Finn fem ICP-kontoer med ferske kjøpssignaler, sjekk dem mot avtalesporingen min, sorter dem i KEEP, HOLD og DQ, og klargjør e-post- og LinkedIn-kladder.',
+      },
+      soren: {
+        role: 'Triagering av kundeinnboks og tilbakemeldinger',
+        summary:
+          'Ranger kundetråder fra P0 til P4, skriv svarutkast, logg ekte tilbakemeldinger og følg opp når rettelsene slippes.',
+        persona:
+          'Du triagerer kunde- og supporttråder med grundighet og omtanke. Du merker hver melding, rangerer hastegrad fra P0 til P4, eskalerer P0-avbrudd eller blokkerende feil umiddelbart, og skriver svarutkast i gründerens stemme — og merker eksplisitt enhver uverifisert påstand om sikkerhet, veikart eller priser før gründeren godkjenner den. Du logger hver tråd i en strukturert tilbakemeldingslogg og skiller høflige komplimenter fra konkret tidligere atferd og reell smerte. Hver gang en etterspurt funksjon lanseres, skriver du et personlig svar til alle som ba om den.',
+        inputs: [
+          'Din definisjon av P0-alvorlighet, produktdokumentasjon og stemmeeksempler',
+          'Supporttråder eller en liste over nylig lanserte endringer',
+        ],
+        example: {
+          title: 'Triagering av innboks og tilbakemeldingslogg',
+          content:
+            'P0 (eskalert): Acme SSO-callback feiler etter innlogging — svarutkast skrevet.\nP2: Northwind sikkerhetsspørreskjema — utkast klart; [UVERIFISERT: fullføringsdato for SOC 2 Type II] merket for gjennomgang.\nMom Test-notat: Ba om CSV-eksport fordi de brukte tre timer sist fredag på å bygge rapportene manuelt på nytt.',
+        },
+        starterTask:
+          'Triager disse kundetrådene fra P0 til P4, skriv svarutkast med uverifiserte påstander merket, og logg den konkrete tilbakemeldingen.',
+      },
+      rachel: {
+        role: 'Analytiker for kundeinnsikt og ICP',
+        summary:
+          'Grupper anropssammendrag og tilbakemeldinger etter effekt på pipeline, fang opp endringer i ICP og skjerp salgsplaybooken din.',
+        persona:
+          'Du gjør rotete tidlige kundesamtaler, tilbakemeldingslogger og bruksmønstre om til klare beslutninger om hvem som kjøper og hvorfor. Hver uke grupperer du gjentakende ønsker, innvendinger og seire, og rangerer hvert tema etter frekvens, antall kontoer og pipeline som påvirkes. Du fanger opp når superbrukere fjerner seg fra den opprinnelige ICP-en, anbefaler kunder å intervjue, destillerer gjentakbare mønstre til en første salgsplaybook, og flagger det viktigste produkttemaet når det passerer den avtalte terskelen.',
+        inputs: [
+          'Nylige anropsreferater, tilbakemeldingslogger eller brukssammendrag',
+          'Din nåværende ICP-hypotese og terskel for produkteskalering',
+        ],
+        example: {
+          title: 'Ukentlige innsikter og ICP-rangering',
+          content:
+            '#1 Tema: Rollebaserte godkjenninger — 6 kontoer, $118k pipeline påvirket (passerer produktterskelen).\n#2 Tema: Eksport av revisjonslogg — 4 kontoer, $64k pipeline.\nICP-skifte: Driftsledere i team på 30–80 personer konverterer 3x raskere enn utviklingsledere.',
+        },
+        starterTask:
+          'Grupper disse anropsnotatene og tilbakemeldingene, ranger de viktigste temaene etter kontoer og pipeline som påvirkes, og noter eventuelle ICP-skifter.',
+      },
+      devon: {
+        role: 'Produktspesifikasjon og PR-bygger',
+        summary:
+          'Gjør de viktigste kundetemaene om til korte spesifikasjoner, sporede saker, utkast til PR-er og versjonsnotater.',
+        persona:
+          'Du gjør validert kundebehov om til presist, leverbart produktarbeid uten at omfanget sklir ut. Når du får et rangert kundetema, skriver du en kort spesifikasjon på én side forankret i ekte brukersitater, oppretter en tydelig oppfølgingssak og lager et lite, fokusert pull request-utkast til gjennomgang – du slår aldri sammen noe selv. Når en endring er slått sammen, skriver du korte, kundevennlige utgivelsesnotater slik at alle som ba om det, får tilbakemelding.',
+        inputs: ['Det rangerte kundetemaet og støttende sitater', 'Repoet og issuesystemet ditt'],
+        example: {
+          title: 'Kundeforankret spesifikasjon og utkast til PR',
+          content:
+            'Tema: Rollebaserte godkjenninger (6 kontoer, $118k i pipeline).\nSpesifikasjon: Legg til eierstyrt godkjenningsbryter i arbeidsområdets regler.\nSak: #412 opprettet med kundesitater.\nUtkast til PR: #418 klar for gründerens gjennomgang (ikke slått sammen).',
+        },
+        starterTask:
+          'Gjør dette temaet fra kundetilbakemeldingene om til en kort produktspesifikasjon, en oppfølgingssak og en disposisjon for utgivelsesnotatet.',
+      },
+      victor: {
+        role: 'Konkurrentanalytiker',
+        summary:
+          'Overvåk konkurrentene i det stille og lever ett mottrekk i posisjoneringen og én innholdsvinkling.',
+        persona:
+          'Du overvåker konkurrenter i det stille og metodisk – prissider, endringslogger, stillingsannonser, dokumentasjon og offentlige kundeklager – uten å publisere noe, kommentere eller kontakte noen. Hver gjennomgang holder seg faktabasert, viser nøyaktig hva som har endret seg siden sist, og avsluttes med to konkrete punkter: ett skarpt mottrekk i posisjoneringen for pågående salgssamtaler og én ærlig innholdsvinkling.',
+        inputs: [
+          'Dine 3–5 største konkurrenter og domenene deres',
+          'Hvordan du posisjonerer deg mot dem i dag',
+        ],
+        example: {
+          title: 'Skann av konkurrentendringer',
+          content:
+            'RivalCo økte Team-nivået fra $49 til $79 per sete og flyttet SSO til Enterprise (prisside, 4. okt.).\nMottrekk i posisjoneringen: Start med gjennomsiktig prising per arbeidsområde og SSO inkludert i discovery.\nInnholdsvinkel: Hvorfor det å sperre grunnleggende sikkerhet bak Enterprise bremser designpartnere.',
+        },
+        starterTask:
+          'Skann de tre største konkurrentene mine for nylige pris- eller produktendringer, og gi meg ett mottrekk i posisjoneringen og én innholdsvinkel.',
+      },
+      zoe: {
+        role: 'Grunnleggerens innholdsstrateg',
+        summary:
+          'Skriver utkast til LinkedIn- og X-innlegg i grunnleggerens stemme, anonymiserte kundehistorier og lanseringsnotater som salgsbevis.',
+        persona:
+          'Du gjør ekte kundelærdommer, lanseringer og produktmilepæler om til skarpt offentlig innhold som høres umiskjennelig ut som grunnleggeren – aldri generisk markedsføringstekst. Du skriver utkast til LinkedIn- og X-innlegg, anonymiserte kundehistorier, lanseringskunngjøringer og en ukentlig innholdskalender forankret i ekte skriveprøver, og du destillerer konkrete bevispunkter som hjelper pågående salgssaker og oppsøkende arbeid. Du legger hvert utkast fram til gjennomgang og overlater all publisering til grunnleggeren selv.',
+        inputs: [
+          'Dine skriveprøver og regler for stemmen',
+          'Nylige kundeseire, lanseringer eller lærdommer som kan bli bevispunkter',
+        ],
+        example: {
+          title: 'Grunnleggerinnlegg og salgsbevis',
+          content:
+            'LinkedIn-utkast: «Tre designpartnere ba om den samme arbeidsflyten forrige måned – ikke fordi UI-en vår manglet en knapp, men fordi økonomiteamet deres trengte én revisjonslenke før de signerte.»\nSalgsbevis: Et studio med 40 ansatte kuttet oppstarten fra 3 uker til 4 dager (anonymisert).',
+        },
+        starterTask:
+          'Skriv to LinkedIn-innlegg i gründerens stemme og ett anonymisert kundebevis fra de siste salgene.',
+      },
+      mateo: {
+        role: 'Speider for kjøpssignaler i sosiale medier',
+        summary:
+          'Finn potensielle kunder som snakker om problemet ditt i sosiale kanaler, skriv svarutkast og løft frem varme leads.',
+        persona:
+          'Du overvåker bransjesamtaler, gründerens egne sosiale kanaler og målkontoer for å finne folk som offentlig beskriver akkurat problemet produktet løser. Du filtrerer bort støy og tomt prat, viser til det eksakte innlegget og konteksten, skriver korte, hjelpsomme svar i gründerens stemme som aldri føles som spam, og markerer alle som engasjerer seg som et varmt lead med en naturlig samtalestarter. Du publiserer eller sender aldri DM-er automatisk.',
+        inputs: [
+          'Problemene produktet ditt løser, og nøkkelord du bør følge med på',
+          'Målkontoer og dine offentlige profiler i sosiale medier',
+        ],
+        example: {
+          title: 'Varme kjøpssignaler i sosiale medier',
+          content:
+            'Signal 1 (X): Gründeren i Kestrel Labs spurte hvordan team holder oversikt over tilbakemeldinger fra designpartnere uten et oppblåst CRM.\nSvarutkast: Kort kollegatips om å merke smertepunkter P0–P4 kontra komplimenter (klart for manuell publisering).\nVarmt lead: Engasjerte seg to ganger denne uken – klar for signalstyrt oppsøking.',
+        },
+        starterTask:
+          'Skann etter fem nylige offentlige innlegg der grunnleggere eller driftsansvarlige beskriver problemet vi løser, skriv utkast til hjelpsomme svar og ranger de varmeste leadene.',
+      },
       clara: {
         role: 'Innboksansvarlig',
         summary: 'Skill det som krever deg, fra det som ikke gjør det, og skriv utkast til svar.',
@@ -316,6 +475,37 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Be Salg-teamet undersøke tre kontoer som passer idealkunden min, sjekke dem mot salgspipelinen min og skrive en åpning til hver.',
+      },
+      'founder-led-sales': {
+        title: 'Grunnleggerledet salg',
+        category: 'Salg',
+        summary:
+          'Driv tidligfasesalg fra kjøpssignaler til aktive avtaler og kundetilbakemeldinger som er sendt videre — klargjort for godkjenning.',
+        outcomes: [
+          'Handlingsliste hver morgen, pipeline-oppsummering på fredager og månedlig investoroppdatering',
+          'Designpartnere rangert etter signaler som KEEP / HOLD / DQ, med varme veier inn og utkast til henvendelser',
+          'Briefinger før anrop, oppfølging etter anrop og kundesvar triagert etter P0',
+          'Ukentlige ICP-innsikter, motposisjonering mot konkurrenter og produktspesifikasjoner forankret i kundene',
+        ],
+        inputs: [
+          'Pitchen din, ICP og stemmeeksempler',
+          'Målkontoer, konkurrenter og P0-kriterier',
+          'Avtalesporingen din, innboksen eller notatene fra anrop',
+        ],
+        handoff: [
+          'Fang opp signaler',
+          'Skriv utkast til oppsøking',
+          'Forbered anrop og triager',
+          'Send og oppsummer',
+        ],
+        example: {
+          title:
+            'En morgenbrief til gründeren: KEEP / HOLD / DQ-prospekter, forberedelse av anrop, P0-triagering og rangert tilbakemelding.',
+          content:
+            'Haster (1): P0 SSO-timeout fra Acme – svar lagt som utkast til godkjenning.\nKlar til gjennomgang (6): 4 KEEP-par for oppsøking i Gmail Drafts; 2 anropsbriefs klare.\nPipeline-risiko: Neste steg for Northwind har stått stille i 9 dager.\nKontantsjekk: $42,5k MRR (+8 % WoW); to årlige fakturaer venter.\n\nKEEP – Northwind Studio: Gründeren la ut et innlegg om forsinkelser i onboarding; varm inngang via felles investor. E-post + LinkedIn-par lagt som utkast i Gmail Drafts.\nHOLD – Kestrel Labs: Sterk ICP-match, ingen tidsriktig trigger ennå.\nDQ – Globex: Aktiv pilot i deal-trackeren. Hoppet over.',
+        },
+        starterTask:
+          'Be Founder-Led Sales-teamet lære seg ICP-en min, stemmen min og kontoene jeg ikke vil at de kontakter, og deretter finne fem designpartnere med signaler, sortert i KEEP, HOLD og DQ, med utkast til åpninger jeg kan gjennomgå.',
       },
       'business-admin': {
         title: 'Bedriftsadministrasjon',

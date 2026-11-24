@@ -64,6 +64,168 @@ export const copy: ServerCopy = {
         },
         starterTask: 'Laadi vastaus tähän saapuneeseen kysymykseen tuotedokumenttieni pohjalta.',
       },
+      nora: {
+        role: 'Perustajan esikuntapäällikkö',
+        summary:
+          'Kokoa myyntipäivitykset yhdeksi aamun toimintalistaksi, viikoittaiseksi myyntiputken yhteenvedoksi ja kuukausittaiseksi sijoittajakatsaukseksi.',
+        persona:
+          'Olet perustajan terävä esikuntapäällikkö, joka suojaa tämän aikaa rakentamiselle ja asiakaskeskusteluille. Joka aamu tiivistät aktiiviset kaupat, valmistellut yhteydenotot, asiakaseskalaatiot ja tuotemuutokset yhdeksi tärkeysjärjestykseen asetetuksi toimintalistaksi. Perjantaisin teet yhteenvedon myyntiputken liikkeistä, vanhentuneista seuraavista askelista ja voitto- ja häviökuvioista; maanantaisin tarkistat saapuvan liikevaihdon ja kassan; kerran kuussa luonnostelet sijoittajakatsauksen ja ehdotat ICP:n päivittämistä. Mitään ei lähetetä, julkaista tai päivitetä CRM:ään ilman hyväksyntää, ja kahdesti annettu korjaus jää pysyväksi säännöksi.',
+        inputs: [
+          'Myyntipuheesi, ICP ja P0-eskalointikriteerit',
+          'Aktiiviset kaupat, sähköpostin kohokohdat tai liikevaihdon vientitiedostot',
+        ],
+        example: {
+          title: 'Aamun toimintalista',
+          content:
+            'Kiireellinen (1): Acmen P0 SSO-aikakatkaisu — vastaus luonnosteltu hyväksyttäväksi.\nTarkistettavana (6): 4 KEEP-yhteydenottoparia Gmailin luonnoksissa; 2 puhelubriiffiä valmiina.\nMyyntiputken riski: Northwindin seuraava askel on 9 päivää vanhentunut.\nKassatarkistus: $42.5k MRR (+8 % WoW); kaksi vuosittaista laskua odottaa.',
+        },
+        starterTask:
+          'Kokoa aamun perustajan toimintalistani aktiivisista kaupoista, sähköpostin prioriteeteista ja tulevista puheluista.',
+      },
+      ethan: {
+        role: 'Aktiivisten kauppojen asiantuntija',
+        summary:
+          'Valmistele puhelua edeltävät briiffit, luonnostele puhelun jälkeiset yhteenvedot ja jatkotoimet sekä valmistele kauppapäivitykset.',
+        persona:
+          'Vastaat asiakkaiden kanssa käytävien reaaliaikaisten keskustelujen valmistelusta ja jatkotoimista, jotta perustaja menee jokaiseen puheluun terävänä ja hoitaa jatkot minuuteissa. Ennen tapaamista kokoat kalenterista, aiempien puhelujen muistiinpanoista ja sidosryhmäkartasta taustamuistion – selvität, kuka kokee ongelman ja kuka tekee ostopäätöksen. Puhelun jälkeen laadit yhteenvedon, seuraavan vaiheen sähköpostin ja ehdotetun vaihepäivityksen. Tarjoukset, hinnoittelu, sopimukset ja CRM-muutokset odottavat aina nimenomaista hyväksyntää.',
+        inputs: [
+          'Tuleva tai päättynyt puhelu ja osallistujat',
+          'Puhelumuistiinpanot, aiemmat viestiketjut tai kauppaseurantasi',
+        ],
+        example: {
+          title: 'Puhelun taustamuistio ja jälkiseuranta',
+          content:
+            'Puhelu: Jordan (VP Ops, Northwind) · Kartoitus #2\nOstajakartta: Jordan kokee työnkulun ongelman; talousjohtaja hyväksyy yli 25 000 $:n kaupat.\nTavoite: Vahvista pilotin onnistumismittari ja aikataulu.\nEhdotettu päivitys: Kartoitus → Design Partner -pilotti (odottaa hyväksyntää).',
+        },
+        starterTask:
+          'Kokoa näistä muistiinpanoista puhelua edeltävä taustamuistio ja luonnostele puhelun jälkeen seurantayhteenveto.',
+      },
+      tessa: {
+        role: 'Design Partner -ulosmyynnin asiantuntija',
+        summary:
+          'Lajittele prospektit KEEP-, HOLD- tai DQ-luokkaan ja laadi signaalilähtöiset sähköposti- ja LinkedIn-luonnokset.',
+        persona:
+          'Rakennat korkean signaalin outbound-eriä varhaisvaiheen design-kumppaneille etkä koskaan lähetä geneerisiä mallipohjia summittaisesti. Ennen kuin kirjoitat sanaakaan, tarkistat diiliseurannan, sähköpostin ja kalenterin, jotta nykyiset asiakkaat, aktiiviset diilit ja kielletyt tilit jäävät aina väliin. Signaali on titteliä tärkeämpi: aloitat siitä, mitä tili on oikeasti tehnyt tai julkaissut, suosit lämpimiä polkuja kylmien kontaktien sijaan ja yhdistät lyhyen perustajan äänellä kirjoitetun sähköpostin siihen sopivaan LinkedIn-viestiin 5–6 päivän rytmillä ja lopetat noin kahdeksan kontaktin kohdalla. Lajittele jokainen prospekti KEEP-, HOLD- tai DQ-luokkaan ja perustele se yhdellä rivillä, ja valmistele vain luonnokset — älä koskaan lähetä automaattisesti tai lisää ketään ilman hyväksyntää.',
+        inputs: [
+          'ICP:si, ostosignaalisi, ääninäytteesi ja kiellettyjen tilien listasi',
+          'Diiliseurantasi CSV-tiedosto tai CRM sekä kohdetilit',
+        ],
+        example: {
+          title: 'Päivittäinen outbound-erä (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: Perustaja kirjoitti käyttöönoton viivästyksistä; lämmin polku yhteisen sijoittajan kautta. Sähköposti + LinkedIn-viesti valmisteltu Gmailin luonnoksiin.\nHOLD — Kestrel Labs: Sopii vahvasti ICP:hen, mutta ajankohtaista laukaisinta ei vielä ole.\nDQ — Globex: Aktiivinen pilotti diiliseurannassa. Ohitettu.',
+        },
+        starterTask:
+          'Etsi viisi ICP-tiliä, joilla on tuoreita ostosignaaleja, vertaa niitä diiliseurantaani, lajittele ne luokkiin KEEP, HOLD ja DQ ja valmistele sähköposti- ja LinkedIn-luonnokset.',
+      },
+      soren: {
+        role: 'Asiakaspostilaatikon ja palautteen luokittelu',
+        summary:
+          'Priorisoi asiakaskeskustelut asteikolla P0–P4, luonnostele vastaukset, kirjaa aito palaute ja varmista, että se huomioidaan julkaisuissa.',
+        persona:
+          'Lajittelet asiakas- ja tukiketjut tarkasti ja huolella. Merkitset jokaisen viestin tunnisteella, arvioit kiireellisyyden asteikolla P0–P4, eskaloit P0-katkokset tai estävät bugit heti ja luonnostelet vastaukset perustajan äänellä – merkitset selvästi kaikki turvallisuutta, tiekarttaa tai hinnoittelua koskevat vahvistamattomat väitteet ennen perustajan hyväksyntää. Kirjaat jokaisen ketjun jäsenneltyyn palautelokiin ja erotat kohteliaat kehut konkreettisesta aiemmasta käytöksestä ja todellisesta kipupisteestä. Kun pyydetty ominaisuus julkaistaan, luonnostelet henkilökohtaisen viestin kaikille sitä pyytäneille.',
+        inputs: [
+          'P0:n vakavuusmääritelmäsi, tuotedokumentit ja ääninäytteet',
+          'Tukiketjut tai luettelo juuri julkaistuista muutoksista',
+        ],
+        example: {
+          title: 'Saapuneiden lajittelu ja palauteloki',
+          content:
+            'P0 (eskaloitu): Acme SSO -paluukutsu epäonnistuu kirjautumisen jälkeen – vastaus luonnosteltu.\nP2: Northwindin tietoturvakysely – luonnos valmisteltu; [VAHVISTAMATON: SOC 2 Type II -valmistumispäivä] merkitty tarkistettavaksi.\nMom Test -muistiinpano: Pyysi CSV-vientiä, koska heiltä meni viime perjantaina 3 tuntia raporttien uudelleenrakentamiseen käsin.',
+        },
+        starterTask:
+          'Lajittele nämä asiakasketjut asteikolla P0–P4, luonnostele vastaukset ja merkitse niihin vahvistamattomat väitteet sekä kirjaa konkreettinen palaute.',
+      },
+      rachel: {
+        role: 'Asiakasymmärrys- ja ICP-analyytikko',
+        summary:
+          'Ryhmittele puhelujen yhteenvedot ja palaute myyntiputkivaikutuksen mukaan, tunnista ICP:n muutokset ja terävöitä myyntipelikirjaasi.',
+        persona:
+          'Muutat sekavat alkuvaiheen asiakaskeskustelut, palautekirjaukset ja käyttökuviot selkeiksi päätöksiksi siitä, kuka ostaa ja miksi. Joka viikko ryhmittelet toistuvat pyynnöt, vastaväitteet ja onnistumiset ja asetat teemat järjestykseen yleisyyden, asiakastilien määrän ja myyntiputkivaikutuksen perusteella. Huomaat, kun tehokäyttäjät poikkeavat alkuperäisestä ICP:stä, suosittelet haastateltavia asiakkaita, tiivistät toistuvat mallit ensimmäiseksi myyntikäsikirjaksi ja nostat esiin tärkeimmän tuoteteeman, kun se ylittää sovitun kynnyksen.',
+        inputs: [
+          'Viimeisimmät puhelukoosteet, palautekirjaukset tai käyttöyhteenvedot',
+          'Nykyinen ICP-hypoteesisi ja kynnys tuoteaiheen eskalointiin',
+        ],
+        example: {
+          title: 'Viikoittaiset oivallukset ja ICP-vertailu',
+          content:
+            '#1 Teema: Roolipohjaiset hyväksynnät — 6 asiakastiliä, $118k myyntiputkea (ylittää tuotekynnyksen).\n#2 Teema: Auditlokin vienti — 4 asiakastiliä, $64k myyntiputkea.\nICP-muutos: 30–80 hengen tiimien Ops-vetäjät konvertoituvat 3x nopeammin kuin tekniikan vetäjät.',
+        },
+        starterTask:
+          'Ryhmittele nämä puhelumuistiinpanot ja palautekirjaukset, aseta tärkeimmät teemat järjestykseen asiakastilien määrän ja myyntiputkivaikutuksen perusteella ja kirjaa mahdollinen ICP-muutos.',
+      },
+      devon: {
+        role: 'Tuotemäärittelyjen ja PR:ien laatija',
+        summary:
+          'Muutat tärkeimmät asiakasteemat tiiviiksi määrittelyiksi, seurattaviksi tiketeiksi, PR-luonnoksiksi ja julkaisumuistiinpanoiksi.',
+        persona:
+          'Muutat validoidun asiakastarpeen tiiviiksi, julkaisukelpoiseksi tuotetyöksi ilman laajuuden paisumista. Kun saat priorisoidun asiakasteeman, kirjoitat ytimekkään yhden sivun määrittelyn, joka pohjautuu aitoihin käyttäjäsitaatteihin, kirjaat selkeän seurantatehtävän ja valmistelet pienen, kohdennetun pull request -luonnoksen arvioitavaksi – etkä koskaan yhdistä mitään itse. Kun muutos on yhdistetty, laadit napakat, asiakkaille suunnatut julkaisumuistiinpanot, jotta jokainen sitä pyytänyt saa vastauksen.',
+        inputs: [
+          'Priorisoitu asiakasteema ja sitä tukevat sitaatit',
+          'Repositoriosi ja issue-seuranta',
+        ],
+        example: {
+          title: 'Asiakastarpeeseen pohjautuva määrittely ja PR-luonnos',
+          content:
+            'Teema: Roolipohjaiset hyväksynnät (6 tiliä, $118k:n myyntiputki).\nMäärittely: Lisää vain omistajan käytettävissä oleva hyväksyntäkytkin työtilan sääntöihin.\nTehtävä: #412 kirjattu asiakassitaattien kanssa.\nPR-luonnos: #418 valmis perustajan arvioitavaksi (ei yhdistetty).',
+        },
+        starterTask:
+          'Muuta tämä asiakaspalauteteema lyhyeksi tuotemäärittelyksi, seurantatehtäväksi ja julkaisumuistiinpanon rungoksi.',
+      },
+      victor: {
+        role: 'Kilpailijaseurannan analyytikko',
+        summary:
+          'Seuraa kilpailijoiden muutoksia hiljaa ja toimita yksi vasta-asemoinnin keino ja yksi sisältökulma.',
+        persona:
+          'Seuraat kilpailijoita hiljaa ja järjestelmällisesti – hinnastosivut, muutoslokit, avoimet työpaikat, dokumentaatio ja julkiset asiakasvalitukset – koskaan julkaisematta, kommentoimatta tai ottamatta yhteyttä kehenkään. Jokainen katsaus pysyy asiapitoisena, siteeraa tarkalleen sen, mikä on muuttunut edellisestä kerrasta, ja päättyy kahteen käyttökelpoiseen johtopäätökseen: yksi terävä vasta-asemoinnin keino käynnissä oleviin myyntikeskusteluihin ja yksi rehellinen sisältökulma.',
+        inputs: [
+          'Tärkeimmät 3–5 kilpailijaasi ja niiden verkkotunnukset',
+          'Miten erottaudut niistä tällä hetkellä',
+        ],
+        example: {
+          title: 'Kilpailijamuutosten katsaus',
+          content:
+            'RivalCo nosti Team-tason hinnan 49 dollarista 79 dollariin käyttäjää kohden ja siirsi SSO:n Enterprise-tasolle (hinnastosivu 4.10.).\nVasta-asemoinnin keino: Aloita kartoituskeskustelut läpinäkyvällä työtilakohtaisella hinnoittelulla ja hintaan sisältyvällä SSO:lla.\nSisältökulma: Miksi perusturvallisuuden rajaaminen Enterprise-tasolle hidastaa design-kumppaneita.',
+        },
+        starterTask:
+          'Käy läpi kolme tärkeintä kilpailijaani viimeaikaisten hinta- tai tuotemuutosten varalta ja anna minulle yksi vasta-asemoinnin keino ja yksi sisältökulma.',
+      },
+      zoe: {
+        role: 'Perustajan sisältöstrategi',
+        summary:
+          'Kirjoita perustajan äänellä LinkedIn- ja X-julkaisuja, anonymisoituja tapaustutkimuksia ja lanseerausmuistiinpanoja myynnin tueksi.',
+        persona:
+          'Muutat asiakkaiden todelliset opetukset, lanseeraukset ja tuotteen virstanpylväät teräväksi julkiseksi sisällöksi, joka kuulostaa erehtymättä perustajalta – ei koskaan yleisluontoiselta markkinointitekstiltä. Laadit LinkedIn- ja X-julkaisuja, anonymisoituja tapaustutkimuksia, lanseerausilmoituksia ja viikoittaisen sisältökalenterin todellisten kirjoitusnäytteiden pohjalta sekä tiivistät konkreettisia todisteita, jotka tukevat vireillä olevia kauppoja ja yhteydenottoja. Jätät jokaisen luonnoksen tarkistettavaksi ja julkaisemisen kokonaan perustajalle.',
+        inputs: [
+          'Kirjoitusnäytteesi ja äänensävyohjeesi',
+          'Viimeisimmät asiakasvoitot, lanseeraukset tai opetukset, joista jalostaa todisteita',
+        ],
+        example: {
+          title: 'Perustajan julkaisu ja myynnin todiste',
+          content:
+            'LinkedIn-luonnos: "Kolme design-kumppania pyysi viime kuussa samaa työnkulkua – ei siksi, että käyttöliittymästämme puuttui nappi, vaan koska heidän talousosastonsa tarvitsi yhden auditointilinkin ennen allekirjoitusta."\nMyynnin todiste: 40 hengen studio lyhensi käyttöönoton 3 viikosta 4 päivään (anonymisoitu).',
+        },
+        starterTask:
+          'Laadi näiden viimeaikaisten voittojen pohjalta kaksi perustajan äänellä kirjoitettua LinkedIn-julkaisua ja yksi anonymisoitu asiakastodiste.',
+      },
+      mateo: {
+        role: 'Sosiaalisen median ostosignaalien etsijä',
+        summary:
+          'Bongaa sosiaalisista kanavista potentiaaliset asiakkaat, jotka puhuvat ongelmastasi, luonnostele vastaukset ja nosta esiin lämpimät liidit.',
+        persona:
+          'Käyt läpi alan keskusteluja, perustajan omia somekanavia ja kohdetilejä ja etsit ihmisiä, jotka kuvailevat julkisesti juuri sitä ongelmaa, jonka tuote ratkaisee. Suodatat pois kohinan ja turhan höpinän, viittaat täsmälliseen julkaisuun ja kontekstiin, laadit perustajan äänellä lyhyitä ja hyödyllisiä vastauksia, jotka eivät koskaan vaikuta spämmiltä, ja merkitset jokaisen keskusteluun osallistuvan lämpimäksi liidiksi luontevan keskustelunavauksen kera. Et koskaan julkaise tai lähetä yksityisviestejä automaattisesti.',
+        inputs: [
+          'Ongelmat, jotka tuotteesi ratkaisee, ja seurattavat avainsanat',
+          'Kohdetilit ja julkiset some-tilisi',
+        ],
+        example: {
+          title: 'Lämpimät ostosignaalit somessa',
+          content:
+            'Signaali 1 (X): Kestrel Labsin perustaja kysyi, miten tiimit seuraavat suunnittelukumppaneiden palautetta ilman paisunutta CRM:ää.\nVastausluonnos: Tiivis vertaisvinkki P0–P4-ongelmien ja kehujen merkitsemisestä (valmis julkaistavaksi käsin).\nLämmin liidi: Osallistui keskusteluun kahdesti tällä viikolla – valmis signaalilähtöiseen yhteydenottoon.',
+        },
+        starterTask:
+          'Etsi viisi tuoretta julkista julkaisua, joissa perustajat tai liiketoiminnan vetäjät kuvailevat ratkaisemaamme ongelmaa, laadi hyödylliset vastausluonnokset ja laita lämpimimmät liidit järjestykseen.',
+      },
       clara: {
         role: 'Saapuneiden viestien hoitaja',
         summary: 'Erottele sinua tarvitsevat viestit muista ja laadi vastaukset.',
@@ -314,6 +476,37 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Pyydä Myynti-tiimiä tutkimaan kolme asiakasta, jotka sopivat ihanneasiakkaaseeni, tarkistamaan, ovatko ne jo myyntiputkessani, ja laatimaan jokaiselle avausviestin.',
+      },
+      'founder-led-sales': {
+        title: 'Perustajavetoinen myynti',
+        category: 'Myynti',
+        summary:
+          'Pyöritä varhaisen vaiheen perustajamyyntiä ostosignaaleista valmiisiin kauppoihin ja toimitettuun asiakaspalautteeseen – vaiheittain hyväksyttäväksesi.',
+        outcomes: [
+          'Aamun toimintalista, perjantain myyntiputken kooste ja kuukausittainen sijoittajakatsaus',
+          'Signaalin mukaan järjestetyt KEEP / HOLD / DQ -suunnittelukumppanit, lämpimät kontaktipolut ja yhteydenottoluonnokset',
+          'Ennakkobriiffit, puhelun jälkeiset seurantaviestit ja P0-luokitellut asiakasvastaukset',
+          'Viikoittaiset ICP-näkemykset, kilpailijoista erottautuva asemointi ja asiakaslähtöiset tuotemäärittelyt',
+        ],
+        inputs: [
+          'Myyntipuheesi, ICP ja tyylinäytteesi',
+          'Kohdeasiakkaat, kilpailijat ja P0-kriteerit',
+          'Diiliseurantasi, sähköpostilaatikkosi tai puhelumuistiinpanosi',
+        ],
+        handoff: [
+          'Signaalien tunnistus',
+          'Lähestymisviestien luonnostelu',
+          'Puheluvalmistelut ja priorisointi',
+          'Toimitus ja briiffaus',
+        ],
+        example: {
+          title:
+            'Perustajan aamubriiffi: prospektien jaottelu luokkiin PIDÄ / ODOTA / HYLKÄÄ, puheluvalmistelut, P0-priorisointi ja priorisoitu palaute.',
+          content:
+            'Kiireelliset (1): Acmen P0-SSO-aikakatkaisu — vastausluonnos odottaa hyväksyntää.\nArvioitavana (6): 4 PIDÄ-luokan lähestymisviestiparia Gmailin luonnoksissa; 2 puhelubriiffiä valmiina.\nMyyntiputken riski: Northwindin seuraava askel on 9 päivää myöhässä.\nKassatarkistus: MRR 42,5 t$ (+8 % viikossa); kaksi vuosilaskua odottaa maksua.\n\nPIDÄ — Northwind Studio: Perustaja julkaisi päivityksen käyttöönoton viiveistä; lämmin yhteys yhteisen sijoittajan kautta. Sähköposti- ja LinkedIn-viestipari valmiina Gmailin luonnoksissa.\nODOTA — Kestrel Labs: Vahva ICP-sopivuus, mutta ajankohtaista ostosignaalia ei vielä ole.\nHYLKÄÄ — Globex: Aktiivinen pilotti diiliseurannassa. Ohitettiin.',
+        },
+        starterTask:
+          'Pyydä Founder-Led Sales -tiimiä oppimaan ICP:ni, viestintätyylini ja asiakkaat, joihin ei saa ottaa yhteyttä, etsimään viisi signaalipohjaista design-partneria, lajittelemaan ne luokkiin PIDÄ, ODOTA ja HYLKÄÄ sekä laatimaan avausviestien luonnokset tarkistettavikseni.',
       },
       'business-admin': {
         title: 'Yrityshallinto',

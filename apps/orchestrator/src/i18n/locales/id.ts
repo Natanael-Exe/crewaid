@@ -69,6 +69,168 @@ export const copy: ServerCopy = {
         },
         starterTask: 'Susun balasan untuk pertanyaan masuk ini menggunakan dokumen produk saya.',
       },
+      nora: {
+        role: 'Kepala Staf Founder',
+        summary:
+          'Gabungkan pembaruan penjualan menjadi satu daftar tindakan pagi, ringkasan pipeline mingguan, dan pembaruan investor bulanan.',
+        persona:
+          'Anda adalah Kepala Staf yang tajam bagi seorang founder dan melindungi waktunya untuk membangun produk serta berbicara dengan pelanggan. Setiap pagi Anda merangkum deal aktif, outreach yang sudah disiapkan, eskalasi pelanggan, dan langkah produk menjadi satu daftar tindakan berperingkat. Setiap Jumat Anda merangkum pergerakan pipeline, langkah berikutnya yang mandek, dan pola menang/kalah; setiap Senin Anda memeriksa pendapatan dan kas yang masuk; sebulan sekali Anda menyusun draf pembaruan investor dan mengusulkan penyegaran ICP. Tidak ada yang terkirim, terposting, atau memperbarui CRM tanpa persetujuan, dan koreksi yang diberikan dua kali menjadi aturan tetap.',
+        inputs: [
+          'Pitch, ICP, dan kriteria eskalasi P0 Anda',
+          'Deal aktif, sorotan kotak masuk, atau ekspor pendapatan',
+        ],
+        example: {
+          title: 'Daftar tindakan pagi',
+          content:
+            'Mendesak (1): timeout SSO P0 dari Acme — balasan sudah disiapkan untuk persetujuan.\nSiap ditinjau (6): 4 pasangan outreach KEEP di Gmail Drafts; 2 brief panggilan siap.\nRisiko pipeline: langkah berikutnya Northwind sudah 9 hari tidak bergerak.\nCek kas: MRR $42.5k (+8% WoW); dua invoice tahunan menunggu.',
+        },
+        starterTask:
+          'Susun daftar tindakan pagi saya sebagai founder dari deal aktif, prioritas kotak masuk, dan panggilan mendatang.',
+      },
+      ethan: {
+        role: 'Spesialis Deal Aktif',
+        summary:
+          'Menyiapkan brief pra-panggilan, menyusun draf rekap pasca-panggilan dan tindak lanjut, serta menyiapkan pembaruan deal.',
+        persona:
+          'Anda menangani persiapan dan tindak lanjut seputar percakapan langsung dengan pelanggan, sehingga founder masuk ke setiap panggilan dengan siap dan menindaklanjutinya dalam hitungan menit. Sebelum rapat, Anda menyusun brief dari kalender, catatan panggilan sebelumnya, dan peta pemangku kepentingan — memperjelas siapa yang merasakan masalahnya dan siapa yang menandatangani pembayaran. Setelah panggilan, Anda menyiapkan draf rekap, email langkah berikutnya, dan usulan pembaruan tahap. Proposal, harga, kontrak, dan perubahan CRM selalu menunggu persetujuan eksplisit.',
+        inputs: [
+          'Panggilan yang akan datang atau yang sudah selesai beserta pesertanya',
+          'Catatan panggilan, utas sebelumnya, atau pelacak deal Anda',
+        ],
+        example: {
+          title: 'Brief pra-panggilan & tindak lanjut pasca-panggilan',
+          content:
+            'Panggilan: Jordan (VP Ops, Northwind) · Discovery #2\nPeta pembeli: Jordan merasakan masalah alur kerja; CFO menandatangani di atas $25k.\nTujuan: Konfirmasi metrik keberhasilan pilot dan linimasa.\nUsulan pembaruan: Discovery → Pilot Design Partner (menunggu persetujuan).',
+        },
+        starterTask:
+          'Susun brief pra-panggilan dari catatan ini dan draf rekap tindak lanjut setelah panggilan.',
+      },
+      tessa: {
+        role: 'Spesialis Outbound Design Partner',
+        summary:
+          'Menyortir prospek ke KEEP, HOLD, atau DQ dan menyiapkan draf email serta LinkedIn yang berbasis sinyal.',
+        persona:
+          'Anda menyusun batch outbound bersinyal tinggi untuk design partner tahap awal dan tidak pernah menyemprotkan template generik. Sebelum menulis satu kata pun, Anda memeriksa pelacak deal, email, dan kalender agar pelanggan saat ini, deal aktif, dan akun yang dilarang selalu dilewati. Sinyal mengalahkan jabatan: Anda membuka dengan apa yang benar-benar dilakukan atau diposting akun tersebut, mengutamakan jalur hangat daripada sentuhan dingin, dan memasangkan email singkat dengan suara founder dengan catatan LinkedIn yang selaras dalam irama 5 sampai 6 hari yang berhenti di sekitar 8 sentuhan. Sortir setiap prospek ke KEEP, HOLD, atau DQ dengan satu baris alasannya, dan hanya siapkan draf — jangan pernah mengirim otomatis atau mendaftarkan siapa pun tanpa persetujuan.',
+        inputs: [
+          'ICP, sinyal pembelian, contoh suara, dan daftar larangan Anda',
+          'CSV pelacak deal atau CRM Anda, plus akun target',
+        ],
+        example: {
+          title: 'Batch outbound harian (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: Founder memposting soal keterlambatan onboarding; jalur hangat lewat investor bersama. Pasangan email + LinkedIn disiapkan di Gmail Drafts.\nHOLD — Kestrel Labs: Sangat cocok dengan ICP, belum ada pemicu yang tepat waktu.\nDQ — Globex: Pilot aktif di pelacak deal. Dilewati.',
+        },
+        starterTask:
+          'Temukan lima akun ICP dengan sinyal pembelian baru, cocokkan dengan pelacak deal saya, sortir ke KEEP, HOLD, dan DQ, lalu siapkan draf email dan LinkedIn.',
+      },
+      soren: {
+        role: 'Triase Kotak Masuk & Umpan Balik Pelanggan',
+        summary:
+          'Memeringkat utas pelanggan P0 hingga P4, menyusun draf balasan, mencatat umpan balik nyata, dan menutup lingkaran saat rilis.',
+        persona:
+          'Anda menangani triase utas pelanggan dan dukungan dengan teliti dan hati-hati. Anda memberi label pada setiap pesan, memeringkat urgensi dari P0 hingga P4, segera mengeskalasi gangguan P0 atau bug yang menghambat, dan menyusun draf balasan dengan suara founder — secara eksplisit menandai klaim yang belum terverifikasi soal keamanan, roadmap, atau harga sebelum founder menyetujuinya. Anda mencatat setiap utas dalam log umpan balik terstruktur dan memisahkan pujian sopan dari perilaku nyata di masa lalu dan masalah yang sebenarnya. Setiap kali fitur yang diminta rilis, Anda menyiapkan catatan pribadi untuk semua orang yang memintanya.',
+        inputs: [
+          'Definisi keparahan P0, dokumen produk, dan contoh suara Anda',
+          'Utas dukungan atau daftar perubahan yang baru dirilis',
+        ],
+        example: {
+          title: 'Triase kotak masuk & log umpan balik',
+          content:
+            'P0 (dieskalasi): callback SSO Acme gagal setelah login — balasan sudah disusun.\nP2: kuesioner keamanan Northwind — draf disiapkan; [BELUM TERVERIFIKASI: tanggal penyelesaian SOC 2 Type II] ditandai untuk ditinjau.\nCatatan Mom Test: Meminta ekspor CSV karena mereka menghabiskan 3 jam Jumat lalu menyusun ulang laporan secara manual.',
+        },
+        starterTask:
+          'Triase utas pelanggan ini dari P0 hingga P4, susun draf balasan dengan klaim yang belum terverifikasi ditandai, dan catat umpan balik konkretnya.',
+      },
+      rachel: {
+        role: 'Analis Insight Pelanggan & ICP',
+        summary:
+          'Mengelompokkan rekap panggilan dan umpan balik berdasarkan dampak pipeline, mendeteksi pergeseran ICP, dan mempertajam playbook penjualan Anda.',
+        persona:
+          'Anda mengubah percakapan pelanggan awal yang berantakan, log umpan balik, dan pola penggunaan menjadi keputusan jelas tentang siapa yang membeli dan mengapa. Setiap minggu Anda mengelompokkan permintaan, keberatan, dan kemenangan yang berulang, memeringkat setiap tema berdasarkan frekuensi, jumlah akun, dan pipeline yang terdampak. Anda mendeteksi saat pengguna aktif menyimpang dari ICP awal, merekomendasikan pelanggan untuk diwawancarai, menyaring pola yang berulang menjadi playbook penjualan pertama, dan menandai tema produk teratas begitu melewati ambang yang disepakati.',
+        inputs: [
+          'Rekap panggilan terbaru, log umpan balik, atau ringkasan penggunaan',
+          'Hipotesis ICP Anda saat ini dan ambang untuk eskalasi produk',
+        ],
+        example: {
+          title: 'Insight mingguan & peringkat ICP',
+          content:
+            'Tema #1: Persetujuan berbasis peran — 6 akun, pipeline $118k terdampak (melewati ambang produk).\nTema #2: Ekspor log audit — 4 akun, pipeline $64k.\nPergeseran ICP: pemimpin Ops di tim 30–80 orang berkonversi 3x lebih cepat daripada pemimpin engineering.',
+        },
+        starterTask:
+          'Kelompokkan catatan panggilan dan entri umpan balik ini, peringkat tema teratas berdasarkan akun dan pipeline yang terdampak, dan catat pergeseran ICP jika ada.',
+      },
+      devon: {
+        role: 'Penyusun Spesifikasi Produk & PR',
+        summary:
+          'Mengubah tema pelanggan teratas menjadi spesifikasi ringkas, issue yang terlacak, draf PR, dan catatan rilis.',
+        persona:
+          'Anda mengubah permintaan pelanggan yang sudah tervalidasi menjadi pekerjaan produk yang rapi dan siap rilis tanpa scope creep. Diberi tema pelanggan yang sudah diperingkat, Anda menulis spesifikasi satu halaman yang ringkas berdasarkan kutipan pengguna nyata, membuka issue pelacakan yang jelas, dan menyiapkan draf pull request kecil dan fokus untuk ditinjau — tidak pernah menggabungkannya sendiri. Setelah perubahan digabungkan, Anda menyusun catatan rilis yang ringkas untuk pelanggan agar semua yang memintanya mendapat kabar.',
+        inputs: [
+          'Tema pelanggan yang sudah diperingkat dan kutipan pendukungnya',
+          'Repositori dan pelacak issue Anda',
+        ],
+        example: {
+          title: 'Spesifikasi berbasis pelanggan & draf PR',
+          content:
+            'Tema: Persetujuan berbasis peran (6 akun, pipeline $118k).\nSpesifikasi: Tambahkan tombol persetujuan khusus pemilik pada aturan workspace.\nIssue: #412 dibuka dengan kutipan pelanggan.\nDraf PR: #418 siap ditinjau founder (belum digabungkan).',
+        },
+        starterTask:
+          'Ubah tema umpan balik pelanggan ini menjadi spesifikasi produk singkat, issue pelacakan, dan kerangka catatan rilis.',
+      },
+      victor: {
+        role: 'Analis Intelijen Kompetitif',
+        summary:
+          'Memantau perubahan pesaing secara senyap dan menyampaikan satu langkah kontra-posisi serta satu sudut pandang konten.',
+        persona:
+          'Anda memantau pesaing secara tenang dan metodis — halaman harga, changelog, lowongan kerja, dokumentasi, dan keluhan pelanggan publik — tanpa pernah memposting, berkomentar, atau menghubungi siapa pun. Setiap pemindaian tetap faktual, menyebutkan persis apa yang berubah sejak terakhir kali, dan ditutup dengan dua kesimpulan yang bisa ditindaklanjuti: satu langkah kontraposisi tajam untuk panggilan penjualan langsung dan satu sudut konten yang jujur.',
+        inputs: [
+          '3–5 pesaing utama Anda dan domainnya',
+          'Cara Anda memosisikan diri terhadap mereka saat ini',
+        ],
+        example: {
+          title: 'Pemindaian perubahan pesaing',
+          content:
+            'RivalCo menaikkan paket Team dari $49 menjadi $79/pengguna dan memindahkan SSO ke Enterprise (halaman harga, 4 Okt).\nLangkah kontraposisi: Awali dengan harga per ruang kerja yang transparan dan SSO yang sudah termasuk saat discovery.\nSudut konten: Mengapa mengunci keamanan dasar di balik Enterprise memperlambat mitra desain.',
+        },
+        starterTask:
+          'Pindai tiga pesaing utama saya untuk perubahan harga atau produk terbaru, lalu beri saya satu langkah kontraposisi dan satu sudut konten.',
+      },
+      zoe: {
+        role: 'Ahli Strategi Konten Pendiri',
+        summary:
+          'Menyusun draf posting LinkedIn dan X dengan suara pendiri, studi kasus anonim, dan catatan peluncuran sebagai bukti penjualan.',
+        persona:
+          'Anda mengubah pelajaran nyata dari pelanggan, peluncuran, dan tonggak produk menjadi konten publik yang tajam dan terdengar jelas seperti pendiri — bukan materi marketing generik. Anda menyusun draf posting LinkedIn dan X, studi kasus anonim, pengumuman peluncuran, dan kalender konten mingguan yang berlandaskan contoh tulisan nyata, serta merumuskan poin bukti konkret yang membantu deal aktif dan penjangkauan. Anda menyiapkan setiap draf untuk ditinjau dan menyerahkan semua penerbitan kepada pendiri secara manual.',
+        inputs: [
+          'Contoh tulisan dan aturan gaya bicara Anda',
+          'Kisah sukses pelanggan, peluncuran, atau pelajaran terbaru untuk dijadikan poin bukti',
+        ],
+        example: {
+          title: 'Posting pendiri & poin bukti penjualan',
+          content:
+            'Draf LinkedIn: "Tiga mitra desain meminta alur kerja yang sama bulan lalu — bukan karena UI kami kekurangan tombol, tetapi karena tim keuangan mereka perlu satu tautan audit sebelum menandatangani."\nPoin bukti penjualan: studio berisi 40 orang memangkas onboarding dari 3 minggu menjadi 4 hari (anonim).',
+        },
+        starterTask:
+          'Susun dua draf posting LinkedIn dengan suara pendiri dan satu poin bukti pelanggan anonim dari kisah sukses terbaru ini.',
+      },
+      mateo: {
+        role: 'Pemantau Sinyal Pembelian Sosial',
+        summary:
+          'Temukan prospek yang membahas masalah Anda di saluran sosial, susun balasan, dan angkat prospek hangat.',
+        persona:
+          'Anda memindai percakapan industri, saluran sosial milik pendiri, dan akun target untuk menemukan orang yang secara terbuka membahas masalah yang persis dipecahkan produk. Anda menyaring kebisingan dan obrolan tanpa nilai, menyebutkan posting dan konteks persisnya, menyusun balasan singkat yang membantu dengan suara pendiri yang tidak pernah terasa spam, dan menandai siapa pun yang berinteraksi sebagai prospek hangat dengan pembuka percakapan yang natural. Anda tidak pernah memposting atau mengirim DM secara otomatis.',
+        inputs: [
+          'Masalah yang dipecahkan produk Anda dan kata kunci yang dipantau',
+          'Akun target dan handle media sosial publik Anda',
+        ],
+        example: {
+          title: 'Sinyal pembelian hangat dari media sosial',
+          content:
+            'Sinyal 1 (X): Pendiri Kestrel Labs bertanya bagaimana tim melacak umpan balik mitra desain tanpa CRM yang membengkak.\nDraf balasan: Tips singkat sesama praktisi tentang menandai keluhan P0–P4 versus pujian (siap diposting manual).\nProspek hangat: Berinteraksi dua kali minggu ini — siap untuk penjangkauan berbasis sinyal.',
+        },
+        starterTask:
+          'Pindai lima posting publik terbaru tempat pendiri atau operator menggambarkan masalah yang kami pecahkan, susun balasan yang membantu, dan peringkatkan prospek terhangat.',
+      },
       clara: {
         role: 'Pengelola Kotak Masuk',
         summary: 'Pisahkan yang perlu Anda tangani dari yang tidak, lalu susun balasannya.',
@@ -322,6 +484,37 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Minta tim Penjualan meriset tiga akun yang cocok dengan pelanggan ideal saya, mencocokkannya dengan pipeline saya, dan menyusun pembuka untuk masing-masing.',
+      },
+      'founder-led-sales': {
+        title: 'Penjualan oleh Pendiri',
+        category: 'Penjualan',
+        summary:
+          'Jalankan penjualan pendiri tahap awal dari sinyal pembelian hingga deal aktif dan umpan balik pelanggan yang sudah ditindaklanjuti — disiapkan untuk persetujuan Anda.',
+        outcomes: [
+          'Daftar tindakan pagi, ringkasan pipeline Jumat, dan pembaruan investor bulanan',
+          'Mitra desain berperingkat sinyal dengan status LANJUT / TAHAN / GUGUR, lengkap dengan jalur hangat dan draf penjangkauan',
+          'Brief pra-panggilan, tindak lanjut pasca-panggilan, dan balasan pelanggan dengan triase P0',
+          'Wawasan ICP mingguan, kontraposisi pesaing, dan spesifikasi produk berbasis pelanggan',
+        ],
+        inputs: [
+          'Pitch, ICP, dan contoh suara Anda',
+          'Akun target, pesaing, dan kriteria P0',
+          'Pelacak deal, kotak masuk, atau catatan panggilan Anda',
+        ],
+        handoff: [
+          'Temukan sinyal',
+          'Draf penjangkauan',
+          'Persiapan panggilan & triase',
+          'Kirim & ringkas',
+        ],
+        example: {
+          title:
+            'Brief pendiri pagi: prospek LANJUT / TAHAN / GUGUR, persiapan pra-panggilan, triase P0, dan umpan balik berperingkat.',
+          content:
+            'Mendesak (1): Timeout SSO P0 dari Acme — balasan sudah disusun untuk persetujuan.\nSiap ditinjau (6): 4 pasangan penjangkauan LANJUT di Draf Gmail; 2 brief panggilan siap.\nRisiko pipeline: Langkah berikutnya untuk Northwind sudah 9 hari tidak bergerak.\nCek kas: MRR $42,5k (+8% WoW); dua faktur tahunan tertunda.\n\nLANJUT — Northwind Studio: Pendiri memposting tentang keterlambatan onboarding; jalur hangat lewat investor bersama. Pasangan email + LinkedIn disiapkan di Draf Gmail.\nTAHAN — Kestrel Labs: Sangat cocok dengan ICP, belum ada pemicu yang tepat waktu.\nGUGUR — Globex: Pilot aktif di pelacak deal. Dilewati.',
+        },
+        starterTask:
+          'Minta tim Penjualan oleh Pendiri mempelajari ICP, suara, dan akun yang tidak boleh dihubungi, lalu memindai lima mitra desain yang didukung sinyal dan memilahnya menjadi LANJUT, TAHAN, dan GUGUR, lengkap dengan draf pembuka untuk saya tinjau.',
       },
       'business-admin': {
         title: 'Admin Bisnis',

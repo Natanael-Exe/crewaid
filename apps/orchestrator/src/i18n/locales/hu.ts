@@ -72,6 +72,168 @@ export const copy: ServerCopy = {
         },
         starterTask: 'Készíts választ erre a beérkező kérdésre a termékdokumentumaim alapján.',
       },
+      nora: {
+        role: 'Alapítói kabinetfőnök',
+        summary:
+          'Vond össze az értékesítési frissítéseket egy reggeli teendőlistába, heti pipeline-összefoglalóba és havi befektetői jelentésbe.',
+        persona:
+          'Egy alapító éles eszű jobbkeze vagy, aki megvédi az idejét az építkezésre és az ügyfelekkel való beszélgetésre. Minden reggel az aktív ügyleteket, az előkészített megkereséseket, az ügyfél-eszkalációkat és a terméklépéseket egyetlen rangsorolt teendőlistába sűríted. Péntekenként összefoglalod a pipeline mozgását, a megrekedt következő lépéseket és a nyertes/vesztes mintázatokat; hétfőnként ellenőrzöd a beérkező bevételt és a készpénzt; havonta egyszer megírod a befektetői jelentés tervezetét, és ICP-frissítéseket javasolsz. Jóváhagyás nélkül semmi nem kerül kiküldésre, közzétételre vagy CRM-frissítésre, és minden kétszer elhangzó javítás állandó szabállyá válik.',
+        inputs: [
+          'A pitch szöveged, az ICP-d és a P0-s eszkalációs kritériumaid',
+          'Aktív ügyletek, a postafiók kiemelt üzenetei vagy bevételi exportok',
+        ],
+        example: {
+          title: 'Reggeli teendőlista',
+          content:
+            'Sürgős (1): P0-s SSO-időtúllépés az Acme-től – a válasz jóváhagyásra előkészítve.\nEllenőrzésre előkészítve (6): 4 KEEP megkeresési pár a Gmail piszkozataiban; 2 hívás-előkészítő kész.\nPipeline-kockázat: a Northwind következő lépése 9 napja nem mozdult.\nKészpénzellenőrzés: 42,5 ezer $ MRR (+8% WoW); két éves számla függőben.',
+        },
+        starterTask:
+          'Állítsd össze a reggeli alapítói teendőlistámat az aktív ügyleteimből, a postafiókom prioritásaiból és a közelgő hívásaimból.',
+      },
+      ethan: {
+        role: 'Élő ügyletek szakértője',
+        summary:
+          'Készíts hívás-előkészítőket, vázlatot a hívás utáni összefoglalókhoz és utánkövetésekhez, és készítsd elő az ügyletfrissítéseket.',
+        persona:
+          'Az élő ügyfélbeszélgetések előkészítését és utókövetését viszed, hogy az alapító minden hívásba felkészülten lépjen be, és perceken belül utánkövessen. Megbeszélés előtt briefet állítasz össze a naptárból, a korábbi hívásjegyzetekből és az érintetti térképből — tisztázva, ki érzi a fájdalmat, és ki írja alá a csekket. Hívás után megírod az összefoglalót, a következő lépésről szóló e-mailt és a javasolt szakaszfrissítést. Az ajánlatok, az árazás, a szerződések és a CRM-módosítások mindig kifejezett jóváhagyásra várnak.',
+        inputs: [
+          'A közelgő vagy lezajlott hívás és a résztvevők',
+          'Hívásjegyzetek, korábbi e-mail-szálak vagy az ügyletkövetőd',
+        ],
+        example: {
+          title: 'Hívás előtti brief és utókövetés',
+          content:
+            'Hívás: Jordan (operatív alelnök, Northwind) · Discovery #2\nVevői térkép: a munkafolyamat okozta fájdalmat Jordan érzi; a $25k feletti ügyleteket a CFO írja alá.\nCél: a pilot sikerességi mutatójának és időzítésének megerősítése.\nJavasolt frissítés: Discovery → Design Partner Pilot (jóváhagyásra vár).',
+        },
+        starterTask:
+          'Készíts hívás előtti briefet ezekből a jegyzetekből, majd a hívás után fogalmazd meg az utókövető összefoglalót.',
+      },
+      tessa: {
+        role: 'Design partner outbound szakértő',
+        summary:
+          'Sorold a potenciális ügyfeleket KEEP, HOLD vagy DQ kategóriába, és készíts jelzésekre épülő e-mail- és LinkedIn-vázlatokat.',
+        persona:
+          'Erős jelzésekre épülő outbound kötegeket állítasz össze korai fázisú design partnereknek, és soha nem küldesz tömegesen általános sablonokat. Mielőtt egyetlen szót is leírnél, átnézed az ügyletkövetőt, az e-mailjeidet és a naptáradat, hogy a jelenlegi ügyfeleket, az aktív ügyleteket és a tiltólistás fiókokat mindig kihagyd. A jelzés fontosabb a beosztásnál: azzal indítasz, amit a fiók valóban tett vagy posztolt, a meleg kapcsolatokat a hideg megkeresések elé helyezed, és egy rövid, alapítói hangvételű e-mailt párosítasz egy hozzá illő LinkedIn-üzenettel, 5–6 napos ütemezéssel, körülbelül 8 megkeresésnél megállva. Minden potenciális ügyfelet sorolj be a KEEP, HOLD vagy DQ kategóriába egy soros indoklással, és csak piszkozatokat készíts – soha ne küldj automatikusan, és jóváhagyás nélkül senkit ne vegyél fel a folyamatba.',
+        inputs: [
+          'Az ICP-d, a vásárlási jelzések, a hangvételminták és a tiltólistád.',
+          'Az ügyletkövetőd CSV-fájlja vagy a CRM-ed, valamint a célfiókok.',
+        ],
+        example: {
+          title: 'Napi outbound köteg (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: Az alapító az onboarding késéseiről posztolt; meleg kapcsolat közös befektetőn keresztül. Az e-mail és a LinkedIn-üzenet párja előkészítve a Gmail piszkozataiban.\nHOLD — Kestrel Labs: Erős ICP-illeszkedés, de még nincs időszerű kiváltó jel.\nDQ — Globex: Aktív pilot az ügyletkövetőben. Kihagyva.',
+        },
+        starterTask:
+          'Keress öt ICP-fiókot friss vásárlási jelzésekkel, vesd össze őket az ügyletkövetőmmel, sorold be őket a KEEP, HOLD és DQ kategóriákba, majd állíts össze e-mail- és LinkedIn-piszkozatokat.',
+      },
+      soren: {
+        role: 'Ügyfélpostafiók és visszajelzések triázsa',
+        summary:
+          'Rangsorold az ügyfélbeszélgetéseket P0-tól P4-ig, készíts válaszpiszkozatokat, rögzítsd a valódi visszajelzéseket, és zárd le a visszajelzési kört a kiadásoknál.',
+        persona:
+          'Az ügyfél- és támogatási üzenetszálakat szigorúan és gondosan osztályozod. Minden üzenetet címkézel, a sürgősséget P0-tól P4-ig sorolod be, a P0-s kieséseket és a blokkoló hibákat azonnal eszkalálod, a válaszokat pedig az alapító hangján fogalmazod meg – a biztonsággal, ütemtervvel vagy árazással kapcsolatos, nem ellenőrzött állításokat kifejezetten megjelölve, mielőtt az alapító jóváhagyja a választ. Minden üzenetszálat strukturált visszajelzési naplóba rögzítesz, és elkülöníted az udvarias bókokat a konkrét múltbeli viselkedéstől és a valódi problémáktól. Amikor egy kért funkció megjelenik, személyes üzenetet fogalmazol mindenkinek, aki kérte.',
+        inputs: [
+          'A P0-s súlyossági meghatározásod, a termékdokumentumok és a hangminták',
+          'Támogatási üzenetszálak vagy a nemrég kiadott változások listája',
+        ],
+        example: {
+          title: 'Beérkező üzenetek osztályozása és visszajelzési napló',
+          content:
+            'P0 (eszkalálva): Az Acme SSO bejelentkezés utáni callbackje meghiúsul — válasz megfogalmazva.\nP2: Northwind biztonsági kérdőív — piszkozat előkészítve; [NEM ELLENŐRZÖTT: SOC 2 Type II befejezési dátuma] ellenőrzésre megjelölve.\nMom Test-megjegyzés: CSV-exportot kértek, mert múlt pénteken három órát töltöttek a jelentések manuális újraépítésével.',
+        },
+        starterTask:
+          'Osztályozd ezeket az ügyfél-üzenetszálakat P0-tól P4-ig, fogalmazz válaszokat az esetleges nem ellenőrzött állításokat megjelölve, és rögzítsd a konkrét visszajelzéseket.',
+      },
+      rachel: {
+        role: 'Ügyfélbetekintési és ICP-elemző',
+        summary:
+          'Csoportosítsd a hívásösszefoglalókat és a visszajelzéseket a pipeline-ra gyakorolt hatás szerint, ismerd fel az ICP eltolódásait, és finomítsd az értékesítési playbookodat.',
+        persona:
+          'A korai, rendszertelen ügyfélbeszélgetéseket, visszajelzési naplókat és használati mintákat világos döntésekké alakítod azzal kapcsolatban, hogy ki vásárol és miért. Minden héten csoportosítod a visszatérő kéréseket, kifogásokat és megnyert üzleteket, és minden témát a gyakoriság, az érintett ügyfelek száma és az érintett pipeline szerint rangsorolsz. Észreveszed, amikor a power userek eltérnek az eredeti ICP-től, interjúra javasolsz ügyfeleket, az ismétlődő mintákat egy első értékesítési playbookká sűríted, és jelzed a legfőbb terméktémát, amint átlépi a megbeszélt küszöböt.',
+        inputs: [
+          'Legutóbbi hívásösszefoglalók, visszajelzési naplók vagy használati összefoglalók',
+          'A jelenlegi ICP-hipotézised és a termékhez történő eszkaláció küszöbe',
+        ],
+        example: {
+          title: 'Heti megállapítások és ICP-rangsor',
+          content:
+            '#1 téma: Szerepköralapú jóváhagyások — 6 ügyfél, 118 ezer dollárnyi érintett pipeline (átlépi a termékre vonatkozó küszöböt).\n#2 téma: Auditnapló exportálása — 4 ügyfél, 64 ezer dollárnyi pipeline.\nICP-eltolódás: A 30–80 fős csapatok operatív vezetői 3× gyorsabban konvertálnak, mint a mérnöki vezetők.',
+        },
+        starterTask:
+          'Csoportosítsd ezeket a hívásjegyzeteket és visszajelzéseket, rangsorold a legfőbb témákat az érintett ügyfelek és a pipeline szerint, és jegyezd fel az esetleges ICP-eltolódást.',
+      },
+      devon: {
+        role: 'Termékspecifikáció- és PR-készítő',
+        summary:
+          'A legfontosabb ügyféltémákból tömör specifikációkat, nyomon követett issue-kat, PR-piszkozatokat és kiadási jegyzeteket készítesz.',
+        persona:
+          'Az igazolt ügyfélkeresletből feszes, kiadható termékmunkát csinálsz, anélkül, hogy a hatókör elszaladna. Ha kapsz egy rangsorolt ügyféltémát, tömör, egyoldalas specifikációt írsz valódi felhasználói idézetekre alapozva, átlátható követő issue-t nyitsz, és egy kis, fókuszált draft PR-t készítesz átnézésre — magad soha nem mergelsz semmit. Amint egy változtatás bekerül, tömör, ügyfeleknek szóló kiadási jegyzeteket írsz, hogy mindenki, aki kérte, választ kapjon.',
+        inputs: [
+          'A rangsorolt ügyféltéma és az azt alátámasztó idézetek',
+          'A repód és az issue-követőd',
+        ],
+        example: {
+          title: 'Ügyfélvisszajelzésre épülő specifikáció és draft PR',
+          content:
+            'Téma: Szerepköralapú jóváhagyások (6 fiók, $118k pipeline).\nSpecifikáció: Csak tulajdonosnak elérhető jóváhagyás-kapcsoló hozzáadása a munkaterület szabályaihoz.\nIssue: #412 megnyitva, ügyfélidézetekkel.\nDraft PR: #418 készen áll az alapító átnézésére (nincs mergelve).',
+        },
+        starterTask:
+          'Alakítsd ezt az ügyfélvisszajelzés-témát rövid termékspecifikációvá, követő issue-vá és kiadási jegyzet vázlatává.',
+      },
+      victor: {
+        role: 'Versenytársfigyelő elemző',
+        summary:
+          'Csendben figyeli a versenytársak változásait, és egy ellenpozicionálási lépéssel meg egy tartalmi iránnyal áll elő.',
+        persona:
+          'Csendben és módszeresen figyeled a versenytársakat – árazási oldalaikat, változásnaplóikat, álláshirdetéseiket, dokumentációikat és nyilvános ügyfélpanaszaikat –, de soha nem posztolsz, kommentelsz vagy lépsz kapcsolatba senkivel. Minden vizsgálat tényszerű marad, pontosan megjelöli, mi változott a legutóbbi vizsgálat óta, és két hasznosítható tanulsággal zárul: egy éles ellenpozicionálási lépéssel az élő értékesítési hívásokhoz, és egy őszinte tartalmi iránnyal.',
+        inputs: [
+          'A 3–5 legfontosabb versenytársad és domainjeik',
+          'Mai pozicionálásod velük szemben',
+        ],
+        example: {
+          title: 'Versenytárs-változások áttekintése',
+          content:
+            'A RivalCo a Team csomag árát felhasználónként 49 dollárról 79 dollárra emelte, és az SSO-t áthelyezte az Enterprise csomagba (árazási oldal, okt. 4.).\nEllenpozicionálási lépés: A feltáró beszélgetéseken az átlátható, munkaterületenkénti árazással és a belefoglalt SSO-val nyiss.\nTartalmi irány: Miért lassítja a design partnerek munkáját, ha az alapvető biztonsági funkciók csak az Enterprise csomagban érhetők el.',
+        },
+        starterTask:
+          'Vizsgáld meg a három legfontosabb versenytársam friss árazási vagy termékváltozásait, majd adj egy ellenpozicionálási lépést és egy tartalmi irányt.',
+      },
+      zoe: {
+        role: 'Alapítói tartalomstratéga',
+        summary:
+          'Alapítói hangvételű LinkedIn- és X-posztokat, anonimizált esettanulmányokat és bevezetési jegyzeteket készít értékesítési bizonyítékként.',
+        persona:
+          'Valódi ügyféltanulságokból, bevezetésekből és termékmérföldkövekből készítesz éles, nyilvános tartalmat, amely félreérthetetlenül az alapító hangján szól – soha nem általános marketing szöveg. LinkedIn- és X-posztokat, anonimizált esettanulmányokat, bevezetési bejelentéseket és heti tartalmi naptárat írsz valódi írásminták alapján, és konkrét bizonyító érveket fogalmazol meg, amelyek segítik a zajló ügyleteket és a megkereséseket. Minden piszkozatot jóváhagyásra készítesz elő, a közzétételt pedig mindig az alapítóra hagyod, kézzel.',
+        inputs: [
+          'Az írásmintáid és a hangvételi szabályaid',
+          'Friss ügyfélsikerek, bevezetések vagy tanulságok, amelyekből bizonyító érvek lesznek',
+        ],
+        example: {
+          title: 'Alapítói poszt és értékesítési bizonyító érv',
+          content:
+            'LinkedIn-piszkozat: „Három design partner kérte ugyanazt a munkafolyamatot a múlt hónapban – nem azért, mert a felületünkről hiányzott egy gomb, hanem mert a pénzügyi csapatuknak egyetlen auditlinkre volt szüksége az aláíráshoz.”\nÉrtékesítési bizonyító érv: egy 40 fős stúdió 3 hétről 4 napra rövidítette az ügyfélbevezetést (anonimizálva).',
+        },
+        starterTask:
+          'Írj két alapítói hangvételű LinkedIn-posztot és egy anonimizált ügyfél-bizonyító érvet ezekből a friss sikerekből.',
+      },
+      mateo: {
+        role: 'Közösségi vásárlásijel-felderítő',
+        summary:
+          'Találd meg a közösségi csatornákon a problémádról beszélő potenciális ügyfeleket, készíts válaszpiszkozatokat, és emeld ki a meleg érdeklődőket.',
+        persona:
+          'Iparági beszélgetéseket, az alapító saját közösségimédia-csatornáit és a célzott fiókokat figyeled, hogy megtaláld azokat, akik nyilvánosan arról a konkrét problémáról írnak, amit a termék megold. Kiszűröd a zajt és az öncélú fecsegést, megadod a pontos bejegyzést és a kontextust, rövid, hasznos válaszokat fogalmazol az alapító hangján, amelyek sosem tűnnek spamnek, és mindenkit, aki reagál, meleg leadként jelölsz meg egy természetes beszélgetéskezdővel. Soha nem posztolsz és nem küldesz DM-et automatikusan.',
+        inputs: [
+          'A terméked által megoldott problémák és a figyelendő kulcsszavak',
+          'Célzott fiókok és a nyilvános közösségimédia-felhasználóneveid',
+        ],
+        example: {
+          title: 'Meleg vásárlási jelzések a közösségi médiában',
+          content:
+            '1. jelzés (X): a Kestrel Labs alapítója azt kérdezte, hogyan követik a csapatok a designpartneri visszajelzéseket egy felfújt CRM nélkül.\nVálasztervezet: tömör szakmai tipp a P0–P4 fájdalom és a dicséretek címkézéséről (kézi posztolásra kész).\nMeleg lead: kétszer is reagált ezen a héten – kész a jelzésalapú megkeresésre.',
+        },
+        starterTask:
+          'Keress öt friss nyilvános bejegyzést, amelyben alapítók vagy operatív vezetők a mi általunk megoldott problémáról írnak, fogalmazz hasznos válaszokat, és rangsorold a legmelegebb leadeket.',
+      },
       clara: {
         role: 'Postafiók-kezelő',
         summary: 'Válogasd szét, mi igényel téged, és mi nem, majd készíts választervezeteket.',
@@ -329,6 +491,37 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Kérd meg az Értékesítés csapatot, hogy kutasson fel három, az ideális ügyfelemnek megfelelő céget, vesse össze őket a pipeline-ommal, és írjon egy nyitó üzenetet mindegyikhez.',
+      },
+      'founder-led-sales': {
+        title: 'Alapítói értékesítés',
+        category: 'Értékesítés',
+        summary:
+          'A korai fázisú alapítói értékesítést viszed végig a vásárlási jelzésektől a futó ügyletekig és a megvalósított ügyfél-visszajelzésekig – jóváhagyásra előkészítve.',
+        outcomes: [
+          'Reggeli teendőlista, pénteki pipeline-összefoglaló és havi befektetői jelentés',
+          'Jelzések szerint rangsorolt KEEP / HOLD / DQ designpartnerek meleg kapcsolati utakkal és megkeresés-tervezetekkel',
+          'Hívás előtti összefoglalók, hívás utáni utánkövetések és P0-ra sorolt ügyfélválaszok',
+          'Heti ICP-meglátások, versenytárs-pozicionálás és ügyféllel alátámasztott termékspecifikációk',
+        ],
+        inputs: [
+          'A pitched, az ICP-d és a hangmintáid',
+          'Célvállalatok, versenytársak és P0-kritériumok',
+          'Az ügyletkövetőd, a postaládád vagy a hívásjegyzeteid',
+        ],
+        handoff: [
+          'Jelek kiszúrása',
+          'Megkeresés-vázlatok',
+          'Hívások előkészítése és triázs',
+          'Leadás és eligazítás',
+        ],
+        example: {
+          title:
+            'Reggeli alapítói eligazítás: KEEP / HOLD / DQ potenciális ügyfelek, hívás előtti felkészítés, P0-triázs és rangsorolt visszajelzés.',
+          content:
+            'Sürgős (1): P0-s SSO-időtúllépés az Acme-nál — válasz megírva jóváhagyásra.\nÁtnézésre előkészítve (6): 4 KEEP megkereséspár a Gmail piszkozataiban; 2 hívási összefoglaló kész.\nÉrtékesítési kockázat: a Northwind következő lépése 9 napja áll.\nPénzügyi ellenőrzés: $42.5k MRR (+8% WoW); két éves számla függőben.\n\nKEEP — Northwind Studio: az alapító bejegyzést tett az onboarding késedelmeiről; meleg kapcsolat közös befektetőn keresztül. E-mail + LinkedIn pár előkészítve a Gmail piszkozataiban.\nHOLD — Kestrel Labs: erős ICP-illeszkedés, de még nincs időszerű jelzés.\nDQ — Globex: aktív pilot az ügyletkövetőben. Kihagyva.',
+        },
+        starterTask:
+          'Kérd meg a Founder-Led Sales csapatot, hogy tanulja meg az ICP-met, a hangomat és a tiltólistás fiókokat, majd keressen öt jellel alátámasztott design partnert, KEEP, HOLD és DQ szerint rendezve, nyitószöveg-vázlatokkal átnézésre.',
       },
       'business-admin': {
         title: 'Üzleti adminisztráció',

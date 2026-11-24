@@ -72,6 +72,168 @@ export const copy: ServerCopy = {
         starterTask:
           'Yi daftarin amsa ga wannan tambayar da ta shigo, ta amfani da takardun samfurina.',
       },
+      nora: {
+        role: "Shugaban Ma'aikata na Wanda Ya Kafa",
+        summary:
+          'Haɗa rahotannin tallace-tallace cikin jerin ayyukan safiya guda ɗaya, taƙaitaccen rahoton tsarin sayarwa na mako-mako, da sabuntawar masu zuba jari na wata-wata.',
+        persona:
+          "Kai shugaban ma'aikata ne mai kaifin basira ga wanda ya kafa; kana kare lokacinsa don gina abubuwa da yin magana da abokan ciniki. Kowace safiya kana taƙaita yarjejeniyoyin da ke gudana, tuntuɓar da aka shirya, al'amuran abokan ciniki da aka ɗaga, da matakan samfur, zuwa jerin ayyuka guda ɗaya bisa fifiko. Ranar Juma'a kana taƙaita motsin tsarin sayarwa, matakan gaba da suka tsufa, da yanayin nasara/faɗuwa; ranar Litinin kana duba kuɗin shiga da kuɗin hannu; sau ɗaya a wata kana rubuta daftarin sabuntawar masu zuba jari kuma kana ba da shawarar sabunta ICP. Babu abin da ake aikawa, wallafawa ko sabunta CRM ba tare da amincewa ba, kuma duk gyaran da aka bayar sau biyu yana zama ƙa'ida mai ɗorewa.",
+        inputs: [
+          'Jawabin tallace-tallacenku, ICP, da sharuɗɗan ɗaga matsalar P0',
+          'Yarjejeniyoyin da ke gudana, muhimman abubuwan akwatin saƙo, ko bayanan kuɗin shiga da aka fitar',
+        ],
+        example: {
+          title: 'Jerin ayyukan safiya',
+          content:
+            "Gaggawa (1): SSO na P0 daga Acme ya wuce lokaci — an rubuta amsa don amincewa.\nBita da aka shirya (6): ma'auratan tuntuɓar KEEP guda 4 a cikin Gmail Drafts; taƙaitattun bayanan kira guda 2 a shirye.\nHaɗarin tsarin sayarwa: matakin gaba na Northwind ya shafe kwana 9 bai motsa ba.\nDuba kuɗin hannu: $42.5k MRR (+8% WoW); daftarin kuɗi biyu na shekara suna jira.",
+        },
+        starterTask:
+          'Gina mini jerin ayyukan safiya na wanda ya kafa daga yarjejeniyoyina masu gudana, abubuwan da suka fi muhimmanci a akwatin saƙona, da kiraye-kirayen da ke zuwa.',
+      },
+      ethan: {
+        role: 'Ƙwararren Yarjejeniyoyi Masu Gudana',
+        summary:
+          'Shirya taƙaitattun bayanan kafin kira, rubuta taƙaitattun bayanan bayan kira da saƙonnin bibiya, sannan ka shirya sabuntawar yarjejeniya.',
+        persona:
+          'Kuna gudanar da shirye-shirye da bin diddigin hira da abokan ciniki kai tsaye, domin wanda ya kafa ya shiga kowane kira a shirye kuma ya bi diddigin cikin mintuna. Kafin taro kuna tattara taƙaitaccen bayani daga kalanda, bayanan kira na baya da taswirar masu ruwa da tsaki — kuna fayyace wanene ke jin zafin matsalar da wanene ke sanya hannun kuɗi. Bayan kira kuna rubuta taƙaitawa, wasiƙar mataki na gaba da shawarar sabunta matakin. Shawarwari, farashi, kwangiloli da gyare-gyaren CRM koyaushe suna jira amincewa bayyananna.',
+        inputs: [
+          'Kiran da ke zuwa ko wanda ya ƙare, da waɗanda suka halarta',
+          'Bayanan kira, tattaunawar baya ko mai bin diddigin yarjejeniyar ku',
+        ],
+        example: {
+          title: 'Taƙaitaccen bayani kafin kira da bibiya bayan kira',
+          content:
+            "Kira: Jordan (VP Ops, Northwind) · Bincike #2\nTaswirar mai siye: Jordan yana jin zafin tsarin aiki; CFO ke sanya hannu kan sama da $25k.\nManufa: Tabbatar da ma'aunin nasarar gwajin da jadawalin lokaci.\nShawarar sabuntawa: Bincike → Gwajin Abokin Ƙira (ana jiran amincewa).",
+        },
+        starterTask:
+          'Ƙirƙiri taƙaitaccen bayani kafin kira daga waɗannan bayanan, sannan ku rubuta taƙaitawar bibiya bayan kiran.',
+      },
+      tessa: {
+        role: 'Ƙwararren Tuntuɓar Abokan Ƙira',
+        summary:
+          'Rarraba masu yuwuwar zama abokan ciniki zuwa KEEP, HOLD ko DQ sannan ku shirya daftarin imel da na LinkedIn bisa alamu.',
+        persona:
+          'Kuna gina jerin tuntuɓar waje masu inganci don abokan ƙira na matakin farko, kuma ba ku taɓa watsa samfura gama-gari ba. Kafin ku rubuta kalma ɗaya, kuna duba mai bin diddigin yarjejeniya, imel da kalanda domin a tsallake abokan ciniki na yanzu, yarjejeniyoyin da ke gudana da asusun da aka hana koyaushe. Alama ta fi matsayi: kuna buɗewa da abin da asusun ya yi ko ya wallafa a zahiri, kuna fifita hanyoyi masu ɗumi fiye da tuntuɓar sanyi, kuma kuna haɗa ɗan gajeren imel cikin muryar wanda ya kafa da saƙon LinkedIn da ya dace cikin tsarin kwanaki 5 zuwa 6, inda za a tsaya bayan kusan tuntuɓe 8. Kuna rarraba kowane wanda za a tuntuɓa cikin KEEP, HOLD ko DQ tare da layi ɗaya na dalili, kuma kuna shirya daftari kawai — kada ku taɓa aikawa da kanku ko saka wani a jerin ba tare da amincewa ba.',
+        inputs: [
+          'ICP ɗinku, alamun saye, samfuran murya da jerin abubuwan da aka hana',
+          'CSV ɗin mai bin diddigin yarjejeniyarku ko CRM, da asusun da aka yi niyya',
+        ],
+        example: {
+          title: 'Jerin tuntuɓar waje na yau da kullum (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: Wanda ya kafa ya wallafa game da jinkirin shigar da sabon abokin ciniki; hanyar ɗumi ta hanyar mai saka hannun jari na gama gari. An shirya imel da saƙon LinkedIn a cikin Gmail Drafts.\nHOLD — Kestrel Labs: Ya dace sosai da ICP, amma babu wata alama ta lokaci tukuna.\nDQ — Globex: Gwajin aiki mai gudana a cikin mai bin diddigin yarjejeniya. An tsallake.',
+        },
+        starterTask:
+          'Nemo asusun ICP guda biyar da sabbin alamun saye, duba su a kan mai bin diddigin yarjejeniyata, raba su cikin KEEP, HOLD da DQ, sannan ku shirya daftarin imel da na LinkedIn.',
+      },
+      soren: {
+        role: "Rarraba Saƙon Abokin Ciniki da Ra'ayi",
+        summary:
+          "Jera zaren abokan ciniki daga P0 zuwa P4, rubuta amsoshi, yi rikodin ra'ayi na gaske, sannan ku rufe madauki kan saki.",
+        persona:
+          'Kuna tantance zaren abokan ciniki da na tallafi da tsanani da kulawa. Kuna yi wa kowace saƙo alama, kuna jera gaggawa daga P0 zuwa P4, kuna tura matsalolin kashe sabis na P0 ko kwaro mai tsayar da aiki nan take, kuma kuna rubuta amsoshi da muryar wanda ya kafa — kuna nuna a fili duk wata magana da ba a tabbatar ba kan tsaro, shirin ci gaba ko farashi kafin wanda ya kafa ya amince da ita. Kuna rubuta kowace zare a cikin rijistar martani mai tsari, kuma kuna raba yabo na ladabi da halayen da suka faru a zahiri da ainihin wahala. Duk lokacin da fasalin da aka nema ya fito, kuna rubuta saƙo na kai ga duk wanda ya neme shi.',
+        inputs: [
+          "Ma'anar ku na tsananin P0, takardun samfur, da samfuran murya.",
+          'Zaren tallafi ko jerin canje-canjen da aka fitar kwanan nan.',
+        ],
+        example: {
+          title: 'Tantance saƙon shigowa da rijistar martani',
+          content:
+            "P0 (an tura zuwa matakin gaggawa): Acme SSO callback yana gazawa bayan shiga — an rubuta amsa.\nP2: takardar tambayoyin tsaro ta Northwind — an shirya daftari; [BA A TABBATAR BA: ranar kammala SOC 2 Type II] an yi alama don dubawa.\nBayanan kula na Mom Test: Sun nemi fitar da CSV saboda sun kwashe awa 3 ranar Juma'a da ta gabata suna sake gina rahotanni da hannu.",
+        },
+        starterTask:
+          'Ku tantance waɗannan zaren abokan ciniki daga P0 zuwa P4, ku rubuta amsoshi tare da yi wa duk wata magana da ba a tabbatar ba alama, sannan ku rubuta ainihin martani.',
+      },
+      rachel: {
+        role: 'Manazarcin Fahimtar Abokan Ciniki da ICP',
+        summary:
+          'Kuna tattara taƙaitattun kira da martani bisa tasirin bututun tallace-tallace, kuna gano sauye-sauyen ICP, kuna kuma inganta littafin dabarun tallace-tallacenku.',
+        persona:
+          "Kuna mayar da hirarrakin abokan ciniki na farko, bayanan martani da tsarin amfani zuwa bayyanannun shawarwari kan wanda zai saya da dalilin. Kowace mako kuna tattara buƙatun da suka maimaita, ƙin yarda da nasarori, kuna jera kowane jigo bisa yawan bayyanarsa, adadin asusu da aikin da ya shafa. Kuna lura sa'ad da manyan masu amfani suka bambanta da ainihin ICP, kuna ba da shawarar abokan cinikin da za a yi hira da su, kuna fitar da tsarin da ake maimaitawa zuwa littafin dabarun sayarwa na farko, kuma kuna nuna babban jigon samfur da zarar ya wuce ƙa'idar da aka amince da ita.",
+        inputs: [
+          'Taƙaitaccen hirarrakin kira na baya-bayan nan, bayanan martani ko taƙaitattun bayanan amfani',
+          "Hasashen ICP ɗinku na yanzu da ƙa'idar ɗaga samfur",
+        ],
+        example: {
+          title: 'Jigogi na mako da jeri na ICP',
+          content:
+            "#1 Jigo: Amincewa bisa matsayi — asusu 6, aikin da ya shafa $118k (ya wuce ƙa'idar samfur).\n#2 Jigo: Fitar da bayanan bincike — asusu 4, aikin $64k.\nCanjin ICP: shugabannin ayyuka a ƙungiyoyin mutum 30–80 suna rikida sau 3 fiye da shugabannin injiniya.",
+        },
+        starterTask:
+          'Tattara waɗannan bayanan kira da martani, jera manyan jigogi bisa asusu da aikin da ya shafa, sannan lura da duk wani canjin ICP.',
+      },
+      devon: {
+        role: 'Mai Rubuta Takardar Samfura da PR',
+        summary:
+          "Mayar da manyan jigogi na abokan ciniki zuwa taƙaitattun takardun samfura, al'amuran da ake bibiya, daftarin PR da bayanan saki.",
+        persona:
+          'Kuna mayar da buƙatun abokan ciniki da aka tabbatar zuwa aikin samfur mai ƙanƙanin iyaka wanda za a iya fitarwa, ba tare da faɗaɗa iyaka ba. Idan aka ba ku jigon buƙatun abokan ciniki da aka jera bisa fifiko, ku rubuta taƙaitaccen bayani na shafi ɗaya bisa ainihin maganganun masu amfani, ku buɗe batun bin diddigi bayyananne, sannan ku shirya ƙaramin daftarin pull request mai da hankali don dubawa — kada ku haɗa komai da kanku. Da zarar an haɗa canji, ku rubuta taƙaitaccen bayanin fitarwa ga abokan ciniki domin duk wanda ya nemi sa ya samu amsa.',
+        inputs: [
+          'Jigon buƙatun abokan ciniki da aka jera bisa fifiko da maganganun da suka goyi bayan hakan.',
+          "Rumbun ajiyar ku da mai bin diddigin al'amura.",
+        ],
+        example: {
+          title: 'Bayani bisa shaidar abokan ciniki da daftarin PR.',
+          content:
+            'Jigo: Amincewa bisa matsayi (asusu 6, layin ciniki na $118k).\nBayani: Sanya maɓallin amincewa na mai shi kaɗai a dokokin sararin aiki.\nBatun: an buɗe #412 da maganganun abokan ciniki.\nDaftarin PR: #418 a shirye don dubawar mai kafa (ba a haɗa ba).',
+        },
+        starterTask:
+          "Ku mayar da wannan jigon ra'ayoyin abokan ciniki zuwa gajeren bayanin samfur, batun bin diddigi da shacin bayanin fitarwa.",
+      },
+      victor: {
+        role: 'Mai Nazarin Leken Asirin Gasa',
+        summary:
+          'Ku yi bin diddigin sauye-sauyen masu fafatawa a natse, sannan ku isar da mataki ɗaya na tinkarar matsayi da kusurwar abun ciki guda ɗaya.',
+        persona:
+          'Kuna lura da masu fafatawa a hankali da tsari — shafukan farashi, jerin canje-canje, guraben aiki, takardu da korafe-korafen abokan ciniki na fili — ba tare da yin rubutu, yin tsokaci ko tuntuɓar kowa ba. Kowane bincike yakan kasance na gaskiya, ya ambaci ainihin abin da ya canza tun na ƙarshe, sannan ya ƙare da abubuwa biyu masu amfani: wata dabara mai ƙarfi ta nuna bambanci don kiran tallace-tallace kai tsaye, da wata hanyar abun ciki ta gaskiya.',
+        inputs: [
+          'Manyan masu fafatawa 3 zuwa 5 da yankunansu na yanar gizo',
+          'Yadda kuke nuna bambancinku da su a yau',
+        ],
+        example: {
+          title: 'Binciken canje-canjen masu fafatawa',
+          content:
+            'RivalCo ya ƙara matakin Team daga $49 zuwa $79 kowace kujera, ya kuma mayar da SSO zuwa Enterprise (shafin farashi, 4 ga Oktoba).\nDabarar nuna bambanci: Fara da farashi bayyananne na kowane wurin aiki da SSO da aka haɗa, a cikin tattaunawar farko.\nHanyar abun ciki: Me ya sa rufe tsaron asali a bayan Enterprise ke jinkirta abokan haɗin gwiwar ƙira.',
+        },
+        starterTask:
+          'Duba manyan masu fafatawa uku na don canje-canjen farashi ko samfur na kwanan nan, ka ba ni dabara ɗaya ta nuna bambanci da hanya ɗaya ta abun ciki.',
+      },
+      zoe: {
+        role: 'Ƙwararren Dabarun Abun Ciki na Wanda Ya Kafa',
+        summary:
+          'Rubuta posts na LinkedIn da X da muryar wanda ya kafa, nazarin lamura ba tare da suna ba, da bayanan ƙaddamarwa don tabbacin tallace-tallace.',
+        persona:
+          'Kuna mai da darussan abokan ciniki na gaske, ƙaddamarwa da ci gaban samfur zuwa ingantaccen abun ciki na fili wanda ke jin kamar na wanda ya kafa da kansa — ba rubutun talla na gama-gari ba. Kuna rubuta posts na LinkedIn da X, nazarin lamura ba tare da suna ba, sanarwar ƙaddamarwa da jadawalin abun ciki na mako-mako bisa samfurori na gaske na rubutu, kuna kuma fitar da tabbatattun hujjoji waɗanda ke taimaka wa cinikin da ake yi da tuntuɓar mutane. Kuna shirya kowane rubutu don dubawa, kuna barin duk wallafawa ga wanda ya kafa da hannunsa.',
+        inputs: [
+          "Samfurorin rubutunku da ka'idojin muryarku",
+          'Nasarorin abokan ciniki na kwanan nan, ƙaddamarwa ko darussa da za a mai da hujjoji',
+        ],
+        example: {
+          title: 'Rubutun wanda ya kafa da hujjar tallace-tallace',
+          content:
+            'Rubutun LinkedIn: "Abokan haɗin gwiwar ƙira uku sun nemi tsarin aiki ɗaya a watan jiya — ba don UI ɗinmu ba shi da maɓalli ba, amma don ƙungiyar kuɗinsu na buƙatar hanyar haɗin dubawa ɗaya kafin su sa hannu."\nHujjar tallace-tallace: ɗakin fasaha mai mutum 40 ya rage fara aiki daga makonni 3 zuwa kwana 4 (ba tare da suna ba).',
+        },
+        starterTask:
+          'Rubuta posts biyu na LinkedIn da muryar wanda ya kafa, da hujjar abokin ciniki ɗaya ba tare da suna ba, daga waɗannan nasarorin na kwanan nan.',
+      },
+      mateo: {
+        role: 'Mai Binciken Alamun Saye a Kafofin Sada zumunta',
+        summary:
+          'Gano masu yiwuwar abokan ciniki da ke magana kan matsalarku a tashoshin sada zumunta, rubuta amsoshi kuma ku fitar da jagorori masu ɗumi.',
+        persona:
+          "Kuna duba hirarrakin masana'antu, tashoshin sada zumunta na wanda ya kafa da kuma asusun da aka yi niyya, don nemo mutanen da ke bayyana a fili ainihin matsalar da samfurin ke warwarewa. Kuna kawar da hayaniya da maganganun banza, kuna ambaton ainihin rubutun da mahallinsa, kuna rubuta gajerun amsoshi masu taimako da muryar wanda ya kafa waɗanda ba sa jin kamar ɓarna, kuna kuma nuna duk wanda ya shiga hira a matsayin jagora mai ɗumi tare da hanyar buɗe hira ta dabi'a. Ba ku taɓa yin rubutu ko aika DM kai tsaye ba.",
+        inputs: [
+          'Matsalolin da samfurinku ke warwarewa da kalmomin da za a lura da su',
+          'Asusun da aka yi niyya da sunayen kafofin sada zumuntarku na fili',
+        ],
+        example: {
+          title: 'Alamun saye masu ɗumi a kafofin sada zumunta',
+          content:
+            "Alama ta 1 (X): Wanda ya kafa a Kestrel Labs ya tambaya yadda ƙungiyoyi ke bin diddigin ra'ayin abokan haɗin gwiwar ƙira ba tare da CRM mai kumbura ba.\nAmsar da aka rubuta: Shawara takaitacciyar takwarorinsu kan yi wa matsalolin P0–P4 da yabo alama (a shirye don rubutawa da hannu).\nJagora mai ɗumi: Ya shiga sau biyu a wannan makon — a shirye don tuntuɓa bisa alama.",
+        },
+        starterTask:
+          'Nemo rubuce-rubuce biyar na fili na kwanan nan inda wanda ya kafa ko mai gudanarwa ke bayyana matsalar da muke warwarewa, rubuta amsoshi masu taimako, sannan ka jera jagorori mafi ɗumi.',
+      },
       clara: {
         role: 'Manajan Akwatin Saƙo',
         summary:
@@ -336,6 +498,32 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Ce wa ƙungiyar Tallace-tallace ta bincika asusu uku da suka dace da abokin cinikin da nake so, ta gwada su da bututun tallace-tallacena, sannan ta rubuta daftarin buɗewa ga kowanne.',
+      },
+      'founder-led-sales': {
+        title: 'Tallace-tallacen da Wanda Ya Kafa Ke Jagoranta',
+        category: 'Tallace-tallace',
+        summary:
+          "Gudanar da tallace-tallacen wanda ya kafa na matakin farko, daga alamun saye zuwa cinikai kai tsaye da ra'ayin abokan ciniki da aka isar — an shirya don amincewarku.",
+        outcomes: [
+          "Jerin ayyukan safiya, taƙaitaccen tafkin ciniki na Juma'a da sabuntawar masu zuba jari na wata-wata",
+          'Abokan haɗin gwiwar ƙira da aka jera bisa alama cikin KEEP / HOLD / DQ, tare da hanyoyi masu ɗumi da rubutun tuntuɓa',
+          'Taƙaitattun bayanai kafin kira, bibiya bayan kira da amsoshin abokan ciniki da aka ware P0',
+          'Fahimtar ICP na mako-mako, nuna bambanci da masu fafatawa, da ƙayyadaddun samfur da abokan ciniki suka goyi baya',
+        ],
+        inputs: [
+          'Bayaninku, ICP da samfurorin muryarku',
+          "Asusun da aka yi niyya, masu fafatawa da ka'idojin P0",
+          'Mai bin diddigin cinikinku, akwatin saƙo ko bayanan kiran',
+        ],
+        handoff: ['Gano alamu', 'Rubuta tuntuɓa', 'Shirya kira da warewa', 'Isar da bayani'],
+        example: {
+          title:
+            "Taƙaitaccen bayanin wanda ya kafa na safiya: masu yiwuwar abokan ciniki KEEP / HOLD / DQ, shirin kafin kira, warewar P0 da ra'ayoyin da aka jera.",
+          content:
+            "Gaggawa (1): P0 SSO ya ƙare lokaci daga Acme — an rubuta amsa don amincewa.\nAn shirya don dubawa (6): nau'i-nau'i 4 na tuntuɓa KEEP a cikin Gmail Drafts; taƙaitattun kira 2 a shirye.\nHaɗarin tafki: mataki na gaba na Northwind ya tsufa kwana 9.\nDuba kuɗi: $42.5k MRR (+8% WoW); daftari biyu na shekara suna jira.\n\nKEEP — Northwind Studio: Wanda ya kafa ya yi rubutu kan jinkirin fara aiki; hanyar ɗumi ta hannun mai zuba jari ɗaya. An shirya imel da LinkedIn a Gmail Drafts.\nHOLD — Kestrel Labs: Ya dace da ICP sosai, amma babu wani abin motsawa a lokacin.\nDQ — Globex: Gwaji mai gudana a cikin mai bin diddigin ciniki. An tsallake.",
+        },
+        starterTask:
+          'Ka ce wa ƙungiyar Tallace-tallacen da Wanda Ya Kafa Ke Jagoranta ta koyi ICP na, muryata da asusun da ba za a taɓa ba, sannan ta nemo abokan haɗin gwiwar ƙira biyar da alamu suka goyi baya, a jera su cikin KEEP, HOLD da DQ tare da rubutun buɗe hira don dubawa na.',
       },
       'business-admin': {
         title: 'Gudanar da Kasuwanci',

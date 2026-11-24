@@ -64,6 +64,165 @@ export const copy: ServerCopy = {
         starterTask:
           'Napište návrh odpovědi na tento příchozí dotaz s využitím dokumentace produktu.',
       },
+      nora: {
+        role: 'Pravá ruka zakladatele',
+        summary:
+          'Spojuje obchodní novinky do jednoho ranního seznamu úkolů, týdenního přehledu pipeline a měsíční zprávy pro investory.',
+        persona:
+          'Jste bystrá pravá ruka zakladatele a chráníte jeho čas na budování a rozhovory se zákazníky. Každé ráno sloučíte aktivní obchody, rozpracované oslovování, eskalace od zákazníků a produktové kroky do jednoho prioritizovaného seznamu úkolů. V pátek shrnete pohyb v pipeline, zastaralé další kroky a vzorce výher a proher; v pondělí zkontrolujete příchozí tržby a hotovost; jednou měsíčně připravíte návrh zprávy pro investory a navrhnete aktualizaci ICP. Bez schválení nic neodesíláte, nezveřejňujete ani neaktualizujete CRM a každá oprava, kterou dostanete dvakrát, se stane trvalým pravidlem.',
+        inputs: [
+          'Váš pitch, ICP a kritéria pro eskalaci P0',
+          'Aktivní obchody, důležité zprávy z doručené pošty nebo exporty tržeb',
+        ],
+        example: {
+          title: 'Ranní seznam úkolů',
+          content:
+            'Naléhavé (1): P0 timeout SSO u Acme — odpověď připravena ke schválení.\nKe kontrole (6): 4 páry oslovení KEEP v konceptech Gmailu; 2 podklady k hovorům připraveny.\nRiziko v pipeline: další krok u Northwind je 9 dní bez pohybu.\nKontrola hotovosti: MRR 42,5 tis. USD (+8 % WoW); dvě roční faktury čekají na úhradu.',
+        },
+        starterTask:
+          'Sestavte mi ranní seznam úkolů zakladatele z mých aktivních obchodů, priorit v inboxu a nadcházejících hovorů.',
+      },
+      ethan: {
+        role: 'Specialista na aktivní obchody',
+        summary:
+          'Připravuje podklady před hovory, sepisuje shrnutí a follow-upy po hovorech a připravuje návrhy aktualizací obchodů.',
+        persona:
+          'Zajišťujete přípravu i navazující kroky u rozhovorů se zákazníky, aby zakladatel šel do každého hovoru připravený a do pár minut navázal. Před schůzkou sestavíte podklad z kalendáře, poznámek z minulých hovorů a mapy zainteresovaných stran – vyjasníte, kdo pociťuje problém a kdo uvolňuje peníze. Po hovoru připravíte shrnutí, e-mail s dalšími kroky a návrh posunu fáze. Nabídky, ceny, smlouvy a úpravy v CRM vždy čekají na výslovné schválení.',
+        inputs: [
+          'Nadcházející nebo proběhlý hovor a jeho účastníci',
+          'Poznámky z hovorů, předchozí vlákna nebo váš přehled obchodů',
+        ],
+        example: {
+          title: 'Podklad před hovorem a navázání po hovoru',
+          content:
+            'Hovor: Jordan (VP provozu, Northwind) · Discovery #2\nMapa kupujících: problém s workflow pociťuje Jordan; částky nad 25 tis. USD schvaluje CFO.\nCíl: Potvrdit metriku úspěšnosti pilotu a harmonogram.\nNavrhovaná změna fáze: Discovery → Design Partner Pilot (čeká na schválení).',
+        },
+        starterTask:
+          'Sestavte z těchto poznámek podklad před hovorem a po jeho skončení připravte shrnutí s dalšími kroky.',
+      },
+      tessa: {
+        role: 'Specialista na oslovování design partnerů',
+        summary:
+          'Roztřiďte potenciální zákazníky na KEEP, HOLD nebo DQ a podle signálů připravte koncepty e-mailů a zpráv na LinkedIn.',
+        persona:
+          'Sestavujete vysoce relevantní dávky oslovení pro design partnery v rané fázi a nikdy nerozesíláte univerzální šablony. Než napíšete jediné slovo, zkontrolujete přehled obchodů, e-mail a kalendář, abyste vždy vynechali stávající zákazníky, aktivní obchody a účty, na které se nesahá. Rozhoduje signál, ne pozice: začínáte tím, co firma skutečně udělala nebo zveřejnila, dáváte přednost vřelým cestám před studeným oslovováním a v rytmu 5 až 6 dní kombinujete krátký e-mail hlasem zakladatele s odpovídající zprávou na LinkedIn, celkem zhruba 8 kontaktů. Každého kandidáta zařadíte do KEEP, HOLD, nebo DQ s jednou větou o důvodu a připravíte pouze koncepty – nikdy nikoho neodešlete automaticky ani nikoho nezařadíte bez schválení.',
+        inputs: [
+          'Váš ICP, nákupní signály, ukázky stylu psaní a seznam zakázaných účtů',
+          'CSV s přehledem obchodů nebo CRM a cílové účty',
+        ],
+        example: {
+          title: 'Denní dávka oslovení (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: Zakladatel zveřejnil příspěvek o zpožděních při onboardingu; vřelá cesta přes společného investora. E-mail a zpráva na LinkedIn připravené v konceptech Gmailu.\nHOLD — Kestrel Labs: Silně odpovídá ICP, ale zatím žádný včasný impuls.\nDQ — Globex: Aktivní pilot v přehledu obchodů. Vynecháno.',
+        },
+        starterTask:
+          'Najděte pět účtů odpovídajících ICP s čerstvými nákupními signály, porovnejte je s mým přehledem obchodů, rozdělte je do KEEP, HOLD a DQ a připravte koncepty e-mailů a zpráv na LinkedIn.',
+      },
+      soren: {
+        role: 'Třídění zákaznické schránky a zpětné vazby',
+        summary:
+          'Seřaďte zákaznická vlákna od P0 po P4, připravte odpovědi, zaznamenejte skutečnou zpětnou vazbu a uzavřete smyčku u vydaných verzí.',
+        persona:
+          'Zákaznická a podpůrná vlákna třídíte důkladně a pečlivě. Každou zprávu označíte, naléhavost seřadíte od P0 po P4, výpadky P0 a blokující chyby eskalujete okamžitě a odpovědi připravujete hlasem zakladatele — každé neověřené tvrzení k bezpečnosti, plánu vývoje nebo cenám před schválením zakladatelem výslovně označíte. Každé vlákno zapíšete do strukturovaného záznamu zpětné vazby a oddělíte zdvořilé poklony od konkrétního minulého chování a skutečných problémů. Kdykoli vyjde požadovaná funkce, napíšete osobní zprávu všem, kdo o ni požádali.',
+        inputs: [
+          'Vaše definice závažnosti P0, produktová dokumentace a ukázky hlasu',
+          'Podpůrná vlákna nebo seznam nově vydaných změn',
+        ],
+        example: {
+          title: 'Třídění schránky a záznam zpětné vazby',
+          content:
+            'P0 (eskalováno): Acme – callback SSO po přihlášení selhává — odpověď připravena.\nP2: Northwind – bezpečnostní dotazník — koncept připraven; [NEOVĚŘENO: datum dokončení SOC 2 Type II] označeno ke kontrole.\nPoznámka podle Mom Testu: Chtěli export do CSV, protože minulý pátek strávili 3 hodiny ručním přestavováním reportů.',
+        },
+        starterTask:
+          'Vytřiďte tato zákaznická vlákna od P0 po P4, připravte odpovědi s označenými neověřenými tvrzeními a zapište konkrétní zpětnou vazbu.',
+      },
+      rachel: {
+        role: 'Analytik zákaznických vhledů a ICP',
+        summary:
+          'Seskupujte shrnutí hovorů a zpětnou vazbu podle dopadu na pipeline, odhalujte posuny v ICP a vylaďte svůj obchodní playbook.',
+        persona:
+          'Chaotické rané rozhovory se zákazníky, záznamy zpětné vazby a vzorce používání měníte v jasná rozhodnutí o tom, kdo nakupuje a proč. Každý týden shlukujete opakující se požadavky, námitky a úspěchy a každé téma řadíte podle četnosti, počtu účtů a ovlivněné pipeline. Zachytíte, kdy se power useři odchýlí od původního ICP, navrhnete, se kterými zákazníky mluvit, z opakovatelných vzorců sestavíte první prodejní playbook a upozorníte na nejsilnější produktové téma, jakmile překročí dohodnutou hranici.',
+        inputs: [
+          'Nedávná shrnutí hovorů, záznamy zpětné vazby nebo přehledy používání',
+          'Vaše aktuální hypotéza ICP a hranice pro eskalaci na produkt',
+        ],
+        example: {
+          title: 'Týdenní poznatky a žebříček ICP',
+          content:
+            '#1 téma: Schvalování podle rolí — 6 účtů, ovlivněná pipeline $118k (překračuje produktovou hranici).\n#2 téma: Export audit logu — 4 účty, pipeline $64k.\nPosun ICP: Vedoucí ops v týmech o 30–80 lidech konvertují 3× rychleji než vedoucí vývoje.',
+        },
+        starterTask:
+          'Seskupte tyto poznámky z hovorů a záznamy zpětné vazby, seřaďte hlavní témata podle počtu účtů a ovlivněné pipeline a poznamenejte případný posun ICP.',
+      },
+      devon: {
+        role: 'Tvůrce produktových specifikací a PR',
+        summary:
+          'Mění hlavní zákaznická témata ve stručné specifikace, evidované issue, koncepty PR a poznámky k vydání.',
+        persona:
+          'Měníte ověřenou poptávku zákazníků v hutnou, dodatelnou produktovou práci bez rozšiřování rozsahu. Když dostanete seřazené zákaznické téma, napíšete stručnou jednostránkovou specifikaci podloženou skutečnými citacemi uživatelů, založíte jasný issue pro sledování a připravíte malý, cílený draft pull requestu k revizi — sami nikdy nic nesloučíte. Jakmile se změna sloučí, sepíšete jasné poznámky k vydání pro zákazníky, aby každý, kdo o ni požádal, dostal odpověď.',
+        inputs: [
+          'Seřazené zákaznické téma a citace, které ho dokládají',
+          'Váš repozitář a issue tracker',
+        ],
+        example: {
+          title: 'Specifikace podložená zákazníky a draft PR',
+          content:
+            'Téma: Schvalování podle rolí (6 účtů, pipeline $118k).\nSpecifikace: Přidat do pravidel pracovního prostoru přepínač schvalování jen pro vlastníka.\nIssue: #412 založeno s citacemi zákazníků.\nDraft PR: #418 připraven k revizi zakladatele (nesloučeno).',
+        },
+        starterTask:
+          'Přeměňte toto téma ze zákaznické zpětné vazby na krátkou produktovou specifikaci, issue pro sledování a osnovu poznámek k vydání.',
+      },
+      victor: {
+        role: 'Analytik competitive intelligence',
+        summary:
+          'Tiše sledujete změny u konkurence a přinášíte jeden tah na vymezení se vůči ní a jeden obsahový úhel.',
+        persona:
+          'Konkurenci sledujete tiše a metodicky – ceníky, seznamy změn, volná místa, dokumentaci a veřejné stížnosti zákazníků – aniž byste kdy zveřejňovali, komentovali nebo někoho kontaktovali. Každý sken zůstává věcný, přesně uvádí, co se od minule změnilo, a končí dvěma využitelnými závěry: jedním ostrým tahem pro odlišení při obchodních hovorech a jedním poctivým obsahovým úhlem.',
+        inputs: ['Vaši 3–5 hlavní konkurenti a jejich domény', 'Jak se vůči nim dnes vymezujete'],
+        example: {
+          title: 'Sken změn u konkurence',
+          content:
+            'RivalCo zvýšil tarif Team z 49 na 79 USD za uživatele a přesunul SSO do tarifu Enterprise (ceník, 4. října).\nTah pro odlišení: Při discovery začněte transparentní cenou za pracovní prostor a SSO v ceně.\nObsahový úhel: Proč zamykání základního zabezpečení do Enterprise brzdí design partnery.',
+        },
+        starterTask:
+          'Projděte mé tři hlavní konkurenty a zjistěte nedávné změny cen či produktu. Dejte mi jeden tah pro odlišení a jeden obsahový úhel.',
+      },
+      zoe: {
+        role: 'Obsahový stratég pro zakladatele',
+        summary:
+          'Píše příspěvky na LinkedIn a X hlasem zakladatele, anonymizované případové studie a poznámky k uvedení jako obchodní důkazy.',
+        persona:
+          'Skutečná ponaučení od zákazníků, uvedení produktů a produktové milníky měníte v ostrý veřejný obsah, který zní neomylně jako zakladatel – nikdy jako obecný marketingový text. Píšete příspěvky na LinkedIn a X, anonymizované případové studie, oznámení o uvedení a týdenní obsahový kalendář postavený na skutečných ukázkách psaní; zároveň vytahujete konkrétní důkazy, které pomáhají aktuálním obchodům a oslovování. Každý návrh připravíte ke kontrole a veškeré publikování necháte na zakladateli, aby ho provedl ručně.',
+        inputs: [
+          'Vaše ukázky psaní a pravidla hlasu',
+          'Nedávné úspěchy u zákazníků, uvedení produktů nebo ponaučení, ze kterých uděláte důkazní body',
+        ],
+        example: {
+          title: 'Příspěvek zakladatele a obchodní důkaz',
+          content:
+            'Návrh na LinkedIn: „Tři design partneři minulý měsíc chtěli stejný pracovní postup – ne proto, že by našemu UI chybělo tlačítko, ale protože jejich finanční tým potřeboval jeden odkaz pro audit před podpisem.“\nObchodní důkaz: 40členné studio zkrátilo onboarding ze 3 týdnů na 4 dny (anonymizováno).',
+        },
+        starterTask:
+          'Napište dva příspěvky na LinkedIn hlasem zakladatele a jeden anonymizovaný zákaznický důkaz z těchto nedávných úspěchů.',
+      },
+      mateo: {
+        role: 'Lovec nákupních signálů na sociálních sítích',
+        summary:
+          'Na sociálních kanálech vyhledává potenciální zákazníky, kteří mluví o vašem problému, připravuje odpovědi a odhaluje vřelé leady.',
+        persona:
+          'Procházíte oborové konverzace, vlastní sociální kanály zakladatele i cílové účty a hledáte lidi, kteří veřejně popisují přesně tu bolest, kterou produkt řeší. Filtrujete šum a plané tlachy, uvádíte přesný příspěvek a kontext, píšete krátké užitečné odpovědi hlasem zakladatele, které nikdy nepůsobí jako spam, a každého, kdo se zapojí, označíte za vřelý lead s přirozeným úvodem do konverzace. Nikdy automaticky nepublikujete ani neposíláte DM.',
+        inputs: [
+          'Problémy, které váš produkt řeší, a klíčová slova ke sledování',
+          'Cílové účty a vaše veřejné profily na sociálních sítích',
+        ],
+        example: {
+          title: 'Vřelé nákupní signály ze sociálních sítí',
+          content:
+            'Signál 1 (X): Zakladatel z Kestrel Labs se ptal, jak týmy sledují zpětnou vazbu od design partnerů bez nafouklého CRM.\nNávrh odpovědi: Stručný kolegiální tip, jak označovat P0–P4 problémy vs. pochvaly (připraveno k ručnímu zveřejnění).\nVřelý lead: Tento týden se zapojil dvakrát – připraven na oslovení na základě signálu.',
+        },
+        starterTask:
+          'Najděte pět nedávných veřejných příspěvků, kde zakladatelé nebo lidé z provozu popisují bolest, kterou řešíme, připravte užitečné odpovědi a seřaďte nejvřelejší leady.',
+      },
       clara: {
         role: 'Správce schránky',
         summary: 'Roztřiďte, co vyžaduje vaši pozornost, od zbytku, a připravte návrhy odpovědí.',
@@ -315,6 +474,37 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Požádejte tým Obchod a oslovování, aby prozkoumal tři firmy odpovídající mému ideálnímu zákazníkovi, porovnal je s mojí pipeline a pro každou napsal úvodní zprávu.',
+      },
+      'founder-led-sales': {
+        title: 'Obchod vedený zakladatelem',
+        category: 'Obchod',
+        summary:
+          'Vede ranou fázi obchodu vedeného zakladatelem od nákupních signálů přes aktuální obchody až po zákaznickou zpětnou vazbu zapracovanou do produktu – vše připravené ke schválení.',
+        outcomes: [
+          'Ranní seznam úkolů, páteční souhrn pipeline a měsíční zpráva pro investory',
+          'Design partneři seřazení podle signálů do KEEP / HOLD / DQ s vřelými cestami a návrhy oslovení',
+          'Podklady před hovorem, následné kroky po hovoru a zákaznické odpovědi roztříděné podle P0',
+          'Týdenní poznatky o ICP, odlišení od konkurence a produktové specifikace opřené o zákazníky',
+        ],
+        inputs: [
+          'Váš pitch, ICP a ukázky hlasu',
+          'Cílové účty, konkurenty a kritéria P0',
+          'Váš přehled obchodů, doručená pošta nebo poznámky z hovorů',
+        ],
+        handoff: [
+          'Hledání signálů',
+          'Návrhy oslovení',
+          'Příprava hovorů a třídění',
+          'Dodání a podklady',
+        ],
+        example: {
+          title:
+            'Ranní brief zakladatele: potenciální zákazníci KEEP / HOLD / DQ, příprava hovorů, třídění P0 a seřazená zpětná vazba.',
+          content:
+            'Urgentní (1): P0 timeout SSO od Acme – odpověď připravena ke schválení.\nKe kontrole připraveno (6): 4 dvojice oslovení KEEP v konceptech Gmailu; 2 podklady k hovorům připraveny.\nRiziko v pipeline: další krok u Northwind je 9 dní bez pohybu.\nKontrola hotovosti: MRR 42,5 tis. USD (+8 % WoW); dvě roční faktury čekají na úhradu.\n\nKEEP – Northwind Studio: Zakladatel psal o zpožděních onboardingu; vřelá cesta přes společného investora. Dvojice e-mailu a LinkedIn připravena v konceptech Gmailu.\nHOLD – Kestrel Labs: Silně odpovídá ICP, zatím žádný včasný spouštěč.\nDQ – Globex: Aktivní pilot v přehledu obchodů. Přeskočeno.',
+        },
+        starterTask:
+          'Požádejte tým Obchod vedený zakladatelem, aby se naučil mé ICP, můj hlas a účty, které nemá oslovovat, a pak našel pět design partnerů podložených signály, rozdělených do KEEP, HOLD a DQ, s návrhy otvíráků k mé kontrole.',
       },
       'business-admin': {
         title: 'Firemní administrativa',
