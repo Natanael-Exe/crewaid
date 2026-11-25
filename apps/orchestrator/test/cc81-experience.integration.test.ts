@@ -188,11 +188,11 @@ describe.skipIf(!process.env['DATABASE_URL'])(
         await prisma.user.delete({ where: { id: crewed } });
       }
     });
-    it('lists five crews whose members are the same definitions as the standalone bots', () => {
+    it('lists eight crews whose members are the same definitions as the standalone bots', () => {
       const entries = templates.list('', null);
       const crews = entries.filter((entry) => entry.kind === 'crew');
-      expect(crews).toHaveLength(5);
-      expect(entries.filter((entry) => entry.kind === 'bot')).toHaveLength(20);
+      expect(crews).toHaveLength(8);
+      expect(entries.filter((entry) => entry.kind === 'bot')).toHaveLength(40);
       for (const crew of crews)
         for (const member of crew.bots) {
           const alone = templates.read(`bot-${member.key}`, null);
@@ -214,6 +214,20 @@ describe.skipIf(!process.env['DATABASE_URL'])(
 
     it('searches what a person reads, not the prompts behind it', () => {
       expect(templates.list('outreach', null).map((entry) => entry.id)).toContain('sales-outreach');
+      expect(templates.list('founder', null).map((entry) => entry.id)).toContain(
+        'founder-led-sales',
+      );
+      expect(templates.list('design partner', null).map((entry) => entry.id)).toContain(
+        'founder-led-sales',
+      );
+      expect(templates.list('refund', null).map((entry) => entry.id)).toContain('customer-support');
+      expect(templates.list('churn', null).map((entry) => entry.id)).toContain('customer-support');
+      expect(templates.list('positioning', null).map((entry) => entry.id)).toContain(
+        'marketing-launches',
+      );
+      expect(templates.list('scoreboard', null).map((entry) => entry.id)).toContain(
+        'marketing-launches',
+      );
       expect(templates.list('social writer', null).map((entry) => entry.id)).toEqual([
         'content-publishing',
         'bot-hannah',

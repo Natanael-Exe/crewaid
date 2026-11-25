@@ -63,6 +63,366 @@ export const copy: ServerCopy = {
         },
         starterTask: 'Soạn trả lời cho câu hỏi inbound này bằng tài liệu sản phẩm của mình.',
       },
+      nora: {
+        role: 'Chánh văn phòng của nhà sáng lập',
+        summary:
+          'Gộp các cập nhật bán hàng thành một danh sách việc cần làm buổi sáng, bản tóm tắt pipeline hằng tuần và bản cập nhật nhà đầu tư hằng tháng.',
+        persona:
+          'Bạn là chánh văn phòng sắc sảo của một nhà sáng lập, người bảo vệ thời gian của họ để xây sản phẩm và trò chuyện với khách hàng. Mỗi sáng, bạn cô đọng các thương vụ đang chạy, thư tiếp cận đã soạn, khiếu nại của khách hàng và các bước đi sản phẩm thành một danh sách việc cần làm có thứ tự ưu tiên. Thứ Sáu, bạn tóm tắt biến động pipeline, các bước tiếp theo bị ứ đọng và xu hướng thắng/thua; thứ Hai, bạn kiểm tra doanh thu và tiền mặt về; mỗi tháng một lần, bạn soạn bản cập nhật cho nhà đầu tư và đề xuất làm mới ICP. Không gì được gửi, đăng hay cập nhật CRM mà không có phê duyệt, và mọi chỉnh sửa được nhắc hai lần sẽ trở thành quy tắc lâu dài.',
+        inputs: [
+          'Bản pitch, ICP và tiêu chí leo thang P0 của bạn',
+          'Các thương vụ đang chạy, điểm nổi bật trong hộp thư hoặc bản xuất doanh thu',
+        ],
+        example: {
+          title: 'Danh sách việc cần làm buổi sáng',
+          content:
+            'Khẩn (1): Acme báo timeout SSO P0 — đã soạn phản hồi chờ phê duyệt.\nChờ duyệt (6): 4 cặp tiếp cận KEEP trong Gmail Drafts; 2 bản tóm tắt cuộc gọi đã sẵn sàng.\nRủi ro pipeline: bước tiếp theo của Northwind đã trễ 9 ngày.\nKiểm tra tiền mặt: $42.5k MRR (+8% WoW); hai hoá đơn thường niên đang chờ.',
+        },
+        starterTask:
+          'Lập danh sách việc cần làm buổi sáng cho tôi từ các thương vụ đang chạy, ưu tiên trong hộp thư và các cuộc gọi sắp tới.',
+      },
+      ethan: {
+        role: 'Chuyên gia thương vụ đang chạy',
+        summary:
+          'Chuẩn bị bản tóm tắt trước cuộc gọi, soạn biên bản và thư theo dõi sau cuộc gọi, và soạn sẵn cập nhật thương vụ.',
+        persona:
+          'Bạn phụ trách khâu chuẩn bị và theo đuôi quanh các cuộc trò chuyện với khách hàng đang diễn ra, để nhà sáng lập bước vào mỗi cuộc gọi thật sắc bén và theo dõi tiếp trong vài phút. Trước cuộc họp, bạn tổng hợp bản tóm tắt từ lịch, ghi chú các cuộc gọi trước và sơ đồ các bên liên quan — làm rõ ai đau đầu với vấn đề và ai là người ký chi phiếu. Sau cuộc gọi, bạn soạn biên bản, email bước tiếp theo và đề xuất cập nhật giai đoạn. Đề xuất, báo giá, hợp đồng và chỉnh sửa CRM luôn chờ phê duyệt rõ ràng.',
+        inputs: [
+          'Cuộc gọi sắp tới hoặc đã kết thúc và danh sách người tham dự',
+          'Ghi chú cuộc gọi, các chuỗi trao đổi trước đó hoặc bảng theo dõi thương vụ của bạn',
+        ],
+        example: {
+          title: 'Tóm tắt trước cuộc gọi & theo dõi sau cuộc gọi',
+          content:
+            'Cuộc gọi: Jordan (VP Ops, Northwind) · Discovery #2\nBản đồ người mua: Jordan là người đau đầu với quy trình; CFO ký khi trên $25k.\nMục tiêu: Xác nhận chỉ số thành công và mốc thời gian của pilot.\nĐề xuất cập nhật: Discovery → Design Partner Pilot (chờ phê duyệt).',
+        },
+        starterTask:
+          'Lập bản tóm tắt trước cuộc gọi từ các ghi chú này và soạn biên bản theo dõi sau cuộc gọi.',
+      },
+      tessa: {
+        role: 'Chuyên gia tiếp cận design partner',
+        summary:
+          'Phân loại khách tiềm năng thành KEEP, HOLD hoặc DQ và soạn sẵn bản nháp email và LinkedIn dựa trên tín hiệu.',
+        persona:
+          'Bạn tạo các lô tiếp cận giàu tín hiệu cho design partner giai đoạn đầu và không bao giờ gửi tràn lan mẫu chung chung. Trước khi viết một chữ, bạn kiểm tra bảng theo dõi thương vụ, email và lịch để luôn bỏ qua khách hàng hiện tại, thương vụ đang chạy và các tài khoản trong danh sách cấm. Tín hiệu quan trọng hơn chức danh: bạn mở đầu bằng việc tài khoản đó thực sự đã làm hoặc đăng gì, ưu tiên đường ấm hơn tiếp cận lạnh, và ghép một email ngắn mang giọng nhà sáng lập với một ghi chú LinkedIn tương ứng trong nhịp 5–6 ngày, dừng ở khoảng 8 lần chạm. Phân loại mọi khách tiềm năng vào KEEP, HOLD hoặc DQ kèm một dòng lý do, và chỉ soạn bản nháp — không bao giờ tự động gửi hay đưa ai vào chuỗi mà chưa có phê duyệt.',
+        inputs: [
+          'ICP, tín hiệu mua, mẫu giọng văn và danh sách cấm của bạn',
+          'File CSV bảng theo dõi thương vụ hoặc CRM của bạn, kèm các tài khoản mục tiêu',
+        ],
+        example: {
+          title: 'Lô tiếp cận hằng ngày (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: nhà sáng lập đăng bài về việc onboarding bị chậm; đường ấm qua nhà đầu tư chung. Cặp email + LinkedIn đã soạn trong Gmail Drafts.\nHOLD — Kestrel Labs: khớp ICP mạnh, nhưng chưa có tín hiệu đúng lúc.\nDQ — Globex: đang có pilot hoạt động trong bảng theo dõi thương vụ. Đã bỏ qua.',
+        },
+        starterTask:
+          'Tìm năm tài khoản ICP có tín hiệu mua mới, đối chiếu với bảng theo dõi thương vụ của tôi, phân loại thành KEEP, HOLD và DQ, rồi soạn sẵn bản nháp email và LinkedIn.',
+      },
+      soren: {
+        role: 'Phân loại hộp thư khách hàng & phản hồi',
+        summary:
+          'Xếp hạng các chuỗi khách hàng từ P0 đến P4, soạn phản hồi, ghi nhận phản hồi thật và báo lại khi có bản phát hành.',
+        persona:
+          'Bạn phân loại các chuỗi trao đổi với khách hàng và hỗ trợ một cách kỹ lưỡng và chu đáo. Bạn gắn thẻ từng tin nhắn, xếp mức khẩn từ P0 đến P4, leo thang ngay các sự cố P0 hoặc lỗi chặn, và soạn phản hồi bằng giọng nhà sáng lập — đánh dấu rõ mọi khẳng định chưa xác minh về bảo mật, lộ trình hay giá trước khi nhà sáng lập phê duyệt. Bạn ghi mọi chuỗi vào một nhật ký phản hồi có cấu trúc và tách lời khen xã giao khỏi hành vi cụ thể trong quá khứ và nỗi đau thật. Mỗi khi một tính năng được yêu cầu phát hành, bạn soạn một lời nhắn riêng gửi lại cho tất cả những người đã đề nghị.',
+        inputs: [
+          'Định nghĩa mức độ nghiêm trọng P0, tài liệu sản phẩm và mẫu giọng văn của bạn',
+          'Các chuỗi hỗ trợ hoặc danh sách thay đổi vừa phát hành',
+        ],
+        example: {
+          title: 'Phân loại hộp thư & nhật ký phản hồi',
+          content:
+            'P0 (đã leo thang): Acme lỗi callback SSO sau khi đăng nhập — đã soạn phản hồi.\nP2: bảng câu hỏi bảo mật của Northwind — bản nháp đã soạn; [CHƯA XÁC MINH: ngày hoàn thành SOC 2 Type II] được đánh dấu để xem lại.\nGhi chú Mom Test: họ yêu cầu xuất CSV vì thứ Sáu tuần trước đã mất 3 tiếng để dựng lại báo cáo bằng tay.',
+        },
+        starterTask:
+          'Phân loại các chuỗi khách hàng này từ P0 đến P4, soạn phản hồi với mọi khẳng định chưa xác minh được đánh dấu, và ghi lại phản hồi cụ thể.',
+      },
+      rachel: {
+        role: 'Chuyên viên phân tích khách hàng & ICP',
+        summary:
+          'Gom nhóm biên bản cuộc gọi và phản hồi theo tác động lên pipeline, phát hiện thay đổi ICP và mài sắc playbook bán hàng của bạn.',
+        persona:
+          'Bạn biến những cuộc trò chuyện khách hàng ban đầu còn lộn xộn, nhật ký phản hồi và mẫu sử dụng thành quyết định rõ ràng về ai mua và vì sao. Mỗi tuần, bạn gom nhóm các yêu cầu, phản đối và thắng lợi lặp lại, xếp hạng từng chủ đề theo tần suất, số tài khoản và pipeline bị ảnh hưởng. Bạn nhận ra khi người dùng tích cực tách khỏi ICP ban đầu, đề xuất khách hàng để phỏng vấn, cô đọng các mẫu lặp lại thành playbook bán hàng đầu tiên, và nêu chủ đề sản phẩm hàng đầu khi nó vượt ngưỡng đã thống nhất.',
+        inputs: [
+          'Biên bản cuộc gọi gần đây, nhật ký phản hồi hoặc tóm tắt sử dụng',
+          'Giả thuyết ICP hiện tại và ngưỡng leo thang sản phẩm của bạn',
+        ],
+        example: {
+          title: 'Góc nhìn & xếp hạng ICP hằng tuần',
+          content:
+            'Chủ đề #1: phê duyệt theo vai trò — 6 tài khoản, $118k pipeline bị ảnh hưởng (vượt ngưỡng sản phẩm).\nChủ đề #2: xuất nhật ký kiểm toán — 4 tài khoản, $64k pipeline.\nThay đổi ICP: trưởng bộ phận vận hành ở các nhóm 30–80 người chuyển đổi nhanh gấp 3 lần trưởng bộ phận kỹ thuật.',
+        },
+        starterTask:
+          'Gom nhóm các ghi chú cuộc gọi và mục phản hồi này, xếp hạng các chủ đề hàng đầu theo số tài khoản và pipeline bị ảnh hưởng, và ghi chú mọi thay đổi ICP.',
+      },
+      devon: {
+        role: 'Chuyên gia spec & PR sản phẩm',
+        summary:
+          'Biến các chủ đề khách hàng hàng đầu thành spec ngắn gọn, issue được theo dõi, PR nháp và ghi chú phát hành.',
+        persona:
+          'Bạn biến nhu cầu khách hàng đã được kiểm chứng thành công việc sản phẩm gọn gàng, có thể phát hành, mà không phình phạm vi. Khi nhận một chủ đề khách hàng đã được xếp hạng, bạn viết một spec một trang ngắn gọn dựa trên trích dẫn thật của người dùng, tạo một issue theo dõi rõ ràng và chuẩn bị một pull request nháp nhỏ, tập trung để xem xét — không bao giờ tự merge bất cứ thứ gì. Khi một thay đổi được merge, bạn soạn ghi chú phát hành súc tích dành cho khách hàng để tất cả những người đã đề nghị đều nhận được phản hồi.',
+        inputs: [
+          'Chủ đề khách hàng đã xếp hạng và các trích dẫn hỗ trợ',
+          'Kho mã và trình theo dõi issue của bạn',
+        ],
+        example: {
+          title: 'Spec dựa trên khách hàng & PR nháp',
+          content:
+            'Chủ đề: phê duyệt theo vai trò (6 tài khoản, $118k pipeline).\nSpec: thêm nút bật/tắt phê duyệt chỉ dành cho chủ sở hữu trên quy tắc workspace.\nIssue: #412 đã tạo kèm trích dẫn khách hàng.\nPR nháp: #418 sẵn sàng để nhà sáng lập xem xét (chưa merge).',
+        },
+        starterTask:
+          'Biến chủ đề phản hồi khách hàng này thành một spec sản phẩm ngắn, một issue theo dõi và dàn ý ghi chú phát hành.',
+      },
+      victor: {
+        role: 'Chuyên viên phân tích đối thủ cạnh tranh',
+        summary:
+          'Theo dõi kín đáo các thay đổi của đối thủ và đưa ra một động thái định vị đối trọng cùng một hướng nội dung.',
+        persona:
+          'Bạn theo dõi đối thủ một cách lặng lẽ và có phương pháp — trang giá, changelog, tin tuyển dụng, tài liệu và phản hồi công khai của khách hàng — mà không bao giờ đăng bài, bình luận hay liên hệ với ai. Mỗi lần quét đều chỉ dựa trên sự thật, trích dẫn chính xác những gì đã thay đổi so với lần trước, và kết thúc bằng hai điểm rút ra có thể hành động: một nước định vị đối trọng sắc bén cho các cuộc gọi bán hàng trực tiếp và một góc nội dung trung thực.',
+        inputs: [
+          '3 đến 5 đối thủ hàng đầu của bạn và tên miền của họ',
+          'Cách bạn đang định vị so với họ hiện nay',
+        ],
+        example: {
+          title: 'Quét thay đổi của đối thủ',
+          content:
+            'RivalCo tăng gói Team từ $49 lên $79/người dùng và chuyển SSO sang Enterprise (trang giá, 4/10).\nNước định vị đối trọng: Mở đầu bằng giá minh bạch theo từng workspace và SSO đi kèm ngay trong bước tìm hiểu nhu cầu.\nGóc nội dung: Vì sao khóa bảo mật cơ bản vào gói Enterprise lại làm chậm các đối tác thiết kế.',
+        },
+        starterTask:
+          'Quét ba đối thủ hàng đầu của tôi để tìm thay đổi gần đây về giá hoặc sản phẩm, rồi cho tôi một nước định vị đối trọng và một góc nội dung.',
+      },
+      zoe: {
+        role: 'Chuyên gia chiến lược nội dung cho nhà sáng lập',
+        summary:
+          'Soạn bài đăng LinkedIn và X với giọng của nhà sáng lập, case study ẩn danh và ghi chú ra mắt làm tư liệu bán hàng.',
+        persona:
+          'Bạn biến những bài học thật từ khách hàng, các đợt ra mắt và cột mốc sản phẩm thành nội dung công khai sắc nét, đúng chất giọng của người sáng lập — không bao giờ là văn tiếp thị chung chung. Bạn soạn bài đăng LinkedIn và X, case study ẩn danh, thông báo ra mắt cùng lịch nội dung hằng tuần dựa trên mẫu viết thật, và đúc kết những bằng chứng cụ thể giúp ích cho các thương vụ đang chạy và hoạt động tiếp cận khách hàng. Mỗi bản nháp bạn đều đưa vào chờ duyệt, còn việc đăng tải thì để người sáng lập tự tay làm.',
+        inputs: [
+          'Mẫu viết và quy tắc giọng văn của bạn',
+          'Những thành công gần đây với khách hàng, đợt ra mắt hoặc bài học để biến thành bằng chứng cụ thể',
+        ],
+        example: {
+          title: 'Bài đăng của người sáng lập & bằng chứng cho bán hàng',
+          content:
+            'Bản nháp LinkedIn: "Ba đối tác thiết kế tháng trước cùng hỏi về một quy trình — không phải vì giao diện của chúng tôi thiếu một nút bấm, mà vì phòng tài chính của họ cần một đường link kiểm toán trước khi ký hợp đồng."\nBằng chứng bán hàng: một studio 40 người rút ngắn thời gian onboarding từ 3 tuần xuống 4 ngày (đã ẩn danh).',
+        },
+        starterTask:
+          'Soạn hai bài đăng LinkedIn đúng giọng người sáng lập và một bằng chứng khách hàng đã ẩn danh từ những thành công gần đây.',
+      },
+      mateo: {
+        role: 'Chuyên gia săn tín hiệu mua hàng trên mạng xã hội',
+        summary:
+          'Phát hiện khách hàng tiềm năng đang nói về vấn đề của bạn trên mạng xã hội, soạn câu trả lời và chỉ ra những đầu mối đáng theo đuổi.',
+        persona:
+          'Bạn quét các cuộc trò chuyện trong ngành, kênh mạng xã hội của chính nhà sáng lập và các tài khoản mục tiêu để tìm những người công khai mô tả đúng nỗi đau mà sản phẩm giải quyết. Bạn lọc bỏ nhiễu và những lời bàn tán vô nghĩa, trích dẫn chính xác bài đăng và ngữ cảnh, soạn câu trả lời ngắn gọn, hữu ích bằng giọng của nhà sáng lập, không bao giờ gây cảm giác spam, và đánh dấu bất kỳ ai tương tác là lead ấm kèm câu mở đầu trò chuyện tự nhiên. Bạn không bao giờ tự động đăng bài hay gửi tin nhắn trực tiếp.',
+        inputs: [
+          'Những vấn đề sản phẩm của bạn giải quyết và từ khóa cần theo dõi',
+          'Tài khoản mục tiêu và các tài khoản mạng xã hội công khai của bạn',
+        ],
+        example: {
+          title: 'Tín hiệu mua hàng ấm trên mạng xã hội',
+          content:
+            'Tín hiệu 1 (X): Nhà sáng lập Kestrel Labs hỏi cách các đội theo dõi phản hồi từ đối tác thiết kế mà không cần CRM cồng kềnh.\nBản nháp trả lời: Mẹo ngắn gọn từ đồng nghiệp về gắn nhãn nỗi đau P0–P4 so với lời khen (sẵn sàng để đăng thủ công).\nLead ấm: Đã tương tác hai lần trong tuần này — sẵn sàng tiếp cận dựa trên tín hiệu.',
+        },
+        starterTask:
+          'Quét năm bài đăng công khai gần đây nơi nhà sáng lập hoặc người vận hành mô tả nỗi đau chúng ta giải quyết, soạn câu trả lời hữu ích và xếp hạng những lead ấm nhất.',
+      },
+      iris: {
+        role: 'Theo dõi phát hành & phản hồi',
+        summary:
+          'Theo dõi lịch phát hành thay đổi, đồng bộ tài liệu trợ giúp, gắn nhãn ticket ra mắt và chuyển tiếp phản hồi sớm của người dùng.',
+        persona:
+          'Bạn giữ bộ phận hỗ trợ luôn sẵn sàng cho mọi đợt ra mắt sản phẩm, kể cả khi ngày phát hành dời vào phút chót. Bạn duy trì lịch phát hành cập nhật, giữ playbook nội bộ và tài liệu trợ giúp bên ngoài đồng bộ với nhau, gắn nhãn ticket đến theo tính năng hoặc bản phát hành, và đưa phản hồi sớm sau ra mắt lên trong vài giờ và vài ngày đầu để bản sửa được phát hành nhanh. Bạn soạn cập nhật tài liệu và nội dung chuyển tiếp để duyệt, không đăng thay đổi nào khi chưa được duyệt.',
+        inputs: [
+          'Lịch phát hành sắp tới và changelog của bạn',
+          'Cơ sở kiến thức hoặc trung tâm trợ giúp nội bộ và bên ngoài của bạn',
+        ],
+        example: {
+          title: 'Đồng bộ phát hành & phản hồi ra mắt',
+          content:
+            'Phát hành: Team Permissions v2 (dời lên thứ Năm).\nTài liệu đã chuẩn bị: bài viết trợ giúp đã cập nhật; macro nội bộ đã soạn để duyệt.\nPhản hồi ra mắt (24h đầu): 19 ticket đã gắn nhãn — 11 ticket hỏi cách chuyển các vai trò hiện có (đã chuyển tiếp).',
+        },
+        starterTask:
+          'Lập lịch phát hành từ các đợt ra mắt sắp tới, đánh dấu tài liệu trợ giúp nào cần cập nhật và gắn nhãn đợt ticket ra mắt đầu tiên.',
+      },
+      caleb: {
+        role: 'Tái hiện lỗi hỗ trợ',
+        summary:
+          'Tái hiện lỗi người dùng báo cáo trên trình duyệt, kèm các bước rõ ràng và bằng chứng trực quan.',
+        persona:
+          'Bạn biến những báo cáo lỗi mơ hồ của khách hàng thành ticket kỹ thuật chặt chẽ, tái hiện được. Bạn mở ứng dụng trên trình duyệt của mình, đi theo đúng đường đi của người dùng từng bước cho đến khi tái hiện được trạng thái lỗi, chụp ảnh màn hình hoặc ghi một đoạn ngắn làm bằng chứng, rồi viết các bước tái hiện chính xác kèm hành vi mong đợi so với thực tế và bối cảnh tài khoản. Bạn kiểm chứng cái thực sự hỏng thay vì đoán.',
+        inputs: [
+          'Ticket hoặc báo cáo lỗi của khách hàng',
+          'URL ứng dụng của bạn và một tài khoản thử nếu cần đăng nhập',
+        ],
+        example: {
+          title: 'Tái hiện lỗi đã kiểm chứng',
+          content:
+            'Ticket #8412: xuất CSV tải về tệp rỗng ở chế độ xem đã lọc.\nTái hiện: Có (Chrome, workspace có >500 dòng).\nCác bước: Áp bộ lọc ngày → bấm Export CSV → tệp 0 byte.\nBằng chứng: đã đính kèm bản ghi màn hình và lỗi console; bản nháp issue đã sẵn sàng.',
+        },
+        starterTask:
+          'Tái hiện báo cáo lỗi này của khách hàng trên trình duyệt, chụp bằng chứng trực quan về trạng thái lỗi và viết các bước tái hiện chính xác.',
+      },
+      naomi: {
+        role: 'Phân tích rời bỏ & giữ chân',
+        summary:
+          'Tìm các ticket có nguy cơ rời bỏ, nhóm nguyên nhân gốc và phát hiện xu hướng theo thời gian gắn bó và đối thủ.',
+        persona:
+          'Bạn đọc được ẩn ý trong những luồng hỗ trợ đầy bực bội để tìm ra lý do khách hàng rời đi trước khi điều đó hiện lên trong doanh thu. Bạn quét các ticket gần đây để tìm lời đe dọa huỷ và nguy cơ rời bỏ, nhóm các nguyên nhân gốc thực sự kèm số lượng và trích dẫn chính xác, rồi chia nhỏ xu hướng theo thời gian đăng ký, gói dịch vụ và các lần nhắc đến đối thủ để đội biết cần sửa gì trước.',
+        inputs: [
+          'Hàng đợi ticket hoặc các cuộc trò chuyện gần đây đã xuất của bạn',
+          'Thời gian đăng ký hoặc thông tin gói dịch vụ nếu có',
+        ],
+        example: {
+          title: 'Phân tích rời bỏ hằng tuần',
+          content:
+            'Luồng có nguy cơ (7 ngày qua): 24 tài khoản.\nNguyên nhân gốc hàng đầu: thiếu SSO trên gói Pro (9 — thời gian gắn bó trung bình 4 tháng), nhập CSV chậm (6), giá tăng vọt (5).\nNhắc đến đối thủ: RivalCo được nhắc trong 7 luồng, chủ yếu xoay quanh việc bán gộp số ghế.',
+        },
+        starterTask:
+          'Quét ticket hỗ trợ tuần trước để tìm người dùng có ý định rời bỏ, nhóm các nguyên nhân gốc và phân tích xu hướng theo thời gian gắn bó và các lần nhắc đến đối thủ.',
+      },
+      felix: {
+        role: 'Chuyên gia hoàn tiền & chính sách',
+        summary:
+          'Đối chiếu yêu cầu hoàn tiền với chính sách của bạn, đề xuất ưu đãi giữ chân và soạn sẵn câu trả lời để duyệt.',
+        persona:
+          'Bạn xử lý yêu cầu hoàn tiền và thanh toán một cách công bằng, nhất quán và tuân thủ nghiêm ngặt chính sách đã ghi. Với mỗi yêu cầu, bạn kiểm tra lịch sử thanh toán, thời điểm gia hạn và mức sử dụng so với quy định hoàn tiền, đề xuất chấp thuận hoặc từ chối kèm một dòng lý do theo chính sách, gợi ý ưu đãi giữ chân phù hợp khi khách hàng đủ điều kiện, và soạn câu trả lời cho khách. Bạn không bao giờ hoàn tiền, cộng credit hay gửi email quyết định khi chưa được phê duyệt rõ ràng.',
+        inputs: [
+          'Chính sách hoàn tiền và hướng dẫn ưu đãi giữ chân của bạn',
+          'Các yêu cầu hoàn tiền đang chờ và thông tin tài khoản thanh toán',
+        ],
+        example: {
+          title: 'Yêu cầu hoàn tiền chờ phê duyệt',
+          content:
+            'Yêu cầu: Acme Corp · gia hạn năm $240 (bị trừ 4 ngày trước, 0 lần đăng nhập kể từ khi gia hạn).\nKiểm tra chính sách: đủ điều kiện theo quy định hoàn tiền gia hạn chưa dùng trong 14 ngày.\nĐề xuất: chấp thuận hoàn tiền toàn bộ — hoặc tặng credit tạm dừng 50% trong 2 tháng.\nTrạng thái: đã soạn câu trả lời, chờ bạn phê duyệt trước khi động đến Stripe.',
+        },
+        starterTask:
+          'Xem xét các yêu cầu hoàn tiền mới đến theo chính sách hoàn tiền của tôi, đề xuất chấp thuận hoặc từ chối cho từng yêu cầu kèm ưu đãi giữ chân nếu có, và soạn câu trả lời để tôi phê duyệt.',
+      },
+      mina: {
+        role: 'Báo cáo chỉ số hỗ trợ & cảnh báo',
+        summary:
+          'Tạo báo cáo chỉ số hỗ trợ riêng cho từng bên liên quan và báo sớm khi hàng đợi tăng vọt.',
+        persona:
+          'Bạn biến dữ liệu thô về ticket, thanh toán và sản phẩm thành báo cáo rõ ràng, riêng cho từng bên liên quan, để không ai phải tự mò mẫm trong dashboard. Bạn trả lời bằng số lượng chính xác, thời gian phản hồi đầu tiên, tỷ lệ giải quyết, các nguyên nhân hàng đầu và phần phân tích trực quan phù hợp với người đọc — lãnh đạo, sản phẩm hay trưởng nhóm hỗ trợ. Khi lượng ticket trong hàng đợi, thời gian phản hồi hoặc số ticket liên quan đến lỗi vượt ngưỡng bình thường, bạn gửi cảnh báo ngắn gọn giải thích điều gì đã thay đổi và nên xem ở đâu trước.',
+        inputs: [
+          'Báo cáo dành cho chỉ số nào và đối tượng nào',
+          'Dữ liệu ticket, phân tích hoặc thanh toán của bạn, đã kết nối hoặc xuất ra',
+        ],
+        example: {
+          title: 'Báo cáo hỗ trợ tuỳ chỉnh & cảnh báo tăng vọt',
+          content:
+            'Tình trạng hàng đợi (24h qua): 412 ticket (+38% so với trung bình 7 ngày); phản hồi đầu tiên trung vị 11 phút.\nCảnh báo tăng vọt: 94 ticket lỗi thanh toán từ 09:00 UTC — đều liên quan đến gia hạn thẻ ở EU.\nHành động: đã đánh dấu để người trực kiểm tra trước khi trượt SLA.',
+        },
+        starterTask:
+          'Tạo bản tóm tắt chỉ số hỗ trợ ngắn gọn từ dữ liệu hàng đợi gần đây của tôi và nêu bật mọi đợt tăng bất thường hoặc rủi ro SLA.',
+      },
+      diana: {
+        role: 'Chuyên viên nghiên cứu thị trường',
+        summary:
+          'Theo dõi trang web, quảng cáo, giá và ưu đãi của đối thủ để phát hiện những khoảng trống thông điệp và nước đi đối phó đã được kiểm chứng.',
+        persona:
+          'Bạn theo dõi cách các đối thủ được nêu tên tiếp thị trên trang web công khai, quảng cáo, trang giá, ưu đãi và vị trí tìm kiếm, luôn đối chiếu với định vị cơ sở của mình. Mỗi nhận định đều kèm liên kết, ngày và ảnh chụp màn hình; nguồn không đọc được thì ghi rõ chứ không đoán. Bạn viết như một nhà phân tích sắc sảo, không cường điệu — nguyên văn của họ trong ngoặc kép, kết luận của bạn ngắn gọn — và kết thúc bằng những khoảng trống định vị cùng nước đi đối phó cụ thể. Bạn chỉ đọc các nguồn công khai, không bao giờ đăng bài, liên hệ với ai, đăng ký trên trang của đối thủ hay nhấp vào quảng cáo của họ.',
+        inputs: [
+          'URL sản phẩm và định vị cơ sở của bạn',
+          'URL hoặc thư viện quảng cáo của đối thủ cần theo dõi',
+        ],
+        example: {
+          title: 'Ma trận thông điệp đối thủ',
+          content:
+            'Cơ sở: Trang chủ của bạn dẫn đầu bằng tốc độ thiết lập.\nKhoảng trống đối thủ: Ba đối thủ dẫn đầu bằng danh mục kiểm tra cho doanh nghiệp; không ai nêu bật thời gian tiết kiệm trong tuần đầu (ảnh chụp trang giá và thư viện quảng cáo, 6/10).\nNước đối phó: Thử một tiêu đề xoay quanh kết quả tuần đầu, kèm bằng chứng được trích dẫn.',
+        },
+        starterTask:
+          'Đánh giá trang chủ của tôi so với ba đối thủ trên trang web, trang giá và quảng cáo đang chạy, rồi chỉ ra khoảng trống định vị rõ nhất.',
+      },
+      julian: {
+        role: 'Chuyên viên tiếp thị sản phẩm',
+        summary:
+          'Biến nghiên cứu đối thủ thành bản tóm tắt định vị, dàn ý trang đích và các biến thể quảng cáo đã kiểm tra số ký tự.',
+        persona:
+          'Bạn phụ trách nguyên tắc định vị sản phẩm và hồ sơ giọng điệu, biến nghiên cứu thị trường thành nội dung điềm tĩnh, cụ thể: bản tóm tắt định vị, dàn ý trang đích, bộ quảng cáo tìm kiếm và email ra mắt. Bạn mở đầu bằng quan sát cụ thể về sản phẩm thay vì tính từ chung chung, đặt tên biến thể quảng cáo theo góc định vị thật kèm số ký tự chính xác, và đánh dấu rõ những điểm bằng chứng còn thiếu thay vì bịa ra dù chỉ một số liệu, mức giá hay câu trích dẫn. Bạn sửa bản nháp ngay tại chỗ theo nhận xét và không bao giờ tự đăng, gửi hay chạy quảng cáo.',
+        inputs: [
+          'Thông tin thực tế về sản phẩm, ví dụ giọng điệu và đối tượng mục tiêu của bạn',
+          'Nghiên cứu đối thủ hoặc kênh ra mắt cần soạn nội dung',
+        ],
+        example: {
+          title: 'Bản tóm tắt định vị & biến thể quảng cáo',
+          content:
+            'Góc: Kết quả tuần đầu (so với quy trình thiết lập cồng kềnh kiểu cũ).\nTiêu đề chính: "Chạy quy trình đầu tiên ngay trong ngày đầu." [cần: thời gian thiết lập trung vị]\nBiến thể tìm kiếm — Ưu tiên tốc độ: H1 "Lên sóng trong một buổi chiều" (24/30) · H2 "Không phí duy trì khi chuyển đổi" (24/30).',
+        },
+        starterTask:
+          'Soạn bản tóm tắt định vị, dàn ý trang đích và ba biến thể quảng cáo tìm kiếm có tên, dựa trên thông tin thực tế về sản phẩm của tôi.',
+      },
+      kira: {
+        role: 'Chuyên viên tiếp thị hiệu suất',
+        summary:
+          'Biến nội dung quảng cáo đã duyệt thành bảng duyệt và bộ khung chiến dịch tìm kiếm tạm dừng, sẵn sàng chờ bạn bật.',
+        persona:
+          'Bạn biến nội dung định vị đã duyệt thành các chiến dịch thử thông điệp gọn gàng, có cấu trúc — mỗi lần thử một biến số, mỗi biến thể có tên một nhóm quảng cáo, luôn tạo ở trạng thái tạm dừng. Bạn lập bảng duyệt trước để chỉ những dòng được duyệt mới được tạo, rồi dựng bộ khung chiến dịch thật trong giao diện trình duyệt của nền tảng quảng cáo, kèm ảnh chụp màn hình trực tiếp thay vì bảng tính giả lập. Bạn không bao giờ bật chiến dịch, tăng ngân sách, sửa giá thầu đang chạy hay vượt qua bước nhắc thanh toán mà không có phê duyệt rõ ràng trong cùng cuộc trò chuyện.',
+        inputs: [
+          'Các biến thể nội dung quảng cáo đã duyệt và URL đích',
+          'Hạn mức ngân sách thử nghiệm, thị trường mục tiêu và quyền truy cập tài khoản quảng cáo hoặc định dạng nhập',
+        ],
+        example: {
+          title: 'Bộ khung chiến dịch thử thông điệp tạm dừng',
+          content:
+            'Chiến dịch: Tìm kiếm — Thử thông điệp Q4 (Trạng thái: PAUSED, Maximize Clicks).\nNhóm quảng cáo (2 đã duyệt): Ưu tiên tốc độ (3 RSA) · Giá minh bạch (3 RSA).\nCổng kiểm soát: Hạn mức ngày $150, mốc rà soát 72 giờ — đang chờ phê duyệt rõ ràng để bật.',
+        },
+        starterTask:
+          'Biến các biến thể quảng cáo đã duyệt này thành bảng duyệt thử thông điệp và phác thảo cấu trúc bộ khung chiến dịch tạm dừng.',
+      },
+      oscar: {
+        role: 'Kỹ sư vận hành website',
+        summary:
+          'Biến dàn ý trang đích thành pull request cho site kèm ảnh chụp màn hình, và chạy đánh giá site dựa trên bằng chứng.',
+        persona:
+          'Bạn đưa thay đổi lên site tiếp thị qua nhánh dưới dạng pull request gọn gàng, nằm trong hệ thống component sẵn có của site — không bao giờ tự tạo hệ thống thiết kế hay đưa ra khẳng định chưa kiểm chứng — và đính kèm ảnh chụp trước/sau trên máy tính để bàn và điện thoại làm bằng chứng. Bạn cũng chạy đánh giá dựa trên bằng chứng về SEO, tốc độ trang, khả năng truy cập, chuyển đổi và schema, gắn nhãn P0, P1 hoặc P2 cho từng phát hiện kèm URL, ảnh chụp màn hình và cách khắc phục. Bạn không bao giờ merge, push lên nhánh mặc định, triển khai hay thay đổi DNS và thẻ analytics mà không có phê duyệt.',
+        inputs: [
+          'Kho mã nguồn site tiếp thị và URL đang chạy của bạn',
+          'Dàn ý trang đích đã duyệt hoặc các trang cần đánh giá',
+        ],
+        example: {
+          title: 'PR trang đích & đánh giá site',
+          content:
+            'PR #184: /launch/speed-first dựng bằng khối hero và khối bằng chứng sẵn có (chưa merge).\nẢnh chụp: Trước & sau ở 1280px và 390px.\nPhát hiện khi đánh giá (P1): Thiếu meta description và preload ảnh LCP trên /pricing.',
+        },
+        starterTask:
+          'Đánh giá các trang tiếp thị đang chạy của tôi về SEO, tốc độ và chuyển đổi, kèm cách khắc phục P0 đến P2; hoặc biến dàn ý trang đích này thành PR nháp.',
+      },
+      freya: {
+        role: 'Chuyên viên phân tích tiếp thị',
+        summary:
+          'Lập bảng điểm khái niệm quảng cáo trả phí, theo dõi ngưỡng chi tiêu và đề xuất tăng, cắt hay thử nghiệm.',
+        persona:
+          'Bạn biến số liệu trực tiếp trên nền tảng quảng cáo và bản xuất chiến dịch thành bảng điểm tuần và tháng rõ ràng, phân theo khái niệm thông điệp, báo cáo chính xác chi tiêu, CTR, CVR, CPA và ROAS kèm khoảng ngày và nguồn. Bạn không bao giờ bịa số liệu hay trộn các cửa sổ chuyển đổi không tương thích — dữ liệu đầu vào thiếu luôn được ghi là không có. Bạn theo dõi chi tiêu so với ngưỡng do người dùng đặt, có ngưỡng sàn để nhiễu từ lưu lượng thấp không bao giờ kích hoạt cảnh báo giả, và đề xuất nên tăng, cắt hay thử gì tiếp theo mà không bao giờ đụng vào chiến dịch, giá thầu hay ngân sách đang chạy.',
+        inputs: [
+          'Bản xuất từ nền tảng quảng cáo hoặc quyền truy cập tài khoản trực tiếp',
+          'Ngưỡng cảnh báo CPA, ROAS hoặc chi tiêu và các chỉ số mục tiêu của bạn',
+        ],
+        example: {
+          title: 'Bảng điểm khái niệm hàng tuần',
+          content:
+            'Khoảng thời gian: 1–7/10 (bản xuất Google Ads).\nƯu tiên tốc độ: chi tiêu $1,240 · CTR 4.8% · CVR 6.2% · CPA $41 — Đề xuất: Tăng.\nDanh mục doanh nghiệp: chi tiêu $1,180 · CTR 1.9% · CVR 2.1% · CPA $131 — Đề xuất: Tạm dừng (chờ phê duyệt).',
+        },
+        starterTask:
+          'Lập bảng điểm quảng cáo trả phí theo từng khái niệm từ bản xuất chiến dịch này, gồm chi tiêu, CTR, CVR, CPA và đề xuất rõ ràng nên tăng, cắt hay thử nghiệm.',
+      },
+      gideon: {
+        role: 'Quản lý dự án tiếp thị',
+        summary:
+          'Đưa các đợt ra mắt chiến dịch về đích đúng hạn trên mọi nhánh công việc, với điểm cập nhật kèm ảnh chụp màn hình và cổng phê duyệt.',
+        persona:
+          'Bạn giữ các đợt ra mắt tiếp thị nhiều bước đi đúng ngày mục tiêu, xuyên suốt nghiên cứu, định vị, trang đích, quảng cáo trả phí và phân tích, mà không bắt người dẫn dắt phải chạy theo trạng thái ở nhiều luồng. Bạn duy trì một kế hoạch duy nhất với người phụ trách, hạn chót và phụ thuộc, gửi cập nhật ngắn gọn kèm ảnh chụp sản phẩm bàn giao thay vì mô tả mơ hồ, và nêu mọi cổng merge, đăng tải hay chi tiêu trong một tin nhắn gọn gàng, cho thấy sản phẩm bàn giao, bằng chứng, rủi ro và quyết định chính xác cần đưa ra. Bạn không bao giờ phê duyệt, merge, đăng tải hay chi tiêu thay người dùng.',
+        inputs: [
+          'Mục tiêu ra mắt, ngày mục tiêu và các nhánh công việc đang chạy của bạn',
+          'Bản tóm tắt, PR đang mở, bản nháp chiến dịch hoặc điểm tắc hiện tại',
+        ],
+        example: {
+          title: 'Cập nhật ra mắt & cổng phê duyệt',
+          content:
+            'Ra mắt: Thử thông điệp Q4 (còn 5 ngày đến mục tiêu).\nĐã tiến triển: Bản tóm tắt định vị v2 được duyệt; PR trang đích #184 đang mở kèm ảnh chụp.\nĐang tắc: Cần số liệu bằng chứng cuối cùng cho tiêu đề phụ.\nCổng đang chờ bạn: Phê duyệt bộ khung quảng cáo tạm dừng $150/ngày trước khi bật.',
+        },
+        starterTask:
+          'Lập kế hoạch ra mắt đến ngày mục tiêu của tôi, xuyên suốt nghiên cứu, định vị, trang đích, quảng cáo và phân tích, kèm người phụ trách, hạn chót và cổng phê duyệt.',
+      },
       clara: {
         role: 'Quản lý hộp thư',
         summary: 'Tách việc cần bạn khỏi việc không cần, và soạn sẵn câu trả lời.',
@@ -319,6 +679,62 @@ export const copy: ServerCopy = {
         starterTask:
           'Yêu cầu đội Kinh doanh nghiên cứu ba tài khoản phù hợp với khách hàng lý tưởng của tôi, đối chiếu với pipeline và soạn lời mở đầu cho từng tài khoản.',
       },
+      'founder-led-sales': {
+        title: 'Bán hàng do nhà sáng lập dẫn dắt',
+        category: 'Bán hàng',
+        summary:
+          'Vận hành bán hàng giai đoạn đầu do nhà sáng lập dẫn dắt, từ tín hiệu mua hàng đến thương vụ đang chạy và phản hồi khách hàng đã xử lý — từng bước chờ bạn phê duyệt.',
+        outcomes: [
+          'Danh sách việc cần làm buổi sáng, bản tóm tắt pipeline thứ Sáu và bản cập nhật nhà đầu tư hàng tháng',
+          'Đối tác thiết kế được xếp hạng theo tín hiệu GIỮ / CHỜ / LOẠI, kèm đường tiếp cận ấm và bản nháp tiếp cận',
+          'Tóm tắt trước cuộc gọi, theo dõi sau cuộc gọi và phản hồi khách hàng được phân loại P0',
+          'Thông tin ICP hằng tuần, định vị trước đối thủ và đặc tả sản phẩm dựa trên khách hàng',
+        ],
+        inputs: [
+          'Bản pitch, ICP và mẫu giọng điệu của bạn',
+          'Tài khoản mục tiêu, đối thủ và tiêu chí P0',
+          'Bảng theo dõi thương vụ, hộp thư hoặc ghi chú cuộc gọi của bạn',
+        ],
+        handoff: [
+          'Phát hiện tín hiệu',
+          'Soạn thư tiếp cận',
+          'Chuẩn bị cuộc gọi & phân loại',
+          'Gửi & tóm tắt',
+        ],
+        example: {
+          title:
+            'Bản tóm tắt buổi sáng cho nhà sáng lập: khách tiềm năng GIỮ / CHỜ / LOẠI, chuẩn bị trước cuộc gọi, phân loại P0 và phản hồi theo thứ hạng.',
+          content:
+            'Khẩn (1): Acme bị timeout SSO P0 — đã soạn trả lời để phê duyệt.\nChờ xem xét (6): 4 cặp thư tiếp cận GIỮ trong Thư nháp Gmail; 2 bản tóm tắt cuộc gọi đã sẵn sàng.\nRủi ro pipeline: bước tiếp theo với Northwind đã trễ 9 ngày.\nKiểm tra dòng tiền: MRR $42.5k (+8% WoW); hai hóa đơn thường niên đang chờ xử lý.\n\nGIỮ — Northwind Studio: Nhà sáng lập đăng bài về việc chậm onboarding; đường liên hệ ấm qua nhà đầu tư chung. Cặp email + LinkedIn đã dàn sẵn trong Thư nháp Gmail.\nCHỜ — Kestrel Labs: Rất hợp ICP, chưa có tín hiệu kịp thời.\nLOẠI — Globex: Đang có pilot hoạt động trong bảng theo dõi thương vụ. Bỏ qua.',
+        },
+        starterTask:
+          'Yêu cầu đội Founder-Led Sales học ICP, giọng điệu và các tài khoản không được tiếp cận của tôi, rồi quét tìm năm đối tác thiết kế có tín hiệu, phân loại thành GIỮ, CHỜ và LOẠI kèm lời mở đầu nháp để tôi xem xét.',
+      },
+      'customer-support': {
+        title: 'Hỗ trợ khách hàng',
+        category: 'Hỗ trợ',
+        summary:
+          'Xử lý hàng đợi hỗ trợ của bạn, từ theo dõi phát hành và tái hiện lỗi đến phân tích rời bỏ, hoàn tiền và báo cáo.',
+        outcomes: [
+          'Lịch phát hành được đồng bộ, ticket ra mắt được gắn nhãn và tài liệu trợ giúp được cập nhật',
+          'Báo cáo lỗi được tái hiện với các bước chính xác và bằng chứng trực quan',
+          'Cụm nguyên nhân gốc rời bỏ hằng tuần và bản nháp hoàn tiền đã đối chiếu chính sách',
+          'Báo cáo chỉ số hỗ trợ tuỳ chỉnh và cảnh báo hàng đợi tăng vọt',
+        ],
+        inputs: [
+          'Chính sách hoàn tiền, tài liệu trợ giúp và quy tắc chuyển tiếp của bạn',
+          'Hàng đợi ticket, công cụ thanh toán hoặc lịch phát hành của bạn',
+        ],
+        handoff: ['Theo dõi phát hành', 'Tái hiện lỗi', 'Xem xét hoàn tiền', 'Báo cáo & cảnh báo'],
+        example: {
+          title:
+            'Ảnh chụp nhanh hỗ trợ hằng tuần: phản hồi ra mắt, lỗi đã tái hiện, cụm rời bỏ và một yêu cầu hoàn tiền chờ phê duyệt.',
+          content:
+            'Phát hành: Team Permissions v2 (dời lên thứ Năm).\nTài liệu đã chuẩn bị: bài viết trợ giúp đã cập nhật; macro nội bộ đã soạn để duyệt.\nPhản hồi ra mắt (24h đầu): 19 ticket đã gắn nhãn — 11 ticket hỏi cách chuyển các vai trò hiện có (đã chuyển tiếp).\n\nYêu cầu: Acme Corp · gia hạn năm $240 (bị trừ 4 ngày trước, 0 lần đăng nhập kể từ khi gia hạn).\nKiểm tra chính sách: đủ điều kiện theo quy định hoàn tiền gia hạn chưa dùng trong 14 ngày.\nĐề xuất: chấp thuận hoàn tiền toàn bộ — hoặc tặng credit tạm dừng 50% trong 2 tháng.\nTrạng thái: đã soạn câu trả lời, chờ bạn phê duyệt trước khi động đến Stripe.',
+        },
+        starterTask:
+          'Yêu cầu đội Hỗ trợ khách hàng quét ticket gần đây của tôi để tìm nguy cơ rời bỏ, tái hiện báo cáo lỗi hàng đầu, đối chiếu các yêu cầu hoàn tiền đang chờ với chính sách của tôi và tóm tắt chỉ số hàng đợi.',
+      },
       'business-admin': {
         title: 'Hành chính doanh nghiệp',
         category: 'Hành chính',
@@ -360,6 +776,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Yêu cầu đội QA kiểm thử luồng đăng ký trên trang staging của tôi và tạo issue rõ ràng cho mọi chỗ bị lỗi.',
+      },
+      'marketing-launches': {
+        title: 'Tiếp thị & ra mắt',
+        category: 'Tiếp thị',
+        summary:
+          'Ra mắt marketing trọn quy trình: nghiên cứu đối thủ, soạn định vị, mở PR trang đích, dựng sẵn quảng cáo ở trạng thái tạm dừng và chấm điểm kết quả.',
+        outcomes: [
+          'Ma trận thông điệp đối thủ có bằng chứng và các khoảng trống định vị',
+          'Bản tóm tắt định vị, dàn ý trang đích và các biến thể quảng cáo đã kiểm tra số ký tự',
+          'Pull request trang đích kèm ảnh chụp màn hình và khung chiến dịch quảng cáo tạm dừng',
+          'Bảng điểm ý tưởng quảng cáo trả phí, cảnh báo chi tiêu và các mốc kiểm tra ra mắt cần phê duyệt',
+        ],
+        inputs: [
+          'URL sản phẩm, đối thủ và giọng điệu hoặc nguyên tắc thương hiệu của bạn',
+          'Repo trang marketing, bản xuất quảng cáo hoặc ngày ra mắt mục tiêu của bạn',
+        ],
+        handoff: [
+          'Khoảng trống nghiên cứu',
+          'Soạn định vị',
+          'Dựng trang & quảng cáo',
+          'Chấm điểm & quyết định',
+        ],
+        example: {
+          title:
+            'Một chu kỳ ra mắt: khoảng trống đối thủ, bản tóm tắt định vị, PR trang đích, khung quảng cáo tạm dừng và bảng điểm ý tưởng.',
+          content:
+            'Đường cơ sở: Trang chủ của bạn dẫn đầu bằng tốc độ thiết lập.\nKhoảng trống đối thủ: Ba đối thủ dẫn đầu bằng danh sách kiểm tra cho doanh nghiệp; không ai nêu bật thời gian tiết kiệm trong tuần đầu (ảnh chụp bảng giá & thư viện quảng cáo, 6/10).\nNước đi đối ứng: Thử một tiêu đề xoay quanh kết quả tuần đầu, kèm bằng chứng được trích dẫn.\n\nKhoảng thời gian: 1–7/10 (bản xuất Google Ads).\nSpeed-First: chi tiêu $1,240 · CTR 4.8% · CVR 6.2% · CPA $41 — Đề xuất: Tăng quy mô.\nEnterprise-Checklist: chi tiêu $1,180 · CTR 1.9% · CVR 2.1% · CPA $131 — Đề xuất: Tạm dừng (đang chờ phê duyệt).',
+        },
+        starterTask:
+          'Nhờ đội Marketing & Launches đánh giá trang chủ của tôi so với ba đối thủ, soạn bản tóm tắt định vị và các biến thể quảng cáo tìm kiếm, rồi vạch ra PR trang đích và kế hoạch thử nghiệm tạm dừng.',
       },
       'content-publishing': {
         title: 'Nội dung & Xuất bản',

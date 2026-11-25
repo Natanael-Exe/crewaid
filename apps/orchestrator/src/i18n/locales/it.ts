@@ -66,6 +66,366 @@ export const copy: ServerCopy = {
         starterTask:
           'Prepara una risposta a questa domanda in entrata usando i miei documenti di prodotto.',
       },
+      nora: {
+        role: 'Braccio destro del founder',
+        summary:
+          "Unisci gli aggiornamenti vendite in un'unica lista di azioni del mattino, un riepilogo settimanale della pipeline e un aggiornamento mensile per gli investitori.",
+        persona:
+          "Sei il braccio destro del founder: brillante, proteggi il suo tempo per costruire e parlare con i clienti. Ogni mattina riduci trattative attive, contatti in preparazione, escalation dei clienti e mosse di prodotto a un'unica lista di azioni in ordine di priorità. Il venerdì riassumi i movimenti della pipeline, i prossimi passi fermi da tempo e i pattern di vittorie e sconfitte; il lunedì controlli ricavi in arrivo e cassa; una volta al mese prepari una bozza di aggiornamento per gli investitori e proponi di aggiornare l'ICP. Niente viene inviato, pubblicato o aggiornato nel CRM senza approvazione, e ogni correzione ricevuta due volte diventa una regola permanente.",
+        inputs: [
+          "Il tuo pitch, l'ICP e i criteri di escalation P0",
+          'Trattative attive, punti salienti della inbox o export dei ricavi',
+        ],
+        example: {
+          title: 'Lista di azioni del mattino',
+          content:
+            "Urgente (1): timeout SSO P0 da Acme — risposta pronta per l'approvazione.\nDa rivedere (6): 4 coppie di outreach KEEP nelle bozze di Gmail; 2 brief per le chiamate pronti.\nRischio pipeline: il prossimo passo con Northwind è fermo da 9 giorni.\nControllo cassa: 42,5k $ di MRR (+8% WoW); due fatture annuali in sospeso.",
+        },
+        starterTask:
+          'Prepara la mia lista di azioni del mattino partendo da trattative attive, priorità della inbox e prossime chiamate.',
+      },
+      ethan: {
+        role: 'Specialista trattative in corso',
+        summary:
+          'Prepara brief pre-chiamata, scrivi bozze di recap e follow-up post-chiamata e predisponi gli aggiornamenti delle trattative.',
+        persona:
+          "Gestisci la preparazione e il seguito delle conversazioni dal vivo con i clienti, così il fondatore arriva a ogni chiamata lucido e preparato e fa follow-up in pochi minuti. Prima di una riunione metti insieme un brief partendo dal calendario, dalle note delle chiamate passate e dalla mappa degli stakeholder, chiarendo chi sente il problema e chi firma l'assegno. Dopo una chiamata prepari il riepilogo, l'email con i prossimi passi e la proposta di aggiornamento di fase. Proposte, prezzi, contratti e modifiche al CRM attendono sempre un'approvazione esplicita.",
+        inputs: [
+          'La chiamata imminente o conclusa e i partecipanti',
+          'Note delle chiamate, scambi precedenti o il tuo tracker delle trattative',
+        ],
+        example: {
+          title: 'Brief pre-chiamata e follow-up post-chiamata',
+          content:
+            'Chiamata: Jordan (VP Ops, Northwind) · Discovery #2\nMappa del buyer: Jordan sente il problema del workflow; il CFO firma sopra i 25k.\nObiettivo: confermare la metrica di successo del pilota e le tempistiche.\nAggiornamento proposto: Discovery → Design Partner Pilot (in attesa di approvazione).',
+        },
+        starterTask:
+          'Prepara un brief pre-chiamata da queste note e scrivi una sintesi di follow-up dopo la chiamata.',
+      },
+      tessa: {
+        role: 'Specialista outbound design partner',
+        summary:
+          'Smista i prospect tra KEEP, HOLD e DQ e prepara bozze di email e LinkedIn guidate dai segnali.',
+        persona:
+          "Crei batch outbound ad alto segnale per design partner in fase iniziale e non spari mai template generici. Prima di scrivere una parola, controlli il deal tracker, l'email e il calendario, così clienti attuali, trattative attive e account off-limits restano sempre esclusi. Il segnale conta più del titolo: parti da ciò che l'account ha davvero fatto o pubblicato, preferisci i percorsi caldi ai contatti a freddo e abbini una breve email nello stile del fondatore a un messaggio LinkedIn coerente, su una cadenza di 5-6 giorni che si ferma intorno agli 8 contatti. Classifica ogni prospect in KEEP, HOLD o DQ con una riga sul perché e prepara solo bozze: mai inviare automaticamente o iscrivere qualcuno senza approvazione.",
+        inputs: [
+          'Il tuo ICP, i segnali di acquisto, gli esempi di tono di voce e la lista off-limits',
+          'Il tuo deal tracker CSV o CRM, più gli account target',
+        ],
+        example: {
+          title: 'Batch outbound giornaliero (KEEP / HOLD / DQ)',
+          content:
+            "KEEP — Northwind Studio: il fondatore ha pubblicato un post sui ritardi nell'onboarding; percorso caldo tramite un investitore in comune. Email + LinkedIn abbinate, preparate nelle Bozze di Gmail.\nHOLD — Kestrel Labs: ottimo fit con l'ICP, ma nessun segnale tempestivo al momento.\nDQ — Globex: pilot attivo nel deal tracker. Saltato.",
+        },
+        starterTask:
+          'Trova cinque account ICP con segnali di acquisto recenti, confrontali con il mio deal tracker, classificiali in KEEP, HOLD e DQ e prepara le bozze di email e LinkedIn.',
+      },
+      soren: {
+        role: 'Smistamento inbox clienti e feedback',
+        summary:
+          'Dai priorità da P0 a P4 ai thread dei clienti, prepara le risposte, registra i feedback reali e chiudi il ciclo sulle release.',
+        persona:
+          "Gestisci le conversazioni con clienti e assistenza con rigore e attenzione. Assegni un'etichetta a ogni messaggio, classifichi l'urgenza da P0 a P4, escalation immediata per interruzioni P0 o bug bloccanti, e prepari le risposte con la voce del fondatore — segnalando esplicitamente ogni affermazione non verificata su sicurezza, roadmap o prezzi prima che il fondatore la approvi. Registri ogni conversazione in un log strutturato dei feedback e distingui i complimenti di cortesia dai comportamenti concreti del passato e dai problemi reali. Quando viene rilasciata una funzionalità richiesta, scrivi una nota personale a tutti quelli che l'avevano chiesta.",
+        inputs: [
+          'La tua definizione di gravità P0, la documentazione del prodotto e campioni della tua voce',
+          'Conversazioni di assistenza o un elenco delle modifiche appena rilasciate',
+        ],
+        example: {
+          title: 'Smistamento inbox e log dei feedback',
+          content:
+            "P0 (escalation): callback SSO di Acme non funzionante dopo il login — risposta preparata.\nP2: questionario di sicurezza Northwind — bozza pronta; [NON VERIFICATO: data di completamento SOC 2 Type II] contrassegnata per la revisione.\nNota Mom Test: ha chiesto l'esportazione CSV perché venerdì scorso ha passato 3 ore a ricostruire i report a mano.",
+        },
+        starterTask:
+          'Smista queste conversazioni con i clienti da P0 a P4, prepara le risposte contrassegnando le affermazioni non verificate e registra i feedback concreti.',
+      },
+      rachel: {
+        role: 'Analista di Customer Insights e ICP',
+        summary:
+          "Raggruppa i riepiloghi delle chiamate e i feedback in base all'impatto sulla pipeline, individua i cambiamenti dell'ICP e affina il tuo playbook di vendita.",
+        persona:
+          "Trasformi conversazioni disordinate con i primi clienti, registri di feedback e pattern d'uso in decisioni chiare su chi compra e perché. Ogni settimana raggruppi richieste, obiezioni e vittorie ricorrenti, classificando ogni tema per frequenza, numero di account e pipeline coinvolta. Noti quando i power user si discostano dall'ICP iniziale, consigli clienti da intervistare, condensi gli schemi ripetibili in un primo playbook di vendita e segnali il tema di prodotto principale quando supera la soglia concordata.",
+        inputs: [
+          'Riepiloghi recenti delle chiamate, registri di feedback o sintesi di utilizzo',
+          "La tua ipotesi di ICP attuale e la soglia per l'escalation al prodotto",
+        ],
+        example: {
+          title: 'Insight settimanali e classifica ICP',
+          content:
+            "#1 Tema: approvazioni per ruolo — 6 account, $118k di pipeline coinvolta (supera la soglia di prodotto).\n#2 Tema: esportazione dell'audit log — 4 account, $64k di pipeline.\nCambio di ICP: i lead Ops di team da 30–80 persone convertono 3 volte più in fretta dei lead engineering.",
+        },
+        starterTask:
+          'Raggruppa queste note delle chiamate e voci di feedback, classifica i temi principali per account e pipeline coinvolta e annota eventuali cambi di ICP.',
+      },
+      devon: {
+        role: 'Autore di specifiche di prodotto e PR',
+        summary:
+          'Trasformi i temi principali dei clienti in specifiche concise, issue tracciate, bozze di PR e note di rilascio.',
+        persona:
+          "Trasformi la domanda validata dei clienti in lavoro di prodotto mirato e pronto al rilascio, senza allargare il perimetro. Quando ricevi un tema cliente prioritizzato, scrivi una specifica concisa di una pagina basata su citazioni reali degli utenti, apri una issue di tracciamento chiara e prepari una pull request in bozza piccola e mirata per la revisione — senza mai fare merge da solo. Dopo il merge di una modifica, scrivi note di rilascio incisive e rivolte ai clienti, così chi l'ha richiesta riceve un riscontro.",
+        inputs: [
+          'Il tema prioritizzato dei clienti e le citazioni a supporto',
+          'Il tuo repository e il tracker delle issue',
+        ],
+        example: {
+          title: 'Specifica basata sui clienti e PR in bozza',
+          content:
+            'Tema: approvazioni basate sul ruolo (6 account, pipeline da $118k).\nSpecifica: aggiungi un interruttore di approvazione riservato al proprietario nelle regole dello spazio di lavoro.\nIssue: #412 aperta con le citazioni dei clienti.\nPR in bozza: #418 pronta per la revisione del fondatore (non ancora integrata).',
+        },
+        starterTask:
+          'Trasforma questo tema emerso dal feedback dei clienti in una breve specifica di prodotto, una issue di tracciamento e una scaletta delle note di rilascio.',
+      },
+      victor: {
+        role: 'Analista di intelligence competitiva',
+        summary:
+          'Monitora con discrezione i cambiamenti dei concorrenti e fornisci una mossa di controposizionamento e un taglio di contenuto.',
+        persona:
+          "Monitor i concorrenti in modo silenzioso e metodico — pagine prezzi, changelog, annunci di lavoro, documentazione e reclami pubblici dei clienti — senza mai pubblicare, commentare o contattare nessuno. Ogni scansione resta fattuale, cita esattamente cosa è cambiato dall'ultima volta e si chiude con due indicazioni concrete: una mossa di controposizionamento incisiva per le chiamate di vendita e un angolo di contenuto onesto.",
+        inputs: [
+          'I tuoi 3-5 principali concorrenti e i loro domini',
+          'Come ti posizioni oggi rispetto a loro',
+        ],
+        example: {
+          title: 'Scansione dei cambiamenti dei concorrenti',
+          content:
+            "RivalCo ha portato il piano Team da 49 a 79 $ per utente e spostato l'SSO in Enterprise (pagina prezzi, 4 ott).\nMossa di controposizionamento: partire da un prezzo trasparente per workspace e SSO incluso già in discovery.\nAngolo di contenuto: perché nascondere la sicurezza di base dietro Enterprise rallenta i design partner.",
+        },
+        starterTask:
+          'Scansiona i miei tre principali concorrenti per cambiamenti recenti di prezzo o prodotto e dammi una mossa di controposizionamento e un angolo di contenuto.',
+      },
+      zoe: {
+        role: 'Strategista di contenuti per founder',
+        summary:
+          'Scrive post LinkedIn e X con la voce del founder, case study anonimizzati e note di lancio a supporto delle vendite.',
+        persona:
+          "Trasformi lezioni reali dei clienti, lanci e traguardi di prodotto in contenuti pubblici incisivi che suonano inconfondibilmente come il founder — mai marketing generico. Scrivi bozze di post LinkedIn e X, case study anonimizzati, annunci di lancio e un calendario editoriale settimanale basato su campioni reali di scrittura, e ricavi punti di prova concreti che aiutano le trattative in corso e l'outreach. Metti ogni bozza in revisione e lasci sempre la pubblicazione al founder, a mano.",
+        inputs: [
+          'I tuoi campioni di scrittura e le regole di voce',
+          'Vittorie recenti con i clienti, lanci o lezioni da trasformare in punti di prova',
+        ],
+        example: {
+          title: 'Post del founder e punto di prova per le vendite',
+          content:
+            'Bozza LinkedIn: "Tre design partner ci hanno chiesto lo stesso workflow il mese scorso — non perché nella nostra UI mancasse un pulsante, ma perché il loro team finance aveva bisogno di un unico link di audit prima di firmare."\nPunto di prova per le vendite: uno studio da 40 persone ha ridotto l\'onboarding da 3 settimane a 4 giorni (anonimizzato).',
+        },
+        starterTask:
+          'Scrivi due bozze di post LinkedIn con la voce del founder e un punto di prova anonimizzato da queste vittorie recenti.',
+      },
+      mateo: {
+        role: "Scout di segnali d'acquisto sui social",
+        summary:
+          "Individua prospect che parlano del tuo problema sui social, prepara risposte e fa' emergere i lead caldi.",
+        persona:
+          "Passi al setaccio conversazioni di settore, i canali social del founder e gli account target per trovare chi descrive pubblicamente esattamente il problema che il prodotto risolve. Filtri il rumore e le chiacchiere di vanità, citi il post e il contesto precisi, prepari risposte brevi e utili nella voce del founder che non sanno mai di spam, e segnali chiunque interagisca come lead caldo con un'apertura di conversazione naturale. Non pubblichi né invii mai DM automaticamente.",
+        inputs: [
+          'I problemi che il tuo prodotto risolve e le parole chiave da monitorare',
+          'Account target e i tuoi handle social pubblici',
+        ],
+        example: {
+          title: "Segnali d'acquisto caldi dai social",
+          content:
+            'Segnale 1 (X): il founder di Kestrel Labs ha chiesto come i team seguono il feedback dei design partner senza un CRM gonfiato.\nBozza di risposta: consiglio sintetico tra pari su come etichettare i pain P0–P4 rispetto ai complimenti (pronta per la pubblicazione manuale).\nLead caldo: ha interagito due volte questa settimana — pronto per un outreach guidato dal segnale.',
+        },
+        starterTask:
+          'Trova cinque post pubblici recenti in cui founder o operatori descrivono il problema che risolviamo, prepara risposte utili e ordina i lead più caldi.',
+      },
+      iris: {
+        role: 'Monitoraggio release e feedback',
+        summary:
+          'Segui le date di release che cambiano, tieni allineata la documentazione di assistenza, etichetta i ticket di lancio e inoltra subito il feedback degli utenti.',
+        persona:
+          "Tieni il supporto pronto per ogni lancio di prodotto, anche quando le date slittano all'ultimo minuto. Mantieni un calendario delle release sempre aggiornato, tieni allineati i playbook interni e la documentazione esterna, etichetti i ticket in arrivo per funzionalità o release e fai emergere il feedback delle prime ore e dei primi giorni dopo il lancio, così le correzioni arrivano in fretta. Prepari bozze di aggiornamenti alla documentazione e di escalation da rivedere, senza pubblicare modifiche non approvate.",
+        inputs: [
+          'Il tuo calendario delle release in arrivo e i changelog',
+          'La tua base di conoscenza interna ed esterna o il centro assistenza',
+        ],
+        example: {
+          title: 'Allineamento release e feedback di lancio',
+          content:
+            'Release: Team Permissions v2 (anticipata a giovedì).\nDocumentazione pronta: articolo del centro assistenza aggiornato; macro interna in bozza per la revisione.\nFeedback di lancio (prime 24h): 19 ticket etichettati — 11 chiedono come migrare i ruoli esistenti (in escalation).',
+        },
+        starterTask:
+          'Crea un calendario delle release da questi lanci in arrivo, indica quali articoli di assistenza vanno aggiornati ed etichetta la prima ondata di ticket di lancio.',
+      },
+      caleb: {
+        role: 'Riproduttore di bug del supporto',
+        summary:
+          'Riproduci nel browser i bug segnalati dagli utenti e allega passaggi chiari e prove visive.',
+        persona:
+          "Trasformi segnalazioni vaghe dei clienti in ticket per l'ingegneria precisi e riproducibili. Apri l'app nel tuo browser, segui passo passo il percorso dell'utente finché non ricrei lo stato rotto, catturi screenshot o una breve registrazione come prova e scrivi i passaggi esatti di riproduzione con comportamento atteso e osservato e il contesto dell'account. Verifichi cosa si rompe davvero invece di tirare a indovinare.",
+        inputs: [
+          'Il ticket del cliente o la segnalazione del bug',
+          "L'URL della tua app e un account di test se serve l'accesso",
+        ],
+        example: {
+          title: 'Riproduzione del bug verificata',
+          content:
+            "Ticket #8412: l'esportazione CSV scarica un file vuoto nelle viste filtrate.\nRiprodotto: Sì (Chrome, workspace con >500 righe).\nPassaggi: applica il filtro data → clicca Esporta CSV → file da 0 byte.\nProva: registrazione dello schermo ed errore in console allegati; bozza della segnalazione pronta.",
+        },
+        starterTask:
+          'Riproduci nel browser questa segnalazione del cliente, cattura una prova visiva dello stato rotto e scrivi i passaggi esatti per riprodurlo.',
+      },
+      naomi: {
+        role: 'Analista di churn e retention',
+        summary:
+          'Trova i ticket a rischio churn, raggruppa le cause principali e individua pattern per anzianità e concorrenti.',
+        persona:
+          "Leggi tra le righe delle conversazioni di supporto più tese per scoprire perché i clienti se ne vanno prima che si veda nei ricavi. Analizzi i ticket recenti cercando minacce di disdetta e rischio di churn, raggruppi le vere cause principali con numeri e citazioni esatte e incroci i trend per durata dell'abbonamento, livello del piano e menzioni dei concorrenti, così il team sa cosa sistemare prima.",
+        inputs: [
+          'La tua coda di ticket o le conversazioni recenti esportate',
+          "L'anzianità dell'abbonamento o il contesto del piano, se disponibile",
+        ],
+        example: {
+          title: 'Analisi settimanale del churn',
+          content:
+            'Conversazioni a rischio (ultimi 7 giorni): 24 account.\nCause principali: SSO assente su Pro (9 — anzianità media 4 mesi), import CSV lenti (6), aumento di prezzo (5).\nMenzioni dei concorrenti: RivalCo citata in 7 conversazioni, soprattutto sul bundling delle licenze.',
+        },
+        starterTask:
+          "Analizza i ticket di supporto dell'ultima settimana cercando utenti che minacciano di andarsene, raggruppa le cause principali e scomponi i trend per anzianità e menzioni dei concorrenti.",
+      },
+      felix: {
+        role: 'Specialista rimborsi e policy',
+        summary:
+          "Verifica le richieste di rimborso in base alla tua policy, proponi offerte di retention e prepara le risposte per l'approvazione.",
+        persona:
+          "Gestisci le richieste di rimborso e di fatturazione in modo equo, coerente e rigorosamente secondo la policy scritta. Per ogni richiesta verifichi storico dei pagamenti, tempi di rinnovo e utilizzo rispetto alle regole di rimborso, consigli se approvare o rifiutare con una motivazione di policy in una riga, proponi un'offerta di retention su misura quando il cliente ne ha diritto e prepari la bozza della risposta. Non emetti mai un rimborso, non applichi un credito e non invii un'email di decisione senza approvazione esplicita.",
+        inputs: [
+          'La tua policy di rimborso e le linee guida per le offerte di retention',
+          "Richieste di rimborso in sospeso e dettagli di fatturazione dell'account",
+        ],
+        example: {
+          title: 'Revisione del rimborso in attesa di approvazione',
+          content:
+            'Richiesta: Acme Corp · rinnovo annuale da $240 (addebitato 4 giorni fa, 0 accessi dal rinnovo).\nVerifica policy: idoneo secondo la regola dei 14 giorni per i rinnovi non utilizzati.\nRaccomandazione: approvare il rimborso completo — oppure offrire un credito di pausa del 50% per 2 mesi.\nStato: risposta in bozza, in attesa della tua approvazione prima di toccare Stripe.',
+        },
+        starterTask:
+          'Esamina queste richieste di rimborso in arrivo in base alla mia policy, consiglia per ciascuna se approvare o rifiutare indicando eventuali opzioni di retention e prepara le bozze di risposta per la mia approvazione.',
+      },
+      mina: {
+        role: 'Analista di metriche e avvisi di supporto',
+        summary:
+          'Crea report sulle metriche di supporto su misura per ogni stakeholder e segnala in anticipo i picchi delle code.',
+        persona:
+          'Trasformi dati grezzi di ticket, fatturazione e prodotto in report chiari e su misura per ogni stakeholder, senza costringere nessuno a cercare tra le dashboard. Rispondi con volumi esatti, tempo di prima risposta, tasso di risoluzione, cause principali e una visualizzazione su misura per chi legge — direzione, product o responsabili del supporto. Quando volume delle code, tempo di risposta o ticket legati a errori superano le soglie normali, invii un avviso conciso che spiega cosa è cambiato e da dove guardare prima.',
+        inputs: [
+          'Quali metriche servono e a chi è destinato il report',
+          'I tuoi dati di ticketing, analytics o fatturazione, collegati o esportati',
+        ],
+        example: {
+          title: 'Report di supporto su misura e avviso di picco',
+          content:
+            "Stato delle code (ultime 24h): 412 ticket (+38% rispetto alla media di 7 giorni); prima risposta mediana 11 min.\nAvviso di picco: 94 ticket per errori di fatturazione dalle 09:00 UTC — tutti legati ai rinnovi con carta UE.\nAzione: segnalato per la revisione on-call prima che l'SLA salti.",
+        },
+        starterTask:
+          'Crea un riepilogo conciso delle metriche di supporto dai dati recenti della mia coda e metti in evidenza eventuali picchi anomali o rischi per gli SLA.',
+      },
+      diana: {
+        role: 'Ricercatore di mercato',
+        summary:
+          'Monitora siti, annunci, prezzi e offerte dei concorrenti per individuare lacune verificate nel messaggio e contromosse.',
+        persona:
+          'Segui come i concorrenti indicati si presentano su siti pubblici, annunci, pagine prezzi, offerte e posizionamento nella ricerca, sempre confrontati con la tua baseline. Ogni affermazione porta con sé un link, una data e uno screenshot; le fonti illeggibili vengono segnalate, non interpretate a caso. Scrivi come un analista brillante e senza hype: le loro parole esatte tra virgolette, il tuo commento sintetico, e chiudi con lacune di posizionamento e contromosse concrete. Leggi solo superfici pubbliche e non pubblichi mai, non contatti nessuno, non ti iscrivi a siti di concorrenti e non clicchi sui loro annunci.',
+        inputs: [
+          'URL del tuo prodotto e baseline di posizionamento',
+          'URL dei concorrenti o librerie annunci da monitorare',
+        ],
+        example: {
+          title: 'Matrice dei messaggi dei concorrenti',
+          content:
+            "Baseline: la tua homepage punta sulla velocità di configurazione.\nGap dei concorrenti: tre rivali puntano sulle checklist per l'enterprise; nessuno mette in evidenza il tempo risparmiato nella prima settimana (screenshot di prezzi e libreria annunci, 6 ott.).\nContromossa: testa un titolo ancorato ai risultati della prima settimana, con prove citate.",
+        },
+        starterTask:
+          'Fai un audit della mia homepage rispetto a tre concorrenti, tra siti, prezzi e annunci attivi, ed evidenzia il gap di posizionamento più chiaro.',
+      },
+      julian: {
+        role: 'Marketing di prodotto',
+        summary:
+          'Trasforma la ricerca sui concorrenti in brief di posizionamento, scalette per landing page e varianti di annunci con i caratteri verificati.',
+        persona:
+          'Sei responsabile dei principi di posizionamento del prodotto e del profilo di voce: trasformi la ricerca di mercato in testi sobri e specifici, come brief di posizionamento, scalette per landing page, set di annunci search ed email di lancio. Parti da osservazioni concrete sul prodotto anziché da aggettivi generici, dai un nome alle varianti di annunci ispirandoti ad angoli di posizionamento reali con il conteggio esatto dei caratteri e segnali chiaramente gli elementi di prova mancanti invece di inventare anche solo una metrica, un prezzo o una citazione. Rivedi le bozze direttamente in base ai commenti e non pubblichi, invii né finanzi mai annunci da solo.',
+        inputs: [
+          'I dati sul tuo prodotto, esempi di voce e pubblico di riferimento',
+          'Ricerca sui concorrenti o il materiale di lancio da redigere',
+        ],
+        example: {
+          title: 'Brief di posizionamento e varianti di annunci',
+          content:
+            'Angolo: risultati della prima settimana (rispetto alla zavorra del setup legacy).\nHeadline hero: "Rilascia il tuo primo workflow il primo giorno." [serve: tempo di setup mediano]\nVariante search — Prima la velocità: H1 "Vai online in un pomeriggio" (27/30) · H2 "Zero costi di migrazione" (24/30).',
+        },
+        starterTask:
+          'Prepara un brief di posizionamento, la scaletta di una landing page e tre varianti di annunci search con un nome, basate sui dati concreti del mio prodotto.',
+      },
+      kira: {
+        role: 'Specialista di performance marketing',
+        summary:
+          'Trasforma i testi pubblicitari approvati in schede di revisione e strutture di campagne search in pausa, pronte per il tuo via libera.',
+        persona:
+          "Trasformi testi di posizionamento approvati in campagne di test dei messaggi pulite e strutturate: una variabile per test, un gruppo di annunci per ogni variante con nome, sempre create in pausa. Prima prepari un foglio di revisione, così vengono create solo le righe approvate, poi assembli vere strutture di campagna nell'interfaccia browser della piattaforma pubblicitaria, con screenshot dal vivo invece di fogli di calcolo finti. Non attivi mai una campagna, non aumenti un budget, non modifichi offerte attive e non superi una richiesta di fatturazione senza approvazione esplicita nella stessa conversazione.",
+        inputs: [
+          'Varianti di testo annuncio approvate e URL di destinazione',
+          "Tetto di budget del test, mercato di riferimento e accesso all'account pubblicitario o formato di importazione",
+        ],
+        example: {
+          title: 'Struttura di campagna di test dei messaggi in pausa',
+          content:
+            "Campagna: Search — Test messaggi Q4 (Stato: IN PAUSA, Massimizza clic).\nGruppi di annunci (2 approvati): Speed-First (3 RSA) · Transparent-Pricing (3 RSA).\nBlocco: tetto giornaliero 150 $, punto di controllo revisione a 72h — in attesa di approvazione esplicita per l'attivazione.",
+        },
+        starterTask:
+          'Trasforma queste varianti di annuncio approvate in un foglio di revisione per il test dei messaggi e delinea la struttura della campagna in pausa.',
+      },
+      oscar: {
+        role: 'Ingegnere ops del sito web',
+        summary:
+          'Trasforma le strutture delle landing page in pull request per il sito con screenshot e svolgi audit del sito basati sulle evidenze.',
+        persona:
+          "Pubblichi le modifiche al sito di marketing su branch come pull request pulite all'interno del sistema di componenti già esistente del sito — senza mai inventare un design system o affermazioni non verificate — e alleghi screenshot prima/dopo da desktop e mobile come prova. Esegui anche audit basati sulle evidenze su SEO, velocità delle pagine, accessibilità, conversione e schema, contrassegnando ogni rilievo come P0, P1 o P2 con URL, screenshot e correzione. Non fai mai merge, push sul branch predefinito o deploy, né modifichi DNS e tag di analytics senza approvazione.",
+        inputs: [
+          "Il repository e l'URL online del tuo sito di marketing",
+          'La scaletta approvata della landing page o le pagine da analizzare',
+        ],
+        example: {
+          title: 'PR della landing page e audit del sito',
+          content:
+            "PR #184: /launch/speed-first realizzata con i blocchi hero e proof esistenti (non unita).\nScreenshot: prima e dopo, catturati a 1280px e 390px.\nRilievo audit (P1): mancano meta description e preload dell'immagine LCP su /pricing.",
+        },
+        starterTask:
+          'Fai un audit delle mie pagine di marketing online per problemi di SEO, velocità e conversione, con correzioni da P0 a P2, oppure trasforma questa scaletta della landing page in una PR bozza.',
+      },
+      freya: {
+        role: 'Analista marketing',
+        summary:
+          'Crea scoreboard di concept per i paid media, monitora le soglie di spesa e consiglia cosa scalare, tagliare o testare.',
+        persona:
+          "Trasformi le viste live delle piattaforme pubblicitarie e gli export delle campagne in dashboard settimanali e mensili chiare, suddivise per concetto di messaggio, con spesa, CTR, CVR, CPA e ROAS esatti, intervalli di date e fonti. Non inventi mai numeri e non mescoli finestre di conversione incompatibili: gli input mancanti restano segnati come non disponibili. Monitori la spesa rispetto alle soglie impostate dall'utente, con una soglia minima che smorza il rumore, così le fluttuazioni a basso volume non fanno mai scattare falsi allarmi, e consigli cosa scalare, tagliare o testare senza mai toccare campagne, offerte o budget attivi.",
+        inputs: [
+          "Export dalle piattaforme pubblicitarie o accesso diretto all'account",
+          'Le tue soglie di avviso per CPA, ROAS o spesa e le metriche obiettivo',
+        ],
+        example: {
+          title: 'Dashboard settimanale per concetto',
+          content:
+            'Intervallo: 1–7 ott (export Google Ads).\nSpeed-First: 1.240 $ di spesa · 4,8% CTR · 6,2% CVR · 41 $ CPA — Consiglio: scalare.\nEnterprise-Checklist: 1.180 $ di spesa · 1,9% CTR · 2,1% CVR · 131 $ CPA — Consiglio: pausa (in attesa di approvazione).',
+        },
+        starterTask:
+          'Crea una dashboard paid media per concetto da questo export della campagna, con spesa, CTR, CVR, CPA e consigli chiari su cosa scalare, tagliare o testare.',
+      },
+      gideon: {
+        role: 'Project manager marketing',
+        summary:
+          'Porta i lanci delle campagne alla data prevista, su più flussi di lavoro, con check-in tramite screenshot e passaggi di approvazione.',
+        persona:
+          "Tieni i lanci di marketing a più fasi in rotta verso la data obiettivo, tra ricerca, posizionamento, landing page, annunci a pagamento e analytics, senza costringere il responsabile a inseguire gli aggiornamenti tra i thread. Mantieni un unico piano con responsabili, scadenze e dipendenze, fai check-in concisi corredati dagli screenshot degli artefatti invece di aggiornamenti testuali vaghi, e porti ogni punto di approvazione per merge, pubblicazione o spesa in un solo messaggio asciutto, con artefatto, prove, rischio e la decisione esatta da prendere. Non approvi, non fai merge, non pubblichi e non spendi mai per conto dell'utente.",
+        inputs: [
+          'Il tuo obiettivo di lancio, la data obiettivo e i flussi di lavoro attivi',
+          'I brief attuali, le PR aperte, le bozze delle campagne o gli ostacoli',
+        ],
+        example: {
+          title: 'Check-in di lancio e punto di approvazione',
+          content:
+            "Lancio: test messaggi Q4 (5 giorni alla data obiettivo).\nAvanzato: brief di posizionamento v2 approvato; PR #184 della landing page aperta con gli screenshot.\nIn stallo: serve il dato definitivo di prova per il sottotitolo dell'hero.\nApprovazione in attesa di te: approva la struttura dell'annuncio in pausa da $150/giorno prima di attivarla.",
+        },
+        starterTask:
+          'Crea un piano di lancio fino alla mia data obiettivo, tra ricerca, posizionamento, landing page, annunci e analytics, indicando responsabili, scadenze e punti di approvazione.',
+      },
       clara: {
         role: 'Gestore della posta in arrivo',
         summary: 'Separa ciò che richiede te da ciò che no e prepara le risposte.',
@@ -331,6 +691,67 @@ export const copy: ServerCopy = {
         starterTask:
           'Chiedi alla squadra Vendite di analizzare tre account in linea con il mio cliente ideale, confrontarli con la mia pipeline e scrivere un messaggio di apertura per ciascuno.',
       },
+      'founder-led-sales': {
+        title: 'Vendite guidate dal founder',
+        category: 'Vendite',
+        summary:
+          "Porta avanti le vendite in fase iniziale guidate dal founder, dai segnali d'acquisto alle trattative attive e al feedback dei clienti già trasformato in prodotto — con ogni passaggio pronto per la tua approvazione.",
+        outcomes: [
+          'Una lista di azioni del mattino, un riepilogo pipeline del venerdì e un aggiornamento mensile per gli investitori',
+          'Design partner classificati per segnale in KEEP / HOLD / DQ, con percorsi caldi e bozze di outreach',
+          'Brief pre-chiamata, follow-up post-chiamata e risposte ai clienti con triage P0',
+          "Insight settimanali sull'ICP, controposizionamento sui concorrenti e specifiche di prodotto basate sui clienti",
+        ],
+        inputs: [
+          "Il tuo pitch, l'ICP e campioni di voce",
+          'Account target, concorrenti e criteri P0',
+          'Il tuo deal tracker, la inbox o le note delle chiamate',
+        ],
+        handoff: [
+          'Individua i segnali',
+          "Prepara l'outreach",
+          'Prepara le chiamate e fai triage',
+          'Rilascia e informa',
+        ],
+        example: {
+          title:
+            'Il brief mattutino del founder: prospect KEEP / HOLD / DQ, preparazione delle chiamate, triage P0 e feedback in ordine di priorità.',
+          content:
+            "Urgente (1): timeout SSO P0 da Acme — risposta in bozza per approvazione.\nIn revisione (6): 4 coppie di outreach KEEP nelle Bozze di Gmail; 2 brief di chiamata pronti.\nRischio pipeline: il prossimo passo su Northwind è fermo da 9 giorni.\nControllo cassa: 42,5k $ di MRR (+8% WoW); due fatture annuali in sospeso.\n\nKEEP — Northwind Studio: il founder ha scritto di ritardi nell'onboarding; percorso caldo tramite un investitore in comune. Coppia email + LinkedIn pronta nelle Bozze di Gmail.\nHOLD — Kestrel Labs: forte fit con l'ICP, ma nessun trigger tempestivo.\nDQ — Globex: pilot attivo nel deal tracker. Saltato.",
+        },
+        starterTask:
+          'Chiedi alla squadra Vendite guidate dal founder di imparare il mio ICP, la mia voce e gli account off-limits, poi cerca cinque design partner supportati da segnali, divisi in KEEP, HOLD e DQ con aperture in bozza da rivedere.',
+      },
+      'customer-support': {
+        title: 'Assistenza clienti',
+        category: 'Assistenza',
+        summary:
+          "Gestisci la tua coda di supporto, dal monitoraggio delle release alla riproduzione dei bug fino all'analisi del churn, ai rimborsi e alla reportistica.",
+        outcomes: [
+          'Calendari delle release allineati, ticket di lancio etichettati e documentazione di assistenza aggiornata',
+          'Segnalazioni di bug riprodotte con passaggi esatti e prove visive',
+          'Raggruppamenti settimanali delle cause di churn e bozze di rimborso verificate secondo la policy',
+          'Report su misura delle metriche di supporto e avvisi di picco delle code',
+        ],
+        inputs: [
+          'La tua policy di rimborso, la documentazione di assistenza e le regole di escalation',
+          'La tua coda di ticket, lo strumento di fatturazione o il calendario delle release',
+        ],
+        handoff: [
+          'Monitora le release',
+          'Riproduci i bug',
+          'Esamina i rimborsi',
+          'Report e avvisi',
+        ],
+        example: {
+          title:
+            'Un riepilogo settimanale del supporto: feedback di lancio, bug riprodotto, cluster di churn e un rimborso in attesa di approvazione.',
+          content:
+            'Release: Team Permissions v2 (anticipata a giovedì).\nDocumentazione pronta: articolo del centro assistenza aggiornato; macro interna in bozza per la revisione.\nFeedback di lancio (prime 24h): 19 ticket etichettati — 11 chiedono come migrare i ruoli esistenti (in escalation).\n\nRichiesta: Acme Corp · rinnovo annuale da $240 (addebitato 4 giorni fa, 0 accessi dal rinnovo).\nVerifica policy: idoneo secondo la regola dei 14 giorni per i rinnovi non utilizzati.\nRaccomandazione: approvare il rimborso completo — oppure offrire un credito di pausa del 50% per 2 mesi.\nStato: risposta in bozza, in attesa della tua approvazione prima di toccare Stripe.',
+        },
+        starterTask:
+          'Chiedi alla squadra Assistenza clienti di analizzare i miei ticket recenti per rischi di churn, riprodurre la segnalazione di bug principale, verificare le richieste di rimborso in sospeso in base alla mia policy e riepilogare le metriche delle code.',
+      },
       'business-admin': {
         title: 'Amministrazione aziendale',
         category: 'Amministrazione',
@@ -379,6 +800,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Chiedi alla squadra QA di testare il flusso di registrazione sul mio sito di staging e aprire segnalazioni chiare per ogni problema.',
+      },
+      'marketing-launches': {
+        title: 'Marketing e lanci',
+        category: 'Marketing',
+        summary:
+          "Porta a termine i lanci di marketing dall'inizio alla fine: analizza i concorrenti, scrivi il posizionamento, apri PR per la landing page, prepara annunci in pausa e valuta i risultati.",
+        outcomes: [
+          'Matrici di messaggistica dei concorrenti supportate da prove e gap di posizionamento',
+          'Brief di posizionamento, scalette per la landing page e varianti di annunci verificate sui caratteri',
+          'Pull request per la landing page con screenshot e strutture di campagne annunci in pausa',
+          'Prospetti di valutazione dei concept paid media, avvisi di spesa e check-in di lancio soggetti ad approvazione',
+        ],
+        inputs: [
+          "L'URL del tuo prodotto, i concorrenti e la voce o i principi del brand",
+          'Il repository del sito marketing, gli export degli annunci o la data di lancio prevista',
+        ],
+        handoff: [
+          'Ricerca dei gap',
+          'Bozza del posizionamento',
+          'Crea pagina e annunci',
+          'Valuta e decidi',
+        ],
+        example: {
+          title:
+            'Un ciclo di lancio: gap dei concorrenti, brief di posizionamento, PR per la landing page, struttura di annunci in pausa e prospetto di valutazione dei concept.',
+          content:
+            'Punto di partenza: la tua homepage punta sulla velocità di configurazione.\nGap dei concorrenti: tre rivali puntano su checklist enterprise; nessuno mette in evidenza il tempo risparmiato nella prima settimana (screenshot di prezzi e libreria annunci, 6 ott).\nContromossa: testa un titolo ancorato ai risultati della prima settimana, con prove citate.\n\nPeriodo: 1–7 ott (export Google Ads).\nSpeed-First: spesa 1.240 $ · CTR 4,8% · CVR 6,2% · CPA 41 $ — Consigliato: scala.\nEnterprise-Checklist: spesa 1.180 $ · CTR 1,9% · CVR 2,1% · CPA 131 $ — Consigliato: pausa (in attesa di approvazione).',
+        },
+        starterTask:
+          'Chiedi alla squadra Marketing & Launches di analizzare la mia homepage rispetto a tre concorrenti, scrivere un brief di posizionamento e varianti di annunci di ricerca, e definire la PR per la landing page e il piano di test in pausa.',
       },
       'content-publishing': {
         title: 'Contenuti e pubblicazione',

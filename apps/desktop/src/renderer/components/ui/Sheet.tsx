@@ -36,27 +36,26 @@ export function Sheet({
   children,
 }: SheetProps) {
   const state = useOverlayState({ isOpen, onOpenChange });
-  // On the document, not the sheet's own element: right after a drill-down the
-  // control that had focus is gone and focus can sit on the document, where a
-  // listener inside the sheet never hears the key. The document hears it after
-  // any popover inside the sheet has claimed its own Escape, and before the
-  // shell's window-level Escape (which closes an open task behind the sheet).
+  // On the document, not the sheet's own element: right after a drill-down or
+  // returning to the index the control that had focus is gone and focus can sit
+  // on the document, where a listener inside the sheet never hears the key. The
+  // document hears it after any popover or nested dialog inside the sheet has
+  // claimed its own Escape, and before the shell's window-level Escape (which
+  // closes an open task behind the sheet).
   useEffect(() => {
-    if (!isOpen || onEscape === undefined) return;
+    if (!isOpen) return;
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented) return;
       event.preventDefault();
-      onEscape();
+      if (onEscape !== undefined) onEscape();
+      else onOpenChange(false);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onEscape]);
+  }, [isOpen, onEscape, onOpenChange]);
   return (
     <Modal state={state}>
-      <Modal.Backdrop
-        className="crewaid-sheet-backdrop"
-        isKeyboardDismissDisabled={onEscape !== undefined}
-      >
+      <Modal.Backdrop className="crewaid-sheet-backdrop" isKeyboardDismissDisabled>
         <Modal.Container size="full" className="crewaid-sheet-container">
           <Modal.Dialog aria-label={ariaLabel} className={cx('crewaid-sheet', className)}>
             <div className="flex h-full min-h-0 w-full flex-col">{children}</div>

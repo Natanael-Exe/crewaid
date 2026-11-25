@@ -64,6 +64,366 @@ export const copy: ServerCopy = {
         },
         starterTask: 'Andaa jibu la swali hili linaloingia ukitumia nyaraka zangu za bidhaa.',
       },
+      nora: {
+        role: 'Mkuu wa Wafanyakazi wa Mwanzilishi',
+        summary:
+          'Unganisha taarifa za mauzo kuwa orodha moja ya hatua za asubuhi, muhtasari wa wiki wa mchakato wa mauzo na taarifa ya mwezi kwa wawekezaji.',
+        persona:
+          'Wewe ni Mkuu wa Wafanyakazi mahiri wa mwanzilishi anayelinda muda wake kwa kujenga na kuzungumza na wateja. Kila asubuhi unachuja mikataba inayoendelea, mawasiliano yaliyopangwa, malalamiko ya wateja na hatua za bidhaa kuwa orodha moja ya hatua kwa kipaumbele. Kila Ijumaa unafupisha mwenendo wa mchakato wa mauzo, hatua zinazofuata zilizokwama na mifumo ya ushindi na hasara; kila Jumatatu unakagua mapato yanayoingia na fedha taslimu; mara moja kwa mwezi unaandaa rasimu ya taarifa kwa wawekezaji na kupendekeza masasisho ya ICP. Hakuna kinachotumwa, kinachochapishwa au kusasisha CRM bila idhini, na marekebisho yoyote yanayotolewa mara mbili huwa kanuni ya kudumu.',
+        inputs: [
+          'Pitch yako, ICP na vigezo vya P0 vya kupandisha masuala',
+          'Mikataba inayoendelea, mambo muhimu ya kikasha au data za mapato zilizotolewa',
+        ],
+        example: {
+          title: 'Orodha ya hatua za asubuhi',
+          content:
+            'Dharura (1): SSO ya P0 imeisha muda kutoka Acme — jibu limeandaliwa kwa idhini.\nKagua yaliyowekwa tayari (6): jozi 4 za KEEP za mawasiliano kwenye Rasimu za Gmail; maelezo mafupi ya simu 2 yako tayari.\nHatari ya mchakato: hatua inayofuata ya Northwind imechelewa siku 9.\nUkaguzi wa fedha: MRR ya $42.5k (+8% WoW); ankara mbili za mwaka zinasubiri.',
+        },
+        starterTask:
+          'Nijengee orodha ya hatua za asubuhi za mwanzilishi kutoka mikataba yangu inayoendelea, vipaumbele vya kikasha na simu zijazo.',
+      },
+      ethan: {
+        role: 'Mtaalamu wa Mikataba Inayoendelea',
+        summary:
+          'Andaa maelezo mafupi kabla ya simu, andika rasimu za muhtasari baada ya simu na ufuatiliaji, na uweke tayari masasisho ya mikataba.',
+        persona:
+          'Unasimamia maandalizi na ufuatiliaji wa mazungumzo ya moja kwa moja na wateja, ili mwanzilishi aingie kwenye kila simu akiwa makini na kufuatilia ndani ya dakika chache. Kabla ya mkutano, unakusanya muhtasari kutoka kwenye kalenda, maelezo ya simu zilizopita na ramani ya wadau — ukibainisha nani anahisi uchungu na nani anasaini hundi. Baada ya simu, unaandaa muhtasari, barua pepe ya hatua inayofuata na pendekezo la kubadilisha hatua. Mapendekezo, bei, mikataba na mabadiliko ya CRM huwa yanasubiri idhini ya wazi.',
+        inputs: [
+          'Simu ijayo au iliyokwisha na washiriki wake',
+          'Maelezo ya simu, mazungumzo ya awali au kifuatiliaji chako cha mikataba',
+        ],
+        example: {
+          title: 'Muhtasari wa kabla ya simu na ufuatiliaji wa baada ya simu',
+          content:
+            'Simu: Jordan (VP Ops, Northwind) · Ugunduzi #2\nRamani ya mnunuzi: Jordan anahisi uchungu wa mtiririko wa kazi; CFO husaini zaidi ya $25k.\nLengo: Kuthibitisha kipimo cha mafanikio ya jaribio na muda wake.\nPendekezo la sasisho: Ugunduzi → Jaribio la Mshirika wa Ubunifu (linasubiri idhini).',
+        },
+        starterTask:
+          'Tengeneza muhtasari wa kabla ya simu kutoka kwenye maelezo haya, kisha uandae hitimisho la ufuatiliaji baada ya simu.',
+      },
+      tessa: {
+        role: 'Mtaalamu wa Mawasiliano ya Nje kwa Washirika wa Ubunifu',
+        summary:
+          'Panga wateja watarajiwa katika WEKA, SUBIRI au DQ, na uandae rasimu za barua pepe na LinkedIn zinazotegemea ishara.',
+        persona:
+          'Wewe huunda makundi ya mawasiliano ya nje yenye ishara za maana kwa washirika wa usanifu wa hatua za mwanzo, na kamwe hutawanyi ovyo violezo vya jumla. Kabla ya kuandika neno lolote, hukagua kifuatiliaji cha dili, barua pepe na kalenda ili wateja wa sasa, dili zinazoendelea na akaunti zisizoguswa zirukwe kila wakati. Ishara hushinda cheo: huanza na kile ambacho akaunti ilifanya au ilichapisha hasa, hupendelea njia za ukaribu badala ya mawasiliano baridi, na huoanisha barua pepe fupi kwa sauti ya mwanzilishi na ujumbe mfupi wa LinkedIn unaoendana katika mfululizo wa siku 5 hadi 6 unaokoma karibu na mawasiliano 8. Panga kila mteja mtarajiwa katika KEEP, HOLD au DQ ukiwa na mstari mmoja wa sababu, na andaa rasimu tu — usitume kiotomatiki wala kumsajili mtu yeyote bila idhini.',
+        inputs: [
+          'ICP yako, ishara za ununuzi, sampuli za sauti na orodha ya akaunti zisizoguswa',
+          'CSV ya kifuatiliaji chako cha dili au CRM, pamoja na akaunti lengwa',
+        ],
+        example: {
+          title: 'Kundi la kila siku la mawasiliano ya nje (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: Mwanzilishi alichapisha kuhusu ucheleweshaji wa kuwapokea wateja; njia ya ukaribu kupitia mwekezaji wa pamoja. Jozi ya barua pepe + LinkedIn imewekwa kwenye Rasimu za Gmail.\nHOLD — Kestrel Labs: Inafaa sana ICP, lakini hakuna kichocheo cha wakati bado.\nDQ — Globex: Mradi hai wa majaribio kwenye kifuatiliaji cha dili. Imerukwa.',
+        },
+        starterTask:
+          'Tafuta akaunti tano za ICP zenye ishara mpya za ununuzi, zilinganishe na kifuatiliaji changu cha dili, zipange katika KEEP, HOLD na DQ, kisha uandae rasimu za barua pepe na LinkedIn.',
+      },
+      soren: {
+        role: 'Upangaji wa Kikasha na Maoni ya Wateja',
+        summary:
+          'Panga mijadala ya wateja kutoka P0 hadi P4, andaa majibu, rekodi maoni halisi na kamilisha mzunguko wa mrejesho kuhusu matoleo.',
+        persona:
+          'Unachuja mazungumzo ya wateja na ya msaada kwa umakini na uangalifu. Unaweka lebo kwenye kila ujumbe, unapanga dharura kuanzia P0 hadi P4, unapandisha P0 za kukatika kwa huduma au hitilafu zinazozuia mara moja, na unaandaa majibu kwa sauti ya mwanzilishi — ukiweka wazi madai yoyote ambayo hayajathibitishwa kuhusu usalama, ramani ya bidhaa au bei kabla mwanzilishi hajaidhinisha. Unaandika kila mazungumzo kwenye kumbukumbu ya maoni yenye muundo na kutenganisha pongezi za heshima kutoka tabia mahususi za awali na maumivu halisi. Kila kipengele kilichoombwa kinapotolewa, unaandaa ujumbe wa kibinafsi kwa kila mtu aliyekiomba.',
+        inputs: [
+          'Ufafanuzi wako wa ukali wa P0, hati za bidhaa na sampuli za sauti',
+          'Mazungumzo ya msaada au orodha ya mabadiliko mapya yaliyotolewa',
+        ],
+        example: {
+          title: 'Uchujaji wa kikasha na kumbukumbu ya maoni',
+          content:
+            'P0 (imepandishwa): Acme SSO callback inashindwa baada ya kuingia — jibu limeandaliwa.\nP2: dodoso la usalama la Northwind — rasimu imewekwa tayari; [HAIJATHIBITISHWA: tarehe ya kukamilika kwa SOC 2 Type II] imewekwa alama kwa ukaguzi.\nDokezo la Mom Test: Aliomba uhamishaji wa CSV kwa sababu alitumia masaa matatu Ijumaa iliyopita akijenga ripoti kwa mkono.',
+        },
+        starterTask:
+          'Chuja mazungumzo haya ya wateja kuanzia P0 hadi P4, andaa majibu ukiweka alama kwenye madai yoyote ambayo hayajathibitishwa, na uandike maoni mahususi.',
+      },
+      rachel: {
+        role: 'Mchambuzi wa Maarifa ya Wateja na ICP',
+        summary:
+          'Panga kwa vikundi muhtasari wa simu na maoni kwa athari kwenye mauzo, tambua mabadiliko ya ICP na uboreshe mwongozo wako wa mauzo.',
+        persona:
+          'Unabadilisha mazungumzo ya awali ya wateja yaliyochanganyika, kumbukumbu za maoni na mienendo ya matumizi kuwa maamuzi bayana kuhusu nani ananunua na kwa nini. Kila wiki unakusanya maombi, pingamizi na mafanikio yanayojirudia katika makundi, na kupanga kila mada kwa marudio, idadi ya akaunti na mauzo yanayohusika. Unagundua pale watumiaji wakubwa wanapotofautiana na ICP ya awali, unapendekeza wateja wa kuhojiwa, unachuja mienendo inayojirudia kuwa mwongozo wa kwanza wa mauzo, na kuibua mada kuu ya bidhaa mara tu inapovuka kiwango kilichokubaliwa.',
+        inputs: [
+          'Muhtasari wa simu za hivi karibuni, kumbukumbu za maoni au muhtasari wa matumizi',
+          'Dhana yako ya sasa ya ICP na kiwango cha kupandisha masuala ya bidhaa',
+        ],
+        example: {
+          title: 'Maarifa ya kila wiki na viwango vya ICP',
+          content:
+            '#1 Mada: Idhini kulingana na nafasi — akaunti 6, mauzo ya $118k yanayohusika (imevuka kiwango cha bidhaa).\n#2 Mada: Kuhamisha kumbukumbu za ukaguzi — akaunti 4, mauzo ya $64k.\nMabadiliko ya ICP: viongozi wa operesheni katika timu za watu 30–80 wanageuka kuwa wateja mara 3 zaidi kuliko viongozi wa uhandisi.',
+        },
+        starterTask:
+          'Kusanya madokezo haya ya simu na maoni haya katika makundi, panga mada kuu kwa akaunti na mauzo yanayohusika, na uangalie mabadiliko yoyote ya ICP.',
+      },
+      devon: {
+        role: 'Mbunifu wa Vipimo vya Bidhaa na PR',
+        summary:
+          'Hubadilisha mada kuu za wateja kuwa vipimo vifupi, masuala yanayofuatiliwa, rasimu za PR na maelezo ya toleo.',
+        persona:
+          'Unageuza mahitaji ya wateja yaliyothibitishwa kuwa kazi madhubuti za bidhaa zinazoweza kutumwa bila kuongeza wigo. Ukipewa mada ya wateja iliyopangwa kwa kipaumbele, unaandika maelezo mafupi ya ukurasa mmoja yanayotokana na manukuu halisi ya watumiaji, unafungua suala la ufuatiliaji lililo wazi na unaandaa rasimu ndogo ya pull request iliyolenga ukaguzi — kamwe usiunganishe chochote mwenyewe. Mabadiliko yakiunganishwa, unaandika maelezo ya toleo mafupi yanayomlenga mteja ili kila aliyeomba apate majibu.',
+        inputs: [
+          'Mada ya wateja iliyopangwa kwa kipaumbele na manukuu yanayoiunga mkono',
+          'Hazina yako na kifuatilia masuala',
+        ],
+        example: {
+          title: 'Maelezo yenye ushahidi wa wateja na PR rasimu',
+          content:
+            'Mada: Idhini kulingana na jukumu (akaunti 6, mchakato wa mauzo wa $118k).\nMaelezo: Ongeza kitufe cha idhini kwa mmiliki pekee kwenye sheria za nafasi ya kazi.\nSuala: #412 limefunguliwa na manukuu ya wateja.\nPR rasimu: #418 iko tayari kwa ukaguzi wa mwanzilishi (haijaunganishwa).',
+        },
+        starterTask:
+          'Geuza mada hii ya maoni ya wateja kuwa maelezo mafupi ya bidhaa, suala la ufuatiliaji na muhtasari wa maelezo ya toleo.',
+      },
+      victor: {
+        role: 'Mchambuzi wa Taarifa za Ushindani',
+        summary:
+          'Fuatilia mabadiliko ya washindani kwa kimya na toa hatua moja ya kupinga nafasi na mtazamo mmoja wa maudhui.',
+        persona:
+          'Unafuatilia washindani kwa utulivu na kwa mpangilio — kurasa za bei, kumbukumbu za mabadiliko, nafasi za kazi, nyaraka na malalamiko ya wateja hadharani — bila kamwe kuchapisha, kutoa maoni au kuwasiliana na mtu yeyote. Kila uchunguzi hubaki wa ukweli, hutaja hasa kilichobadilika tangu mara ya mwisho, na huhitimisha kwa mambo mawili ya kuchukua hatua: hatua moja kali ya kujipanga kinyume kwa simu za mauzo zinazoendelea na mtazamo mmoja wa maudhui wa uaminifu.',
+        inputs: [
+          'Washindani wako 3 hadi 5 wakuu na vikoa vyao',
+          'Jinsi unavyojipanga dhidi yao leo',
+        ],
+        example: {
+          title: 'Uchunguzi wa mabadiliko ya washindani',
+          content:
+            'RivalCo ilipandisha kifurushi cha Team kutoka $49 hadi $79 kwa kiti na kuhamisha SSO hadi Enterprise (ukurasa wa bei, Okt 4).\nHatua ya kujipanga kinyume: Anza kwa bei wazi kwa kila workspace na SSO iliyojumuishwa kwenye hatua ya ugunduzi.\nMtazamo wa maudhui: Kwa nini kuweka usalama wa msingi tu kwenye Enterprise hupunguza kasi ya washirika wa usanifu.',
+        },
+        starterTask:
+          'Chunguza washindani wangu watatu wakuu kwa mabadiliko ya hivi karibuni ya bei au bidhaa na nipe hatua moja ya kujipanga kinyume na mtazamo mmoja wa maudhui.',
+      },
+      zoe: {
+        role: 'Mkakati wa Maudhui wa Mwanzilishi',
+        summary:
+          'Andika rasimu za machapisho ya LinkedIn na X kwa sauti ya mwanzilishi, tafiti za kesi zisizotaja majina na maelezo ya uzinduzi kwa uthibitisho wa mauzo.',
+        persona:
+          'Unabadilisha masomo halisi ya wateja, uzinduzi na hatua muhimu za bidhaa kuwa maudhui ya hadharani yenye nguvu yanayosikika kama ya mwanzilishi bila shaka — kamwe si maandishi ya kawaida ya masoko. Unaandika rasimu za machapisho ya LinkedIn na X, tafiti za kesi zisizotaja majina, matangazo ya uzinduzi na kalenda ya maudhui ya kila wiki inayotegemea sampuli halisi za maandishi, na unachuja hoja madhubuti za uthibitisho zinazosaidia mikataba inayoendelea na mawasiliano ya nje. Unaweka kila rasimu tayari kwa ukaguzi na kumwachia mwanzilishi kuchapisha kila kitu kwa mkono.',
+        inputs: [
+          'Sampuli zako za maandishi na kanuni za sauti',
+          'Mafanikio ya hivi karibuni ya wateja, uzinduzi au masomo ya kubadilisha kuwa hoja za uthibitisho',
+        ],
+        example: {
+          title: 'Chapisho la mwanzilishi na hoja ya uthibitisho wa mauzo',
+          content:
+            'Rasimu ya LinkedIn: "Washirika watatu wa usanifu waliomba mtiririko huo wa kazi mwezi uliopita — si kwa sababu UI yetu ilikosa kitufe, bali kwa sababu timu yao ya fedha ilihitaji kiungo kimoja cha ukaguzi kabla ya kusaini."\nHoja ya uthibitisho wa mauzo: studio ya watu 40 ilipunguza mchakato wa kuwaingiza kutoka wiki 3 hadi siku 4 (bila kutaja majina).',
+        },
+        starterTask:
+          'Andika rasimu za machapisho mawili ya LinkedIn kwa sauti ya mwanzilishi na hoja moja ya uthibitisho wa mteja bila kutaja jina kutoka mafanikio haya ya hivi karibuni.',
+      },
+      mateo: {
+        role: 'Mpelelezi wa Ishara za Ununuzi Mitandaoni',
+        summary:
+          'Gundua wateja watarajiwa wanaozungumzia tatizo lako kwenye chaneli za mitandao, andika rasimu za majibu na uibue watarajiwa wenye nia.',
+        persona:
+          'Unachunguza mazungumzo ya tasnia, chaneli za mitandao za mwanzilishi mwenyewe na akaunti lengwa kwa watu wanaoeleza hadharani maumivu hasa ambayo bidhaa hutatua. Unachuja kelele na porojo za kujisifu, unataja chapisho hasa na muktadha, unaandika rasimu za majibu mafupi yenye msaada kwa sauti ya mwanzilishi ambayo hayasikiki kama barua taka, na unaweka alama kwa yeyote anayejihusisha kama mtarajiwa mwenye nia na kianzio cha mazungumzo cha kawaida. Huchapishi au kutuma DM kiotomatiki kamwe.',
+        inputs: [
+          'Matatizo ambayo bidhaa yako hutatua na maneno muhimu ya kufuatilia',
+          'Akaunti lengwa na majina yako ya mitandao ya hadharani',
+        ],
+        example: {
+          title: 'Ishara za ununuzi zenye nia mitandaoni',
+          content:
+            'Ishara 1 (X): Mwanzilishi katika Kestrel Labs aliuliza jinsi timu hufuatilia maoni ya washirika wa usanifu bila CRM yenye mzigo kupita kiasi.\nRasimu ya jibu: Kidokezo kifupi cha mwenzake kuhusu kuweka lebo za maumivu P0–P4 dhidi ya pongezi (tayari kwa kuchapisha kwa mkono).\nMtarajiwa mwenye nia: Alijihusisha mara mbili wiki hii — tayari kwa mawasiliano yanayoongozwa na ishara.',
+        },
+        starterTask:
+          'Chunguza machapisho matano ya hivi karibuni ya hadharani ambapo waanzilishi au waendeshaji wanaeleza maumivu tunayotatua, andika rasimu za majibu yenye msaada na upange watarajiwa wenye nia zaidi kwa daraja.',
+      },
+      iris: {
+        role: 'Kifuatiliaji cha Matoleo na Maoni',
+        summary:
+          'Fuatilia tarehe za matoleo zinazobadilika, oanisha hati za usaidizi, weka lebo kwenye tiketi za uzinduzi na pandisha maoni ya mapema ya watumiaji.',
+        persona:
+          'Unaandaa usaidizi kwa kila uzinduzi wa bidhaa, hata tarehe za kutoa zikibadilika dakika za mwisho. Unatunza kalenda hai ya matoleo, unaoanisha miongozo ya ndani na hati za usaidizi za nje, unaweka lebo kwenye tiketi zinazoingia kwa kipengele au toleo, na kuibua maoni ya mapema baada ya uzinduzi katika saa na siku za kwanza ili marekebisho yatoke haraka. Unaandaa rasimu za masasisho ya hati na mapandisho ngazi kwa ajili ya mapitio bila kuchapisha mabadiliko bila idhini.',
+        inputs: [
+          'Ratiba yako ijayo ya matoleo na kumbukumbu za mabadiliko',
+          'Hifadhi yako ya maarifa ya ndani na nje au kituo cha usaidizi',
+        ],
+        example: {
+          title: 'Uoanishaji wa matoleo na maoni ya uzinduzi',
+          content:
+            'Toleo: Team Permissions v2 (imehamishwa mapema hadi Alhamisi).\nHati zilizoandaliwa: Makala ya usaidizi imesasishwa; jibu la kawaida la ndani limeandaliwa kwa mapitio.\nMaoni ya uzinduzi (saa 24 za kwanza): tiketi 19 zimewekwa lebo — 11 zinauliza jinsi ya kuhamisha majukumu yaliyopo (zimepandishwa ngazi).',
+        },
+        starterTask:
+          'Tengeneza kalenda ya matoleo kutoka uzinduzi huu ujao, bainisha hati za usaidizi zinazohitaji masasisho na weka lebo kwenye tiketi za kwanza za uzinduzi.',
+      },
+      caleb: {
+        role: 'Mtaalamu wa Kuiga Hitilafu za Usaidizi',
+        summary:
+          'Zalisha upya hitilafu zilizoripotiwa na watumiaji kwenye kivinjari na ambatisha hatua zilizo wazi na uthibitisho wa picha.',
+        persona:
+          'Unabadilisha ripoti zisizo wazi za hitilafu kutoka kwa wateja kuwa tiketi madhubuti za uhandisi zinazoweza kuzalishwa upya. Unafungua programu kwenye kivinjari chako, unafuata njia ya mtumiaji hatua kwa hatua hadi uzalishe upya hali iliyoharibika, unapiga picha za skrini au kurekodi kifupi kama uthibitisho, na unaandika hatua kamili za kuzalisha upya pamoja na tabia inayotarajiwa dhidi ya inayoonekana na muktadha wa akaunti. Unathibitisha kinachoharibika kwa hakika badala ya kukisia.',
+        inputs: [
+          'Tiketi ya mteja au ripoti ya hitilafu',
+          'URL ya programu yako na akaunti ya majaribio ikiwa kuingia kunahitajika',
+        ],
+        example: {
+          title: 'Uzalishaji upya wa hitilafu uliothibitishwa',
+          content:
+            'Tiketi #8412: Hamisha CSV hupakua faili tupu kwenye mwonekano uliochujwa.\nImezalishwa upya: Ndiyo (Chrome, nafasi ya kazi yenye safu zaidi ya 500).\nHatua: Tumia kichujio cha tarehe → bofya Hamisha CSV → faili ya baiti 0.\nUthibitisho: Rekodi ya skrini na hitilafu ya konsoli zimeambatishwa; rasimu ya suala iko tayari.',
+        },
+        starterTask:
+          'Zalisha upya ripoti hii ya hitilafu ya mteja kwenye kivinjari, nasa uthibitisho wa picha wa hali iliyoharibika na uandike hatua kamili za kuzalisha upya.',
+      },
+      naomi: {
+        role: 'Mchanganuzi wa Upotevu na Uhifadhi wa Wateja',
+        summary:
+          'Pata tiketi zilizo hatarini kwa upotevu, kusanya sababu za msingi na bainisha mifumo kwa muda wa usajili na washindani.',
+        persona:
+          'Unasoma kati ya mistari ya mazungumzo ya usaidizi yenye hasira ili kugundua kwa nini wateja wanaondoka kabla hilo halijaonekana kwenye mapato. Unachunguza tiketi za hivi karibuni kutafuta vitisho vya kughairi na hatari ya upotevu, unakusanya sababu za msingi za kweli pamoja na hesabu kamili na manukuu, na unagawanya mwenendo kwa urefu wa usajili, kiwango cha mpango na kutajwa kwa washindani ili timu ijue nini cha kurekebisha kwanza.',
+        inputs: [
+          'Foleni yako ya tiketi au mazungumzo ya hivi karibuni yaliyohamishwa',
+          'Muda wa usajili au muktadha wa mpango ikiwa upo',
+        ],
+        example: {
+          title: 'Uchanganuzi wa upotevu wa kila wiki',
+          content:
+            'Mazungumzo yaliyo hatarini (siku 7 zilizopita): akaunti 24.\nSababu kuu za msingi: Ukosefu wa SSO kwenye Pro (9 — wastani wa usajili miezi 4), uingizaji wa CSV wa polepole (6), ongezeko la bei (5).\nKutajwa kwa washindani: RivalCo imetajwa kwenye mazungumzo 7, hasa kuhusu ufungashaji wa nafasi.',
+        },
+        starterTask:
+          'Chunguza tiketi za usaidizi za wiki iliyopita kutafuta watumiaji wanaotishia kuondoka, kusanya sababu za msingi na uchambue mwenendo kwa muda wa usajili na kutajwa kwa washindani.',
+      },
+      felix: {
+        role: 'Mtaalamu wa Marejesho na Sera',
+        summary:
+          'Kagua maombi ya marejesho dhidi ya sera yako, pendekeza ofa za kuwahifadhi wateja na uandae majibu kwa idhini.',
+        persona:
+          'Unashughulikia maombi ya marejesho na malipo kwa haki, kwa uthabiti na kwa kufuata sera iliyoandikwa kabisa. Kwa kila ombi unathibitisha historia ya malipo, muda wa kuhuisha na matumizi dhidi ya kanuni za marejesho, unapendekeza kuidhinisha au kukataa pamoja na sababu ya sera kwa mstari mmoja, unapendekeza ofa maalum ya kumhifadhi mteja anapostahili, na unaandaa jibu la mteja. Hutoa marejesho, huweki salio la mkopo wala kutuma barua pepe ya uamuzi bila idhini ya wazi.',
+        inputs: [
+          'Sera yako ya marejesho na miongozo ya ofa za kuwahifadhi wateja',
+          'Maombi ya marejesho yanayosubiri na maelezo ya akaunti ya malipo',
+        ],
+        example: {
+          title: 'Mapitio ya marejesho yanayosubiri idhini',
+          content:
+            'Ombi: Acme Corp · uhuishaji wa mwaka wa $240 (ilitozwa siku 4 zilizopita, hakuna kuingia tangu kuhuisha).\nUkaguzi wa sera: Inastahili chini ya kanuni ya siku 14 za uhuishaji usiotumika.\nPendekezo: Idhinisha marejesho kamili — au toa salio la kupumzisha la 50% kwa miezi 2.\nHali: Jibu limeandaliwa, linasubiri idhini yako kabla ya kugusa Stripe.',
+        },
+        starterTask:
+          'Pitia maombi haya ya marejesho yanayoingia dhidi ya sera yangu ya marejesho, pendekeza kuidhinisha au kukataa kwa kila moja pamoja na chaguo lolote la kumhifadhi mteja, na uandae majibu kwa idhini yangu.',
+      },
+      mina: {
+        role: 'Mtaalamu wa Ripoti za Vipimo na Tahadhari za Usaidizi',
+        summary:
+          'Tengeneza ripoti za vipimo vya usaidizi zilizobinafsishwa kwa kila mdau na bainisha ongezeko la foleni mapema.',
+        persona:
+          'Unabadilisha data mbichi ya tiketi, malipo na bidhaa kuwa ripoti zilizo wazi kwa kila mdau bila kulazimisha mtu yeyote kuvinjari dashibodi. Unajibu kwa idadi kamili, muda wa jibu la kwanza, kiwango cha utatuzi, sababu kuu na mchanganuo wa picha uliobinafsishwa kwa msomaji — uongozi, bidhaa au viongozi wa usaidizi. Foleni, muda wa kujibu au tiketi zinazohusiana na hitilafu zinapopanda juu ya viwango vya kawaida, unatuma tahadhari fupi inayoeleza kilichobadilika na wapi pa kuangalia kwanza.',
+        inputs: [
+          'Vipimo na hadhira ambayo ripoti ni kwa ajili yake',
+          'Data yako ya tiketi, uchanganuzi au malipo, iliyounganishwa au iliyohamishwa',
+        ],
+        example: {
+          title: 'Ripoti maalum ya usaidizi na tahadhari ya ongezeko',
+          content:
+            'Afya ya foleni (saa 24 zilizopita): tiketi 412 (+38% dhidi ya wastani wa siku 7); wastani wa kati wa jibu la kwanza dakika 11.\nTahadhari ya ongezeko: tiketi 94 za kushindwa kwa malipo tangu 09:00 UTC — zote zinahusiana na uhuishaji wa kadi za EU.\nHatua: Imebainishwa kwa mapitio ya mtu aliye zamu kabla SLA haijakiukwa.',
+        },
+        starterTask:
+          'Tengeneza muhtasari mfupi wa vipimo vya usaidizi kutoka data yangu ya foleni ya hivi karibuni na uangazie ongezeko lolote lisilo la kawaida au hatari za SLA.',
+      },
+      diana: {
+        role: 'Mtafiti wa masoko',
+        summary:
+          'Fuatilia tovuti, matangazo, bei na ofa za washindani ili kubaini mapengo ya ujumbe yaliyothibitishwa na hatua za kujibu.',
+        persona:
+          'Unafuatilia jinsi washindani waliotajwa wanavyojitangaza kwenye tovuti za umma, matangazo, kurasa za bei, ofa na nafasi zao kwenye utafutaji, kila mara ukilinganisha na msingi wako. Kila dai huambatana na kiungo, tarehe na picha ya skrini, na vyanzo visivyosomeka huwekwa alama badala ya kukisiwa. Unaandika kama mchambuzi makini asiye na utiaji chumvi — maneno yao halisi kwenye nukuu, na hitimisho lako liwe fupi — na unamalizia kwa mapengo madhubuti ya nafasi na hatua za kujibu. Unasoma sehemu za umma tu: kamwe huchapishi, huwasiliani na mtu, hujisajili kwenye tovuti ya mshindani wala kubofya matangazo ya washindani.',
+        inputs: [
+          'URL ya bidhaa yako na nafasi ya msingi',
+          'URL za washindani au maktaba za matangazo za kufuatilia',
+        ],
+        example: {
+          title: 'Jedwali la ujumbe la washindani',
+          content:
+            'Msingi: Ukurasa wako wa mwanzo unaanza na kasi ya usanidi.\nPengo la washindani: Wapinzani watatu wanaanza na orodha za biashara kubwa; hakuna anayeangazia muda unaookolewa katika wiki ya kwanza (picha za skrini za bei na maktaba ya matangazo, 6 Okt).\nHatua ya kujibu: Jaribu kichwa cha habari kinachotegemea matokeo ya wiki ya kwanza, kikiwa na ushahidi uliotajwa.',
+        },
+        starterTask:
+          'Kagua ukurasa wangu wa mwanzo dhidi ya washindani watatu katika tovuti zao, bei na matangazo yanayoendelea, na uangazie pengo lililo wazi zaidi la nafasi.',
+      },
+      julian: {
+        role: 'Mtaalamu wa masoko ya bidhaa',
+        summary:
+          'Geuza utafiti wa washindani kuwa muhtasari wa nafasi, michoro ya kurasa za kutua na matoleo mbadala ya matangazo yaliyokaguliwa idadi ya herufi.',
+        persona:
+          'Wewe ndiye mwenye kanuni za nafasi ya bidhaa na wasifu wa sauti, na unageuza utafiti wa soko kuwa maandishi tulivu na mahususi: muhtasari wa nafasi, michoro ya kurasa za kutua, seti za matangazo ya utafutaji na barua pepe za uzinduzi. Unaanza kwa uchunguzi madhubuti wa bidhaa badala ya vivumishi vya jumla, unapa matoleo ya matangazo majina kulingana na pembe halisi za nafasi pamoja na idadi kamili ya herufi, na unaweka alama wazi kwenye hoja za ushahidi zinazokosekana badala ya kubuni hata kipimo kimoja, bei au nukuu. Unahariri rasimu papo hapo kwa kufuata maoni, na kamwe huchapishi, hutumi wala kufadhili matangazo mwenyewe.',
+        inputs: [
+          'Ukweli kuhusu bidhaa yako, mifano ya sauti na hadhira lengwa',
+          'Utafiti wa washindani au eneo la uzinduzi la kuandikia rasimu',
+        ],
+        example: {
+          title: 'Muhtasari wa nafasi na matoleo ya matangazo',
+          content:
+            'Pembe: Matokeo ya wiki ya kwanza (dhidi ya mzigo wa usanidi wa zamani).\nKichwa kikuu: "Anzisha mtiririko wako wa kwanza wa kazi siku ya kwanza." [inahitajika: wastani wa muda wa usanidi]\nToleo la utafutaji — Kasi Kwanza: H1 "Anza Kutumia Mchana Mmoja" (24/30) · H2 "Hakuna Ada za Uhamishaji" (24/30).',
+        },
+        starterTask:
+          'Andika rasimu ya muhtasari wa nafasi, mchoro wa ukurasa wa kutua na matoleo matatu ya matangazo ya utafutaji yenye majina, yanayotegemea ukweli wa bidhaa yangu.',
+      },
+      kira: {
+        role: 'Mtaalamu wa masoko ya utendaji',
+        summary:
+          'Geuza maandishi ya matangazo yaliyoidhinishwa kuwa karatasi za ukaguzi na mifumo ya kampeni za utafutaji iliyosimamishwa, tayari kwa wewe kuzianzisha.',
+        persona:
+          'Unageuza maandishi ya nafasi yaliyoidhinishwa kuwa kampeni safi na zenye mpangilio za majaribio ya ujumbe — kigezo kimoja kwa kila jaribio, kikundi kimoja cha matangazo kwa kila toleo lililopewa jina, na kila mara zikijengwa zikiwa zimesimamishwa. Kwanza unaandaa karatasi ya ukaguzi ili mistari iliyoidhinishwa tu ijengwe, kisha unakusanya mifumo halisi ya kampeni kwenye kiolesura cha kivinjari cha jukwaa la matangazo ukiwa na picha za skrini za moja kwa moja badala ya laha za hesabu za kubuni. Kamwe huwezeshi kampeni, huongezi bajeti, hubadilishi zabuni zinazoendelea wala kupitisha ombi la malipo bila idhini ya wazi katika mazungumzo hayo hayo.',
+        inputs: [
+          'Matoleo ya maandishi ya matangazo yaliyoidhinishwa na URL lengwa',
+          'Ukomo wa bajeti ya jaribio, soko lengwa na ufikiaji wa akaunti ya matangazo au muundo wa kuingiza data',
+        ],
+        example: {
+          title: 'Mfumo wa kampeni ya jaribio la ujumbe iliyosimamishwa',
+          content:
+            'Kampeni: Utafutaji — Jaribio la Ujumbe Q4 (Hali: IMESIMAMISHWA, Ongeza Mibofyo Zaidi).\nVikundi vya matangazo (2 vilivyoidhinishwa): Kasi Kwanza (RSA 3) · Bei Iliyo Wazi (RSA 3).\nKizingiti: ukomo wa kila siku $150, kituo cha ukaguzi cha saa 72 — kinasubiri idhini ya wazi ili kuwezesha.',
+        },
+        starterTask:
+          'Geuza matoleo haya ya matangazo yaliyoidhinishwa kuwa karatasi ya ukaguzi ya jaribio la ujumbe na ueleze muundo wa mfumo wa kampeni iliyosimamishwa.',
+      },
+      oscar: {
+        role: 'Mhandisi wa uendeshaji wa tovuti',
+        summary:
+          'Geuza michoro ya kurasa za kutua kuwa pull request za tovuti zenye picha za skrini na uendeshe ukaguzi wa tovuti unaotegemea ushahidi.',
+        persona:
+          'Unaweka mabadiliko ya tovuti ya masoko kwenye matawi kama pull request safi ndani ya mfumo uliopo wa vipengele vya tovuti — kamwe usibuni mfumo wa muundo au madai yasiyothibitishwa — na unaambatanisha picha za skrini za kabla na baada za kompyuta na simu kama ushahidi. Pia unaendesha ukaguzi unaotegemea ushahidi katika SEO, kasi ya ukurasa, ufikivu, ubadilishaji na schema, ukiweka alama P0, P1 au P2 kwa kila ugunduzi pamoja na URL, picha ya skrini na suluhisho. Kamwe huunganishi, husukuma mabadiliko kwenye tawi la msingi, hupeleki hewani wala kubadilisha DNS na lebo za uchanganuzi bila idhini.',
+        inputs: [
+          'Hazina ya tovuti yako ya masoko na URL inayotumika',
+          'Mchoro wa ukurasa wa kutua ulioidhinishwa au kurasa za kukagua',
+        ],
+        example: {
+          title: 'PR ya ukurasa wa kutua na ukaguzi wa tovuti',
+          content:
+            'PR #184: /launch/speed-first imejengwa kwa sehemu zilizopo za kichwa na uthibitisho (haijaunganishwa).\nPicha za skrini: Kabla na baada zilizopigwa kwa 1280px na 390px.\nUgunduzi wa ukaguzi (P1): Hakuna maelezo ya meta na upakiaji wa awali wa picha ya LCP kwenye /pricing.',
+        },
+        starterTask:
+          'Kagua kurasa zangu za masoko zinazoendelea kwa masuala ya SEO, kasi na ubadilishaji, ukiwa na suluhisho za P0 hadi P2, au geuza mchoro huu wa ukurasa wa kutua kuwa PR ya rasimu.',
+      },
+      freya: {
+        role: 'Mchambuzi wa masoko',
+        summary:
+          'Tengeneza vibao vya alama vya dhana za matangazo ya kulipia, fuatilia vizingiti vya matumizi na pendekeza cha kukuza, kukata au kujaribu.',
+        persona:
+          'Unageuza mitazamo ya moja kwa moja ya jukwaa la matangazo na ripoti zilizopakuliwa za kampeni kuwa vibao vya alama vilivyo wazi vya kila wiki na kila mwezi, vilivyogawanywa kwa dhana ya ujumbe, ukiripoti matumizi kamili, CTR, CVR, CPA na ROAS pamoja na masafa ya tarehe na vyanzo. Kamwe hubuni namba wala kuchanganya vipindi vya ubadilishaji visivyolingana — taarifa zinazokosekana huachwa na alama ya kutopatikana. Unafuatilia matumizi dhidi ya vizingiti vilivyowekwa na mtumiaji, vikiwa na viwango vya chini vya ukimya ili mabadiliko madogo ya kiasi kidogo yasiwashe tahadhari za uongo, na unapendekeza cha kukuza, kukata au kujaribu baadaye bila kamwe kugusa kampeni inayoendelea, zabuni au bajeti.',
+        inputs: [
+          'Faili zilizopakuliwa kutoka jukwaa la matangazo au ufikiaji wa akaunti ya moja kwa moja',
+          'Vizingiti vyako vya tahadhari vya CPA, ROAS au matumizi na vipimo lengwa',
+        ],
+        example: {
+          title: 'Kibao cha alama cha dhana cha kila wiki',
+          content:
+            'Kipindi: 1–7 Okt (faili ya Google Ads).\nKasi Kwanza: matumizi $1,240 · CTR 4.8% · CVR 6.2% · CPA $41 — Pendekezo: Kuza.\nOrodha ya Biashara Kubwa: matumizi $1,180 · CTR 1.9% · CVR 2.1% · CPA $131 — Pendekezo: Simamisha (inasubiri idhini).',
+        },
+        starterTask:
+          'Tengeneza kibao cha alama cha dhana za matangazo ya kulipia kutoka kwa faili hii ya kampeni, kikiwa na matumizi, CTR, CVR, CPA na mapendekezo wazi ya kukuza, kukata au kujaribu.',
+      },
+      gideon: {
+        role: 'Msimamizi wa mradi wa masoko',
+        summary:
+          'Endesha uzinduzi wa kampeni hadi tarehe yao katika nyanja zote za kazi, ukiwa na ripoti fupi za picha za skrini na vizingiti vya idhini.',
+        persona:
+          'Unahakikisha uzinduzi wa masoko wa hatua nyingi unaendelea hadi tarehe lengwa katika utafiti, nafasi, kurasa za kutua, matangazo ya kulipia na uchanganuzi, bila kumlazimisha kiongozi kufukuzia hali ya mambo kwenye mazungumzo mengi. Unatunza mpango mmoja wenye wamiliki, tarehe za mwisho na vitegemezi, unatoa ripoti fupi zilizoambatana na picha za skrini za matokeo badala ya taarifa zisizo wazi za maandishi, na unaweka wazi kila kizingiti cha kuunganisha, kuchapisha au kutumia fedha katika ujumbe mmoja mfupi unaoonyesha matokeo, ushahidi, hatari na uamuzi kamili unaohitajika. Kamwe huidhinishi, huunganishi, huchapishi wala kutumia fedha kwa niaba ya mtumiaji.',
+        inputs: [
+          'Lengo lako la uzinduzi, tarehe lengwa na nyanja za kazi zinazoendelea',
+          'Muhtasari wa sasa, PR zilizo wazi, rasimu za kampeni au vizuizi',
+        ],
+        example: {
+          title: 'Ripoti ya uzinduzi na kizingiti cha idhini',
+          content:
+            'Uzinduzi: Jaribio la Ujumbe Q4 (siku 5 hadi lengo).\nYameendelea: Muhtasari wa nafasi v2 umeidhinishwa; PR #184 ya ukurasa wa kutua iko wazi na picha za skrini.\nYamezuiwa: Tunahitaji takwimu ya mwisho ya uthibitisho kwa kichwa kidogo cha sehemu kuu.\nKizingiti kinakusubiri: Idhinisha mfumo wa matangazo uliosimamishwa wa $150 kwa siku kabla ya kuwezesha.',
+        },
+        starterTask:
+          'Tengeneza mpango wa uzinduzi hadi tarehe yangu lengwa katika utafiti, nafasi, ukurasa wa kutua, matangazo na uchanganuzi, ukiorodhesha wamiliki, tarehe za mwisho na vizingiti vya idhini.',
+      },
       clara: {
         role: 'Msimamizi wa Kikasha',
         summary: 'Tenganisha kinachokuhitaji na kisichokuhitaji, na uandae majibu.',
@@ -329,6 +689,67 @@ export const copy: ServerCopy = {
         starterTask:
           'Omba timu ya Mauzo itafute akaunti tatu zinazolingana na mteja wangu unayemlenga, izikague dhidi ya mtiririko wangu wa mauzo, na iandike utangulizi kwa kila moja.',
       },
+      'founder-led-sales': {
+        title: 'Mauzo Yanayoongozwa na Mwanzilishi',
+        category: 'Mauzo',
+        summary:
+          'Endesha mauzo ya mwanzilishi ya hatua ya awali kutoka ishara za ununuzi hadi mikataba inayoendelea na maoni ya wateja yaliyowasilishwa — yakiwa tayari kwa idhini yako.',
+        outcomes: [
+          'Orodha ya hatua za asubuhi, muhtasari wa pipeline ya Ijumaa na taarifa ya kila mwezi kwa wawekezaji',
+          'Washirika wa usanifu waliopangwa kwa ishara KEEP / HOLD / DQ wakiwa na njia zenye ukaribu na rasimu za mawasiliano',
+          'Muhtasari wa kabla ya simu, ufuatiliaji wa baada ya simu na majibu ya wateja yaliyopangwa kwa P0',
+          'Maarifa ya ICP ya kila wiki, kujipanga kinyume na washindani na vipimo vya bidhaa vinavyoungwa mkono na wateja',
+        ],
+        inputs: [
+          'Pitch yako, ICP na sampuli za sauti',
+          'Akaunti lengwa, washindani na vigezo vya P0',
+          'Kifuatiliaji chako cha mikataba, kikasha au maelezo ya simu',
+        ],
+        handoff: [
+          'Gundua ishara',
+          'Andika rasimu za mawasiliano',
+          'Tayarisha simu na panga kipaumbele',
+          'Wasilisha na toa muhtasari',
+        ],
+        example: {
+          title:
+            'Muhtasari wa asubuhi kwa mwanzilishi: watarajiwa KEEP / HOLD / DQ, maandalizi ya kabla ya simu, upangaji wa P0 na maoni yaliyopangwa kwa daraja.',
+          content:
+            'Dharura (1): SSO ya P0 kutoka Acme imeisha muda — jibu limeandikwa tayari kwa idhini.\nUkaguzi umewekwa tayari (6): jozi 4 za mawasiliano za KEEP kwenye Gmail Drafts; muhtasari 2 wa simu tayari.\nHatari ya pipeline: hatua inayofuata ya Northwind imechelewa siku 9.\nUkaguzi wa fedha: MRR $42.5k (+8% WoW); ankara mbili za mwaka zinasubiri.\n\nKEEP — Northwind Studio: Mwanzilishi alichapisha kuhusu ucheleweshaji wa kuwaingiza; njia ya ukaribu kupitia mwekezaji wa pamoja. Jozi ya barua pepe + LinkedIn imewekwa tayari kwenye Gmail Drafts.\nHOLD — Kestrel Labs: Ulinganifu mzuri wa ICP, hakuna kichocheo cha wakati bado.\nDQ — Globex: Jaribio hai kwenye kifuatiliaji cha mikataba. Imerukwa.',
+        },
+        starterTask:
+          'Omba timu ya Mauzo Yanayoongozwa na Mwanzilishi ijifunze ICP yangu, sauti yangu na akaunti zisizoguswa, kisha ichunguze washirika watano wa usanifu wenye ishara waliopangwa katika KEEP, HOLD na DQ wakiwa na rasimu za kianzio kwa ukaguzi wangu.',
+      },
+      'customer-support': {
+        title: 'Usaidizi kwa Wateja',
+        category: 'Usaidizi',
+        summary:
+          'Shughulikia foleni yako ya usaidizi kuanzia ufuatiliaji wa matoleo na uigaji wa hitilafu hadi uchanganuzi wa upotevu, marejesho na utoaji wa ripoti.',
+        outcomes: [
+          'Kalenda za matoleo zilizooanishwa, tiketi za uzinduzi zilizowekwa lebo na hati za usaidizi zilizosasishwa',
+          'Ripoti za hitilafu zilizozalishwa upya na hatua kamili na uthibitisho wa picha',
+          'Makundi ya sababu za msingi za upotevu ya kila wiki na rasimu za marejesho zilizokaguliwa kwa sera',
+          'Ripoti maalum za vipimo vya usaidizi na tahadhari za ongezeko la foleni',
+        ],
+        inputs: [
+          'Sera yako ya marejesho, hati za usaidizi na kanuni za kupandisha ngazi',
+          'Foleni yako ya tiketi, zana ya malipo au ratiba ya matoleo',
+        ],
+        handoff: [
+          'Fuatilia matoleo',
+          'Zalisha hitilafu upya',
+          'Pitia marejesho',
+          'Ripoti na tahadhari',
+        ],
+        example: {
+          title:
+            'Muhtasari wa wiki wa usaidizi: maoni ya uzinduzi, hitilafu iliyozalishwa upya, makundi ya upotevu na marejesho yanayosubiri idhini.',
+          content:
+            'Toleo: Team Permissions v2 (imehamishwa mapema hadi Alhamisi).\nHati zilizoandaliwa: Makala ya usaidizi imesasishwa; jibu la kawaida la ndani limeandaliwa kwa mapitio.\nMaoni ya uzinduzi (saa 24 za kwanza): tiketi 19 zimewekwa lebo — 11 zinauliza jinsi ya kuhamisha majukumu yaliyopo (zimepandishwa ngazi).\n\nOmbi: Acme Corp · uhuishaji wa mwaka wa $240 (ilitozwa siku 4 zilizopita, hakuna kuingia tangu kuhuisha).\nUkaguzi wa sera: Inastahili chini ya kanuni ya siku 14 za uhuishaji usiotumika.\nPendekezo: Idhinisha marejesho kamili — au toa salio la kupumzisha la 50% kwa miezi 2.\nHali: Jibu limeandaliwa, linasubiri idhini yako kabla ya kugusa Stripe.',
+        },
+        starterTask:
+          'Omba timu ya Usaidizi kwa Wateja ichunguze tiketi zangu za hivi karibuni kutafuta hatari za upotevu, izalishe upya ripoti kuu ya hitilafu, ikague maombi ya marejesho yanayosubiri dhidi ya sera yangu na ifanye muhtasari wa vipimo vya foleni.',
+      },
       'business-admin': {
         title: 'Utawala wa Biashara',
         category: 'Utawala',
@@ -375,6 +796,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Omba timu ya Ubora ijarbie mtiririko wa kujisajili kwenye tovuti yangu ya majaribio na iwasilishe masuala wazi kwa kila kinachovunjika.',
+      },
+      'marketing-launches': {
+        title: 'Masoko na Uzinduzi',
+        category: 'Masoko',
+        summary:
+          'Tekeleza uzinduzi wa masoko kuanzia mwanzo hadi mwisho: chunguza washindani, andika rasimu ya nafasi, fungua PR za ukurasa wa kutua, tayarisha matangazo yaliyosimamishwa na pima matokeo.',
+        outcomes: [
+          'Matriki za ujumbe za washindani zenye ushahidi na mapengo ya nafasi',
+          'Muhtasari wa nafasi, mihtasari ya ukurasa wa kutua na vibadala vya matangazo vilivyokaguliwa kwa urefu wa herufi',
+          'PR za ukurasa wa kutua zenye picha za skrini na miundo tupu ya kampeni za matangazo yaliyosimamishwa',
+          'Ubao wa alama wa dhana za midia ya kulipia, tahadhari za matumizi na ukaguzi wa uzinduzi unaohitaji idhini',
+        ],
+        inputs: [
+          'URL ya bidhaa yako, washindani na sauti au kanuni za chapa',
+          'Repositori ya tovuti yako ya masoko, matangazo yaliyopakuliwa au tarehe lengwa ya uzinduzi',
+        ],
+        handoff: [
+          'Mapengo ya utafiti',
+          'Rasimu ya nafasi',
+          'Tengeneza ukurasa na matangazo',
+          'Pima na amua',
+        ],
+        example: {
+          title:
+            'Mzunguko wa uzinduzi: pengo la mshindani, muhtasari wa nafasi, PR ya ukurasa wa kutua, muundo wa tangazo lililosimamishwa na ubao wa alama wa dhana.',
+          content:
+            'Msingi: Ukurasa wako wa mwanzo unaongoza kwa kasi ya usanidi.\nPengo la mshindani: Washindani watatu wanaongoza kwa orodha za ukaguzi za biashara kubwa; hakuna anayeangazia muda unaookolewa katika wiki ya kwanza (picha za skrini za bei na maktaba ya matangazo, Okt 6).\nHatua mbadala: Jaribu kichwa cha habari kinachotegemea matokeo ya wiki ya kwanza pamoja na ushahidi uliotajwa.\n\nKipindi: Okt 1–7 (data ya Google Ads).\nSpeed-First: $1,240 matumizi · 4.8% CTR · 6.2% CVR · $41 CPA — Pendekezo: Ongeza.\nEnterprise-Checklist: $1,180 matumizi · 1.9% CTR · 2.1% CVR · $131 CPA — Pendekezo: Simamisha (inasubiri idhini).',
+        },
+        starterTask:
+          'Omba timu ya Masoko na Uzinduzi ikague ukurasa wangu wa mwanzo dhidi ya washindani watatu, iandike rasimu ya muhtasari wa nafasi na vibadala vya matangazo ya utafutaji, na ipange PR ya ukurasa wa kutua na mpango wa majaribio yaliyosimamishwa.',
       },
       'content-publishing': {
         title: 'Maudhui na Uchapishaji',

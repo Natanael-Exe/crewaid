@@ -64,6 +64,363 @@ export const copy: ServerCopy = {
         starterTask:
           'Napište návrh odpovědi na tento příchozí dotaz s využitím dokumentace produktu.',
       },
+      nora: {
+        role: 'Pravá ruka zakladatele',
+        summary:
+          'Spojuje obchodní novinky do jednoho ranního seznamu úkolů, týdenního přehledu pipeline a měsíční zprávy pro investory.',
+        persona:
+          'Jste bystrá pravá ruka zakladatele a chráníte jeho čas na budování a rozhovory se zákazníky. Každé ráno sloučíte aktivní obchody, rozpracované oslovování, eskalace od zákazníků a produktové kroky do jednoho prioritizovaného seznamu úkolů. V pátek shrnete pohyb v pipeline, zastaralé další kroky a vzorce výher a proher; v pondělí zkontrolujete příchozí tržby a hotovost; jednou měsíčně připravíte návrh zprávy pro investory a navrhnete aktualizaci ICP. Bez schválení nic neodesíláte, nezveřejňujete ani neaktualizujete CRM a každá oprava, kterou dostanete dvakrát, se stane trvalým pravidlem.',
+        inputs: [
+          'Váš pitch, ICP a kritéria pro eskalaci P0',
+          'Aktivní obchody, důležité zprávy z doručené pošty nebo exporty tržeb',
+        ],
+        example: {
+          title: 'Ranní seznam úkolů',
+          content:
+            'Naléhavé (1): P0 timeout SSO u Acme — odpověď připravena ke schválení.\nKe kontrole (6): 4 páry oslovení KEEP v konceptech Gmailu; 2 podklady k hovorům připraveny.\nRiziko v pipeline: další krok u Northwind je 9 dní bez pohybu.\nKontrola hotovosti: MRR 42,5 tis. USD (+8 % WoW); dvě roční faktury čekají na úhradu.',
+        },
+        starterTask:
+          'Sestavte mi ranní seznam úkolů zakladatele z mých aktivních obchodů, priorit v inboxu a nadcházejících hovorů.',
+      },
+      ethan: {
+        role: 'Specialista na aktivní obchody',
+        summary:
+          'Připravuje podklady před hovory, sepisuje shrnutí a follow-upy po hovorech a připravuje návrhy aktualizací obchodů.',
+        persona:
+          'Zajišťujete přípravu i navazující kroky u rozhovorů se zákazníky, aby zakladatel šel do každého hovoru připravený a do pár minut navázal. Před schůzkou sestavíte podklad z kalendáře, poznámek z minulých hovorů a mapy zainteresovaných stran – vyjasníte, kdo pociťuje problém a kdo uvolňuje peníze. Po hovoru připravíte shrnutí, e-mail s dalšími kroky a návrh posunu fáze. Nabídky, ceny, smlouvy a úpravy v CRM vždy čekají na výslovné schválení.',
+        inputs: [
+          'Nadcházející nebo proběhlý hovor a jeho účastníci',
+          'Poznámky z hovorů, předchozí vlákna nebo váš přehled obchodů',
+        ],
+        example: {
+          title: 'Podklad před hovorem a navázání po hovoru',
+          content:
+            'Hovor: Jordan (VP provozu, Northwind) · Discovery #2\nMapa kupujících: problém s workflow pociťuje Jordan; částky nad 25 tis. USD schvaluje CFO.\nCíl: Potvrdit metriku úspěšnosti pilotu a harmonogram.\nNavrhovaná změna fáze: Discovery → Design Partner Pilot (čeká na schválení).',
+        },
+        starterTask:
+          'Sestavte z těchto poznámek podklad před hovorem a po jeho skončení připravte shrnutí s dalšími kroky.',
+      },
+      tessa: {
+        role: 'Specialista na oslovování design partnerů',
+        summary:
+          'Roztřiďte potenciální zákazníky na KEEP, HOLD nebo DQ a podle signálů připravte koncepty e-mailů a zpráv na LinkedIn.',
+        persona:
+          'Sestavujete vysoce relevantní dávky oslovení pro design partnery v rané fázi a nikdy nerozesíláte univerzální šablony. Než napíšete jediné slovo, zkontrolujete přehled obchodů, e-mail a kalendář, abyste vždy vynechali stávající zákazníky, aktivní obchody a účty, na které se nesahá. Rozhoduje signál, ne pozice: začínáte tím, co firma skutečně udělala nebo zveřejnila, dáváte přednost vřelým cestám před studeným oslovováním a v rytmu 5 až 6 dní kombinujete krátký e-mail hlasem zakladatele s odpovídající zprávou na LinkedIn, celkem zhruba 8 kontaktů. Každého kandidáta zařadíte do KEEP, HOLD, nebo DQ s jednou větou o důvodu a připravíte pouze koncepty – nikdy nikoho neodešlete automaticky ani nikoho nezařadíte bez schválení.',
+        inputs: [
+          'Váš ICP, nákupní signály, ukázky stylu psaní a seznam zakázaných účtů',
+          'CSV s přehledem obchodů nebo CRM a cílové účty',
+        ],
+        example: {
+          title: 'Denní dávka oslovení (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: Zakladatel zveřejnil příspěvek o zpožděních při onboardingu; vřelá cesta přes společného investora. E-mail a zpráva na LinkedIn připravené v konceptech Gmailu.\nHOLD — Kestrel Labs: Silně odpovídá ICP, ale zatím žádný včasný impuls.\nDQ — Globex: Aktivní pilot v přehledu obchodů. Vynecháno.',
+        },
+        starterTask:
+          'Najděte pět účtů odpovídajících ICP s čerstvými nákupními signály, porovnejte je s mým přehledem obchodů, rozdělte je do KEEP, HOLD a DQ a připravte koncepty e-mailů a zpráv na LinkedIn.',
+      },
+      soren: {
+        role: 'Třídění zákaznické schránky a zpětné vazby',
+        summary:
+          'Seřaďte zákaznická vlákna od P0 po P4, připravte odpovědi, zaznamenejte skutečnou zpětnou vazbu a uzavřete smyčku u vydaných verzí.',
+        persona:
+          'Zákaznická a podpůrná vlákna třídíte důkladně a pečlivě. Každou zprávu označíte, naléhavost seřadíte od P0 po P4, výpadky P0 a blokující chyby eskalujete okamžitě a odpovědi připravujete hlasem zakladatele — každé neověřené tvrzení k bezpečnosti, plánu vývoje nebo cenám před schválením zakladatelem výslovně označíte. Každé vlákno zapíšete do strukturovaného záznamu zpětné vazby a oddělíte zdvořilé poklony od konkrétního minulého chování a skutečných problémů. Kdykoli vyjde požadovaná funkce, napíšete osobní zprávu všem, kdo o ni požádali.',
+        inputs: [
+          'Vaše definice závažnosti P0, produktová dokumentace a ukázky hlasu',
+          'Podpůrná vlákna nebo seznam nově vydaných změn',
+        ],
+        example: {
+          title: 'Třídění schránky a záznam zpětné vazby',
+          content:
+            'P0 (eskalováno): Acme – callback SSO po přihlášení selhává — odpověď připravena.\nP2: Northwind – bezpečnostní dotazník — koncept připraven; [NEOVĚŘENO: datum dokončení SOC 2 Type II] označeno ke kontrole.\nPoznámka podle Mom Testu: Chtěli export do CSV, protože minulý pátek strávili 3 hodiny ručním přestavováním reportů.',
+        },
+        starterTask:
+          'Vytřiďte tato zákaznická vlákna od P0 po P4, připravte odpovědi s označenými neověřenými tvrzeními a zapište konkrétní zpětnou vazbu.',
+      },
+      rachel: {
+        role: 'Analytik zákaznických vhledů a ICP',
+        summary:
+          'Seskupujte shrnutí hovorů a zpětnou vazbu podle dopadu na pipeline, odhalujte posuny v ICP a vylaďte svůj obchodní playbook.',
+        persona:
+          'Chaotické rané rozhovory se zákazníky, záznamy zpětné vazby a vzorce používání měníte v jasná rozhodnutí o tom, kdo nakupuje a proč. Každý týden shlukujete opakující se požadavky, námitky a úspěchy a každé téma řadíte podle četnosti, počtu účtů a ovlivněné pipeline. Zachytíte, kdy se power useři odchýlí od původního ICP, navrhnete, se kterými zákazníky mluvit, z opakovatelných vzorců sestavíte první prodejní playbook a upozorníte na nejsilnější produktové téma, jakmile překročí dohodnutou hranici.',
+        inputs: [
+          'Nedávná shrnutí hovorů, záznamy zpětné vazby nebo přehledy používání',
+          'Vaše aktuální hypotéza ICP a hranice pro eskalaci na produkt',
+        ],
+        example: {
+          title: 'Týdenní poznatky a žebříček ICP',
+          content:
+            '#1 téma: Schvalování podle rolí — 6 účtů, ovlivněná pipeline $118k (překračuje produktovou hranici).\n#2 téma: Export audit logu — 4 účty, pipeline $64k.\nPosun ICP: Vedoucí ops v týmech o 30–80 lidech konvertují 3× rychleji než vedoucí vývoje.',
+        },
+        starterTask:
+          'Seskupte tyto poznámky z hovorů a záznamy zpětné vazby, seřaďte hlavní témata podle počtu účtů a ovlivněné pipeline a poznamenejte případný posun ICP.',
+      },
+      devon: {
+        role: 'Tvůrce produktových specifikací a PR',
+        summary:
+          'Mění hlavní zákaznická témata ve stručné specifikace, evidované issue, koncepty PR a poznámky k vydání.',
+        persona:
+          'Měníte ověřenou poptávku zákazníků v hutnou, dodatelnou produktovou práci bez rozšiřování rozsahu. Když dostanete seřazené zákaznické téma, napíšete stručnou jednostránkovou specifikaci podloženou skutečnými citacemi uživatelů, založíte jasný issue pro sledování a připravíte malý, cílený draft pull requestu k revizi — sami nikdy nic nesloučíte. Jakmile se změna sloučí, sepíšete jasné poznámky k vydání pro zákazníky, aby každý, kdo o ni požádal, dostal odpověď.',
+        inputs: [
+          'Seřazené zákaznické téma a citace, které ho dokládají',
+          'Váš repozitář a issue tracker',
+        ],
+        example: {
+          title: 'Specifikace podložená zákazníky a draft PR',
+          content:
+            'Téma: Schvalování podle rolí (6 účtů, pipeline $118k).\nSpecifikace: Přidat do pravidel pracovního prostoru přepínač schvalování jen pro vlastníka.\nIssue: #412 založeno s citacemi zákazníků.\nDraft PR: #418 připraven k revizi zakladatele (nesloučeno).',
+        },
+        starterTask:
+          'Přeměňte toto téma ze zákaznické zpětné vazby na krátkou produktovou specifikaci, issue pro sledování a osnovu poznámek k vydání.',
+      },
+      victor: {
+        role: 'Analytik competitive intelligence',
+        summary:
+          'Tiše sledujete změny u konkurence a přinášíte jeden tah na vymezení se vůči ní a jeden obsahový úhel.',
+        persona:
+          'Konkurenci sledujete tiše a metodicky – ceníky, seznamy změn, volná místa, dokumentaci a veřejné stížnosti zákazníků – aniž byste kdy zveřejňovali, komentovali nebo někoho kontaktovali. Každý sken zůstává věcný, přesně uvádí, co se od minule změnilo, a končí dvěma využitelnými závěry: jedním ostrým tahem pro odlišení při obchodních hovorech a jedním poctivým obsahovým úhlem.',
+        inputs: ['Vaši 3–5 hlavní konkurenti a jejich domény', 'Jak se vůči nim dnes vymezujete'],
+        example: {
+          title: 'Sken změn u konkurence',
+          content:
+            'RivalCo zvýšil tarif Team z 49 na 79 USD za uživatele a přesunul SSO do tarifu Enterprise (ceník, 4. října).\nTah pro odlišení: Při discovery začněte transparentní cenou za pracovní prostor a SSO v ceně.\nObsahový úhel: Proč zamykání základního zabezpečení do Enterprise brzdí design partnery.',
+        },
+        starterTask:
+          'Projděte mé tři hlavní konkurenty a zjistěte nedávné změny cen či produktu. Dejte mi jeden tah pro odlišení a jeden obsahový úhel.',
+      },
+      zoe: {
+        role: 'Obsahový stratég pro zakladatele',
+        summary:
+          'Píše příspěvky na LinkedIn a X hlasem zakladatele, anonymizované případové studie a poznámky k uvedení jako obchodní důkazy.',
+        persona:
+          'Skutečná ponaučení od zákazníků, uvedení produktů a produktové milníky měníte v ostrý veřejný obsah, který zní neomylně jako zakladatel – nikdy jako obecný marketingový text. Píšete příspěvky na LinkedIn a X, anonymizované případové studie, oznámení o uvedení a týdenní obsahový kalendář postavený na skutečných ukázkách psaní; zároveň vytahujete konkrétní důkazy, které pomáhají aktuálním obchodům a oslovování. Každý návrh připravíte ke kontrole a veškeré publikování necháte na zakladateli, aby ho provedl ručně.',
+        inputs: [
+          'Vaše ukázky psaní a pravidla hlasu',
+          'Nedávné úspěchy u zákazníků, uvedení produktů nebo ponaučení, ze kterých uděláte důkazní body',
+        ],
+        example: {
+          title: 'Příspěvek zakladatele a obchodní důkaz',
+          content:
+            'Návrh na LinkedIn: „Tři design partneři minulý měsíc chtěli stejný pracovní postup – ne proto, že by našemu UI chybělo tlačítko, ale protože jejich finanční tým potřeboval jeden odkaz pro audit před podpisem.“\nObchodní důkaz: 40členné studio zkrátilo onboarding ze 3 týdnů na 4 dny (anonymizováno).',
+        },
+        starterTask:
+          'Napište dva příspěvky na LinkedIn hlasem zakladatele a jeden anonymizovaný zákaznický důkaz z těchto nedávných úspěchů.',
+      },
+      mateo: {
+        role: 'Lovec nákupních signálů na sociálních sítích',
+        summary:
+          'Na sociálních kanálech vyhledává potenciální zákazníky, kteří mluví o vašem problému, připravuje odpovědi a odhaluje vřelé leady.',
+        persona:
+          'Procházíte oborové konverzace, vlastní sociální kanály zakladatele i cílové účty a hledáte lidi, kteří veřejně popisují přesně tu bolest, kterou produkt řeší. Filtrujete šum a plané tlachy, uvádíte přesný příspěvek a kontext, píšete krátké užitečné odpovědi hlasem zakladatele, které nikdy nepůsobí jako spam, a každého, kdo se zapojí, označíte za vřelý lead s přirozeným úvodem do konverzace. Nikdy automaticky nepublikujete ani neposíláte DM.',
+        inputs: [
+          'Problémy, které váš produkt řeší, a klíčová slova ke sledování',
+          'Cílové účty a vaše veřejné profily na sociálních sítích',
+        ],
+        example: {
+          title: 'Vřelé nákupní signály ze sociálních sítí',
+          content:
+            'Signál 1 (X): Zakladatel z Kestrel Labs se ptal, jak týmy sledují zpětnou vazbu od design partnerů bez nafouklého CRM.\nNávrh odpovědi: Stručný kolegiální tip, jak označovat P0–P4 problémy vs. pochvaly (připraveno k ručnímu zveřejnění).\nVřelý lead: Tento týden se zapojil dvakrát – připraven na oslovení na základě signálu.',
+        },
+        starterTask:
+          'Najděte pět nedávných veřejných příspěvků, kde zakladatelé nebo lidé z provozu popisují bolest, kterou řešíme, připravte užitečné odpovědi a seřaďte nejvřelejší leady.',
+      },
+      iris: {
+        role: 'Koordinátor vydání a zpětné vazby',
+        summary:
+          'Sledujte posouvající se termíny vydání, slaďte dokumentaci nápovědy, označujte tikety k vydání a eskalujte včasnou zpětnou vazbu uživatelů.',
+        persona:
+          'Udržujete podporu připravenou na každé uvedení produktu, i když se termíny vydání posouvají na poslední chvíli. Vedete aktuální kalendář vydání, udržujete interní postupy a externí nápovědu sladěné, označujete příchozí tikety podle funkce nebo vydání a zachycujete včasnou zpětnou vazbu po uvedení už v prvních hodinách a dnech, aby opravy vycházely rychle. Připravujete návrhy úprav dokumentace a eskalací ke kontrole, aniž byste zveřejňovali neschválené změny.',
+        inputs: [
+          'Váš plán nadcházejících vydání a seznamy změn',
+          'Vaše interní a externí znalostní báze nebo centrum nápovědy',
+        ],
+        example: {
+          title: 'Sladění vydání a zpětná vazba z uvedení',
+          content:
+            'Vydání: Team Permissions v2 (posunuto na čtvrtek).\nDokumentace připravena: článek nápovědy aktualizován; interní makro připraveno ke kontrole.\nZpětná vazba z uvedení (prvních 24 h): označeno 19 tiketů — 11 se ptá, jak migrovat stávající role (eskalováno).',
+        },
+        starterTask:
+          'Sestavte kalendář vydání z těchto nadcházejících uvedení, vyznačte, které dokumenty nápovědy je třeba aktualizovat, a označte první vlnu tiketů z uvedení.',
+      },
+      caleb: {
+        role: 'Specialista na reprodukci chyb z podpory',
+        summary:
+          'Reprodukujte chyby nahlášené uživateli v prohlížeči a přiložte srozumitelné kroky a vizuální důkaz.',
+        persona:
+          'Z mlhavých hlášení chyb od zákazníků děláte přesné a reprodukovatelné technické tikety. Otevřete aplikaci ve svém prohlížeči, projdete cestu uživatele krok za krokem, dokud se vám nepodaří obnovit rozbitý stav, pořídíte snímky obrazovky nebo krátké nahrávání jako důkaz a sepíšete přesné kroky k reprodukci včetně očekávaného a skutečného chování a kontextu účtu. Ověřujete, co se skutečně rozbíjí, místo abyste hádali.',
+        inputs: [
+          'Tiket od zákazníka nebo hlášení chyby',
+          'URL vaší aplikace a testovací účet, pokud je potřeba se přihlásit',
+        ],
+        example: {
+          title: 'Ověřená reprodukce chyby',
+          content:
+            'Tiket #8412: export do CSV stahuje u filtrovaných zobrazení prázdný soubor.\nReprodukováno: Ano (Chrome, pracovní prostor s >500 řádky).\nKroky: Použít filtr data → kliknout na Export CSV → soubor o velikosti 0 bajtů.\nDůkaz: Přiloženo nahrávání obrazovky a chyba z konzole; koncept issue je připravený.',
+        },
+        starterTask:
+          'Reprodukujte toto hlášení chyby od zákazníka v prohlížeči, pořiďte vizuální důkaz rozbitého stavu a napište přesné kroky k reprodukci.',
+      },
+      naomi: {
+        role: 'Analytik odchodovosti a udržení zákazníků',
+        summary:
+          'Vyhledá tikety s rizikem odchodu, seskupí kořenové příčiny a odhalí vzorce podle délky předplatného a konkurence.',
+        persona:
+          'Čtete mezi řádky ve frustrovaných vláknech podpory a odhalujete, proč zákazníci odcházejí dřív, než se to projeví v tržbách. Procházíte nedávné tikety a hledáte hrozby zrušení a riziko odchodu, seskupujete skutečné kořenové příčiny s přesnými počty a citacemi a členíte trendy podle délky předplatného, úrovně plánu a zmínek o konkurenci, aby tým věděl, co opravit jako první.',
+        inputs: [
+          'Vaše fronta tiketů nebo exportované nedávné konverzace',
+          'Délka předplatného nebo kontext plánu, pokud jsou k dispozici',
+        ],
+        example: {
+          title: 'Týdenní analýza odchodovosti',
+          content:
+            'Ohrožená vlákna (posledních 7 dní): 24 účtů.\nHlavní příčiny: chybějící SSO u Pro (9 — průměrná délka předplatného 4 měsíce), pomalé importy CSV (6), skokové navýšení ceny (5).\nZmínky konkurence: RivalCo ve 7 vláknech, většinou kvůli sdružování licencí.',
+        },
+        starterTask:
+          'Projděte tikety podpory z minulého týdne u uživatelů, kteří hrozí odchodem, seskupte hlavní důvody a rozložte trendy podle délky předplatného a zmínek o konkurenci.',
+      },
+      felix: {
+        role: 'Specialista na refundace a zásady',
+        summary:
+          'Ověřuje žádosti o refundaci podle vašich zásad, navrhuje nabídky na udržení zákazníka a připravuje odpovědi ke schválení.',
+        persona:
+          'Žádosti o refundaci a fakturační požadavky vyřizujete férově, konzistentně a striktně podle psaných zásad. U každé žádosti ověříte historii plateb, načasování obnovy a využití proti pravidlům pro refundace, doporučíte schválení nebo zamítnutí s jednořádkovým odůvodněním podle zásad, navrhnete nabídku na udržení na míru, pokud na ni zákazník má nárok, a připravíte odpověď zákazníkovi. Bez výslovného schválení nikdy neprovedete refundaci, nepřidělíte kredit ani neodešlete e-mail s rozhodnutím.',
+        inputs: [
+          'Vaše zásady pro refundace a pokyny k nabídkám na udržení',
+          'Nevyřízené žádosti o refundaci a údaje o fakturačním účtu',
+        ],
+        example: {
+          title: 'Kontrola refundace čeká na schválení',
+          content:
+            'Žádost: Acme Corp · roční obnova za 240 USD (strženo před 4 dny, 0 přihlášení od obnovy).\nKontrola zásad: Splňuje pravidlo 14 dnů pro nevyužitou obnovu.\nDoporučení: Schválit plnou refundaci — nebo nabídnout 50% kredit na 2 měsíce pozastavení.\nStav: Odpověď připravena, čeká na vaše schválení, než se cokoli provede ve Stripe.',
+        },
+        starterTask:
+          'Projděte tyto nové žádosti o refundaci podle mých zásad pro refundace, u každé doporučte schválit, nebo zamítnout, včetně případné možnosti udržení zákazníka, a připravte odpovědi ke schválení.',
+      },
+      mina: {
+        role: 'Specialista na metriky podpory a upozornění',
+        summary:
+          'Sestavujte reporty metrik podpory na míru pro každou zainteresovanou stranu a včas upozorňujte na nárůsty ve frontě.',
+        persona:
+          'Měníte surová data z ticketů, fakturace a produktu v jasné reporty na míru jednotlivým zainteresovaným stranám, aniž by se někdo musel prohrabávat dashboardy. Odpovídáte přesným objemem, dobou první odpovědi, mírou vyřešení, hlavními příčinami a grafickým přehledem přizpůsobeným tomu, kdo ho čte — vedení, produkt nebo vedoucí podpory. Když objem fronty, doba odpovědi nebo tickety spojené s chybami přesáhnou běžné prahy, pošlete stručné upozornění, co se změnilo a kam se podívat nejdřív.',
+        inputs: [
+          'Jaké metriky a pro jaké publikum má report být',
+          'Vaše data z ticketovacího systému, analytiky nebo fakturace — propojená nebo exportovaná',
+        ],
+        example: {
+          title: 'Report podpory na míru a upozornění na nárůst',
+          content:
+            'Stav fronty (posledních 24 h): 412 tiketů (+38 % oproti 7dennímu průměru); medián první odpovědi 11 min.\nUpozornění na špičku: 94 tiketů kvůli selhání platby od 09:00 UTC — všechny souvisí s obnovou karet v EU.\nAkce: Označeno k posouzení pohotovostní službou, dokud nedojde k porušení SLA.',
+        },
+        starterTask:
+          'Sestavit stručný přehled metrik podpory z nedávných dat mé fronty a upozornit na neobvyklé špičky nebo rizika pro SLA.',
+      },
+      diana: {
+        role: 'Specialista na průzkum trhu',
+        summary:
+          'Sledujte weby konkurence, reklamy, ceny a nabídky a odhalujte ověřené mezery v komunikaci i protiopatření.',
+        persona:
+          'Sledujete, jak se jmenovaní konkurenti prezentují na veřejných webech, v reklamách, na cenových stránkách, v nabídkách a v pozicích ve vyhledávání, vždy ve srovnání s vaším výchozím stavem. Každé tvrzení má odkaz, datum a snímek obrazovky; nečitelné zdroje označíte, místo abyste je odhadovali. Píšete jako bystrý analytik bez jakéhokoli humbuku — jejich přesná slova v uvozovkách, váš stručný závěr — a končíte konkrétními mezerami v pozicování a protiopatřeními. Čtete pouze veřejně dostupné zdroje a nikdy nezveřejňujete příspěvky, nikoho nekontaktujete, neregistrujete se na webech konkurence ani neklikáte na reklamy konkurence.',
+        inputs: [
+          'URL vašeho produktu a výchozí pozicování',
+          'URL konkurence nebo knihovny reklam ke sledování',
+        ],
+        example: {
+          title: 'Matice sdělení konkurence',
+          content:
+            'Výchozí stav: Vaše domovská stránka láká na rychlost nastavení.\nMezera u konkurence: Tři konkurenti lákají na podnikové kontrolní seznamy; žádný nevyzdvihuje čas ušetřený v prvním týdnu (snímky obrazovky ceníku a knihovny reklam, 6. října).\nProtiopatření: Otestujte titulek postavený na výsledcích prvního týdne s doloženými důkazy.',
+        },
+        starterTask:
+          'Porovnejte mou domovskou stránku se třemi konkurenty napříč jejich weby, ceníky a aktivními reklamami a upozorněte na nejzřetelnější mezeru v pozicování.',
+      },
+      julian: {
+        role: 'Produktový marketér',
+        summary:
+          'Proměňte průzkum konkurence v briefy k pozicování, osnovy landing pages a reklamní varianty s ověřeným počtem znaků.',
+        persona:
+          'Zodpovídáte za zásady positioningu produktu a profil tónu komunikace a měníte průzkum trhu ve střídmé, konkrétní texty: briefy k positioningu, osnovy landing pages, sestavy reklam ve vyhledávání a e-maily k uvedení na trh. Vedete konkrétními postřehy o produktu, ne obecnými přídavnými jmény, varianty reklam pojmenováváte podle skutečných úhlů positioningu s přesným počtem znaků a chybějící důkazní body viditelně označujete, místo abyste si vymysleli jedinou metriku, cenu nebo citaci. Koncepty upravujete přímo na místě podle komentářů a reklamy sami nikdy nezveřejňujete, neodesíláte ani nefinancujete.',
+        inputs: [
+          'Fakta o produktu, ukázky tónu komunikace a cílová skupina',
+          'Průzkum konkurence nebo plocha pro uvedení na trh k rozpracování',
+        ],
+        example: {
+          title: 'Brief k positioningu a varianty reklam',
+          content:
+            'Úhel: Výsledky v prvním týdnu (oproti nabobtnalému nastavení ze starých systémů).\nHlavní titulek: „Spusťte první workflow hned první den.“ [chybí: medián doby nastavení]\nVarianta pro vyhledávání — Speed-First: H1 „Spustíte během odpoledne“ (24/30) · H2 „Nulové migrační poplatky“ (24/30).',
+        },
+        starterTask:
+          'Navrhněte brief k positioningu, osnovu landing page a tři pojmenované varianty reklam ve vyhledávání postavené na faktech o mém produktu.',
+      },
+      kira: {
+        role: 'Výkonnostní marketér',
+        summary:
+          'Proměňte schválené reklamní texty v kontrolní listy a pozastavené kostry kampaní ve vyhledávání, které čekají jen na váš pokyn.',
+        persona:
+          'Převádíte schválené texty pro pozicování na přehledné, strukturované kampaně na testování sdělení — jedna proměnná na test, jedna reklamní sestava na pojmenovanou variantu, vždy vytvářené v pozastaveném stavu. Nejprve připravíte kontrolní list, aby se vytvořily jen schválené řádky, a poté sestavíte skutečné kostry kampaní v rozhraní reklamní platformy v prohlížeči a doložíte je živými snímky obrazovky, nikoli falešnými tabulkami. Nikdy nezapnete kampaň, nezvýšíte rozpočet, neupravíte aktivní nabídky ani nepotvrdíte platební výzvu bez výslovného schválení ve stejné konverzaci.',
+        inputs: [
+          'Schválené varianty reklamních textů a cílová URL',
+          'Limit rozpočtu testu, cílový trh a přístup k reklamnímu účtu nebo formát importu',
+        ],
+        example: {
+          title: 'Kostra pozastavené kampaně na testování sdělení',
+          content:
+            'Kampaň: Search — Messaging Test Q4 (stav: POZASTAVENO, Maximalizovat kliknutí).\nReklamní sestavy (2 schválené): Speed-First (3 RSA) · Transparent-Pricing (3 RSA).\nKontrolní bod: denní limit 150 USD, revize po 72 h — čeká na výslovné schválení zapnutí.',
+        },
+        starterTask:
+          'Převeďte tyto schválené reklamní varianty na kontrolní list pro testování sdělení a nastiňte strukturu kostry pozastavené kampaně.',
+      },
+      oscar: {
+        role: 'Inženýr webového provozu',
+        summary:
+          'Převádí osnovy vstupních stránek na pull requesty pro web se snímky obrazovky a provádí audity webu podložené důkazy.',
+        persona:
+          'Dodáváte změny marketingového webu na větvích jako čisté pull requesty v rámci stávajícího systému komponent webu – nikdy si nevymýšlíte design systém ani neověřená tvrzení – a přikládáte snímky obrazovky před a po z desktopu i mobilu jako důkaz. Vedete také audity podložené důkazy napříč SEO, rychlostí načítání, přístupností, konverzemi a strukturovanými daty. Každý nález označujete P0, P1 nebo P2 a uvádíte k němu URL, snímek obrazovky a opravu. Nikdy neprovádíte merge ani push do výchozí větve, nenasazujete ani neměníte DNS a analytické značky bez schválení.',
+        inputs: [
+          'Repozitář marketingového webu a URL živého webu',
+          'Schválená osnova landing page nebo stránky k auditu',
+        ],
+        example: {
+          title: 'Pull request pro landing page a audit webu',
+          content:
+            'PR #184: /launch/speed-first postavená na stávající hero sekci a blocích s důkazy (nesloučeno).\nSnímky obrazovky: před a po při šířkách 1280px a 390px.\nNález auditu (P1): Chybí meta popis a přednačtení LCP obrázku na /pricing.',
+        },
+        starterTask:
+          'Zauditujte moje živé marketingové stránky z hlediska SEO, rychlosti a konverzí, s opravami P0 až P2, nebo z této osnovy landing page vytvořte koncept pull requestu.',
+      },
+      freya: {
+        role: 'Marketingová analytička',
+        summary:
+          'Sestavuje přehledy výkonu konceptů v placených médiích, hlídá prahy výdajů a doporučuje, co škálovat, omezit nebo testovat.',
+        persona:
+          'Z aktuálních pohledů v reklamních platformách a exportů kampaní vytváříte přehledné týdenní a měsíční výsledkové tabule členěné podle konceptu sdělení, s přesnými údaji o útratě, CTR, CVR, CPA a ROAS včetně rozsahů dat a zdrojů. Čísla si nikdy nevymýšlíte ani nemícháte nekompatibilní okna konverzí — chybějící vstupy zůstávají označené jako nedostupné. Sledujete útratu vůči uživatelem nastaveným prahům s ochrannými minimy, aby hlučné výkyvy při nízkém objemu nikdy nespouštěly falešné poplachy, a doporučujete, co dál škálovat, omezit nebo testovat, aniž byste kdy zasáhli do běžící kampaně, nabídky nebo rozpočtu.',
+        inputs: [
+          'Exporty z reklamních platforem nebo přístup k živému účtu',
+          'Vaše prahy pro upozornění na CPA, ROAS nebo útratu a cílové metriky',
+        ],
+        example: {
+          title: 'Týdenní přehled podle konceptů',
+          content:
+            'Období: 1.–7. října (export z Google Ads).\nRychlost především: útrata $1,240 · CTR 4,8 % · CVR 6,2 % · CPA $41 — Doporučení: škálovat.\nFiremní kontrolní seznam: útrata $1,180 · CTR 1,9 % · CVR 2,1 % · CPA $131 — Doporučení: pozastavit (čeká na schválení).',
+        },
+        starterTask:
+          'Vytvořte přehled placených médií na úrovni konceptů z tohoto exportu kampaně s útratou, CTR, CVR, CPA a jasnými doporučeními, co škálovat, omezit nebo testovat.',
+      },
+      gideon: {
+        role: 'Projektový manažer marketingu',
+        summary:
+          'Dovedete spouštění kampaní k termínu napříč pracovními proudy, s kontrolami pomocí snímků obrazovky a schvalovacími body.',
+        persona:
+          'Udržujete vícekroková marketingová uvedení na trh v pohybu k cílovému datu napříč průzkumem, positioningem, vstupními stránkami, placenou reklamou a analytikou, aniž byste vedoucího nutili dohledávat stav napříč vlákny. Vedete jeden plán s odpovědnými osobami, termíny a závislostmi, posíláte stručné kontroly stavu doplněné snímky výstupů místo vágních textových aktualizací a každý schvalovací bod pro sloučení, zveřejnění nebo výdaj předkládáte v jedné jasné zprávě s výstupem, důkazy, rizikem a přesným rozhodnutím, které je třeba učinit. Nikdy jménem uživatele neschvalujete, neslučujete, nezveřejňujete ani neutrácíte.',
+        inputs: [
+          'Váš cíl uvedení na trh, cílové datum a aktivní pracovní proudy',
+          'Aktuální briefy, otevřené PR, koncepty kampaní nebo překážky',
+        ],
+        example: {
+          title: 'Kontrola stavu uvedení a schvalovací bod',
+          content:
+            'Uvedení: Q4 test sdělení (5 dní do cíle).\nPosunuto: positioningový brief v2 schválen; PR #184 k vstupní stránce otevřené se snímky.\nBlokováno: Chybí finální statistika jako důkaz pro podtitulek hero sekce.\nSchvalovací bod čeká na vás: Schvalte pozastavenou reklamní kostru za 150 $/den před zapnutím.',
+        },
+        starterTask:
+          'Sestavte plán uvedení na trh k mému cílovému datu napříč průzkumem, positioningem, vstupní stránkou, reklamami a analytikou, s uvedením odpovědných osob, termínů a schvalovacích bodů.',
+      },
       clara: {
         role: 'Správce schránky',
         summary: 'Roztřiďte, co vyžaduje vaši pozornost, od zbytku, a připravte návrhy odpovědí.',
@@ -316,6 +673,67 @@ export const copy: ServerCopy = {
         starterTask:
           'Požádejte tým Obchod a oslovování, aby prozkoumal tři firmy odpovídající mému ideálnímu zákazníkovi, porovnal je s mojí pipeline a pro každou napsal úvodní zprávu.',
       },
+      'founder-led-sales': {
+        title: 'Obchod vedený zakladatelem',
+        category: 'Obchod',
+        summary:
+          'Vede ranou fázi obchodu vedeného zakladatelem od nákupních signálů přes aktuální obchody až po zákaznickou zpětnou vazbu zapracovanou do produktu – vše připravené ke schválení.',
+        outcomes: [
+          'Ranní seznam úkolů, páteční souhrn pipeline a měsíční zpráva pro investory',
+          'Design partneři seřazení podle signálů do KEEP / HOLD / DQ s vřelými cestami a návrhy oslovení',
+          'Podklady před hovorem, následné kroky po hovoru a zákaznické odpovědi roztříděné podle P0',
+          'Týdenní poznatky o ICP, odlišení od konkurence a produktové specifikace opřené o zákazníky',
+        ],
+        inputs: [
+          'Váš pitch, ICP a ukázky hlasu',
+          'Cílové účty, konkurenty a kritéria P0',
+          'Váš přehled obchodů, doručená pošta nebo poznámky z hovorů',
+        ],
+        handoff: [
+          'Hledání signálů',
+          'Návrhy oslovení',
+          'Příprava hovorů a třídění',
+          'Dodání a podklady',
+        ],
+        example: {
+          title:
+            'Ranní brief zakladatele: potenciální zákazníci KEEP / HOLD / DQ, příprava hovorů, třídění P0 a seřazená zpětná vazba.',
+          content:
+            'Urgentní (1): P0 timeout SSO od Acme – odpověď připravena ke schválení.\nKe kontrole připraveno (6): 4 dvojice oslovení KEEP v konceptech Gmailu; 2 podklady k hovorům připraveny.\nRiziko v pipeline: další krok u Northwind je 9 dní bez pohybu.\nKontrola hotovosti: MRR 42,5 tis. USD (+8 % WoW); dvě roční faktury čekají na úhradu.\n\nKEEP – Northwind Studio: Zakladatel psal o zpožděních onboardingu; vřelá cesta přes společného investora. Dvojice e-mailu a LinkedIn připravena v konceptech Gmailu.\nHOLD – Kestrel Labs: Silně odpovídá ICP, zatím žádný včasný spouštěč.\nDQ – Globex: Aktivní pilot v přehledu obchodů. Přeskočeno.',
+        },
+        starterTask:
+          'Požádejte tým Obchod vedený zakladatelem, aby se naučil mé ICP, můj hlas a účty, které nemá oslovovat, a pak našel pět design partnerů podložených signály, rozdělených do KEEP, HOLD a DQ, s návrhy otvíráků k mé kontrole.',
+      },
+      'customer-support': {
+        title: 'Zákaznická podpora',
+        category: 'Podpora',
+        summary:
+          'Zvládněte frontu podpory od sledování vydání a reprodukce chyb až po analýzu odchodů zákazníků, vrácení peněz a reporting.',
+        outcomes: [
+          'Synchronizované kalendáře vydání, označené tikety k launchi a aktualizovaná nápověda',
+          'Reprodukovaná hlášení chyb s přesnými postupy a vizuálním důkazem',
+          'Týdenní shluky kořenových příčin odchodů zákazníků a koncepty vrácení peněz ověřené podle zásad',
+          'Vlastní reporty metrik podpory a upozornění na špičky ve frontě',
+        ],
+        inputs: [
+          'Vaše zásady vracení peněz, dokumentace nápovědy a pravidla eskalace',
+          'Vaše tiketovací fronta, fakturační nástroj nebo plán vydání',
+        ],
+        handoff: [
+          'Sledovat vydání',
+          'Reprodukovat chyby',
+          'Posuzovat refundace',
+          'Hlásit a upozorňovat',
+        ],
+        example: {
+          title:
+            'Týdenní přehled podpory: zpětná vazba k vydání, reprodukovaná chyba, ohniska odlivu zákazníků a refundace čekající na schválení.',
+          content:
+            'Vydání: Team Permissions v2 (posunuto dopředu na čtvrtek).\nDokumentace připravena: článek nápovědy aktualizován; interní makro připraveno ke kontrole.\nZpětná vazba k vydání (prvních 24 h): 19 označených tiketů — 11 se ptá, jak migrovat stávající role (eskalováno).\n\nŽádost: Acme Corp · roční obnova za 240 USD (strženo před 4 dny, 0 přihlášení od obnovy).\nKontrola pravidel: vyhovuje pravidlu 14 dnů pro nevyužitou obnovu.\nDoporučení: schválit plnou refundaci — nebo nabídnout 50% kredit za pozastavení na 2 měsíce.\nStav: odpověď připravena, čeká na vaše schválení, než sáhneme na Stripe.',
+        },
+        starterTask:
+          'Požádejte tým Zákaznická podpora, aby prošel mé nedávné tikety a vyhledal rizika odchodu, reprodukoval nejčastěji hlášenou chybu, ověřil čekající žádosti o refundaci podle mých pravidel a shrnul metriky fronty.',
+      },
       'business-admin': {
         title: 'Firemní administrativa',
         category: 'Administrativa',
@@ -362,6 +780,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Požádejte tým Testování produktu, aby otestoval registrační proces na mém staging webu a založil jasné záznamy o všem, co nefunguje.',
+      },
+      'marketing-launches': {
+        title: 'Marketing a uvedení na trh',
+        category: 'Marketing',
+        summary:
+          'Uveďte marketingové kampaně od začátku do konce: prozkoumejte konkurenci, navrhněte positioning, otevírejte PR k landing page, připravte pozastavené reklamy a vyhodnocujte výsledky.',
+        outcomes: [
+          'Matice konkurenčních sdělení podložené důkazy a mezery v positioningu',
+          'Briefy k positioningu, osnovy landing page a reklamní varianty ověřené na limity znaků',
+          'Pull requesty k landing page se snímky obrazovky a kostry pozastavených reklamních kampaní',
+          'Přehledy výsledků konceptů placených médií, upozornění na výdaje a kontrolní body uvedení na trh vyžadující schválení',
+        ],
+        inputs: [
+          'URL produktu, konkurenty a zásady hlasu nebo značky',
+          'Repozitář marketingového webu, exporty reklam nebo cílové datum uvedení na trh',
+        ],
+        handoff: [
+          'Mezery ve výzkumu',
+          'Návrh positioningu',
+          'Tvorba stránky a reklam',
+          'Vyhodnocení a rozhodnutí',
+        ],
+        example: {
+          title:
+            'Cyklus uvedení na trh: mezera vůči konkurenci, brief k positioningu, PR k landing page, kostra pozastavené reklamy a výsledková tabule konceptů.',
+          content:
+            'Výchozí stav: Vaše domovská stránka staví do popředí rychlost nastavení.\nMezera vůči konkurenci: Tři konkurenti staví do popředí podnikové kontrolní seznamy; žádný nezdůrazňuje čas ušetřený v prvním týdnu (snímky ceníku a knihovny reklam, 6. října).\nProtiopatření: Otestujte titulek postavený na výsledcích prvního týdne s doloženými důkazy.\n\nObdobí: 1.–7. října (export z Google Ads).\nRychlost především: útrata $1,240 · 4,8 % CTR · 6,2 % CVR · $41 CPA — Doporučení: navýšit.\nPodnikový kontrolní seznam: útrata $1,180 · 1,9 % CTR · 2,1 % CVR · $131 CPA — Doporučení: pozastavit (čeká na schválení).',
+        },
+        starterTask:
+          'Požádejte tým Marketing & Launches, aby provedl audit mé domovské stránky ve srovnání se třemi konkurenty, navrhl brief k positioningu a varianty vyhledávacích reklam a naplánoval PR k landing page a plán testu pozastavených reklam.',
       },
       'content-publishing': {
         title: 'Obsah a publikování',

@@ -100,10 +100,12 @@ export function SettingsModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    const frame = requestAnimationFrame(() => {
+    const focusTarget = () => {
       if (active !== 'index') backRef.current?.focus();
       else if (leftFor.current !== null) document.getElementById(rowId(leftFor.current))?.focus();
-    });
+    };
+    focusTarget();
+    const frame = requestAnimationFrame(focusTarget);
     return () => cancelAnimationFrame(frame);
   }, [active, isOpen]);
 

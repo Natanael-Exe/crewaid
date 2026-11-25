@@ -54,12 +54,45 @@ describe('D-235 — templates in the account’s language', () => {
     expect(maya?.bots[0]?.avatarColor).toBe(
       english.find((entry) => entry.id === 'bot-maya')?.bots[0]?.avatarColor,
     );
+    const nora = french.find((entry) => entry.id === 'bot-nora');
+    expect(nora?.bots[0]?.name).toBe('Nora');
+    expect(nora?.bots[0]?.systemPrompt).not.toBe(TEMPLATE_WORDS_EN.specialists.nora.persona);
+    const founderSales = french.find((entry) => entry.id === 'founder-led-sales');
+    expect(founderSales?.title).not.toBe(TEMPLATE_WORDS_EN.crews['founder-led-sales']?.title);
+    const iris = french.find((entry) => entry.id === 'bot-iris');
+    expect(iris?.bots[0]?.name).toBe('Iris');
+    expect(iris?.bots[0]?.systemPrompt).not.toBe(TEMPLATE_WORDS_EN.specialists.iris.persona);
+    const support = french.find((entry) => entry.id === 'customer-support');
+    expect(support?.title).not.toBe(TEMPLATE_WORDS_EN.crews['customer-support']?.title);
+    const diana = french.find((entry) => entry.id === 'bot-diana');
+    expect(diana?.bots[0]?.name).toBe('Diana');
+    expect(diana?.bots[0]?.systemPrompt).not.toBe(TEMPLATE_WORDS_EN.specialists.diana.persona);
+    const marketing = french.find((entry) => entry.id === 'marketing-launches');
+    expect(marketing?.title).not.toBe(TEMPLATE_WORDS_EN.crews['marketing-launches']?.title);
   });
 
   it('builds every template from the words, and only names stay outside them', () => {
     const catalog = templateCatalog('en');
     const crew = catalog.find((entry) => entry.id === 'sales-outreach');
     expect(crew?.title).toBe(TEMPLATE_WORDS_EN.crews['sales-outreach']?.title);
+    const founderSales = catalog.find((entry) => entry.id === 'founder-led-sales');
+    expect(founderSales?.title).toBe(TEMPLATE_WORDS_EN.crews['founder-led-sales']?.title);
+    expect(founderSales?.bots).toHaveLength(9);
+    const nora = catalog.find((entry) => entry.id === 'bot-nora');
+    expect(nora?.bots[0]?.role).toBe(TEMPLATE_WORDS_EN.specialists.nora.role);
+    expect(nora?.memberOf).toEqual([TEMPLATE_WORDS_EN.crews['founder-led-sales']?.title]);
+    const support = catalog.find((entry) => entry.id === 'customer-support');
+    expect(support?.title).toBe(TEMPLATE_WORDS_EN.crews['customer-support']?.title);
+    expect(support?.bots).toHaveLength(5);
+    const iris = catalog.find((entry) => entry.id === 'bot-iris');
+    expect(iris?.bots[0]?.role).toBe(TEMPLATE_WORDS_EN.specialists.iris.role);
+    expect(iris?.memberOf).toEqual([TEMPLATE_WORDS_EN.crews['customer-support']?.title]);
+    const marketing = catalog.find((entry) => entry.id === 'marketing-launches');
+    expect(marketing?.title).toBe(TEMPLATE_WORDS_EN.crews['marketing-launches']?.title);
+    expect(marketing?.bots).toHaveLength(6);
+    const diana = catalog.find((entry) => entry.id === 'bot-diana');
+    expect(diana?.bots[0]?.role).toBe(TEMPLATE_WORDS_EN.specialists.diana.role);
+    expect(diana?.memberOf).toEqual([TEMPLATE_WORDS_EN.crews['marketing-launches']?.title]);
     const maya = catalog.find((entry) => entry.id === 'bot-maya');
     expect(maya?.bots[0]?.role).toBe(TEMPLATE_WORDS_EN.specialists.maya.role);
     expect(maya?.bots[0]?.systemPrompt).toBe(TEMPLATE_WORDS_EN.specialists.maya.persona);
@@ -67,6 +100,30 @@ describe('D-235 — templates in the account’s language', () => {
     expect(Object.keys(TEMPLATE_WORDS_EN.crews)).toHaveLength(
       catalog.filter((entry) => entry.kind === 'crew').length,
     );
+  });
+
+  it('keeps every specialist standalone: unique names, no teammate names or send_message in personas, no blue egg', () => {
+    const catalog = templateCatalog('en');
+    const crews = catalog.filter((entry) => entry.kind === 'crew');
+    const bots = catalog.filter((entry) => entry.kind === 'bot');
+    expect(crews).toHaveLength(8);
+    expect(bots).toHaveLength(40);
+    const names = bots.map((entry) => entry.bots[0]!.name);
+    expect(new Set(names).size).toBe(names.length);
+    for (const crew of crews) {
+      for (const member of crew.bots) {
+        const alone = bots.find((entry) => entry.id === `bot-${member.key}`);
+        expect(alone?.bots[0]).toEqual(member);
+        expect(alone?.memberOf).toContain(crew.title);
+      }
+    }
+    for (const entry of bots) {
+      const bot = entry.bots[0]!;
+      expect(bot.systemPrompt).not.toContain('send_message');
+      for (const other of names.filter((name) => name !== bot.name))
+        expect(bot.systemPrompt).not.toContain(other);
+      expect(bot.avatarShape === 'egg' && bot.avatarColor === '#4c6ef5').toBe(false);
+    }
   });
 });
 

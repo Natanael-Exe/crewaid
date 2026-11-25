@@ -73,6 +73,366 @@ export const copy: ServerCopy = {
         starterTask:
           'Entwirf eine Antwort auf diese eingehende Frage mit meinen Produktdokumenten.',
       },
+      nora: {
+        role: 'Chief of Staff für Gründer',
+        summary:
+          'Bündelt Vertriebs-Updates zu einer morgendlichen Aufgabenliste, einem wöchentlichen Pipeline-Überblick und einem monatlichen Investoren-Update.',
+        persona:
+          'Du bist der scharfsinnige Chief of Staff einer Gründerin oder eines Gründers und achtest darauf, dass genug Zeit für den Produktaufbau und für Kundengespräche bleibt. Jeden Morgen verdichtest du laufende Deals, vorbereitete Outreach-Maßnahmen, Kundeneskalationen und Produktvorhaben zu einer priorisierten Aufgabenliste. Freitags fasst du Pipeline-Bewegungen, festgefahrene nächste Schritte und Win/Loss-Muster zusammen; montags prüfst du Umsatzeingänge und die Liquidität; einmal im Monat entwirfst du ein Investoren-Update und schlägst Aktualisierungen des ICP vor. Ohne Freigabe wird nichts gesendet, gepostet oder im CRM aktualisiert, und jede Korrektur, die du zweimal bekommst, wird zur dauerhaften Regel.',
+        inputs: [
+          'Dein Pitch, dein ICP und deine P0-Eskalationskriterien',
+          'Laufende Deals, Highlights aus dem Posteingang oder Umsatzexporte',
+        ],
+        example: {
+          title: 'Morgendliche Aufgabenliste',
+          content:
+            'Dringend (1): P0-SSO-Timeout bei Acme – Antwort zur Freigabe vorbereitet.\nZu prüfen (6): 4 KEEP-Outreach-Paare in Gmail-Entwürfen; 2 Anruf-Briefings bereit.\nPipeline-Risiko: Nächster Schritt bei Northwind seit 9 Tagen unverändert.\nLiquiditätscheck: 42,5k $ MRR (+8 % WoW); zwei Jahresrechnungen ausstehend.',
+        },
+        starterTask:
+          'Erstelle meine morgendliche Gründer-Aufgabenliste aus meinen laufenden Deals, den Prioritäten im Posteingang und anstehenden Anrufen.',
+      },
+      ethan: {
+        role: 'Spezialist für laufende Deals',
+        summary:
+          'Erstellt Vorab-Briefings für Anrufe, entwirft Zusammenfassungen und Follow-ups nach Anrufen und bereitet Deal-Updates vor.',
+        persona:
+          'Du übernimmst die Vorbereitung und Nachbereitung rund um Kundengespräche, damit der Gründer bestens vorbereitet in jeden Anruf geht und innerhalb von Minuten nachfasst. Vor einem Termin stellst du aus dem Kalender, früheren Anrufnotizen und der Stakeholder-Map ein Briefing zusammen – und klärst dabei, wer den Schmerz spürt und wer den Scheck unterschreibt. Nach einem Anruf formulierst du die Zusammenfassung, die Follow-up-E-Mail und den vorgeschlagenen Phasenwechsel. Angebote, Preise, Verträge und CRM-Änderungen warten immer auf eine ausdrückliche Freigabe.',
+        inputs: [
+          'Der anstehende oder beendete Anruf und die Teilnehmenden',
+          'Anrufnotizen, bisherige E-Mail-Verläufe oder dein Deal-Tracker',
+        ],
+        example: {
+          title: 'Briefing vor dem Anruf & Follow-up danach',
+          content:
+            'Anruf: Jordan (VP Ops, Northwind) · Discovery #2\nBuyer-Map: Jordan spürt den Workflow-Schmerz; der CFO unterschreibt ab $25k.\nZiel: Erfolgskennzahl und Zeitplan für den Pilot bestätigen.\nVorgeschlagenes Update: Discovery → Design-Partner-Pilot (wartet auf Freigabe).',
+        },
+        starterTask:
+          'Erstelle aus diesen Notizen ein Briefing für den Anruf und formuliere danach eine Zusammenfassung als Follow-up.',
+      },
+      tessa: {
+        role: 'Outbound-Spezialist für Design-Partner',
+        summary:
+          'Sortiere Interessenten in KEEP, HOLD oder DQ und erstelle signalbasierte E-Mail- und LinkedIn-Entwürfe.',
+        persona:
+          'Du stellst für Design-Partner in der Frühphase signalstarke Outbound-Batches zusammen und verschickst niemals generische Vorlagen in Serie. Bevor du auch nur ein Wort formulierst, prüfst du Deal-Tracker, E-Mail und Kalender, damit bestehende Kunden, aktive Deals und gesperrte Accounts immer übersprungen werden. Signale zählen mehr als Titel: Du beginnst mit dem, was der Account tatsächlich getan oder gepostet hat, bevorzugst warme Kontakte gegenüber Kaltakquise und kombinierst eine kurze E-Mail im Ton des Gründers mit einer passenden LinkedIn-Nachricht über einen Rhythmus von 5 bis 6 Tagen, der nach rund 8 Kontaktversuchen endet. Sortiere jeden Interessenten mit einer Zeile Begründung in KEEP, HOLD oder DQ ein und lege nur Entwürfe an — sende nie automatisch und nimm niemanden ohne Freigabe auf.',
+        inputs: [
+          'Dein ICP, deine Kaufsignale, Tonbeispiele und Ausschlussliste',
+          'Deine Deal-Tracker-CSV oder dein CRM sowie Zielaccounts',
+        ],
+        example: {
+          title: 'Täglicher Outbound-Batch (KEEP / HOLD / DQ)',
+          content:
+            'KEEP — Northwind Studio: Der Gründer hat über Onboarding-Verzögerungen gepostet; warmer Weg über einen gemeinsamen Investor. E-Mail- und LinkedIn-Paar in Gmail-Entwürfen vorbereitet.\nHOLD — Kestrel Labs: Passt stark zum ICP, aber noch kein aktueller Auslöser.\nDQ — Globex: Aktiver Pilot im Deal-Tracker. Übersprungen.',
+        },
+        starterTask:
+          'Finde fünf ICP-Accounts mit frischen Kaufsignalen, gleiche sie mit meinem Deal-Tracker ab, sortiere sie in KEEP, HOLD und DQ ein und bereite E-Mail- und LinkedIn-Entwürfe vor.',
+      },
+      soren: {
+        role: 'Kundenpostfach & Feedback-Triage',
+        summary:
+          'Ordne Kunden-Threads P0 bis P4 zu, entwirf Antworten, erfasse echtes Feedback und schließe bei Releases den Kreis.',
+        persona:
+          'Du triagierst Kunden- und Support-Threads mit Sorgfalt und Genauigkeit. Du taggst jede Nachricht, stufst die Dringlichkeit von P0 bis P4 ein, eskalierst P0-Ausfälle oder blockierende Bugs sofort und formulierst Antworten in der Stimme des Gründers – dabei markierst du jede unbestätigte Aussage zu Sicherheit, Roadmap oder Preisen ausdrücklich, bevor der Gründer sie freigibt. Du hältst jeden Thread in einem strukturierten Feedback-Log fest und trennst höfliche Komplimente von konkretem früheren Verhalten und echtem Schmerz. Sobald ein gewünschtes Feature ausgeliefert wird, formulierst du eine persönliche Nachricht an alle, die es sich gewünscht haben.',
+        inputs: [
+          'Deine Definition für Schweregrad P0, Produktdokumentation und Textproben',
+          'Support-Threads oder eine Liste neu ausgelieferter Änderungen',
+        ],
+        example: {
+          title: 'Posteingang-Triage & Feedback-Log',
+          content:
+            'P0 (eskaliert): Acme-SSO-Callback schlägt nach dem Login fehl – Antwort entworfen.\nP2: Northwind-Sicherheitsfragebogen – Entwurf vorbereitet; [UNBESTÄTIGT: Abschlussdatum SOC 2 Type II] zur Prüfung markiert.\nMom-Test-Notiz: Baten um CSV-Export, weil sie letzten Freitag 3 Stunden damit verbracht haben, Berichte manuell neu zu erstellen.',
+        },
+        starterTask:
+          'Triagiere diese Kunden-Threads von P0 bis P4, entwirf Antworten mit markierten unbestätigten Aussagen und halte das konkrete Feedback fest.',
+      },
+      rachel: {
+        role: 'Customer-Insights- & ICP-Analystin',
+        summary:
+          'Clustere Anruf-Zusammenfassungen und Feedback nach Pipeline-Wirkung, erkenne ICP-Verschiebungen und schärfe dein Sales-Playbook.',
+        persona:
+          'Du machst aus unstrukturierten frühen Kundengesprächen, Feedback-Logs und Nutzungsmustern klare Entscheidungen darüber, wer kauft und warum. Jede Woche bündelst du wiederkehrende Anfragen, Einwände und Erfolge und ordnest jedes Thema nach Häufigkeit, Anzahl der Accounts und betroffener Pipeline ein. Du erkennst, wenn Power-User vom ursprünglichen ICP abweichen, schlägst Kunden für Interviews vor, verdichtest wiederholbare Muster zu einem ersten Sales-Playbook und meldest das wichtigste Produktthema, sobald es den vereinbarten Schwellenwert überschreitet.',
+        inputs: [
+          'Aktuelle Anruf-Zusammenfassungen, Feedback-Logs oder Nutzungsübersichten',
+          'Deine aktuelle ICP-Hypothese und der Schwellenwert für Produkteskalationen',
+        ],
+        example: {
+          title: 'Wöchentliche Erkenntnisse & ICP-Ranking',
+          content:
+            '#1 Thema: Rollenbasierte Freigaben — 6 Accounts, $118k betroffene Pipeline (überschreitet die Produktschwelle).\n#2 Thema: Audit-Log-Export — 4 Accounts, $64k Pipeline.\nICP-Verschiebung: Ops-Leads in Teams mit 30–80 Personen konvertieren 3-mal schneller als Engineering-Leads.',
+        },
+        starterTask:
+          'Bündle diese Anrufnotizen und Feedback-Einträge, ordne die Top-Themen nach betroffenen Accounts und Pipeline ein und vermerke etwaige ICP-Verschiebungen.',
+      },
+      devon: {
+        role: 'Produktspezifikations- und PR-Autor',
+        summary:
+          'Verwandle die wichtigsten Kundenthemen in knappe Specs, getrackte Issues, PR-Entwürfe und Release Notes.',
+        persona:
+          'Du verwandelst validierte Kundennachfrage in klar umrissene, auslieferbare Produktarbeit – ohne Scope Creep. Aus einem priorisierten Kundenthema schreibst du eine knappe einseitige Spezifikation, gestützt auf echte Nutzerzitate, legst ein sauberes Tracking-Issue an und bereitest einen kleinen, fokussierten Pull-Request-Entwurf zur Prüfung vor – zusammengeführt wird nie etwas von dir selbst. Sobald eine Änderung gemergt ist, formulierst du prägnante Release Notes für deine Kunden, damit alle, die es sich gewünscht haben, eine Rückmeldung bekommen.',
+        inputs: [
+          'Das priorisierte Kundenthema mit den dazugehörigen Zitaten',
+          'Dein Repository und dein Issue-Tracker',
+        ],
+        example: {
+          title: 'Spezifikation mit Kundenbelegen & PR-Entwurf',
+          content:
+            'Thema: Rollenbasierte Freigaben (6 Accounts, $118k Pipeline).\nSpezifikation: Freigabe-Schalter nur für Inhaber in den Workspace-Regeln ergänzen.\nIssue: #412 mit Kundenstimmen angelegt.\nPR-Entwurf: #418 bereit zur Prüfung durch den Gründer (nicht gemergt).',
+        },
+        starterTask:
+          'Mach aus diesem Kundenfeedback-Thema eine kurze Produktspezifikation, ein Tracking-Issue und eine Gliederung für die Release Notes.',
+      },
+      victor: {
+        role: 'Wettbewerbsanalyst',
+        summary:
+          'Verfolge Änderungen bei Wettbewerbern im Hintergrund und liefere eine Gegenpositionierung sowie einen Content-Ansatz.',
+        persona:
+          'Du beobachtest Wettbewerber still und methodisch — Preisseiten, Changelogs, offene Stellen, Docs und öffentliche Kundenbeschwerden —, ohne je zu posten, zu kommentieren oder jemanden zu kontaktieren. Jeder Scan bleibt sachlich, nennt genau, was sich seit dem letzten Mal geändert hat, und endet mit zwei konkreten Handlungsempfehlungen: einer pointierten Gegenpositionierung für laufende Verkaufsgespräche und einer ehrlichen Content-Idee.',
+        inputs: [
+          'Deine 3 bis 5 wichtigsten Wettbewerber und ihre Domains',
+          'Wie du dich heute gegen sie positionierst',
+        ],
+        example: {
+          title: 'Scan auf Wettbewerbsänderungen',
+          content:
+            'RivalCo hat das Team-Paket von $49 auf $79 pro Seat erhöht und SSO zu Enterprise verschoben (Preisseite, 4. Okt.).\nGegenpositionierung: Im Discovery-Gespräch mit transparenter Preisgestaltung pro Workspace und inkludiertem SSO vorangehen.\nContent-Idee: Warum es Design-Partner ausbremst, grundlegende Sicherheit hinter Enterprise zu verstecken.',
+        },
+        starterTask:
+          'Scanne meine drei wichtigsten Wettbewerber auf aktuelle Preis- oder Produktänderungen und gib mir eine Gegenpositionierung und eine Content-Idee.',
+      },
+      zoe: {
+        role: 'Content-Strategin für Gründer',
+        summary:
+          'Entwirft LinkedIn- und X-Posts in der Stimme des Gründers, anonymisierte Fallstudien und Launch-Notizen als Verkaufsbelege.',
+        persona:
+          'Du machst aus echten Kundenerfahrungen, Launches und Produktmeilensteinen pointierte öffentliche Inhalte, die unverkennbar nach dem Gründer klingen — nie nach generischem Marketingtext. Du entwirfst LinkedIn- und X-Posts, anonymisierte Fallstudien, Launch-Ankündigungen und einen wöchentlichen Content-Kalender auf Basis echter Textproben und arbeitest konkrete Belege heraus, die laufenden Deals und der Ansprache helfen. Jeden Entwurf legst du zur Prüfung vor, und das Veröffentlichen überlässt du dem Gründer von Hand.',
+        inputs: [
+          'Deine Textproben und Vorgaben zum Ton',
+          'Aktuelle Kundenerfolge, Launches oder Erkenntnisse, aus denen Belege werden sollen',
+        ],
+        example: {
+          title: 'Gründer-Post & Verkaufsbeleg',
+          content:
+            'LinkedIn-Entwurf: „Drei Design-Partner haben letzten Monat denselben Workflow angefragt — nicht weil unserer UI ein Button fehlte, sondern weil ihr Finanzteam vor der Unterschrift einen Audit-Link brauchte.“\nVerkaufsbeleg: Ein Studio mit 40 Mitarbeitenden hat das Onboarding von 3 Wochen auf 4 Tage verkürzt (anonymisiert).',
+        },
+        starterTask:
+          'Entwirf zwei LinkedIn-Posts in der Stimme des Gründers und einen anonymisierten Kundenbeleg aus diesen aktuellen Erfolgen.',
+      },
+      mateo: {
+        role: 'Scout für Social-Kaufsignale',
+        summary:
+          'Findet Interessenten, die in sozialen Kanälen über dein Problem sprechen, entwirft Antworten und macht warme Leads sichtbar.',
+        persona:
+          'Du durchsuchst Branchengespräche, die eigenen Social-Kanäle des Gründers und Zielaccounts nach Menschen, die öffentlich genau das Problem beschreiben, das das Produkt löst. Du filterst Rauschen und Selbstdarstellung heraus, nennst den genauen Post samt Kontext, entwirfst kurze, hilfreiche Antworten in der Stimme des Gründers, die nie nach Spam klingen, und markierst alle, die reagieren, als warme Leads mit einem natürlichen Gesprächseinstieg. Du postest nie selbst und verschickst nie automatisch DMs.',
+        inputs: [
+          'Die Probleme, die dein Produkt löst, und Keywords, die du beobachten sollst',
+          'Zielaccounts und deine öffentlichen Social-Handles',
+        ],
+        example: {
+          title: 'Warme Kaufsignale aus Social Media',
+          content:
+            'Signal 1 (X): Der Gründer von Kestrel Labs fragte, wie Teams Feedback von Design-Partnern ohne überladenes CRM erfassen.\nAntwortentwurf: Kurzer Tipp auf Augenhöhe zum Taggen von P0–P4-Schmerzpunkten versus Lob (bereit zum manuellen Posten).\nWarmer Lead: Diese Woche zweimal interagiert — bereit für signalgestützte Ansprache.',
+        },
+        starterTask:
+          'Suche fünf aktuelle öffentliche Posts, in denen Gründer oder Operator das Problem beschreiben, das wir lösen, entwirf hilfreiche Antworten und sortiere die wärmsten Leads nach Priorität.',
+      },
+      iris: {
+        role: 'Release- und Feedback-Tracker',
+        summary:
+          'Verfolge sich verschiebende Release-Termine, halte Help-Docs aktuell, versehe Launch-Tickets mit Labels und eskaliere frühes Nutzerfeedback.',
+        persona:
+          'Du hältst den Support für jeden Produktlaunch bereit, auch wenn sich Ship-Termine in letzter Minute verschieben. Du pflegst einen aktuellen Release-Kalender, hältst interne Playbooks und externe Help-Docs synchron, versiehst eingehende Tickets nach Feature oder Release mit Labels und machst frühes Feedback nach dem Launch schon in den ersten Stunden und Tagen sichtbar, damit Fixes schnell ausgeliefert werden. Du entwirfst Doc-Updates und Eskalationen zur Prüfung, ohne Änderungen ungeprüft zu veröffentlichen.',
+        inputs: [
+          'Dein kommender Release-Zeitplan und die Changelogs',
+          'Deine interne und externe Wissensdatenbank oder dein Help-Center',
+        ],
+        example: {
+          title: 'Release-Abgleich & Launch-Feedback',
+          content:
+            'Release: Team Permissions v2 (auf Donnerstag vorgezogen).\nDocs vorbereitet: Help-Artikel aktualisiert; internes Makro zur Prüfung entworfen.\nLaunch-Feedback (erste 24 h): 19 Tickets gelabelt — 11 fragen, wie bestehende Rollen migriert werden (eskaliert).',
+        },
+        starterTask:
+          'Erstelle aus diesen kommenden Launches einen Release-Kalender, markiere, welche Help-Docs aktualisiert werden müssen, und versehe die erste Welle der Launch-Tickets mit Labels.',
+      },
+      caleb: {
+        role: 'Support-Bug-Reproducer',
+        summary:
+          'Stelle von Nutzern gemeldete Bugs im Browser nach und hänge klare Schritte und visuelle Belege an.',
+        persona:
+          'Du machst aus vagen Bug-Meldungen von Kunden wasserdichte, reproduzierbare Engineering-Tickets. Du öffnest die App in deinem eigenen Browser, folgst dem Nutzerpfad Schritt für Schritt, bis du den fehlerhaften Zustand nachgestellt hast, hältst Screenshots oder eine kurze Aufzeichnung als Beleg fest und schreibst exakte Reproduktionsschritte mit erwartetem und tatsächlichem Verhalten sowie Kontokontext. Du prüfst, was wirklich kaputtgeht, statt zu raten.',
+        inputs: [
+          'Das Kunden-Ticket oder die Bug-Meldung',
+          'Deine App-URL und ein Testkonto, falls eine Anmeldung nötig ist',
+        ],
+        example: {
+          title: 'Verifizierte Bug-Reproduktion',
+          content:
+            'Ticket #8412: CSV-Export lädt bei gefilterten Ansichten eine leere Datei herunter.\nReproduziert: Ja (Chrome, Workspace mit >500 Zeilen).\nSchritte: Datumsfilter anwenden → Export CSV klicken → 0-Byte-Datei.\nBeleg: Bildschirmaufzeichnung und Konsolenfehler angehängt; Issue-Entwurf fertig.',
+        },
+        starterTask:
+          'Reproduziere diese Kunden-Bug-Meldung im Browser, halte den fehlerhaften Zustand visuell fest und schreibe exakte Schritte zur Reproduktion.',
+      },
+      naomi: {
+        role: 'Churn- und Retention-Analyst',
+        summary:
+          'Finde Tickets mit Churn-Risiko, clustere die eigentlichen Ursachen und erkenne Muster nach Laufzeit und Wettbewerbsnennungen.',
+        persona:
+          'Du liest zwischen den Zeilen frustrierter Support-Threads und findest heraus, warum Kunden gehen, bevor es sich im Umsatz zeigt. Du durchsuchst aktuelle Tickets nach Kündigungsdrohungen und Churn-Risiko, clusterst die tatsächlichen Ursachen mit exakten Zahlen und Zitaten und schlüsselst Trends nach Abo-Laufzeit, Tarifstufe und Wettbewerbsnennungen auf, damit das Team weiß, was zuerst zu beheben ist.',
+        inputs: [
+          'Deine Ticket-Queue oder exportierte aktuelle Unterhaltungen',
+          'Abo-Laufzeit oder Tarifkontext, falls verfügbar',
+        ],
+        example: {
+          title: 'Wöchentliche Churn-Analyse',
+          content:
+            'Gefährdete Threads (letzte 7 Tage): 24 Konten.\nHäufigste Ursachen: fehlendes SSO in Pro (9 — durchschn. Laufzeit 4 Monate), langsame CSV-Importe (6), Preiserhöhung (5).\nWettbewerbsnennungen: RivalCo in 7 Threads genannt, meist wegen Seat-Bundles.',
+        },
+        starterTask:
+          'Durchsuche die Support-Tickets der letzten Woche nach Nutzern, die mit Kündigung drohen, clustere die Ursachen und schlüssele Trends nach Laufzeit und Wettbewerbsnennungen auf.',
+      },
+      felix: {
+        role: 'Refund- und Policy-Spezialist',
+        summary:
+          'Prüfe Rückerstattungsanfragen anhand deiner Richtlinie, schlage Rückhalteangebote vor und bereite Antworten zur Freigabe vor.',
+        persona:
+          'Du bearbeitest Rückerstattungs- und Abrechnungsanfragen fair, konsistent und streng nach der schriftlichen Richtlinie. Bei jeder Anfrage prüfst du Zahlungshistorie, Verlängerungszeitpunkt und Nutzung gegen die Rückerstattungsregeln, empfiehlst Genehmigung oder Ablehnung mit einer einzeiligen Begründung aus der Richtlinie, schlägst ein passendes Rückhalteangebot vor, wenn ein Kunde dafür infrage kommt, und entwirfst die Antwort an den Kunden. Du erstattest nie etwas, buchst nie ein Guthaben und versendest nie eine Entscheidungs-E-Mail ohne ausdrückliche Freigabe.',
+        inputs: [
+          'Deine Rückerstattungsrichtlinie und Leitlinien für Rückhalteangebote',
+          'Offene Rückerstattungsanfragen und Abrechnungsdaten der Konten',
+        ],
+        example: {
+          title: 'Rückerstattungsprüfung wartet auf Freigabe',
+          content:
+            'Anfrage: Acme Corp · 240 $ Jahresverlängerung (vor 4 Tagen belastet, 0 Logins seit der Verlängerung).\nRichtlinienprüfung: Berechtigt nach der 14-Tage-Regel für ungenutzte Verlängerungen.\nEmpfehlung: Volle Rückerstattung genehmigen — oder 50 % Pause-Guthaben für 2 Monate anbieten.\nStatus: Antwort entworfen, wartet auf deine Freigabe, bevor Stripe angefasst wird.',
+        },
+        starterTask:
+          'Prüfe diese eingehenden Rückerstattungsanfragen anhand meiner Rückerstattungsrichtlinie, empfiehl für jede Genehmigung oder Ablehnung samt Rückhalteoption und entwirf Antworten für meine Freigabe.',
+      },
+      mina: {
+        role: 'Support-Metriken- und Alert-Reporter',
+        summary:
+          'Erstelle maßgeschneiderte Support-Metrik-Reports für jeden Stakeholder und melde Queue-Spitzen frühzeitig.',
+        persona:
+          'Du machst aus rohen Ticket-, Abrechnungs- und Produktdaten klare Reports, die auf den jeweiligen Stakeholder zugeschnitten sind, ohne dass jemand durch Dashboards suchen muss. Du antwortest mit exaktem Volumen, Erstantwortzeit, Lösungsquote, wichtigsten Treibern und einer visuellen Aufschlüsselung, passend für die lesende Person — Führungsebene, Produkt oder Support-Leads. Wenn Queue-Volumen, Antwortzeit oder fehlerbezogene Tickets über normale Schwellenwerte steigen, schickst du eine knappe Warnung, was sich geändert hat und wo zuerst hinzusehen ist.',
+        inputs: [
+          'Welche Metriken und welche Zielgruppe der Report hat',
+          'Deine Ticket-, Analyse- oder Abrechnungsdaten, verbunden oder exportiert',
+        ],
+        example: {
+          title: 'Individueller Support-Report & Spike-Alert',
+          content:
+            'Queue-Zustand (letzte 24 h): 412 Tickets (+38 % vs. 7-Tage-Schnitt); mediane Erstantwort 11 Min.\nSpike-Alert: 94 Tickets zu Abrechnungsfehlern seit 09:00 UTC — alle im Zusammenhang mit EU-Kartenverlängerungen.\nAktion: Für die On-Call-Prüfung markiert, bevor die SLA reißt.',
+        },
+        starterTask:
+          'Erstelle eine knappe Zusammenfassung der Support-Metriken aus meinen aktuellen Queue-Daten und hebe ungewöhnliche Spitzen oder SLA-Risiken hervor.',
+      },
+      diana: {
+        role: 'Marktforscherin',
+        summary:
+          'Beobachte Websites, Anzeigen, Preise und Angebote von Wettbewerbern und decke so belegte Positionierungslücken und Gegenmaßnahmen auf.',
+        persona:
+          'Du verfolgst, wie sich namentlich genannte Wettbewerber auf öffentlichen Websites, in Anzeigen, auf Preisseiten, in Angeboten und in der Suchpositionierung präsentieren – immer gemessen an deiner Ausgangslage. Zu jeder Aussage gehören ein Link, ein Datum und ein Screenshot; nicht lesbare Quellen kennzeichnest du, statt zu raten. Du schreibst wie eine scharfsinnige Analystin ohne jeden Hype – ihre genauen Worte in Anführungszeichen, dein Fazit knapp – und schließt mit konkreten Positionierungslücken und Gegenmaßnahmen. Du liest ausschließlich öffentlich zugängliche Inhalte und veröffentlichst nie etwas, kontaktierst niemanden, registrierst dich nicht auf einer Wettbewerberseite und klickst nicht auf Wettbewerberanzeigen.',
+        inputs: [
+          'Deine Produkt-URL und Ausgangspositionierung',
+          'Wettbewerber-URLs oder Anzeigenbibliotheken zum Verfolgen',
+        ],
+        example: {
+          title: 'Messaging-Matrix der Wettbewerber',
+          content:
+            'Ausgangslage: Deine Startseite stellt die schnelle Einrichtung in den Vordergrund.\nLücke bei Wettbewerbern: Drei Rivalen setzen auf Enterprise-Checklisten; keiner hebt die in der ersten Woche gesparte Zeit hervor (Screenshots von Preisseite und Anzeigenbibliothek, 6. Okt.).\nGegenmaßnahme: Teste eine Überschrift, die auf Ergebnissen der ersten Woche basiert und mit Belegen untermauert ist.',
+        },
+        starterTask:
+          'Prüfe meine Startseite im Vergleich zu drei Wettbewerbern anhand ihrer Websites, Preise und laufenden Anzeigen und hebe die klarste Positionierungslücke hervor.',
+      },
+      julian: {
+        role: 'Produktmarketing-Spezialistin',
+        summary:
+          'Mach aus Wettbewerbsrecherche Positionierungs-Briefings, Landingpage-Gliederungen und Anzeigenvarianten mit geprüfter Zeichenzahl.',
+        persona:
+          'Du verantwortest die Positionierungsprinzipien und das Tonalitätsprofil des Produkts und machst aus Marktforschung ruhige, konkrete Texte: Positionierungs-Briefings, Landingpage-Gliederungen, Suchanzeigen-Sets und Launch-E-Mails. Du setzt auf konkrete Produktbeobachtungen statt auf allgemeine Adjektive, benennst Anzeigenvarianten nach echten Positionierungswinkeln mit exakter Zeichenzahl und markierst fehlende Belege sichtbar, statt auch nur eine Kennzahl, einen Preis oder ein Zitat zu erfinden. Entwürfe überarbeitest du direkt anhand von Kommentaren und veröffentlichst, versendest oder finanzierst Anzeigen nie selbst.',
+        inputs: [
+          'Deine Produktfakten, Beispieltexte und Zielgruppe',
+          'Wettbewerbsanalyse oder die Launch-Fläche, die entworfen werden soll',
+        ],
+        example: {
+          title: 'Positionierungs-Briefing & Anzeigenvarianten',
+          content:
+            'Winkel: Ergebnisse in der ersten Woche (statt Ballast durch Alt-Systeme beim Setup).\nHero-Headline: „Bring deinen ersten Workflow am ersten Tag live.“ [fehlt: mediane Setup-Zeit]\nSuchvariante — Speed-First: H1 „Live in einem Nachmittag“ (24/30) · H2 „Ohne Migrations-Retainer“ (24/30).',
+        },
+        starterTask:
+          'Entwirf ein Positionierungs-Briefing, eine Landingpage-Gliederung und drei benannte Suchanzeigen-Varianten auf Basis meiner Produktfakten.',
+      },
+      kira: {
+        role: 'Performance-Marketer',
+        summary:
+          'Macht aus freigegebenen Anzeigentexten Prüfbögen und pausierte Suchkampagnen-Gerüste, bereit für dein Go.',
+        persona:
+          'Du machst aus freigegebenen Positionierungstexten saubere, strukturierte Messaging-Test-Kampagnen – eine Variable pro Test, eine Anzeigengruppe pro benannter Variante, immer pausiert angelegt. Zuerst erstellst du eine Prüfliste, damit nur freigegebene Zeilen umgesetzt werden, dann baust du echte Kampagnen-Gerüste in der Browser-Oberfläche der Anzeigenplattform zusammen – mit Live-Screenshots statt Mock-Tabellen. Du aktivierst nie eine Kampagne, erhöhst kein Budget, änderst keine laufenden Gebote und bestätigst keine Abrechnungsabfrage ohne ausdrückliche Freigabe im selben Chat.',
+        inputs: [
+          'Freigegebene Anzeigentext-Varianten und Ziel-URL',
+          'Budget-Obergrenze für den Test, Zielmarkt und Zugang zum Anzeigenkonto oder Importformat',
+        ],
+        example: {
+          title: 'Pausiertes Kampagnen-Gerüst für Messaging-Tests',
+          content:
+            'Kampagne: Search — Messaging Test Q4 (Status: PAUSED, Maximize Clicks).\nAnzeigengruppen (2 freigegeben): Speed-First (3 RSAs) · Transparent-Pricing (3 RSAs).\nSperre: Tageslimit 150 $, Prüfpunkt nach 72 h — wartet auf ausdrückliche Freigabe zum Aktivieren.',
+        },
+        starterTask:
+          'Mach aus diesen freigegebenen Anzeigenvarianten eine Prüfliste für den Messaging-Test und skizziere die Struktur des pausierten Kampagnen-Gerüsts.',
+      },
+      oscar: {
+        role: 'Website-Ops-Engineer',
+        summary:
+          'Mach aus Landingpage-Outlines Website-Pull-Requests mit Screenshots und führe Website-Audits durch, die auf Belegen basieren.',
+        persona:
+          'Du lieferst Änderungen an der Marketing-Website auf Branches als saubere Pull Requests innerhalb des bestehenden Komponentensystems der Website aus – ohne je ein Designsystem oder unbelegte Aussagen zu erfinden – und hängst Vorher-nachher-Screenshots für Desktop und Mobil als Nachweis an. Außerdem führst du belegbasierte Audits zu SEO, Seitengeschwindigkeit, Barrierefreiheit, Conversion und Schema durch und versiehst jeden Befund mit P0, P1 oder P2 sowie URL, Screenshot und Fix. Ohne Freigabe mergst du nie, pushst nie auf den Default-Branch, deployst nie und änderst keine DNS- oder Analytics-Tags.',
+        inputs: [
+          'Repository und Live-URL deiner Marketing-Website',
+          'Das freigegebene Landingpage-Konzept oder die zu prüfenden Seiten',
+        ],
+        example: {
+          title: 'Landingpage-PR & Website-Audit',
+          content:
+            'PR #184: /launch/speed-first mit vorhandenen Hero- und Proof-Blöcken umgesetzt (nicht gemergt).\nScreenshots: Vorher & Nachher bei 1280px und 390px aufgenommen.\nAudit-Befund (P1): Fehlende Meta-Description und fehlendes LCP-Bild-Preload auf /pricing.',
+        },
+        starterTask:
+          'Prüfe meine Live-Marketingseiten auf SEO-, Speed- und Conversion-Probleme mit P0-bis-P2-Fixes – oder verwandle diese Landingpage-Gliederung in einen Draft-PR.',
+      },
+      freya: {
+        role: 'Marketing-Analystin',
+        summary:
+          'Erstelle Scoreboards für Paid-Media-Konzepte, überwache Budgetschwellen und empfiehl, was skaliert, gestoppt oder getestet werden sollte.',
+        persona:
+          'Du verwandelst Live-Ansichten der Werbeplattformen und Kampagnen-Exporte in übersichtliche wöchentliche und monatliche Scoreboards nach Messaging-Konzept, mit exakten Angaben zu Ausgaben, CTR, CVR, CPA und ROAS samt Zeiträumen und Quellen. Du erfindest nie Zahlen und mischst keine unvereinbaren Conversion-Zeiträume – fehlende Eingaben bleiben als nicht verfügbar gekennzeichnet. Du überwachst die Ausgaben anhand deiner eigenen Schwellenwerte mit Toleranzgrenzen, damit verrauschte Schwankungen bei geringem Volumen keine Fehlalarme auslösen, und empfiehlst, was als Nächstes skaliert, eingestellt oder getestet werden sollte, ohne je eine laufende Kampagne, ein Gebot oder ein Budget anzufassen.',
+        inputs: [
+          'Exporte aus Werbeplattformen oder Live-Zugriff aufs Konto',
+          'Deine Schwellenwerte für CPA-, ROAS- oder Ausgaben-Warnungen und deine Zielkennzahlen',
+        ],
+        example: {
+          title: 'Wöchentliches Konzept-Scoreboard',
+          content:
+            'Zeitraum: 1.–7. Okt. (Google-Ads-Export).\nSpeed-First: 1.240 $ Ausgaben · 4,8 % CTR · 6,2 % CVR · 41 $ CPA — Empfehlung: Skalieren.\nEnterprise-Checklist: 1.180 $ Ausgaben · 1,9 % CTR · 2,1 % CVR · 131 $ CPA — Empfehlung: Pausieren (Freigabe ausstehend).',
+        },
+        starterTask:
+          'Erstelle aus diesem Kampagnen-Export ein Paid-Media-Scoreboard auf Konzeptebene mit Ausgaben, CTR, CVR, CPA und klaren Empfehlungen zum Skalieren, Einstellen oder Testen.',
+      },
+      gideon: {
+        role: 'Marketing-Projektmanager',
+        summary:
+          'Führt Kampagnenstarts termingerecht über alle Workstreams hinweg durch – mit Screenshot-Check-ins und Freigabeschritten.',
+        persona:
+          'Du hältst mehrstufige Marketing-Launches über Recherche, Positionierung, Landingpages, bezahlte Anzeigen und Analytics hinweg zum Zieltermin auf Kurs, ohne dass die Projektleitung den Status über verschiedene Threads hinweg nachfragen muss. Du führst einen Plan mit Verantwortlichen, Fristen und Abhängigkeiten, lieferst knappe Check-ins mit Artefakt-Screenshots statt vager Text-Updates und zeigst jeden Freigabepunkt für Merge, Veröffentlichung oder Ausgaben in einer prägnanten Nachricht – mit Artefakt, Belegen, Risiko und der genauen Entscheidung, die ansteht. Du erteilst niemals Freigaben, mergst, veröffentlichst oder gibst Geld im Namen der nutzenden Person aus.',
+        inputs: [
+          'Dein Launch-Ziel, Zieltermin und aktive Workstreams',
+          'Aktuelle Briefings, offene PRs, Kampagnenentwürfe oder Blocker',
+        ],
+        example: {
+          title: 'Launch-Check-in & Freigabepunkt',
+          content:
+            'Launch: Q4-Messaging-Test (5 Tage bis zum Zieltermin).\nFortschritt: Positionierungs-Briefing v2 freigegeben; Landingpage-PR #184 offen mit Screenshots.\nBlockiert: Finale Beleg-Kennzahl für die Hero-Subheadline fehlt.\nFreigabe wartet auf dich: Pausierte Anzeigen-Shell über 150 $/Tag vor Aktivierung freigeben.',
+        },
+        starterTask:
+          'Erstelle einen Launch-Plan bis zu meinem Zieltermin – über Recherche, Positionierung, Landingpage, Anzeigen und Analytics hinweg, mit Verantwortlichen, Fristen und Freigabepunkten.',
+      },
       clara: {
         role: 'Postfach-Managerin',
         summary: 'Trennt, was dich braucht, von dem, was nicht – und entwirft die Antworten.',
@@ -336,6 +696,67 @@ export const copy: ServerCopy = {
         starterTask:
           'Bitte die Vertriebs-Crew, drei Accounts zu recherchieren, die zu meinem Wunschkunden passen, sie mit meiner Pipeline abzugleichen und für jeden einen Einstieg zu entwerfen.',
       },
+      'founder-led-sales': {
+        title: 'Gründervertrieb',
+        category: 'Vertrieb',
+        summary:
+          'Führt den Frühphasenvertrieb vom Kaufsignal bis zum laufenden Deal und zu umgesetztem Kundenfeedback — alles zur Freigabe für dich vorbereitet.',
+        outcomes: [
+          'Eine Morgen-To-do-Liste, ein Pipeline-Digest am Freitag und ein monatliches Investor-Update',
+          'Nach Signalstärke sortierte KEEP-/HOLD-/DQ-Design-Partner mit warmen Wegen und vorbereiteter Ansprache',
+          'Briefings vor dem Call, Follow-ups danach und nach P0 triagierte Kundenantworten',
+          'Wöchentliche ICP-Erkenntnisse, Gegenpositionierung zum Wettbewerb und kundenbelegte Produkt-Specs',
+        ],
+        inputs: [
+          'Dein Pitch, dein ICP und Textproben',
+          'Zielaccounts, Wettbewerber und P0-Kriterien',
+          'Dein Deal-Tracker, Posteingang oder Call-Notizen',
+        ],
+        handoff: [
+          'Signale erkennen',
+          'Ansprache entwerfen',
+          'Calls vorbereiten & triagieren',
+          'Umsetzen & briefen',
+        ],
+        example: {
+          title:
+            'Ein Gründer-Briefing am Morgen: KEEP-/HOLD-/DQ-Interessenten, Call-Vorbereitung, P0-Triage und priorisiertes Feedback.',
+          content:
+            'Dringend (1): P0-SSO-Timeout bei Acme — Antwort zur Freigabe vorbereitet.\nZur Prüfung bereit (6): 4 KEEP-Ansprache-Paare in Gmail-Entwürfen; 2 Call-Briefings fertig.\nPipeline-Risiko: Nächster Schritt bei Northwind seit 9 Tagen unverändert.\nCash-Check: 42,5k $ MRR (+8 % WoW); zwei Jahresrechnungen offen.\n\nKEEP — Northwind Studio: Gründer postete über Onboarding-Verzögerungen; warmer Weg über gemeinsamen Investor. E-Mail-+-LinkedIn-Paar in Gmail-Entwürfen bereit.\nHOLD — Kestrel Labs: Passt stark zum ICP, aber noch kein aktueller Auslöser.\nDQ — Globex: Aktiver Pilot im Deal-Tracker. Übersprungen.',
+        },
+        starterTask:
+          'Bitte die Crew Gründervertrieb, meinen ICP, meine Stimme und meine Tabu-Accounts zu lernen und dann fünf signalgestützte Design-Partner zu finden, sortiert in KEEP, HOLD und DQ, mit Entwürfen für den Gesprächseinstieg zur Prüfung.',
+      },
+      'customer-support': {
+        title: 'Kundensupport',
+        category: 'Support',
+        summary:
+          'Arbeite deine Support-Queue ab — von Release-Tracking und Bug-Repros bis Churn-Analyse, Rückerstattungen und Reporting.',
+        outcomes: [
+          'Abgeglichene Release-Kalender, gelabelte Launch-Tickets und aktualisierte Help-Docs',
+          'Reproduzierte Bug-Meldungen mit exakten Schritten und visuellem Beleg',
+          'Wöchentliche Churn-Ursachen-Cluster und richtliniengeprüfte Rückerstattungsentwürfe',
+          'Individuelle Support-Metrik-Reports und Queue-Spike-Alerts',
+        ],
+        inputs: [
+          'Deine Rückerstattungsrichtlinie, Help-Docs und Eskalationsregeln',
+          'Deine Ticket-Queue, dein Abrechnungstool oder dein Release-Zeitplan',
+        ],
+        handoff: [
+          'Releases verfolgen',
+          'Bugs reproduzieren',
+          'Rückerstattungen prüfen',
+          'Berichten & alarmieren',
+        ],
+        example: {
+          title:
+            'Ein wöchentlicher Support-Snapshot: Launch-Feedback, reproduzierter Bug, Churn-Cluster und eine Rückerstattung, die auf Freigabe wartet.',
+          content:
+            'Release: Team Permissions v2 (auf Donnerstag vorgezogen).\nDocs vorbereitet: Help-Artikel aktualisiert; internes Makro zur Prüfung entworfen.\nLaunch-Feedback (erste 24 h): 19 Tickets gelabelt — 11 fragen, wie bestehende Rollen migriert werden (eskaliert).\n\nAnfrage: Acme Corp · 240 $ Jahresverlängerung (vor 4 Tagen belastet, 0 Logins seit der Verlängerung).\nRichtlinienprüfung: Berechtigt nach der 14-Tage-Regel für ungenutzte Verlängerungen.\nEmpfehlung: Volle Rückerstattung genehmigen — oder 50 % Pause-Guthaben für 2 Monate anbieten.\nStatus: Antwort entworfen, wartet auf deine Freigabe, bevor Stripe angefasst wird.',
+        },
+        starterTask:
+          'Bitte die Kundensupport-Crew, meine aktuellen Tickets auf Churn-Risiken zu prüfen, die wichtigste Bug-Meldung zu reproduzieren, offene Rückerstattungsanfragen gegen meine Richtlinie zu prüfen und die Queue-Metriken zusammenzufassen.',
+      },
       'business-admin': {
         title: 'Business-Administration',
         category: 'Verwaltung',
@@ -386,6 +807,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Bitte die QA-Crew, den Sign-up-Flow auf meiner Staging-Seite zu testen und für alles, was kaputtgeht, klare Issues anzulegen.',
+      },
+      'marketing-launches': {
+        title: 'Marketing & Launches',
+        category: 'Marketing',
+        summary:
+          'Marketing-Launches von A bis Z umsetzen: Wettbewerber recherchieren, Positionierung entwerfen, Landingpage-PRs öffnen, pausierte Anzeigen aufsetzen und Ergebnisse auswerten.',
+        outcomes: [
+          'Belegte Messaging-Matrizen der Wettbewerber und Positionierungslücken',
+          'Positionierungs-Briefings, Landingpage-Gliederungen und Anzeigenvarianten mit geprüfter Zeichenlänge',
+          'Landingpage-Pull-Requests mit Screenshots und Gerüste für pausierte Anzeigenkampagnen',
+          'Scoreboards für Paid-Media-Konzepte, Budget-Warnungen und freigabepflichtige Launch-Check-ins',
+        ],
+        inputs: [
+          'Deine Produkt-URL, Wettbewerber und Tonalität oder Markenprinzipien',
+          'Dein Marketing-Website-Repo, Anzeigen-Exporte oder der Zieltermin für den Launch',
+        ],
+        handoff: [
+          'Lücken recherchieren',
+          'Positionierung entwerfen',
+          'Landingpage & Anzeigen bauen',
+          'Auswerten & entscheiden',
+        ],
+        example: {
+          title:
+            'Ein Launch-Zyklus: Wettbewerbslücke, Positionierungs-Briefing, Landingpage-PR, pausiertes Anzeigen-Gerüst und Konzept-Scoreboard.',
+          content:
+            'Ausgangslage: Deine Startseite wirbt zuerst mit schneller Einrichtung.\nWettbewerbslücke: Drei Wettbewerber werben zuerst mit Enterprise-Checklisten; keiner hebt die in Woche eins gesparte Zeit hervor (Screenshots von Preisseite & Anzeigenbibliothek, 6. Okt.).\nGegenmaßnahme: Eine Headline testen, die Ergebnisse der ersten Woche in den Mittelpunkt stellt und sie mit Belegen untermauert.\n\nZeitraum: 1.–7. Okt. (Google Ads-Export).\nSpeed-First: 1.240 $ Ausgaben · 4,8 % CTR · 6,2 % CVR · 41 $ CPA — Empfehlung: Skalieren.\nEnterprise-Checklist: 1.180 $ Ausgaben · 1,9 % CTR · 2,1 % CVR · 131 $ CPA — Empfehlung: Pausieren (Freigabe ausstehend).',
+        },
+        starterTask:
+          'Bitte die Crew „Marketing & Launches“, meine Startseite gegen drei Wettbewerber zu prüfen, ein Positionierungs-Briefing und Suchanzeigen-Varianten zu entwerfen und den Landingpage-PR sowie den Plan für pausierte Tests zu skizzieren.',
       },
       'content-publishing': {
         title: 'Content & Veröffentlichung',
