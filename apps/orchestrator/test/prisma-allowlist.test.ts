@@ -4272,6 +4272,15 @@ const SCOPED_ALLOWLIST: ScopedAllowlistEntry[] = [
   },
   {
     file: 'apps/orchestrator/src/telegram/telegram-messaging.service.ts',
+    scope: 'TelegramMessagingService.visualSummariesForMessage',
+    receiver: 'prisma',
+    model: 'message',
+    operation: 'findMany',
+    policy: 'scoped',
+    ownershipToken: 'userId',
+  },
+  {
+    file: 'apps/orchestrator/src/telegram/telegram-messaging.service.ts',
     scope: 'TelegramMessagingService.deliver',
     receiver: 'prisma',
     model: 'telegramAttachmentDelivery',

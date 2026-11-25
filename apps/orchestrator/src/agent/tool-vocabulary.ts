@@ -42,6 +42,11 @@ const VOCABULARY: Readonly<Record<string, ToolVocabularyEntry>> = {
     label: 'Preview an email',
     summary: 'Shows an email draft in chat without saving or sending it.',
   },
+  present_visual: {
+    alias: 'visual',
+    label: 'Present visual',
+    summary: 'Shows interactive charts, metrics, comparisons or tables in chat.',
+  },
   // The browser
   browser_navigate: {
     alias: 'open-page',

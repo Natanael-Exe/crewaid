@@ -1,9 +1,15 @@
 import { Inject, Injectable, HttpException } from '@nestjs/common';
 import type { TelegramConnection } from '@prisma/client';
+import {
+  PresentVisualInputSchema,
+  formatVisualSummary,
+  resolveVisualForRender,
+} from '@crewaid/shared';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ChatSendService } from '../chat/chat-send.service.js';
 import { MessagesService } from '../messages/messages.service.js';
 import { TurnControlService } from '../agent/turn-control.service.js';
+import { TranscriptBodySchema } from '../agent/persistence/transcript.js';
 import { AttachmentsService } from '../attachments/attachments.service.js';
 import { VoiceService, VOICE_MAX_BYTES } from '../voice/voice.service.js';
 import { StructuredLogger } from '../logging/structured-logger.js';
@@ -618,6 +624,8 @@ export class TelegramMessagingService {
       take: 20,
       select: {
         content: true,
+        parts: true,
+        runId: true,
         sequence: true,
         run: { select: { status: true } },
       },
@@ -625,10 +633,9 @@ export class TelegramMessagingService {
     for (const message of messages) {
       if (message.run?.status === 'running') break;
       if (!(await this.accounts.owned(userId, connection.id))) return;
-      if (
-        message.content.trim() &&
-        !(await this.send(() => api.text(connection.chatId, `${bot.name}\n\n${message.content}`)))
-      )
+      const visuals = await this.visualSummariesForMessage(userId, bot.conversation.id, message);
+      const body = [message.content.trim(), ...visuals].filter(Boolean).join('\n\n');
+      if (body && !(await this.send(() => api.text(connection.chatId, `${bot.name}\n\n${body}`))))
         await this.text(
           connection,
           `A reply from ${bot.name} couldn’t be sent to Telegram. Open Crewaid to read it.`,
@@ -732,6 +739,82 @@ export class TelegramMessagingService {
       });
     }
   }
+
+  /**
+   * Extract clean plain-text summaries for any `present_visual` tool calls on a
+   * delivered BOT message. Every call, inline included, must have a successful
+   * TOOL row in the same run, matched strictly by `toolCallId`: the arguments
+   * alone would also be present for a call that was cancelled before it ran or
+   * that failed, which Desktop shows as an error and Telegram must not show as
+   * a visual. Matching by id also stops arbitrary tool stdout spoofing one.
+   */
+  private async visualSummariesForMessage(
+    userId: string,
+    conversationId: string,
+    message: { readonly parts: unknown; readonly runId: string | null },
+  ): Promise<string[]> {
+    const parsedBody = TranscriptBodySchema.safeParse(message.parts);
+    if (!parsedBody.success || parsedBody.data.role !== 'assistant') return [];
+    const visualCalls: Array<{
+      readonly id: string;
+      readonly input: ReturnType<typeof PresentVisualInputSchema.parse>;
+    }> = [];
+    for (const call of parsedBody.data.toolCalls ?? []) {
+      if (call.function.name !== 'present_visual') continue;
+      let rawArgs: unknown;
+      try {
+        rawArgs = JSON.parse(call.function.arguments) as unknown;
+      } catch {
+        continue;
+      }
+      const parsedArgs = PresentVisualInputSchema.safeParse(rawArgs);
+      if (!parsedArgs.success) continue;
+      visualCalls.push({ id: call.id, input: parsedArgs.data });
+    }
+    if (visualCalls.length === 0 || message.runId === null) return [];
+
+    const outputs = new Map<string, string>();
+    const toolRows = await this.prisma.message.findMany({
+      where: {
+        conversationId,
+        runId: message.runId,
+        author: 'TOOL',
+        conversation: { bot: { userId } },
+      },
+      select: { parts: true },
+    });
+    for (const row of toolRows) {
+      const body = TranscriptBodySchema.safeParse(row.parts);
+      if (body.success && body.data.role === 'tool' && body.data.error === undefined) {
+        outputs.set(body.data.toolCallId, body.data.content);
+      }
+    }
+
+    const summaries: string[] = [];
+    for (const entry of visualCalls) {
+      const output = outputs.get(entry.id);
+      if (output === undefined || isVisualRefusal(output)) continue;
+      const payload = resolveVisualForRender(entry.input, output);
+      if (payload === null) continue;
+      const text = formatVisualSummary(payload).trim();
+      if (text !== '') summaries.push(text);
+    }
+    return summaries;
+  }
+}
+
+/** `present_visual` reports failure as text; a stored string may also be JSON-encoded. */
+function isVisualRefusal(output: string): boolean {
+  let text: unknown = output;
+  try {
+    text = JSON.parse(output) as unknown;
+  } catch {
+    /* Plain text output. */
+  }
+  return (
+    typeof text === 'string' &&
+    (text.startsWith('present_visual failed:') || text.startsWith('present_visual refused:'))
+  );
 }
 
 /** A 4xx other than 403 (blocked, which disconnects) and 429 (later) is refused for good. */

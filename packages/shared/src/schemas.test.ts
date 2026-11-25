@@ -3206,6 +3206,64 @@ const pairs: Record<string, Pair> = {
     valid: 'APPROVAL_STALE',
     invalid: 'DENIED',
   },
+  VisualSourceSchema: {
+    schema: shared.VisualSourceSchema,
+    valid: { file: 'reports/revenue.csv', x: 'month', y: ['revenue'], limit: 24 },
+    invalid: { file: '', limit: 0 },
+  },
+  VisualBlockInputSchema: {
+    schema: shared.VisualBlockInputSchema,
+    valid: {
+      kind: 'metrics',
+      items: [{ label: 'MRR', value: '$18k', delta: '+12%', trend: 'up' }],
+    },
+    invalid: { kind: 'chart', chartType: 'bar' },
+  },
+  PresentVisualInputSchema: {
+    schema: shared.PresentVisualInputSchema,
+    valid: {
+      title: 'Q1 Overview',
+      blocks: [
+        {
+          kind: 'callout',
+          tone: 'info',
+          title: 'Summary',
+          body: 'Growth accelerated in March.',
+        },
+      ],
+    },
+    invalid: { blocks: [] },
+  },
+  VisualResolvedOutputSchema: {
+    schema: shared.VisualResolvedOutputSchema,
+    valid: {
+      version: 1,
+      resolved: {
+        '0': {
+          kind: 'chart',
+          chartType: 'line',
+          x: ['Jan', 'Feb'],
+          series: [{ name: 'Users', y: [100, 145] }],
+        },
+      },
+      sources: ['metrics.csv'],
+    },
+    invalid: { version: 2, resolved: {}, sources: [] },
+  },
+  VisualPayloadSchema: {
+    schema: shared.VisualPayloadSchema,
+    valid: {
+      version: 1,
+      title: 'Q1 Overview',
+      blocks: [
+        {
+          kind: 'timeline',
+          items: [{ date: 'Mar 2026', title: 'Launch', status: 'done' }],
+        },
+      ],
+    },
+    invalid: { version: 1, blocks: [] },
+  },
   ...workPairs,
 };
 

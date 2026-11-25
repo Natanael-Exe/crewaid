@@ -7,6 +7,24 @@
     },
     "invalid": { "to": "Alex", "subject": "Update", "body": "" }
   },
+  "present_visual": {
+    "valid": {
+      "title": "Quarterly Revenue",
+      "blocks": [
+        {
+          "kind": "metrics",
+          "items": [{ "label": "ARR", "value": "$420k", "delta": "+18%", "trend": "up" }]
+        },
+        {
+          "kind": "chart",
+          "chartType": "bar",
+          "x": ["Q1", "Q2"],
+          "series": [{ "name": "Revenue", "y": [90, 120] }]
+        }
+      ]
+    },
+    "invalid": { "blocks": [] }
+  },
   "task_list": { "valid": { "assignee": "Quill", "status": "todo" }, "invalid": { "assignee": 1 } },
   "task_read": { "valid": { "taskId": "task-1" }, "invalid": {} },
   "task_create": {

@@ -15,6 +15,7 @@ import { routines } from './en/routines';
 import { screen } from './en/screen';
 import { settings } from './en/settings';
 import { skills } from './en/skills';
+import { visuals } from './en/visuals';
 import { voice } from './en/voice';
 import { work } from './en/work';
 
@@ -50,6 +51,7 @@ export const EN_PARTS = {
   screen,
   settings,
   skills,
+  visuals,
   voice,
   work,
 } as const;
@@ -72,6 +74,7 @@ export const en = {
   ...screen,
   ...settings,
   ...skills,
+  ...visuals,
   ...voice,
   ...work,
 } as const;
