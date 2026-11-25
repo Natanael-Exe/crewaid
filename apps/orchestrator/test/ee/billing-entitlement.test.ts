@@ -87,7 +87,8 @@ describe('D-156 — entitlementFrom', () => {
       // D-223: twenty hours of listening, two of speaking.
       listenLimitSeconds: 20 * 3600,
       speakLimitSeconds: 2 * 3600,
-      idleStop: false,
+      // Unlimited hours, but an idle Pro computer stops like any other.
+      idleStop: true,
     });
   });
 

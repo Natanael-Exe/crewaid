@@ -23,7 +23,7 @@ export interface ComputePolicy {
    * computer on.
    */
   covers(userId: string): Promise<boolean>;
-  /** Whether this account's idle computers stop. Pro's stay on. */
+  /** Whether this account's idle computers stop. */
   idleStops(userId: string): Promise<boolean>;
   /**
    * Count `seconds` of computer time against this account's current period,

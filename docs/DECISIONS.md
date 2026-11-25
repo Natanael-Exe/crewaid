@@ -10020,3 +10020,26 @@ still holds: it belongs to the crew, so the Work views (Tasks, Goals, Deliverabl
 sidebar, leave it out; under a narrow sidebar it is an icon-only button with a tooltip; it never
 covers a bot, now because it lives in the column instead of over it. The sidebar `+` still creates
 a bot from scratch.
+
+## D-240 — Pro computers idle-stop; Pro's hours are counted, never capped (2026-11-25)
+
+**Status:** accepted by the product owner · **Amends:** D-156 (the plans table)
+
+**Why.** D-156 gave Pro a computer that never idle-stops. At $0.10–0.19 per awake hour that is
+$73–139 a month per Pro account before any model spend, against a $100 price — and most of those
+hours are a computer nobody is using. Waking a stopped computer takes seconds, and routines already
+wake their computer through the shared ensure-ready path, so nothing a Pro account relies on needs
+it awake while idle.
+
+**Decision.**
+
+- **Every plan idle-stops.** `BILLING_PLANS.pro.idleStop` is `true`. The `idleStop` field and the
+  `ComputePolicy.idleStops` port stay, so a plan can opt out again without a change to the
+  lifecycle.
+- **Pro still has no hour limit, and its time is still counted.** The meter keeps recording Pro's
+  seconds into `UsageLedger`; with `computeHours: null` the count never stops the computer or
+  raises a usage notice. Counting is kept on purpose: the meter's pass is also what stops a
+  computer whose plan has lapsed, a busy computer (a tight routine, a loop) is invisible to idle
+  stop, and Pro's margins still need real hours to be set.
+- **The sales copy is unchanged for now.** The desktop's Pro offer and the README still say the
+  computer stays on 24/7; they will be reworded separately.

@@ -131,9 +131,8 @@ export class SandboxIdleService implements OnApplicationBootstrap, OnModuleDestr
   }
 
   private async consider(row: SandboxWithTenants): Promise<void> {
-    // A Pro computer stays on, which is the plan's whole promise. Asked
-    // per pass rather than remembered, so a downgrade starts idle stop again
-    // at the next sweep.
+    // The plan decides whether an idle computer stops. Asked per pass rather
+    // than remembered, so a change of plan takes effect at the next sweep.
     if (this.policy !== undefined && !(await this.policy.idleStops(row.userId))) return;
     if (!(await this.isIdle(row))) return;
 
