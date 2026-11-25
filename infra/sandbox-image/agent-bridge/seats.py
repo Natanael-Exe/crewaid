@@ -979,6 +979,14 @@ class SeatRegistry:
                 "--no-first-run",
                 "--no-default-browser-check",
                 "--disable-dev-shm-usage",
+                # Chrome in an unprivileged container cannot self-update under
+                # cap_drop/no-new-privileges; suppress outdated-build and
+                # component-update nags so "Can't update Chrome / Reinstall
+                # Chrome" bubbles never obscure a seat's viewport. Updates ship
+                # with rebuilt sandbox images.
+                "--disable-component-update",
+                "--check-for-update-interval=31536000",
+                "--simulate-outdated-no-au=Tue, 31 Dec 2099 23:59:59 GMT",
                 # A seat is torn down by killing its browser, which Chrome
                 # records as an unclean shutdown — so without this the NEXT
                 # seat on that profile opens under a "Restore pages?" bubble

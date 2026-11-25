@@ -131,6 +131,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get update && apt-get install -y --no-install-recommends google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
+# Suppress Chrome auto-update nags, relaunch badges, and promotional prompts
+# inside the unprivileged container; browser upgrades arrive with image builds.
+RUN mkdir -p /etc/opt/chrome/policies/managed \
+    && printf '%s\n' \
+         '{' \
+         '  "ComponentUpdatesEnabled": false,' \
+         '  "RelaunchNotification": 0,' \
+         '  "SuppressUnsupportedOSWarning": true,' \
+         '  "DefaultBrowserSettingEnabled": false,' \
+         '  "PromotionalTabsEnabled": false,' \
+         '  "BrowserSignin": 0,' \
+         '  "MetricsReportingEnabled": false,' \
+         '  "BackgroundModeEnabled": false' \
+         '}' > /etc/opt/chrome/policies/managed/crewaid.json \
+    && chmod 644 /etc/opt/chrome/policies/managed/crewaid.json
+
 RUN useradd -m -s /bin/bash bot
 
 # XDG_RUNTIME_DIR must exist, be 0700, and be owned by the user before the
