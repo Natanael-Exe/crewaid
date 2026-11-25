@@ -96,6 +96,8 @@ export type RoutinesPanelProps = {
   readonly actions: RoutineActions;
   /** Rows to render before the first read lands — the render tests' seam. */
   readonly initial?: readonly Routine[];
+  /** Seeded read failure for render tests; live mounts always start clear. */
+  readonly initialReadProblem?: string | null;
   readonly now?: () => Date;
 };
 
@@ -103,6 +105,7 @@ export function RoutinesPanel({
   botId,
   actions,
   initial,
+  initialReadProblem = null,
   now = () => new Date(),
 }: RoutinesPanelProps) {
   const t = useT();
@@ -114,12 +117,17 @@ export function RoutinesPanel({
    * on every poll, and an assistive-tech announcement per poll about a panel
    * the operator is not using would be noise. The last good list stays up.
    */
-  const [readProblem, setReadProblem] = useState<string | null>(null);
+  const [readProblem, setReadProblem] = useState<string | null>(initialReadProblem);
+  const [retryingRead, setRetryingRead] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [editing, setEditing] = useState<Editing | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [managing, setManaging] = useState(false);
   const kickedAt = useRef(0);
+  const lastFailedAction = useRef<{
+    readonly key: string;
+    readonly act: () => Promise<unknown>;
+  } | null>(null);
   const [goals, setGoals] = useState<readonly GoalWithProgress[]>([]);
   useEffect(() => {
     // Goals are optional here: without any, the form has no Goal field and
@@ -139,10 +147,20 @@ export function RoutinesPanel({
     }
   }, [actions]);
 
+  const retryRead = useCallback(async () => {
+    setRetryingRead(true);
+    try {
+      await refresh();
+    } finally {
+      setRetryingRead(false);
+    }
+  }, [refresh]);
+
   useEffect(() => {
     setEditing(null);
     setManaging(false);
     setConfirmDelete(null);
+    lastFailedAction.current = null;
     void refresh();
   }, [botId, refresh]);
 
@@ -159,15 +177,23 @@ export function RoutinesPanel({
     setBusy(key);
     try {
       await act();
+      lastFailedAction.current = null;
       setProblem(null);
       await refresh();
       return true;
     } catch (error: unknown) {
+      lastFailedAction.current = { key, act };
       setProblem(failureOf(error).message);
       return false;
     } finally {
       setBusy(null);
     }
+  };
+
+  const retryLastAction = async () => {
+    const failed = lastFailedAction.current;
+    if (failed === null || busy !== null) return;
+    await run(failed.key, failed.act);
   };
 
   if (botId === null) return null;
@@ -237,18 +263,44 @@ export function RoutinesPanel({
       </div>
 
       {problem !== null ? (
-        <Alert status="danger" role="alert" className="py-2 text-caption">
+        <Alert status="danger" role="alert" className="items-center py-2 text-caption">
           <Alert.Indicator />
-          <Alert.Content>
+          <Alert.Content className="min-w-0 flex-1">
             <Alert.Description className="text-caption leading-4">{problem}</Alert.Description>
           </Alert.Content>
+          {lastFailedAction.current === null ? null : (
+            <Button
+              variant="secondary"
+              size="sm"
+              isDisabled={busy !== null}
+              onPress={() => void retryLastAction()}
+              data-routines-action-retry
+              className="h-7 shrink-0 rounded-full px-3 text-caption font-medium"
+            >
+              {t('routines.tryAgain')}
+            </Button>
+          )}
         </Alert>
       ) : null}
 
       {readProblem !== null && problem === null ? (
-        <p role="status" className="text-caption leading-4 text-muted">
-          {t('routines.loadFailed', { reason: readProblem })}
-        </p>
+        <div
+          role="status"
+          data-routines-read-error
+          className="flex items-center justify-between gap-2 text-caption leading-4 text-muted"
+        >
+          <p className="min-w-0 flex-1">{t('routines.loadFailed', { reason: readProblem })}</p>
+          <Button
+            variant="secondary"
+            size="sm"
+            isDisabled={retryingRead}
+            onPress={() => void retryRead()}
+            data-routines-retry
+            className="h-7 shrink-0 rounded-full px-3 text-caption font-medium"
+          >
+            {t('routines.tryAgain')}
+          </Button>
+        </div>
       ) : null}
 
       {all === null && readProblem !== null ? null : all === null ? (

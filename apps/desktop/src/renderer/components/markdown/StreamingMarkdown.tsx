@@ -1,4 +1,5 @@
-import { useMemo, type CSSProperties, type ReactNode } from 'react';
+import { Button, Tooltip } from '@heroui/react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   defaultRehypePlugins,
   defaultRemarkPlugins,
@@ -8,10 +9,12 @@ import {
   type StreamdownTranslations,
 } from 'streamdown';
 import { botAccentTokens } from '../../styles/botAccent';
+import { copyText } from '../copyText';
 import { ExternalLink } from '../ExternalLink';
 import type { MentionBot } from '../composer/botMention';
 import { codeHighlighter } from './highlight';
 import { remarkSoftBreaks } from './breaks';
+import { readableInternalPathName, remarkInternalPaths } from './internalPaths';
 import { remarkBotMentions } from './mentions';
 import { useLocale, useT } from '../../i18n/i18n';
 
@@ -59,10 +62,11 @@ function tagNames(value: unknown): string[] {
 const REHYPE_PLUGINS: Pluggable[] = [
   configured(defaultRehypePlugins['sanitize'], (schema) => ({
     ...schema,
-    tagNames: [...tagNames(schema['tagNames']), 'mention'],
+    tagNames: [...tagNames(schema['tagNames']), 'mention', 'sandboxpath'],
     attributes: {
       ...(typeof schema['attributes'] === 'object' ? schema['attributes'] : {}),
       mention: ['botid'],
+      sandboxpath: ['path'],
     },
   })),
   // The hardener's specific prefixes need an origin to resolve against, which a
@@ -79,6 +83,64 @@ const REHYPE_PLUGINS: Pluggable[] = [
 
 const EMPTY_BOTS: readonly MentionBot[] = [];
 const SOFT_BREAKS = remarkSoftBreaks();
+const INTERNAL_PATHS = remarkInternalPaths();
+
+/**
+ * Renders an internal sandbox path (`/home/bot/...`) as a compact inline pill
+ * showing the clean filename (or localized "path" when pointing to an internal
+ * root/CUID folder), revealing the full path on hover/focus and copying it on
+ * press. Uses HeroUI `Button` directly inside `Tooltip` so it stays valid
+ * phrasing content inside Markdown `<p>` and `<li>` elements.
+ */
+function InlineInternalPath({ path }: { path: string }) {
+  const t = useT();
+  const [copied, setCopied] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const filename = readableInternalPathName(path);
+  const label = filename ?? t('tools.path');
+
+  const handleCopy = () => {
+    void copyText(path).then((ok) => {
+      if (!ok) return;
+      setCopied(true);
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        timerRef.current = null;
+        setCopied(false);
+      }, 1400);
+    });
+  };
+
+  return (
+    <Tooltip delay={150}>
+      <Button
+        size="sm"
+        variant="ghost"
+        data-internal-path-hint
+        data-path={path}
+        data-path-kind={filename === null ? 'generic' : 'file'}
+        aria-label={t('tools.pathLabel', { path })}
+        onPress={handleCopy}
+        className="crewaid-inline-path"
+      >
+        {label}
+      </Button>
+      <Tooltip.Content
+        placement="top"
+        className="max-w-[min(85vw,440px)] break-all font-mono text-micro"
+      >
+        {copied ? t('tools.pathCopied') : path}
+      </Tooltip.Content>
+    </Tooltip>
+  );
+}
 
 /** A link the operator can follow: https only, opened by the system browser. */
 function SafeLink({ href, children }: { href?: string; children?: ReactNode }) {
@@ -145,6 +207,7 @@ export function StreamingMarkdown({
     () => [
       ...Object.values(defaultRemarkPlugins),
       SOFT_BREAKS,
+      INTERNAL_PATHS,
       ...(bots.length === 0 ? [] : [remarkBotMentions(bots)]),
     ],
     [bots],
@@ -157,6 +220,30 @@ export function StreamingMarkdown({
         strong: ({ children }: { children?: ReactNode }) => (
           <strong className="font-semibold">{children}</strong>
         ),
+        // Hanging indents keep multi-line bulleted and numbered points scannable
+        // instead of wrapping flush under the marker like Streamdown's `list-inside`.
+        ol: ({ start, children }: { start?: number; children?: ReactNode }) => (
+          <ol
+            start={start}
+            data-streamdown="ordered-list"
+            className="list-outside list-decimal space-y-1.5 ps-5 whitespace-normal [li_&]:mt-1.5"
+          >
+            {children}
+          </ol>
+        ),
+        ul: ({ children }: { children?: ReactNode }) => (
+          <ul
+            data-streamdown="unordered-list"
+            className="list-outside list-disc space-y-1.5 ps-5 whitespace-normal [li_&]:mt-1.5"
+          >
+            {children}
+          </ul>
+        ),
+        li: ({ children }: { children?: ReactNode }) => (
+          <li data-streamdown="list-item" className="leading-[23px] [&>p+p]:mt-2">
+            {children}
+          </li>
+        ),
         img: ({ alt }: { alt?: string }) => (
           <span data-markdown-image className="text-muted-foreground">
             {alt === undefined || alt === ''
@@ -164,6 +251,12 @@ export function StreamingMarkdown({
               : t('markdown.imageNamed', { alt })}
           </span>
         ),
+        sandboxpath: ({ path, children }: { path?: string; children?: ReactNode }) =>
+          path === undefined || path === '' ? (
+            <span>{children}</span>
+          ) : (
+            <InlineInternalPath path={path} />
+          ),
         mention: ({ botid, children }: { botid?: string; children?: ReactNode }) => {
           const bot = bots.find((candidate) => candidate.id === botid);
           return bot === undefined ? (
@@ -175,7 +268,7 @@ export function StreamingMarkdown({
           );
         },
       }) as Components,
-    [bots, onBotMention, locale],
+    [bots, onBotMention, locale, t],
   );
   const translations = useMemo<StreamdownTranslations>(
     () => ({

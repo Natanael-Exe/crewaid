@@ -517,6 +517,7 @@ function AppShell({ session }: { session: LaunchSession }) {
               status={chat.botsStatus}
               message={chat.botsError?.message}
               onCreateBot={() => modals.openCreateBot()}
+              onRetry={() => void chatController.reloadBots()}
             />
           ) : thread === null ? (
             <ThreadNotice
@@ -546,6 +547,7 @@ function AppShell({ session }: { session: LaunchSession }) {
               onSendReady={(send) => deliverStarter(selected.id, send)}
               onGeneratingChange={queue.noteGenerating}
               onStale={remountThread}
+              onRetryClaimedAttachments={queue.claimPending}
             >
               {(view) => {
                 const main = selected.kind === 'MAIN' && experience !== null;
@@ -596,6 +598,8 @@ function AppShell({ session }: { session: LaunchSession }) {
                     onDiscardVoiceNote={voiceOutbox.discard}
                     pending={queue.pending}
                     error={shellError ?? view.error}
+                    onRetryError={shellError !== null ? remountThread : view.retry}
+                    retryingError={shellError === null && view.retrying}
                     onModelChanged={() => void chatController.reloadBots()}
                     tools={tools}
                     onViewComputer={nav.viewComputer}
@@ -817,20 +821,33 @@ function EmptyTranscript({
   status,
   message,
   onCreateBot,
+  onRetry,
 }: {
   status: LoadStatus;
   message?: string | undefined;
   onCreateBot: () => void;
+  onRetry?: (() => void) | undefined;
 }) {
   const t = useT();
   if (status === 'ready') return <FirstBotWelcome onCreateBot={onCreateBot} />;
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 px-8 text-center">
+    <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
       <p className="text-footnote text-muted">
         {status === 'error'
           ? (message ?? t('app.shell.couldNotReachTheOrchestrator'))
           : t('app.shell.connectingToTheOrchestrator')}
       </p>
+      {status === 'error' && onRetry !== undefined ? (
+        <Button
+          variant="secondary"
+          size="sm"
+          onPress={onRetry}
+          data-bots-retry
+          className="h-8 rounded-full px-4 text-caption font-medium"
+        >
+          {t('transcript.tryAgain')}
+        </Button>
+      ) : null}
     </div>
   );
 }

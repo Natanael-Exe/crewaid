@@ -93,9 +93,18 @@ class DisplaySeatTests(unittest.TestCase):
         chrome = next(argv for argv in spawned if argv[0] == 'google-chrome')
         private_port = seat.cdp_port + seats.SEAT_COUNT
         self.assertIn(f'--remote-debugging-port={private_port}', chrome)
+        self.assertIn('--disable-component-update', chrome)
+        self.assertIn('--check-for-update-interval=31536000', chrome)
+        self.assertIn('--simulate-outdated-no-au=Tue, 31 Dec 2099 23:59:59 GMT', chrome)
         self.assertIn(['socat', f'TCP4-LISTEN:{seat.cdp_port},bind=0.0.0.0,reuseaddr,fork',
                        f'TCP4:127.0.0.1:{private_port}'], spawned)
         self.assertEqual(probes, [private_port, seat.cdp_port])
+
+    def test_dockerfile_installs_chrome_policy_suppressing_update_nags(self):
+        dockerfile = (Path(__file__).resolve().parents[2] / 'Dockerfile').read_text()
+        self.assertIn('/etc/opt/chrome/policies/managed/crewaid.json', dockerfile)
+        self.assertIn('"ComponentUpdatesEnabled": false', dockerfile)
+        self.assertIn('"RelaunchNotification": 0', dockerfile)
 
     def test_browser_generation_survives_registry_restart_and_clock_rollback(self):
         seat = _live_seat(seats, seat_id='a', bot_id='bot-a', port=5901)

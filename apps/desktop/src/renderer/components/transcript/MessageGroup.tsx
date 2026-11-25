@@ -160,8 +160,8 @@ export function MessageGroup({
     >
       {/* Rendered once per message so multi-bubble replies read as one delivery. */}
       {peer === undefined ? null : (
-        <div className="flex justify-start px-1">
-          <InterBotAttribution peer={peer} />
+        <div className="flex justify-start ps-2 pe-1">
+          <InterBotAttribution peer={peer} onOpenPeer={renderContext?.onBotMention} />
         </div>
       )}
       {visibleRows.map((row) =>

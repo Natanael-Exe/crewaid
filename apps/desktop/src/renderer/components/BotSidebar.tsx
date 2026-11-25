@@ -216,19 +216,6 @@ export function BotSidebar({
     />
   );
 
-  const visibleCount =
-    shownSections === null
-      ? filtered.length
-      : shownSections.reduce(
-          (count, section) =>
-            count + (!searching && section.group?.collapsed === true ? 0 : section.rows.length),
-          0,
-        );
-  const listHeight = Math.max(
-    64,
-    visibleCount * ROW_HEIGHT + (shownSections?.length ?? 0) * HEADER_HEIGHT,
-  );
-
   // Width is owned by the pane layout in App; the aside fills the full column.
   return (
     <aside className="crewaid-crew-dock flex h-full w-full shrink-0 flex-col">
@@ -337,7 +324,8 @@ export function BotSidebar({
                 // One pinned bot (usually the main assistant) gets a full row,
                 // so its name and role never truncate inside a half-width tile.
                 const single = pinnedRows.length === 1;
-                const idle = view.bot.status === 'IDLE';
+                const pinnedUnread = unreadByBot[view.bot.id] ?? 0;
+                const quiet = view.bot.status === 'IDLE' && pinnedUnread === 0;
                 return (
                   <div
                     key={view.bot.id}
@@ -366,7 +354,7 @@ export function BotSidebar({
                           status={view.bot.status}
                         />
                         <span className="crewaid-bot-status-compact">
-                          <StatusDot status={view.bot.status} />
+                          <StatusDot status={view.bot.status} unread={pinnedUnread} />
                         </span>
                       </div>
                       <span
@@ -380,7 +368,7 @@ export function BotSidebar({
                           >
                             {view.bot.name}
                           </span>
-                          {idle ? null : <StatusDot status={view.bot.status} />}
+                          {quiet ? null : <StatusDot status={view.bot.status} unread={pinnedUnread} />}
                         </span>
                         <span
                           className={`mt-0.5 block truncate text-caption leading-[16px] text-room-muted ${
@@ -408,9 +396,11 @@ export function BotSidebar({
           throws during render and takes the whole tree down with it. */}
       {/* Virtualizer renders no DOM of its own — it supplies the layout through
           context, so the ListBox stays the flex child and the scroll container.
-          ROW_HEIGHT must match BotRow's fixed height: the layout positions rows
-          from this number alone, so a row that renders taller overlaps its
-          neighbour instead of pushing it down. */}
+          It takes the remaining column (flex-1, not a computed height) so the
+          last row is never clipped above the footer. ROW_HEIGHT must match
+          BotRow's fixed height: the layout positions rows from this number
+          alone, so a row that renders taller overlaps its neighbour instead of
+          pushing it down. */}
       <Virtualizer
         layout={ListLayout}
         layoutOptions={{ rowHeight: ROW_HEIGHT, rowSize: 60, headingHeight: HEADER_HEIGHT }}
@@ -434,14 +424,13 @@ export function BotSidebar({
               </EmptyState.Description>
             </EmptyState>
           )}
-          style={{ height: listHeight }}
-          className="crewaid-roster min-h-0 flex-initial w-full min-w-0 overflow-x-hidden overflow-y-auto px-2.5 py-0 outline-none"
+          className="crewaid-roster min-h-0 w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-2.5 pt-0.5 pb-3 outline-none"
           items={shownSections ?? filtered}
         >
           {/* A render prop, not a mapped array: virtualization needs the
               collection to stay addressable by key so the layout can build
-              only the rows the viewport asks for. With groups (D-131) each
-              item is a section, and its bots are a nested collection. */}
+              only the rows the viewport asks for. With groups each item is a
+              section, and its bots are a nested collection. */}
           {(item: BotRowView | SidebarSection) =>
             'bot' in item ? (
               renderRow(item)
@@ -545,24 +534,19 @@ function BotRow({
       >
         <BotAvatar bot={bot} size="row" status={bot.status} />
         <span className="crewaid-bot-status-compact">
-          <StatusDot status={bot.status} />
+          <StatusDot status={bot.status} unread={unread} />
         </span>
       </div>
       <div className="crewaid-bot-row-copy min-w-0 flex-1">
         <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
           <span className="min-w-0 flex-1 truncate text-body font-semibold">{bot.name}</span>
-          <span className="ms-auto flex shrink-0 items-center gap-1">
-            {/* At rest the row says nothing; a dot appears once there is
-                something to see. The icon-wide roster keeps its compact dot. */}
-            {bot.status === 'IDLE' ? null : <StatusDot status={bot.status} />}
-            {unread > 0 ? (
-              <span
-                role="img"
-                aria-label={t('sidebar.unread', { count: unread })}
-                className="size-2 shrink-0 rounded-full bg-accent"
-              />
-            ) : null}
-          </span>
+          {/* Single merged indicator: hidden when idle and read, otherwise shows
+              the live status color/shape (or static accent dot for unread). */}
+          {bot.status === 'IDLE' && unread === 0 ? null : (
+            <span className="ms-auto flex shrink-0 items-center">
+              <StatusDot status={bot.status} unread={unread} />
+            </span>
+          )}
         </div>
         <div className="mt-0.5 truncate text-caption leading-[16px] text-room-muted">{preview}</div>
       </div>

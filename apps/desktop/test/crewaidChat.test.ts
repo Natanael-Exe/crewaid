@@ -426,6 +426,47 @@ describe('standalone AG-UI chat admission and one-reader delivery', () => {
       'sent while it replied',
     ]);
   });
+  it('keeps a message sent while a run is read on screen through the run and after it', async () => {
+    let more = (_delta: string) => {};
+    let finish = () => {};
+    const fetchFn = vi.fn(async (input, init?: RequestInit) => {
+      if (init?.method === 'POST') return new Response(null, { status: 202 });
+      if (!new URL(String(input)).searchParams.has('runId')) return hydrate();
+      return new Response(
+        new ReadableStream<Uint8Array>({
+          start(controller) {
+            const rows = events('live', 'Partial');
+            let next = 4;
+            controller.enqueue(new TextEncoder().encode(encode(rows.slice(0, 3))));
+            more = (delta) => {
+              const row = { type: 'TEXT_MESSAGE_CONTENT', messageId: 'reply', delta };
+              controller.enqueue(new TextEncoder().encode(encode([row], next)));
+              next += 1;
+            };
+            finish = () => {
+              controller.enqueue(new TextEncoder().encode(encode(rows.slice(3), next)));
+              controller.close();
+            };
+          },
+        }),
+        { headers: { 'content-type': 'text/event-stream' } },
+      );
+    });
+    const { chat, runs } = await client(fetchFn);
+    runs.announce('live');
+    await until(() => chat.getSnapshot().messages.some((row) => row.content === 'Partial'));
+    const sent = await chat.sendMessage('take the logo from the website');
+    const contents = () => chat.getSnapshot().messages.map((row) => row.content);
+    expect(contents()).toContain('take the logo from the website');
+    // The run's next event is where the SDK writes back the list it copied.
+    more(' and more');
+    await until(() => contents().includes('Partial and more'));
+    expect(contents()).toContain('take the logo from the website');
+    finish();
+    await until(() => !chat.getSnapshot().sessionGenerating);
+    expect(contents()).toEqual(['Partial and more', 'take the logo from the website']);
+    expect(chat.getSnapshot().messages.find((row) => row.id === sent)?.role).toBe('user');
+  });
   it('detaches a live SDK reader while retaining its partial reply without a run error', async () => {
     const fetchFn = vi.fn(async (input, init?: RequestInit) => {
       if (!new URL(String(input)).searchParams.has('runId')) return hydrate();
@@ -538,5 +579,49 @@ describe('what a person reads when the chat fails (D-228)', () => {
     await expect(chat.sendMessage('hello')).rejects.toThrow();
     expect(chat.getSnapshot().error?.code).toBe('NETWORK');
     expect(chat.getSnapshot().error?.message).toMatch(/^Could not reach the server/);
+    expect(chat.getSnapshot().canRetry).toBe(true);
+  });
+
+  it('replays a failed send with its attachments when retry() is called', async () => {
+    let attempts = 0;
+    const bodies: unknown[] = [];
+    const { chat } = await client(
+      vi.fn(async (_url, init) => {
+        if (init?.method !== 'POST') return hydrate();
+        attempts += 1;
+        const parsed = JSON.parse(String(init.body));
+        bodies.push(parsed);
+        return attempts === 1
+          ? new Response('', { status: 500 })
+          : sse(events(String(parsed.runId), 'Recovered'));
+      }),
+    );
+    await expect(
+      chat.sendMessage('Please send this', { body: { attachmentIds: ['att-1'] } }),
+    ).rejects.toThrow();
+    expect(chat.getSnapshot().canRetry).toBe(true);
+    expect(chat.getSnapshot().error?.code).toBe('SEND_FAILED');
+
+    const claimed = await chat.retry();
+    expect(claimed).toEqual(['att-1']);
+    await until(() => !chat.getSnapshot().sessionGenerating);
+    expect(chat.getSnapshot().error).toBeUndefined();
+    expect(chat.getSnapshot().messages.map((row) => row.content)).toEqual([
+      'Please send this',
+      'Recovered',
+    ]);
+    expect(bodies[1]).toMatchObject({ forwardedProps: { attachmentIds: ['att-1'] } });
+  });
+
+  it('marks approval-blocked sends as non-retryable until answered', async () => {
+    const { chat } = await client(
+      vi.fn(async (_url, init) =>
+        init?.method === 'POST'
+          ? Response.json({ code: 'THREAD_AWAITING_APPROVAL' }, { status: 409 })
+          : hydrate(),
+      ),
+    );
+    await expect(chat.sendMessage('hello')).rejects.toThrow();
+    expect(chat.getSnapshot().canRetry).toBe(false);
   });
 });

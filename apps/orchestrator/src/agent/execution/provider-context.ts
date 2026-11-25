@@ -5,22 +5,25 @@ import { agentInstructionBlocks, agentInstructions } from '../agent-instructions
 import { interBotToUserContent, triggerToUserContent } from '../trigger-content.js';
 import { projectToolHistory } from './tool-history-projection.js';
 import type { ExecutionRequest } from './execution-backend.port.js';
+import type { PrivacyVault } from './privacy-vault.js';
 
 /** Provider envelopes change; the prompt text and memory-last prefix come from one builder. */
 export function executionSystemPrompts(
   request: ExecutionRequest,
   kind: BuiltTextAdapter['kind'],
+  vault?: PrivacyVault,
 ): SystemPrompt[] {
+  const redact = (value: string): string => (vault === undefined ? value : vault.redactText(value));
   // after the persona and after memory, so a continuation changes
   // nothing above the cached prefix — a run that carries work on must not
   // cost the whole prompt its cache hit.
   const carryOn: SystemPrompt[] =
-    request.continuation === undefined ? [] : [{ content: request.continuation }];
-  if (kind !== 'anthropic') return [agentInstructions(request.instructions), ...carryOn];
+    request.continuation === undefined ? [] : [{ content: redact(request.continuation) }];
+  if (kind !== 'anthropic') return [redact(agentInstructions(request.instructions)), ...carryOn];
   const { prefix, memory } = agentInstructionBlocks(request.instructions);
   return [
-    { content: prefix, metadata: { cache_control: { type: 'ephemeral' } } },
-    ...(memory === null ? [] : [memory]),
+    { content: redact(prefix), metadata: { cache_control: { type: 'ephemeral' } } },
+    ...(memory === null ? [] : [redact(memory)]),
     ...carryOn,
   ];
 }
@@ -136,6 +139,7 @@ export function providerContext(
   loadAttachments: ClaimedAttachmentLoader,
   loadSenders?: TeammateNameLoader,
   readNotices?: () => readonly string[],
+  vault?: PrivacyVault,
 ): ChatMiddleware {
   const attachments = new Map<string, readonly ModelAttachment[]>();
   const senders = new Map<string, string | undefined>();
@@ -157,7 +161,7 @@ export function providerContext(
         for (const id of missing) senders.set(id, named?.get(id));
       }
       const projected = await projectToolHistory(config.messages, request.tools);
-      const providerMessages: ModelMessage[] = fromFirstUserTurn(projected).map((message) =>
+      const rawProviderMessages: ModelMessage[] = fromFirstUserTurn(projected).map((message) =>
         message.role === 'user' && typeof message.content === 'string'
           ? {
               ...message,
@@ -169,6 +173,8 @@ export function providerContext(
             }
           : message,
       );
+      const providerMessages =
+        vault === undefined ? rawProviderMessages : vault.redactMessages(rawProviderMessages);
       const notices = readNotices?.() ?? [];
       return {
         providerMessages:
@@ -176,7 +182,12 @@ export function providerContext(
             ? providerMessages
             : [
                 ...providerMessages,
-                ...notices.map((content): ModelMessage => ({ role: 'user', content })),
+                ...notices.map(
+                  (content): ModelMessage => ({
+                    role: 'user',
+                    content: vault === undefined ? content : vault.redactText(content),
+                  }),
+                ),
               ],
       };
     },

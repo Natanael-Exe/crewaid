@@ -347,4 +347,21 @@ describe('<RoutinesPanel> as it renders', () => {
     );
     expect(html).toBe('');
   });
+
+  it('renders a Try again button beside a routine load failure', () => {
+    const html = renderToStaticMarkup(
+      <I18nProvider locale="en-US">
+        <RoutinesPanel
+          botId={BOT}
+          actions={idle}
+          initialReadProblem="Something went wrong. Try again."
+          now={() => NOW}
+        />
+      </I18nProvider>,
+    );
+    expect(html).toContain('data-routines-read-error="true"');
+    expect(html).toContain('Routines could not be loaded: Something went wrong. Try again.');
+    expect(html).toContain('data-routines-retry="true"');
+    expect(html).toContain('>Try again<');
+  });
 });

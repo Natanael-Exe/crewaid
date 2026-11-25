@@ -54,6 +54,7 @@ export interface MessageQueueController {
   readonly stageFiles: (files: File[]) => void;
   readonly removePending: (localId: string) => void;
   readonly retryPending: (localId: string) => void;
+  readonly claimPending: (attachmentIds: readonly string[]) => void;
   readonly queuedFor: (botId: string) => readonly QueuedMessage[];
   readonly postMessageId: (
     text: string,
@@ -267,6 +268,10 @@ export function useMessageQueue({
     [pending, stageFiles],
   );
 
+  const claimPending = useCallback((attachmentIds: readonly string[]) => {
+    setPending((list) => claimedRemoved(list, attachmentIds));
+  }, []);
+
   const pendingList = useMemo(() => Object.values(pending), [pending]);
 
   return {
@@ -278,6 +283,7 @@ export function useMessageQueue({
     stageFiles,
     removePending,
     retryPending,
+    claimPending,
     queuedFor,
     postMessageId,
     postMessage,

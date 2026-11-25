@@ -3,6 +3,7 @@ import { JsonSchema, ToolApprovalRequestSchema, type Json } from '@crewaid/share
 import type { PendingToolApproval, TurnApprovalPolicy } from '../tool-approval.js';
 import type { PolicyPrompt } from '../policy/runtime.js';
 import { parseToolInput, type ToolSet } from '../tool-contract.js';
+import type { PrivacyVault } from './privacy-vault.js';
 import { toolApproval } from './tool-approval-interrupt.js';
 
 export type AuthorizedToolResolution =
@@ -26,6 +27,8 @@ export function tanstackPolicy(deps: {
     readonly restore: () => Promise<void>;
   };
   readonly authorizeResume: ToolResumeAuthorizer;
+  /** Resolves privacy vault tokens back to real values before validation, approval, and dispatch. */
+  readonly vault?: PrivacyVault;
 }): ChatMiddleware<unknown, typeof toolApproval> {
   const prepared = new Map<string, PreparedCall>();
   return {
@@ -52,8 +55,11 @@ export function tanstackPolicy(deps: {
         try {
           const definition = deps.tools[call.function.name];
           if (definition === undefined) throw new Error('POLICY_DENIED: this tool is not offered.');
+          const rawInput: unknown = JSON.parse(call.function.arguments);
+          const resolvedInput =
+            deps.vault === undefined ? rawInput : deps.vault.resolveValue(rawInput);
           const args = JsonSchema.parse(
-            await parseToolInput(definition.inputSchema, JSON.parse(call.function.arguments)),
+            await parseToolInput(definition.inputSchema, resolvedInput),
           );
           const decision = await deps.policy.decide({
             toolCall: { toolCallId: call.id, toolName: call.function.name, input: args },

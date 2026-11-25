@@ -128,11 +128,7 @@ test('Arabic mirrors menus while drafts, inline code and terminal output keep th
       .locator('[data-slot="chain-of-thought-trigger"]');
     await reasoning.click();
     await expect(reasoning).toHaveAttribute('aria-expanded', 'true');
-    const activity = transcript
-      .locator('[data-tool-activity]')
-      .locator('[data-slot="chat-tool-group-trigger"]');
-    await activity.click();
-    await expect(activity).toHaveAttribute('aria-expanded', 'true');
+    // A single routine action renders as its own line, with no group around it.
     const terminal = transcript.locator('[data-tool-call="shell"]');
     await terminal.locator('[data-slot="disclosure-trigger"]').click();
     await expect(terminal.locator('pre').first()).toHaveCSS('direction', 'ltr');

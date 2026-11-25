@@ -70,4 +70,24 @@ describe('the failure banner (D-228)', () => {
     expect(html).not.toContain('data-provider-explanation');
     expect(html).not.toContain('says:');
   });
+
+  it('renders a Try again button beside the error message when onRetryError is supplied', () => {
+    const html = renderToStaticMarkup(
+      <Transcript
+        bot={BOT}
+        connection={{ status: 'connected', attempt: 0, retryDelayMs: null }}
+        messages={[]}
+        pending={[]}
+        error={{ code: 'SEND_FAILED', message: 'Your message could not be sent. Try again.' }}
+        onRetryError={() => undefined}
+        onSend={() => undefined}
+        onStop={() => undefined}
+        onFiles={() => undefined}
+        onRemovePending={() => undefined}
+        onRetryPending={() => undefined}
+      />,
+    );
+    expect(html).toContain('data-transcript-retry="true"');
+    expect(html).toContain('>Try again<');
+  });
 });

@@ -165,6 +165,40 @@ describe('BotSidebar', () => {
       expect((contents ?? '').replace(/<[^>]*>/g, '').trim()).toBe('');
     }
   });
+
+  it('merges bot status and unread state into a single indicator dot per row', () => {
+    const errored = groupedRow('bot_err', null, 'Kira');
+    const rowWithError: BotRowView = {
+      ...errored,
+      bot: { ...errored.bot, status: 'ERROR' },
+    };
+    const html = render([rowWithError], [], { unreadByBot: { bot_err: 2 } });
+    // One compact dot on the avatar + one dot in the row copy (never two side-by-side in the copy).
+    const copyIndex = html.indexOf('crewaid-bot-row-copy');
+    const copyHtml = html.slice(copyIndex, html.indexOf('</template>', copyIndex));
+    expect(copyHtml.match(/role="img"/g)).toHaveLength(1);
+    expect(copyHtml).toContain('aria-label="Error · 2 unread"');
+  });
+
+  it('fills the remaining column instead of hard-clipping rows to an inline height', () => {
+    const quill = groupedRow('bot_q', 'grp_sales', 'Quill');
+    const scout = groupedRow('bot_s', null, 'Scout');
+    const sales = {
+      id: 'grp_sales',
+      userId: 'usr_1',
+      name: 'Sales team',
+      instructions: '',
+      sortOrder: 0,
+      collapsed: false,
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
+    };
+    const sections = sidebarSections([quill, scout], [sales], {});
+    const html = render([quill, scout], [], { sections, groups: [sales] });
+
+    expect(html).toMatch(/crewaid-roster[^"]*\bflex-1\b/);
+    expect(html).not.toMatch(/crewaid-roster[^>]*style="height:/);
+  });
 });
 
 function groupedRow(id: string, groupId: string | null, name: string): BotRowView {

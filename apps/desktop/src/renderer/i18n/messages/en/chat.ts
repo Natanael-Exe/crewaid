@@ -21,6 +21,7 @@ export const chat = {
     'Could not reach the server, so your answer was not sent. Check your connection and try again.',
   'chat.chatFailure.messageNotSent': 'Your message could not be sent. Try again.',
   'chat.chatFailure.answerNotSent': 'Your answer could not be sent. Try again.',
+  'chat.retryPrompt': 'Please try again.',
   'chat.chatEndpoint.credentialsNotConfigured': 'Orchestrator credentials are not configured.',
   'chat.chatEndpoint.urlNotValid': 'The orchestrator URL is not valid.',
   'chat.chatEndpoint.urlMustUseHttp': 'The orchestrator URL must use HTTP or HTTPS.',

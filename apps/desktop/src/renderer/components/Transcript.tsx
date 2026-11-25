@@ -6,7 +6,7 @@ import type { WsConnectionState } from '../connection/wsClient';
 import { useT } from '../i18n/i18n';
 import type { PendingApproval, TurnActivity } from '../state/chatReducer';
 import type { QueuedMessage } from '../state/messageQueue';
-import { hasVisibleTranscriptContent } from '../state/transcriptRows';
+import { coalesceRoutineMessages, hasVisibleTranscriptContent } from '../state/transcriptRows';
 import type { TranscriptMessage } from '../state/viewTypes';
 import type { PendingVoiceNote } from '../voice/useVoiceOutbox';
 import type { PendingAttachment } from './attachments/attachmentState';
@@ -76,6 +76,8 @@ export interface TranscriptProps {
   onStop: () => void;
   onNewTopic?: (() => void) | undefined;
   error?: { message: string; explanation?: ProviderExplanation | undefined } | null;
+  onRetryError?: (() => void) | undefined;
+  retryingError?: boolean | undefined;
   approvals?: readonly PendingApproval[] | undefined;
   onApprovalRespond?:
     ((toolCallId: string, approved: boolean, editedArgs?: Json) => void) | undefined;
@@ -111,6 +113,8 @@ export function Transcript({
   onStop,
   onNewTopic,
   error,
+  onRetryError,
+  retryingError = false,
   approvals,
   onApprovalRespond,
   onReachTop,
@@ -201,10 +205,10 @@ export function Transcript({
     onReachTop,
   });
 
-  const tail = useMemo(
-    () => messages.filter((message) => hasVisibleTranscriptContent(message, showBotWork)),
-    [messages, showBotWork],
-  );
+  const tail = useMemo(() => {
+    const visible = messages.filter((message) => hasVisibleTranscriptContent(message, showBotWork));
+    return showBotWork ? coalesceRoutineMessages(visible, focusMessageId) : visible;
+  }, [messages, showBotWork, focusMessageId]);
   const writing = messages.at(-1)?.live === true;
   const hasApprovals = approvals !== undefined && approvals.length > 0;
 
@@ -248,6 +252,8 @@ export function Transcript({
         <ScrollShadow
           ref={scrollRef}
           data-transcript-scroll
+          size={18}
+          offset={8}
           className="min-h-0 flex-1"
           onScroll={handleScroll}
           onScrollEnd={handleScrollEnd}
@@ -255,7 +261,7 @@ export function Transcript({
           <div
             ref={contentRef}
             data-transcript-content
-            className="mx-auto flex min-h-full w-full max-w-[calc(var(--chat-column)+48px)] flex-col gap-2 px-6 py-4 [overflow-anchor:auto]"
+            className="mx-auto flex min-h-full w-full max-w-[calc(var(--chat-column)+48px)] flex-col gap-2 px-6 pt-2 pb-4 [overflow-anchor:auto]"
           >
             {!historyLoaded && error == null ? <ConversationLoading /> : null}
             {historyLoaded &&
@@ -341,7 +347,12 @@ export function Transcript({
       <footer className="crewaid-transcript-footer shrink-0 pb-4">
         {error ? (
           <div className="mx-auto w-full max-w-[calc(var(--chat-column)+48px)] px-(--transcript-gutter)">
-            <ErrorBanner message={error.message} explanation={error.explanation} />
+            <ErrorBanner
+              message={error.message}
+              explanation={error.explanation}
+              onRetry={onRetryError}
+              retrying={retryingError}
+            />
           </div>
         ) : null}
         {aboveComposer}

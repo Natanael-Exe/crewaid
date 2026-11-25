@@ -33,7 +33,7 @@ export const settings = {
   'settings.general.conversations.title': 'Conversations',
   'settings.general.showBotWork.label': 'Show thinking and actions',
   'settings.general.showBotWork.description':
-    'Every bot’s reasoning and the actions it took, between its messages. Off, you see what it said, and it still shows while a bot is thinking or working.',
+    'Every bot’s reasoning and routine actions between its messages. Off, you only see what it said and the deliverables it produced, while still showing when a bot is thinking or working.',
   'settings.general.serverVersion': 'Server version {version}',
   'settings.general.serverBehind':
     'This app is {app}, newer than the server. To update the server, run <code>npx crewaid-selfhost update</code> on the machine that hosts it.',

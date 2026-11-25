@@ -125,17 +125,32 @@ describe('Transcript', () => {
     expect(html).toContain('title="Today 4:19 PM"');
   });
 
-  it('hides the time and copy button until the message is hovered', () => {
+  it('hides the time and copy button until the message is hovered, inside a floating side pill', () => {
     // Revealed rather than conditionally rendered, so nothing resizes as the
     // pointer crosses the transcript. The hover group belongs to the bubble:
     // a turn may contain several independently actionable bubbles.
-    const html = transcript([message({ parts: [{ type: 'text', text: 'hi' }] })]);
+    const html = transcript([
+      message({ author: 'BOT', parts: [{ type: 'text', text: 'hi' }] }),
+      message({ id: 'clxaaaaaaaaaaaaaaaaaaaa2', author: 'USER', parts: [{ type: 'text', text: 'yo' }] }),
+    ]);
     expect(html).toContain('data-copy-message');
     expect(html).toContain('group/bubble');
     expect(html).toContain('opacity-0');
     expect(html).toContain('group-hover/bubble:opacity-100');
     // And for the keyboard, which cannot hover.
     expect(html).toContain('group-focus-within/bubble:opacity-100');
+    expect(html).toContain('crewaid-bubble-footer-pill');
+    expect(html).toContain('data-footer-side="end"');
+    expect(html).toContain('data-footer-side="start"');
+    expect(html).toContain('data-footer-tone="bot"');
+    expect(html).toContain('data-footer-tone="user"');
+    expect(html).toContain('bg-message-bot');
+    expect(html).toContain('bg-message-user');
+    // Copy sits closest to the bubble edge on both sides (before time on bot, after time on user).
+    const botPill = html.slice(html.indexOf('data-footer-tone="bot"'), html.indexOf('data-footer-side="start"'));
+    expect(botPill.indexOf('data-copy-message')).toBeLessThan(botPill.indexOf('4:19 PM'));
+    const userPill = html.slice(html.indexOf('data-footer-tone="user"'));
+    expect(userPill.indexOf('4:19 PM')).toBeLessThan(userPill.indexOf('data-copy-message'));
   });
 
   it('puts one copy action on each speech bubble, not at the bottom of the turn', () => {
@@ -161,6 +176,33 @@ describe('Transcript', () => {
   it('renders a turn that only acted with no bubble at all', () => {
     const html = transcript([message({ parts: [{ type: 'tool-activity', calls: [] }] })]);
     expect(html).not.toContain('data-message-bubble');
+  });
+
+  it('hides messages that only contain leaked model control directives like budget:token_budget', () => {
+    const html = transcript([
+      message({
+        parts: [{ type: 'text', text: '<budget:token_budget>200000</budget:token_budget>' }],
+      }),
+    ]);
+    expect(html).not.toContain('data-message-bubble');
+    expect(html).not.toContain('token_budget');
+    expect(html).not.toContain('[blocked]');
+  });
+
+  it('strips leaked budget directives from mixed bot replies without rendering [blocked]', () => {
+    const html = transcript([
+      message({
+        parts: [
+          {
+            type: 'text',
+            text: 'Payment received.\n\n<budget:token_budget>200000</budget:token_budget>',
+          },
+        ],
+      }),
+    ]);
+    expect(html).toContain('Payment received.');
+    expect(html).not.toContain('token_budget');
+    expect(html).not.toContain('[blocked]');
   });
 });
 

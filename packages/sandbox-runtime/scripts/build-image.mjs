@@ -43,6 +43,7 @@ import { Runtime } from 'withruntime';
 
 const IMAGE_NAME = 'crewaid-sandbox';
 const BRIDGE_PORT = 7070;
+const REQUEST_TIMEOUT_MS = 15 * 60_000;
 // The provider's RUNTIME_START_COMMAND; its tests read this file to keep the two equal.
 const START_COMMAND = '/usr/local/bin/crewaid-runtime-start';
 const USAGE =
@@ -99,7 +100,10 @@ const image = await runtime.images.build(
       readyTimeoutSeconds: 180,
     },
   },
-  { onLog: (line) => process.stdout.write(`${line.text}\n`) },
+  {
+    onLog: (line) => process.stdout.write(`${line.text}\n`),
+    timeoutMs: REQUEST_TIMEOUT_MS,
+  },
 );
 
 function builderSize() {

@@ -7,8 +7,13 @@ import { describeToolAsk } from './toolPhrase';
 import { toolMark } from '../attachments/artifactMarks';
 import { ResourcePreview } from './ResourcePreview';
 import { resourcePreview } from './resourcePresentation';
-import { ToolCard, ToolFields } from './ToolCard';
-import { previewFields, toolPresentation } from './toolPresentation';
+import { InternalPathHint, ToolCard, ToolFields } from './ToolCard';
+import {
+  isInternalWorkspacePath,
+  previewFields,
+  toolFilePath,
+  toolPresentation,
+} from './toolPresentation';
 import { useT } from '../../i18n/i18n';
 
 /** Native pending interrupts supply the captured binding; answers use the existing handler. */
@@ -67,6 +72,9 @@ export function ApprovalPrompt({
   const fields = previewFields(reviewArgs);
   const review = approval.binding.commit?.review;
   const ask = describeToolAsk(approval.toolName, approval.args);
+  const filePath = toolFilePath(reviewArgs);
+  const internalPath =
+    filePath !== undefined && isInternalWorkspacePath(filePath) ? filePath : undefined;
   const script = scriptUnderReview(approval.toolName, approval.args);
   const full = approval.args === undefined ? '' : safeJson(approval.args, 2);
   const answered = approval.answered;
@@ -116,9 +124,10 @@ export function ApprovalPrompt({
         ask.detail === null ||
         (presentation.kind === 'connection' && fields.length > 0) ? null : (
           <div
-            className={`mt-1 break-words text-footnote opacity-70 ${ask.detailIsCode ? 'crewaid-code font-mono' : ''}`}
+            className={`mt-1 flex flex-wrap items-center gap-1.5 break-words text-footnote opacity-70 ${ask.detailIsCode ? 'crewaid-code font-mono' : ''}`}
           >
-            {truncateForDisplay(ask.detail, DETAIL_CHARS)}
+            <span>{truncateForDisplay(ask.detail, DETAIL_CHARS)}</span>
+            {internalPath === undefined ? null : <InternalPathHint path={internalPath} />}
           </div>
         )}
 

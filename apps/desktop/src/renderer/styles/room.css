@@ -398,11 +398,16 @@
   line-height: 1;
   white-space: nowrap;
 }
+[data-transcript-content] {
+  container: transcript / inline-size;
+}
 .crewaid-bubble-wrap {
-  max-width: min(100%, 520px);
+  /* Leave enough trailing room on standard desktop widths so the floating
+     frosted side pill sits cleanly beside stacked bubbles without clipping. */
+  max-width: min(calc(100% - 136px), 500px);
 }
 .crewaid-bubble-wrap:has([data-message-bubble='user']) {
-  max-width: min(88%, 420px);
+  max-width: min(calc(100% - 136px), 420px);
 }
 /* Bubbles separate by tone (paper vs slate), not by outline. */
 [data-message-bubble] {
@@ -412,8 +417,60 @@
 [data-message-bubble='bot'] {
   box-shadow: 0 1px 3px oklch(21.5% 0.044 290 / 0.05);
 }
+/* Teammate messages keep the same smooth 20px pill silhouette as regular bot
+   bubbles — avoiding the tapered crescent artifact of a single-side border on
+   rounded corners — and separate via a whisper-soft tint and hairline ring. */
+[data-message-bubble='bot'][data-from-bot='true'] {
+  background: color-mix(in oklab, var(--peer-accent) 4.5%, var(--message-bot));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--peer-accent) 24%, transparent),
+    0 1px 3px oklch(21.5% 0.044 290 / 0.05);
+}
+[data-theme='crewaid-dark'] [data-message-bubble='bot'][data-from-bot='true'] {
+  background: color-mix(in oklab, var(--peer-accent) 12%, var(--message-bot));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--peer-accent) 34%, transparent),
+    0 1px 3px oklch(0% 0 0 / 0.18);
+}
 [data-message-bubble]:not([data-voice-note]) {
   border-radius: 20px;
+}
+/* Compact inline pill replacing raw `/home/bot/...` paths in chat prose. */
+.crewaid-inline-path.button {
+  display: inline-flex;
+  align-items: baseline;
+  height: auto;
+  min-height: 0;
+  min-width: 0;
+  padding: 1px 6px;
+  margin-inline: 1px;
+  border-radius: 6px;
+  background: var(--default);
+  color: var(--foreground);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.875em;
+  font-weight: 400;
+  line-height: 1.35;
+  vertical-align: baseline;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: underline dotted color-mix(in oklab, var(--muted) 75%, transparent);
+  text-underline-offset: 2px;
+  transform: none;
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+.crewaid-inline-path.button[data-path-kind='generic'] {
+  font-family: var(--font-sans);
+  color: var(--muted);
+}
+.crewaid-inline-path.button:is(:hover, [data-hovered='true']) {
+  background: color-mix(in oklab, var(--foreground) 10%, transparent);
+  color: var(--foreground);
+}
+.crewaid-inline-path.button[data-pressed='true'] {
+  transform: none;
 }
 [data-bot-mention] {
   color: var(--mention-ink-light);
@@ -424,14 +481,47 @@
   background: color-mix(in oklab, var(--mention-color) 26%, #101430);
 }
 .crewaid-bubble-footer {
-  transform: translateY(-2px);
+  transform: translateX(-4px);
   transition:
     opacity var(--motion-fast) var(--motion-ease),
     transform var(--motion-fast) var(--motion-ease);
 }
+.crewaid-bubble-footer[data-footer-side='start'],
+[dir='rtl'] .crewaid-bubble-footer[data-footer-side='end'] {
+  transform: translateX(4px);
+}
+[dir='rtl'] .crewaid-bubble-footer[data-footer-side='start'] {
+  transform: translateX(-4px);
+}
 .crewaid-bubble-wrap:is(:hover, :focus-within) .crewaid-bubble-footer,
 .crewaid-bubble-footer[data-transcript-open='true'] {
   transform: none;
+}
+@container transcript (max-width: 580px) {
+  .crewaid-bubble-wrap {
+    max-width: min(100%, 520px);
+  }
+  .crewaid-bubble-wrap:has([data-message-bubble='user']) {
+    max-width: min(88%, 420px);
+  }
+  /* On narrow panes, drop the frosted pill below the bubble with a top hover
+     bridge so bubbles keep full reading width without horizontal clipping. */
+  .crewaid-bubble-footer {
+    inset-block-start: 100%;
+    inset-block-end: auto;
+    padding-block-start: 4px;
+    padding-inline: 0;
+    transform: translateY(-2px);
+  }
+  .crewaid-bubble-footer[data-footer-side='end'] {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+  }
+  .crewaid-bubble-footer[data-footer-side='start'] {
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+    transform: translateY(-2px);
+  }
 }
 [data-message-bubble='user'] a {
   color: inherit;
@@ -1123,9 +1213,6 @@
   }
 }
 
-.crewaid-roster {
-  transition: height var(--motion-enter) var(--motion-ease);
-}
 .crewaid-profile-pane {
   animation: crewaid-panel-in var(--motion-enter) var(--motion-ease);
 }
@@ -1332,6 +1419,61 @@
 .crewaid-artifact-card.card {
   width: min(100%, 360px);
 }
+.crewaid-image-attachment {
+  background: var(--surface);
+  box-shadow: 0 2px 10px -2px oklch(21.5% 0.044 290 / 0.12);
+}
+.crewaid-image-attachment-ring {
+  box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.09);
+}
+[data-theme='crewaid-dark'] .crewaid-image-attachment-ring {
+  box-shadow: inset 0 0 0 1px oklch(100% 0 0 / 0.14);
+}
+.crewaid-image-attachment-caption {
+  background: linear-gradient(
+    to top,
+    oklch(12% 0.01 285 / 0.72) 0%,
+    oklch(12% 0.01 285 / 0.34) 55%,
+    transparent 100%
+  );
+}
+.crewaid-media-overlay-btn.button {
+  background: oklch(14% 0.01 285 / 0.62);
+  color: #ffffff;
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px oklch(100% 0 0 / 0.16);
+}
+.crewaid-media-overlay-btn.button:is(:hover, [data-hovered='true']) {
+  background: oklch(14% 0.01 285 / 0.8);
+  color: #ffffff;
+}
+.crewaid-file-attachment {
+  background: var(--message-bot);
+  color: var(--message-bot-foreground);
+  box-shadow: 0 1px 3px oklch(21.5% 0.044 290 / 0.05);
+}
+[data-message-attachments='user'] .crewaid-file-attachment {
+  background: var(--message-user);
+  color: var(--message-user-foreground);
+  box-shadow: none;
+}
+.crewaid-file-preview-trigger:hover {
+  background: color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+.crewaid-file-icon,
+.crewaid-file-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+.crewaid-file-icon {
+  background: var(--default);
+  color: var(--muted);
+}
 [data-message-attachments='user'] [data-audio-attachment] > .crewaid-artifact-card.card {
   background: var(--message-user);
   color: var(--message-user-foreground);
@@ -1392,11 +1534,21 @@
   margin-top: 0;
 }
 
-/* A routine action is one quiet line; its machinery lives in Details (D-215). */
+/* A routine action is one thin muted collapsible line; its machinery lives behind the arrow. */
 .crewaid-tool-line .crewaid-tool-icon,
 .crewaid-tool-line .crewaid-tool-mark {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
+}
+.crewaid-tool-line .crewaid-tool-status {
+  padding-top: 0;
+}
+.crewaid-path-hint {
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: var(--text-micro);
+  line-height: 16px;
 }
 .crewaid-tool-details {
   margin-top: 2px;

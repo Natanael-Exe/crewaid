@@ -9,7 +9,7 @@ import {
   IconInfoCircle,
   IconTrash,
 } from '@tabler/icons-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { t, useT } from '../../i18n/i18n';
 import { botAccentTokens } from '../../styles/botAccent';
 import { BotAvatar } from '../BotAvatar';
@@ -23,6 +23,7 @@ export type MessageWorkAction = 'task' | 'deliverable';
 export type MessageAction = MessageWorkAction | 'delete';
 
 export type PeerLabel = {
+  id?: string;
   name: string;
   color: string;
   avatarShape?: Bot['avatarShape'];
@@ -54,6 +55,7 @@ export function peerLabel(fromBotId: string, peers: readonly PeerSummary[] | und
   return found === undefined
     ? REMOVED_PEER
     : {
+        id: found.id,
         name: found.name,
         color: found.avatarColor,
         ...(found.avatarShape === undefined ? {} : { avatarShape: found.avatarShape }),
@@ -61,15 +63,22 @@ export function peerLabel(fromBotId: string, peers: readonly PeerSummary[] | und
       };
 }
 
-export function InterBotAttribution({ peer }: { peer: PeerLabel }) {
+export function InterBotAttribution({
+  peer,
+  onOpenPeer,
+}: {
+  peer: PeerLabel;
+  onOpenPeer?: ((botId: string) => void) | undefined;
+}) {
+  const t = useT();
   const nameColor = peer.color.startsWith('#')
     ? (() => {
         const tokens = botAccentTokens(peer.color);
         return `light-dark(${tokens['--bot-accent-ink-light']}, ${tokens['--bot-accent-ink-dark']})`;
       })()
     : peer.color;
-  return (
-    <div className="mb-1 flex items-center gap-1.5 text-micro font-semibold leading-none">
+  const content = (
+    <>
       <span data-interbot-mascot className="flex size-6 shrink-0 items-center justify-center">
         <BotAvatar
           bot={{
@@ -81,7 +90,33 @@ export function InterBotAttribution({ peer }: { peer: PeerLabel }) {
           size="sm"
         />
       </span>
-      <span style={{ color: nameColor }}>{peer.name}</span>
+      <span className="inline-flex items-baseline gap-1">
+        {peer.id === undefined ? null : (
+          <span className="font-normal text-room-muted">{t('transcript.fromPeerPrefix')}</span>
+        )}
+        <span style={{ color: nameColor }}>{peer.name}</span>
+      </span>
+    </>
+  );
+
+  if (peer.id !== undefined && onOpenPeer !== undefined) {
+    const peerId = peer.id;
+    return (
+      <button
+        type="button"
+        data-interbot-attribution={peerId}
+        title={t('mention.open', { name: peer.name })}
+        onClick={() => onOpenPeer(peerId)}
+        className="-ms-1.5 inline-flex cursor-[var(--cursor-interactive,pointer)] items-center gap-1.5 rounded-full px-1.5 py-0.5 text-caption font-semibold leading-none outline-none transition-colors hover:bg-glass/75 focus-visible:ring-2 focus-visible:ring-focus/60"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 py-0.5 text-caption font-semibold leading-none">
+      {content}
     </div>
   );
 }
@@ -90,22 +125,33 @@ export function InterBotAttribution({ peer }: { peer: PeerLabel }) {
  * Message overflow menu: task/deliverable creation and deletion all operate on
  * the whole message and open a confirmation/editor dialog before mutating.
  */
-export function MessageWorkMenu({ onAction }: { onAction: (action: MessageAction) => void }) {
+export function MessageWorkMenu({
+  onAction,
+  isUser = false,
+  onOpenChange,
+}: {
+  onAction: (action: MessageAction) => void;
+  isUser?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const t = useT();
   return (
-    <Dropdown>
+    <Dropdown {...(onOpenChange === undefined ? {} : { onOpenChange })}>
       <Dropdown.Trigger
         aria-label={t('transcript.more')}
         data-message-menu
-        // A ghost icon button sized to the 20px footer. Not HeroUI's `.button`:
-        // its press transform kept the trigger moving inside a footer that is
+        // A ghost icon button sized to the floating pill. Not HeroUI's `.button`:
+        // its press transform kept the trigger moving inside a pill that is
         // itself fading in, and the trigger is already a button, so nesting a
         // HeroUI Button inside it would nest interactive elements.
         className="flex size-5 items-center justify-center rounded-full text-muted outline-none data-[hovered]:bg-default data-[hovered]:text-foreground data-[focus-visible]:ring-2 data-[focus-visible]:ring-focus/40"
       >
         <IconDots aria-hidden className="size-3.5" stroke={1.8} />
       </Dropdown.Trigger>
-      <Dropdown.Popover placement="bottom start" className="min-w-[200px] rounded-xl">
+      <Dropdown.Popover
+        placement={isUser ? 'bottom end' : 'bottom start'}
+        className="min-w-[200px] rounded-xl"
+      >
         <Dropdown.Menu
           aria-label={t('transcript.more')}
           onAction={(key) => {
@@ -165,6 +211,7 @@ export function BubbleFooter({
   const t = useT();
   const [copied, setCopied] = useState(false);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -185,62 +232,99 @@ export function BubbleFooter({
     });
   };
 
+  const pinnedOpen = transcriptOpen || menuOpen;
+
+  const timestampNode = (
+    <span className="px-0.5 text-micro leading-none tabular-nums text-muted" title={title}>
+      {timeLabel}
+    </span>
+  );
+  const voiceTranscriptNode =
+    showTranscript && text.trim() !== '' ? (
+      <Popover isOpen={transcriptOpen} onOpenChange={setTranscriptOpen}>
+        <Popover.Trigger
+          data-voice-transcript-trigger
+          aria-label={t('transcript.voice.show')}
+          title={t('transcript.voice.show')}
+          className="flex size-5 items-center justify-center rounded-full text-muted outline-none data-[hovered]:bg-default data-[hovered]:text-foreground data-[focus-visible]:outline-2 data-[focus-visible]:outline-focus/60"
+        >
+          <IconInfoCircle aria-hidden className="size-3.5" stroke={1.8} />
+        </Popover.Trigger>
+        <Popover.Content
+          placement={isUser ? 'top end' : 'top start'}
+          className="w-[360px] max-w-[calc(100vw-32px)] rounded-xl"
+        >
+          <Popover.Dialog aria-label={t('transcript.voice.dialog')} className="p-3">
+            <Popover.Heading className="mb-2 text-caption font-medium text-muted">
+              {t('transcript.voice.heading')}
+            </Popover.Heading>
+            <div
+              data-voice-transcript
+              className="max-h-[min(50vh,360px)] overflow-y-auto overscroll-contain text-callout leading-[21px]"
+            >
+              {isUser ? (
+                <p className="crewaid-user-prose whitespace-pre-wrap break-words">{text}</p>
+              ) : (
+                <StreamingMarkdown source={text} />
+              )}
+            </div>
+          </Popover.Dialog>
+        </Popover.Content>
+      </Popover>
+    ) : null;
+  const copyButtonNode = (
+    <IconButtonTooltip
+      data-copy-message
+      label={copied ? t('transcript.copied') : t('transcript.copy')}
+      placement="top"
+      onPress={handleCopy}
+      className="size-5 min-w-5 rounded-full p-0 text-muted hover:text-foreground"
+    >
+      {copied ? (
+        <IconCheck aria-hidden className="size-3.5" stroke={2} />
+      ) : (
+        <IconCopy aria-hidden className="size-3.5" stroke={1.8} />
+      )}
+    </IconButtonTooltip>
+  );
+  const menuNode =
+    onAction === undefined ? null : (
+      <MessageWorkMenu onAction={onAction} isUser={isUser} onOpenChange={setMenuOpen} />
+    );
+
   return (
     <div
-      data-transcript-open={transcriptOpen || undefined}
-      className={`crewaid-bubble-footer pointer-events-none absolute top-full z-10 flex h-5 items-center gap-1.5 px-2 opacity-0 group-hover/bubble:pointer-events-auto group-hover/bubble:opacity-100 group-focus-within/bubble:pointer-events-auto group-focus-within/bubble:opacity-100 data-[transcript-open=true]:pointer-events-auto data-[transcript-open=true]:opacity-100 ${
-        isUser ? 'end-0 justify-end' : 'start-0 justify-start'
+      data-bubble-footer
+      data-footer-side={isUser ? 'start' : 'end'}
+      data-transcript-open={pinnedOpen || undefined}
+      className={`crewaid-bubble-footer pointer-events-none absolute bottom-0.5 z-20 flex items-center opacity-0 group-hover/bubble:pointer-events-auto group-hover/bubble:opacity-100 group-focus-within/bubble:pointer-events-auto group-focus-within/bubble:opacity-100 data-[transcript-open=true]:pointer-events-auto data-[transcript-open=true]:opacity-100 ${
+        isUser ? 'end-full justify-end pe-2' : 'start-full justify-start ps-2'
       }`}
     >
-      <span className="text-micro leading-none tabular-nums text-muted" title={title}>
-        {timeLabel}
-      </span>
-      {showTranscript && text.trim() !== '' ? (
-        <Popover isOpen={transcriptOpen} onOpenChange={setTranscriptOpen}>
-          <Popover.Trigger
-            data-voice-transcript-trigger
-            aria-label={t('transcript.voice.show')}
-            title={t('transcript.voice.show')}
-            className="rounded p-0.5 text-muted outline-none data-[hovered]:text-foreground data-[focus-visible]:outline-2 data-[focus-visible]:outline-focus/60"
-          >
-            <IconInfoCircle aria-hidden className="size-3.5" stroke={1.8} />
-          </Popover.Trigger>
-          <Popover.Content
-            placement={isUser ? 'top end' : 'top start'}
-            className="w-[360px] max-w-[calc(100vw-32px)] rounded-xl"
-          >
-            <Popover.Dialog aria-label={t('transcript.voice.dialog')} className="p-3">
-              <Popover.Heading className="mb-2 text-caption font-medium text-muted">
-                {t('transcript.voice.heading')}
-              </Popover.Heading>
-              <div
-                data-voice-transcript
-                className="max-h-[min(50vh,360px)] overflow-y-auto overscroll-contain text-callout leading-[21px]"
-              >
-                {isUser ? (
-                  <p className="crewaid-user-prose whitespace-pre-wrap break-words">{text}</p>
-                ) : (
-                  <StreamingMarkdown source={text} />
-                )}
-              </div>
-            </Popover.Dialog>
-          </Popover.Content>
-        </Popover>
-      ) : null}
-      <IconButtonTooltip
-        data-copy-message
-        label={copied ? t('transcript.copied') : t('transcript.copy')}
-        placement="top"
-        onPress={handleCopy}
-        className="size-5 min-w-5 rounded p-0.5 text-muted hover:text-foreground"
+      <div
+        data-footer-tone={isUser ? 'user' : 'bot'}
+        className={`crewaid-bubble-footer-pill flex h-7 items-center gap-1 whitespace-nowrap rounded-full border border-glass-border-subtle px-2 backdrop-blur-md ${
+          isUser
+            ? 'bg-message-user text-message-user-foreground'
+            : 'bg-message-bot text-message-bot-foreground shadow-surface'
+        }`}
       >
-        {copied ? (
-          <IconCheck aria-hidden className="size-3.5" stroke={2} />
+        {isUser ? (
+          <>
+            {timestampNode}
+            {menuNode}
+            {voiceTranscriptNode}
+            {copyButtonNode}
+          </>
         ) : (
-          <IconCopy aria-hidden className="size-3.5" stroke={1.8} />
+          <>
+            {copyButtonNode}
+            {voiceTranscriptNode}
+            {menuNode}
+            {timestampNode}
+          </>
         )}
-      </IconButtonTooltip>
-      {onAction === undefined ? null : <MessageWorkMenu onAction={onAction} />}
+      </div>
     </div>
   );
 }
@@ -274,13 +358,16 @@ export function Bubble({
         <div
           data-message-bubble={isUser ? 'user' : 'bot'}
           data-from-bot={peer === undefined ? undefined : 'true'}
-          className={`whitespace-pre-wrap break-words rounded-message px-[18px] py-3 text-body leading-[23px] ${
+          className={`break-words rounded-message px-[18px] py-3 text-body leading-[23px] ${
             isUser
               ? 'bg-message-user text-message-user-foreground'
               : 'bg-message-bot text-message-bot-foreground'
           }`}
-          // Inline-start accent separates a teammate's message without repainting the bubble.
-          style={peer === undefined ? undefined : { borderInlineStart: `3px solid ${peer.color}` }}
+          // Peer accent drives the soft surface tint and uniform hairline ring in CSS
+          // without putting a single-side border on a 20px rounded corner.
+          style={
+            peer === undefined ? undefined : ({ '--peer-accent': peer.color } as CSSProperties)
+          }
         >
           {children}
         </div>

@@ -42,9 +42,13 @@ export function ConversationLoading() {
 export function ErrorBanner({
   message,
   explanation,
+  onRetry,
+  retrying = false,
 }: {
   message: string;
   explanation?: ProviderExplanation | undefined;
+  onRetry?: (() => void) | undefined;
+  retrying?: boolean | undefined;
 }) {
   const t = useT();
   return (
@@ -52,10 +56,10 @@ export function ErrorBanner({
       status="danger"
       role="alert"
       data-transcript-error
-      className="mb-2 rounded-message text-footnote leading-[19px]"
+      className="mb-2 items-center rounded-message text-footnote leading-[19px]"
     >
       <Alert.Indicator />
-      <Alert.Content className="min-w-0 select-text">
+      <Alert.Content className="min-w-0 flex-1 select-text">
         <Alert.Description className="text-footnote leading-[19px] text-foreground">
           <p>{message}</p>
           {explanation ? (
@@ -65,6 +69,18 @@ export function ErrorBanner({
           ) : null}
         </Alert.Description>
       </Alert.Content>
+      {onRetry === undefined ? null : (
+        <Button
+          variant="secondary"
+          size="sm"
+          isDisabled={retrying}
+          onPress={onRetry}
+          data-transcript-retry
+          className="h-7 shrink-0 self-center rounded-full px-3 text-caption font-medium"
+        >
+          {t('transcript.tryAgain')}
+        </Button>
+      )}
     </Alert>
   );
 }

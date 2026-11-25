@@ -1,4 +1,6 @@
-import { isPartOutput, type AnyPart } from '../components/PartRenderer';
+import { stripModelControlTags } from '@crewaid/shared';
+import { isPartOutput, partField, type AnyPart } from '../components/PartRenderer';
+import { isFoldedToolPart, type FoldedToolPart } from '../components/tools/toolParts';
 import { isBotWorkPart } from './transcriptPrefs';
 import { incompleteReason, type TranscriptMessage } from './viewTypes';
 
@@ -38,7 +40,7 @@ const SPEECH_TYPES: ReadonlySet<string> = new Set(['text']);
 /** A part's text, or '' for a part that carries none. Also what Copy copies. */
 export function textOfPart(part: AnyPart): string {
   const text = (part as { text?: unknown }).text;
-  return typeof text === 'string' ? text : '';
+  return typeof text === 'string' ? stripModelControlTags(text) : '';
 }
 
 export function toTranscriptRows(parts: readonly AnyPart[]): TranscriptRow[] {
@@ -78,4 +80,80 @@ export function hasVisibleTranscriptContent(
   if ((message.attachments?.length ?? 0) > 0 || incompleteReason(message.stopReason) !== null)
     return true;
   return toTranscriptRows(message.parts).some((row) => isRowVisible(row, showWork));
+}
+
+function routineCallsOnly(message: TranscriptMessage): FoldedToolPart[] | null {
+  if (
+    message.author !== 'BOT' ||
+    message.live === true ||
+    message.startsTopic === true ||
+    message.taskId !== undefined ||
+    (message.attachments?.length ?? 0) > 0 ||
+    incompleteReason(message.stopReason) !== null
+  ) {
+    return null;
+  }
+  const rows = toTranscriptRows(message.parts);
+  if (rows.length === 0) return null;
+  const collected: FoldedToolPart[] = [];
+  for (const row of rows) {
+    if (row.kind !== 'aside') return null;
+    if (isPartOutput(row.part)) return null;
+    if (row.part.type === 'tool-activity') {
+      const calls = partField(row.part, 'calls');
+      if (!Array.isArray(calls)) return null;
+      const valid = calls.filter(isFoldedToolPart);
+      if (valid.length === 0) return null;
+      collected.push(...valid);
+    } else if (isFoldedToolPart(row.part)) {
+      collected.push(row.part);
+    } else {
+      return null;
+    }
+  }
+  return collected.length > 0 ? collected : null;
+}
+
+/**
+ * When "Show thinking and actions" is enabled, merge adjacent purely-routine-tool
+ * bot messages between speech bubbles into one collapsed `tool-activity` row so a
+ * multi-step tool stretch renders as one "N actions" line rather than N stacked rows.
+ */
+export function coalesceRoutineMessages(
+  messages: readonly TranscriptMessage[],
+  focusMessageId?: string | null,
+): TranscriptMessage[] {
+  const out: TranscriptMessage[] = [];
+  let pending: { message: TranscriptMessage; calls: FoldedToolPart[] } | null = null;
+
+  const flush = () => {
+    if (pending === null) return;
+    out.push({
+      ...pending.message,
+      parts: [{ type: 'tool-activity', calls: pending.calls }],
+    });
+    pending = null;
+  };
+
+  for (const message of messages) {
+    const routine =
+      focusMessageId != null && message.id === focusMessageId ? null : routineCallsOnly(message);
+    if (routine === null) {
+      flush();
+      out.push(message);
+      continue;
+    }
+    if (
+      pending !== null &&
+      pending.message.fromBotId === message.fromBotId &&
+      pending.message.dateLabel === message.dateLabel
+    ) {
+      pending.calls.push(...routine);
+    } else {
+      flush();
+      pending = { message, calls: [...routine] };
+    }
+  }
+  flush();
+  return out;
 }

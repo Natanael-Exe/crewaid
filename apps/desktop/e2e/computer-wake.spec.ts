@@ -249,7 +249,9 @@ test('a full host reads as a full host, and the retry asks again', async () => {
     // `detail` for logs.
     await expect(page.getByText(/as many computers as it can/)).toBeVisible();
 
-    await page.getByRole('button', { name: 'Try again' }).click();
+    // Scoped to the computer's own retry: the routines panel, which this test
+    // does not serve, offers a "Try again" of its own.
+    await page.locator('[data-screen-action="retry"]').click();
 
     await expect(page.locator('[data-screen-state="live"]')).toBeVisible();
     expect(starts.urls).toHaveLength(2);

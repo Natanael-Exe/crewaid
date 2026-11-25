@@ -1,9 +1,10 @@
 import type { ChatMiddlewareContext, ModelMessage } from '@tanstack/ai';
-import { JsonSchema } from '@crewaid/shared';
+import { JsonSchema, stripModelControlTags } from '@crewaid/shared';
 import { TranscriptBodySchema } from '../persistence/transcript.js';
 import type { ClosingRunStatus } from '../persistence/owned-run-boundary.js';
 import type { TurnLimitAccount } from '../turn-limits.js';
 import { leakedToolMarkup } from './tool-markup.js';
+import type { PrivacyVault } from './privacy-vault.js';
 import type { ExecutionPorts } from './execution-backend.port.js';
 import type { RunExecutionState, TanStackExecutionPersistence } from './run-execution-state.js';
 
@@ -109,8 +110,9 @@ export function createRunCheckpointer(input: {
   readonly crashCheckpoint: CrashCheckpointTracker;
   readonly ports: Pick<ExecutionPorts, 'checkpoint'>;
   readonly threadId: string;
+  readonly vault?: PrivacyVault;
 }): RunCheckpointer {
-  const { state, persistence, limits, crashCheckpoint, ports, threadId } = input;
+  const { state, persistence, limits, crashCheckpoint, ports, threadId, vault } = input;
 
   return {
     async checkpointStep(ctx, reason) {
@@ -130,11 +132,28 @@ export function createRunCheckpointer(input: {
         usage: usageSnapshot,
       });
       const start = state.iterationStarts.get(ctx.iteration) ?? ctx.messages.length;
-      const bodies = ctx.messages
-        .slice(start)
-        .map(({ id: _id, createdAt: _date, ...body }) =>
-          JsonSchema.parse(TranscriptBodySchema.parse(body)),
-        );
+      const stepSlice = ctx.messages.slice(start);
+      const resolvedSlice = (vault === undefined ? stepSlice : vault.resolveMessages(stepSlice)).map(
+        (message) => {
+          if (message.role !== 'assistant' || message.content === null) return message;
+          if (typeof message.content === 'string') {
+            const cleaned = stripModelControlTags(message.content);
+            return cleaned === message.content ? message : { ...message, content: cleaned };
+          }
+          let changed = false;
+          const nextParts = message.content.map((part) => {
+            if (part.type !== 'text' || typeof part.content !== 'string') return part;
+            const cleaned = stripModelControlTags(part.content);
+            if (cleaned === part.content) return part;
+            changed = true;
+            return { ...part, content: cleaned };
+          });
+          return changed ? { ...message, content: nextParts } : message;
+        },
+      );
+      const bodies = resolvedSlice.map(({ id: _id, createdAt: _date, ...body }) =>
+        JsonSchema.parse(TranscriptBodySchema.parse(body)),
+      );
       await ports.checkpoint({
         stepIndex: completed,
         workingMs: limits.elapsedMs(),
