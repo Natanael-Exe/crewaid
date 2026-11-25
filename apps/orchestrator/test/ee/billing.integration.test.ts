@@ -861,7 +861,37 @@ describe.skipIf(DATABASE_URL === undefined || DATABASE_URL === '')(
       expect((await computerOf(botId)).state).toBe('STOPPED');
     });
 
-    it('never idle-stops a Pro computer, and still idle-stops a Starter one', async () => {
+    it('counts a Pro computer’s time but never stops it for hours', async () => {
+      const user = await newUser('pro-meter');
+      const period = await subscribe(user, 'pro', 'active');
+      const botId = await botFor(user);
+      await start(user, botId).expect(200);
+      // Far past any plan's hours: Pro has none to run out of.
+      await prisma.usageLedger.create({
+        data: {
+          userId: user.userId,
+          periodStart: period.start,
+          periodEnd: period.end,
+          computeSeconds: 1000 * 3600,
+        },
+      });
+      const now = new Date();
+      await prisma.sandbox.update({
+        where: { id: (await computerOf(botId)).id },
+        data: {
+          lastStartedAt: new Date(now.getTime() - 120_000),
+          meteredAt: new Date(now.getTime() - 60_000),
+        },
+      });
+      await app.get(SandboxMeterService).sweep(now);
+      expect((await computerOf(botId)).state).toBe('RUNNING');
+      const ledger = await prisma.usageLedger.findFirstOrThrow({
+        where: { userId: user.userId, periodStart: period.start },
+      });
+      expect(ledger.computeSeconds).toBeGreaterThan(1000 * 3600);
+    });
+
+    it('idle-stops a Pro computer like a Starter one', async () => {
       const pro = await newUser('pro-idle');
       const starter = await newUser('starter-idle');
       await subscribe(pro, 'pro', 'active');
@@ -892,7 +922,7 @@ describe.skipIf(DATABASE_URL === undefined || DATABASE_URL === '')(
       else process.env['SANDBOX_IDLE_STOP_MS'] = previous;
 
       await idle.sweep();
-      expect((await computerOf(proBot)).state).toBe('RUNNING');
+      expect((await computerOf(proBot)).state).toBe('STOPPED');
       expect((await computerOf(starterBot)).state).toBe('STOPPED');
     });
 

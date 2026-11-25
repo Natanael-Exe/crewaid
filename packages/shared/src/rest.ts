@@ -1152,8 +1152,10 @@ export type UsageResponse = z.infer<typeof UsageResponseSchema>;
  * Prices are what Stripe charges and are only displayed from here: the amount
  * a customer pays is the Stripe price the server is configured with, so a
  * change of price is a change in both. Limits are per billing period and do not
- * roll over. `null` hours means no limit, and that plan's computer is never
- * stopped for being idle.
+ * roll over. `null` hours means no limit: the time is still counted, so a
+ * lapsed plan stops its computer and usage stays visible, but never capped.
+ * Every plan stops an idle computer — a wake costs seconds, while a computer
+ * left on all month costs more than Pro's price — and routines wake it again.
  *
  * `trial` is Starter's first seven days, bought for $1 once per account.
  * `internal` is an admin account's (`User.role = 'admin'`, set in the
@@ -1194,7 +1196,7 @@ export const BILLING_PLANS = {
     listenMinutes: 1200,
     speakMinutes: 120,
     callMinutes: 30,
-    idleStop: false,
+    idleStop: true,
   },
   internal: {
     label: 'Internal',
