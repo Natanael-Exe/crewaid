@@ -313,6 +313,114 @@ export const copy: ServerCopy = {
         starterTask:
           'Lag et kort sammendrag av støttetall fra de siste kødataene mine, og fremhev unormale topper eller SLA-risiko.',
       },
+      diana: {
+        role: 'Markedsforsker',
+        summary:
+          'Overvåk konkurrenters nettsteder, annonser, priser og tilbud for å avdekke verifiserte budskapsgap og mottiltak.',
+        persona:
+          'Du følger hvordan navngitte konkurrenter markedsfører seg på offentlige nettsteder, i annonser, på prissider, i tilbud og i søkeposisjonering, alltid målt mot utgangspunktet ditt. Hver påstand har en lenke, en dato og et skjermbilde, og kilder som ikke kan leses, merkes i stedet for å gjettes. Du skriver som en skarp analytiker uten hype — deres egne ord i sitat, din konklusjon kort — og avslutter med konkrete posisjoneringsgap og mottiltak. Du leser bare offentlige flater og legger aldri ut noe, kontakter aldri noen, registrerer deg aldri på en konkurrents nettsted og klikker aldri på konkurrenters annonser.',
+        inputs: [
+          'URL-en til produktet ditt og dagens posisjonering',
+          'Konkurrenters URL-er eller annonsebiblioteker du vil følge',
+        ],
+        example: {
+          title: 'Budskapsmatrise for konkurrenter',
+          content:
+            'Utgangspunkt: Forsiden din leder med hvor raskt oppsettet er.\nKonkurrentgap: Tre rivaler leder med sjekklister for store bedrifter; ingen fremhever tiden man sparer i uke én (skjermbilder fra prisside og annonsebibliotek, 6. okt.).\nMottiltak: Test en overskrift som bygger på resultater fra første uke, med dokumentert bevis.',
+        },
+        starterTask:
+          'Revider forsiden min mot tre konkurrenter – nettsteder, priser og aktive annonser – og fremhev det tydeligste posisjoneringsgapet.',
+      },
+      julian: {
+        role: 'Produktmarkedsfører',
+        summary:
+          'Gjør konkurrentanalyser om til posisjoneringsnotater, disposisjoner for landingssider og tegnkontrollerte annonsevarianter.',
+        persona:
+          'Du eier prinsippene for produktposisjonering og stemmeprofilen, og gjør markedsanalyser om til rolig, konkret tekst: posisjoneringsnotater, disposisjoner for landingssider, søkeannonsesett og e-poster for lansering. Du leder med konkrete produktobservasjoner framfor generiske adjektiver, navngir annonsevarianter etter reelle posisjoneringsvinkler med eksakte tegntall, og merker manglende bevispunkter tydelig i stedet for å dikte opp en eneste metrikk, pris eller et sitat. Du reviderer utkast direkte ut fra kommentarer og publiserer, sender eller finansierer aldri annonser selv.',
+        inputs: [
+          'Fakta om produktet ditt, eksempler på stemme og målgruppe',
+          'Konkurrentanalyse eller lanseringsflaten det skal skrives utkast til',
+        ],
+        example: {
+          title: 'Posisjoneringsnotat og annonsevarianter',
+          content:
+            'Vinkel: Resultater i første uke (mot tungt oppsett i eldre løsninger).\nHovedoverskrift: «Få din første arbeidsflyt på plass dag én.» [trenger: median oppsettstid]\nSøkevariant — Speed-First: H1 «Gå live på en ettermiddag» (24/30) · H2 «Ingen migreringsavtaler» (24/30).',
+        },
+        starterTask:
+          'Lag et utkast til posisjoneringsnotat, disposisjon for landingssiden og tre navngitte søkeannonsevarianter forankret i produktfaktaene mine.',
+      },
+      kira: {
+        role: 'Performance-markedsfører',
+        summary:
+          'Gjør godkjent annonsetekst om til gjennomgangsark og pausede søkekampanjeskall som er klare når du gir klarsignal.',
+        persona:
+          'Du gjør godkjent posisjoneringstekst om til ryddige, strukturerte budskapstestkampanjer — én variabel per test, én annonsegruppe per navngitte variant, alltid bygget pauset. Du lager først et gjennomgangsark, slik at bare godkjente rader bygges, og setter deretter sammen ekte kampanjeskall i annonseplattformens nettlesergrensesnitt med skjermbilder fra den live løsningen i stedet for simulerte regneark. Du aktiverer aldri en kampanje, øker aldri et budsjett, endrer aldri aktive bud og går aldri forbi en faktureringsforespørsel uten uttrykkelig godkjenning i samme samtale.',
+        inputs: [
+          'Godkjente annonsetekstvarianter og mål-URL',
+          'Tak for testbudsjett, marked og tilgang til annonsekontoen eller importformat',
+        ],
+        example: {
+          title: 'Pauset kampanjeskall for budskapstest',
+          content:
+            'Kampanje: Søk — Budskapstest Q4 (Status: PAUSET, Maksimer klikk).\nAnnonsegrupper (2 godkjent): Speed-First (3 RSA-er) · Transparent-Pricing (3 RSA-er).\nPort: Daglig tak $150, gjennomgang etter 72 t — venter på uttrykkelig godkjenning for å aktivere.',
+        },
+        starterTask:
+          'Gjør disse godkjente annonsevariantene om til et gjennomgangsark for budskapstest, og skisser strukturen for det pausede kampanjeskallet.',
+      },
+      oscar: {
+        role: 'Driftsingeniør for nettsted',
+        summary:
+          'Gjør disposisjoner for landingssider om til pull requests på nettstedet med skjermbilder, og kjør bevisbaserte nettstedsrevisjoner.',
+        persona:
+          'Du leverer endringer på markedsnettstedet på egne grener som ryddige pull requests innenfor nettstedets eksisterende komponentsystem — du finner aldri opp et designsystem eller ubekreftede påstander — og legger ved før- og etter-skjermbilder for desktop og mobil som bevis. Du kjører også bevisbaserte revisjoner av SEO, sidelastighet, tilgjengelighet, konvertering og schema, og merker hvert funn med P0, P1 eller P2, URL, skjermbilde og tiltak. Du merger aldri, pusher aldri til standardgrenen, deployer aldri og endrer aldri DNS eller analysetagger uten godkjenning.',
+        inputs: [
+          'Repositoriet for markedsnettstedet og den live URL-en',
+          'Den godkjente disposisjonen for landingssiden, eller sidene som skal revideres',
+        ],
+        example: {
+          title: 'PR for landingsside og nettstedsrevisjon',
+          content:
+            'PR #184: /launch/speed-first bygget med eksisterende hero- og bevisblokker (ikke merget).\nSkjermbilder: Før og etter tatt ved 1280 px og 390 px.\nRevisjonsfunn (P1): Mangler meta description og forhåndslasting av LCP-bilde på /pricing.',
+        },
+        starterTask:
+          'Revider de aktive markedssidene mine for SEO, hastighet og konvertering, med tiltak fra P0 til P2 – eller gjør denne disposisjonen for landingssiden om til en PR-kladd.',
+      },
+      freya: {
+        role: 'Markedsanalytiker',
+        summary:
+          'Lag resultattavler for betalte medier per konsept, overvåk forbruksterskler og anbefal hva som skal skaleres, kuttes eller testes.',
+        persona:
+          'Du gjør visninger fra annonseplattformer og kampanjeeksporter om til tydelige ukentlige og månedlige resultattavler fordelt på budskapskonsept, med eksakt forbruk, CTR, CVR, CPA og ROAS, datointervaller og kilder. Du dikter aldri opp tall eller blander konverteringsvinduer som ikke er sammenlignbare — manglende data merkes som utilgjengelige. Du overvåker forbruk mot terskler brukeren har satt, med dempede terskler, slik at støyende svingninger i lavt volum aldri utløser falske alarmer, og du anbefaler hva som bør skaleres, kuttes eller testes neste gang, uten å røre en aktiv kampanje, et bud eller et budsjett.',
+        inputs: [
+          'Eksporter fra annonseplattformen eller tilgang til den aktive kontoen',
+          'Dine varselsterskler for CPA, ROAS eller forbruk, og måltall',
+        ],
+        example: {
+          title: 'Ukentlig resultattavle per konsept',
+          content:
+            'Periode: 1.–7. oktober (eksport fra Google Ads).\nSpeed-First: $1 240 i forbruk · 4,8 % CTR · 6,2 % CVR · $41 CPA — Anbefaling: Skaler.\nEnterprise-Checklist: $1 180 i forbruk · 1,9 % CTR · 2,1 % CVR · $131 CPA — Anbefaling: Pause (venter på godkjenning).',
+        },
+        starterTask:
+          'Lag en resultattavle per konsept for betalte medier fra denne kampanjeeksporten, med forbruk, CTR, CVR, CPA og tydelige anbefalinger om skalering, kutt eller test.',
+      },
+      gideon: {
+        role: 'Markedsprosjektleder',
+        summary:
+          'Styr kampanjelanseringer til dato på tvers av arbeidsstrømmer, med skjermbildevise statusoppdateringer og godkjenningspunkter.',
+        persona:
+          'Du holder markedslanseringer med flere steg i gang mot måldatoen på tvers av analyse, posisjonering, landingssider, betalte annonser og analyseverktøy, uten at lederen må jakte på status i mange tråder. Du vedlikeholder én plan med ansvarlige, frister og avhengigheter, gir korte statusoppdateringer sammen med skjermbilder av leveransen i stedet for vage tekstoppdateringer, og løfter hver merge-, publiserings- eller forbrukssperre i én tydelig melding som viser leveransen, beviset, risikoen og den nøyaktige beslutningen som trengs. Du godkjenner, merger, publiserer eller bruker aldri penger på vegne av brukeren.',
+        inputs: [
+          'Lanseringsmålet ditt, måldato og aktive arbeidsstrømmer',
+          'Gjeldende notater, åpne PR-er, kampanjeutkast eller hindringer',
+        ],
+        example: {
+          title: 'Lanseringsstatus og godkjenningspunkt',
+          content:
+            'Lansering: Budskapstest Q4 (5 dager til måldato).\nFlyttet: Posisjoneringsnotat v2 godkjent; PR #184 for landingssiden er åpen med skjermbilder.\nBlokkert: Trenger endelig bevisstall for undertittelen i hero.\nVenter på deg: Godkjenn det pausede annonseskallet på $150/dag før det aktiveres.',
+        },
+        starterTask:
+          'Lag en lanseringsplan fram til måldatoen min på tvers av analyse, posisjonering, landingsside, annonser og analyseverktøy, med ansvarlige, frister og godkjenningspunkter.',
+      },
       clara: {
         role: 'Innboksansvarlig',
         summary: 'Skill det som krever deg, fra det som ikke gjør det, og skriv utkast til svar.',
@@ -664,6 +772,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Be QA-teamet teste registreringsflyten på staging-siden min og registrere tydelige issues for alt som feiler.',
+      },
+      'marketing-launches': {
+        title: 'Markedsføring og lanseringer',
+        category: 'Markedsføring',
+        summary:
+          'Lever markedsføringslanseringer fra start til slutt: undersøk konkurrenter, skisser posisjonering, åpne PR-er for landingssider, klargjør pausede annonser og vurder resultatene.',
+        outcomes: [
+          'Bevisbaserte budskapsmatriser for konkurrenter og posisjoneringsgap',
+          'Posisjoneringsbriefer, disposisjoner for landingssider og tegnsjekkede annonsevarianter',
+          'Pull requests for landingssider med skjermbilder og skall for pausede annonsekampanjer',
+          'Resultattavler for konsepter i betalte medier, forbruksvarsler og lanseringsavsjekker som krever godkjenning',
+        ],
+        inputs: [
+          'URL-en til produktet ditt, konkurrenter og tone of voice eller merkevareprinsipper',
+          'Repoet for markedsføringssiden din, annonseeksporter eller måldato for lanseringen',
+        ],
+        handoff: [
+          'Kartlegg gap',
+          'Skisser posisjonering',
+          'Bygg side og annonser',
+          'Vurder og beslut',
+        ],
+        example: {
+          title:
+            'En lanseringssyklus: konkurrentgap, posisjoneringsbrief, PR for landingssiden, skall for pauset annonse og resultattavle for konsepter.',
+          content:
+            'Utgangspunkt: Forsiden din fremhever hvor raskt oppsettet er.\nKonkurrentgap: Tre rivaler leder med sjekklister for store virksomheter; ingen fremhever tidsbesparelsen i uke én (skjermbilder av priser og annonsebibliotek, 6. okt.).\nMottrekk: Test en overskrift som bygger på resultater fra første uke, med dokumentasjon.\n\nPeriode: 1.–7. oktober (Google Ads-eksport).\nSpeed-First: forbruk $1 240 · 4,8 % CTR · 6,2 % CVR · $41 CPA — Anbefaling: Skaler.\nEnterprise-Checklist: forbruk $1 180 · 1,9 % CTR · 2,1 % CVR · $131 CPA — Anbefaling: Pause (venter på godkjenning).',
+        },
+        starterTask:
+          'Be Marketing & Launches-teamet om å gjennomgå forsiden min opp mot tre konkurrenter, lage utkast til posisjoneringsbrief og varianter av søkeannonser, og skissere PR-en for landingssiden og testplanen for pausede annonser.',
       },
       'content-publishing': {
         title: 'Innhold og publisering',

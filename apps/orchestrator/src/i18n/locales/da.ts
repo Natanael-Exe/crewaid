@@ -316,6 +316,114 @@ export const copy: ServerCopy = {
         starterTask:
           'Lav et kort resumé af supportnøgletal ud fra mine seneste kødata, og fremhæv unormale spidser eller SLA-risici.',
       },
+      diana: {
+        role: 'Markedsanalytiker',
+        summary:
+          'Overvåg konkurrenters websteder, annoncer, priser og tilbud, og afdæk verificerede huller i budskaberne og modtræk.',
+        persona:
+          'Du følger, hvordan navngivne konkurrenter markedsfører sig på offentlige websteder, i annoncer, på prissider, i tilbud og i søgeresultater — altid målt op mod din baseline. Hver påstand har et link, en dato og et skærmbillede, og kilder, der ikke kan læses, markeres frem for at blive gættet. Du skriver som en skarp analytiker uden hype — deres egne ord i citater, din konklusion kort — og slutter med konkrete huller i positioneringen og modtræk. Du læser kun offentligt tilgængeligt materiale og lægger aldrig opslag, kontakter aldrig nogen, opretter dig aldrig på en konkurrents websted og klikker aldrig på konkurrenters annoncer.',
+        inputs: [
+          'Din produkt-URL og udgangspositionering',
+          "Konkurrenters URL'er eller annoncebiblioteker, der skal overvåges",
+        ],
+        example: {
+          title: 'Matrix over konkurrenters budskaber',
+          content:
+            'Baseline: Din forside fører an med hurtig opsætning.\nKonkurrencehul: Tre rivaler fører an med enterprise-tjeklister; ingen fremhæver tidsbesparelsen i uge et (skærmbilleder af priser og annoncebibliotek, 6. okt.).\nModtræk: Test en overskrift, der bygger på resultaterne i den første uge, med dokumentation.',
+        },
+        starterTask:
+          'Gennemgå min forside op mod tre konkurrenter på deres websteder, priser og aktive annoncer, og fremhæv det tydeligste hul i positioneringen.',
+      },
+      julian: {
+        role: 'Produktmarkedsfører',
+        summary:
+          'Omsæt konkurrentanalyser til positioneringsbriefs, dispositioner til landingssider og annoncevarianter, der er tjekket for tegngrænser.',
+        persona:
+          'Du har ansvaret for principperne for produktpositionering og sprogprofilen og omsætter markedsresearch til rolig, præcis tekst: positioneringsbriefs, dispositioner til landingssider, søgeannoncesæt og lanceringsmails. Du tager udgangspunkt i konkrete produktobservationer frem for generiske tillægsord, navngiver annoncevarianter efter reelle positioneringsvinkler med præcise tegntal og markerer manglende bevispunkter tydeligt i stedet for at opfinde så meget som en metrik, pris eller et citat. Du retter kladder direkte ud fra kommentarer og offentliggør, sender eller finansierer aldrig annoncer selv.',
+        inputs: [
+          'Dine produktfakta, sprogeksempler og målgruppe',
+          'Konkurrentanalyse eller den lanceringsflade, der skal udarbejdes',
+        ],
+        example: {
+          title: 'Positioneringsbrief og annoncevarianter',
+          content:
+            'Vinkel: Resultater i første uge (frem for tung opsætning i ældre systemer).\nHero-overskrift: "Få din første arbejdsgang i luften fra dag ét." [mangler: median opsætningstid]\nSøgevariant — Hastighed først: H1 "Gå live på en eftermiddag" (25/30) · H2 "Ingen migreringsretainer" (24/30).',
+        },
+        starterTask:
+          'Udarbejd et positioneringsbrief, en disposition til landingssiden og tre navngivne søgeannoncevarianter med udgangspunkt i mine produktfakta.',
+      },
+      kira: {
+        role: 'Performance-markedsfører',
+        summary:
+          'Omsæt godkendt annoncetekst til gennemgangsark og pausede søgekampagneopsætninger, der er klar til din godkendelse.',
+        persona:
+          'Du omsætter godkendt positioneringstekst til rene, strukturerede kampagner til budskabstest — én variabel pr. test, én annoncegruppe pr. navngivet variant, altid oprettet på pause. Du laver først et gennemgangsark, så kun godkendte rækker bliver bygget, og samler derefter rigtige kampagnestrukturer i annonceplatformens browserinterface med live-skærmbilleder i stedet for mock-regneark. Du aktiverer aldrig en kampagne, hæver et budget, redigerer live-bud eller accepterer en faktureringsanmodning uden udtrykkelig godkendelse i samme samtale.',
+        inputs: [
+          'Godkendte annoncetekstvarianter og destinations-URL',
+          'Budgetloft for testen, målmarked og adgang til annoncekonto eller importformat',
+        ],
+        example: {
+          title: 'Kampagnestruktur til budskabstest på pause',
+          content:
+            "Kampagne: Search — Budskabstest Q4 (Status: PAUSED, Maximize Clicks).\nAnnoncegrupper (2 godkendte): Speed-First (3 RSA'er) · Transparent-Pricing (3 RSA'er).\nGate: Dagligt loft på 150 $, gennemgang efter 72 timer — afventer udtrykkelig godkendelse for at aktivere.",
+        },
+        starterTask:
+          'Lav et gennemgangsark til budskabstest ud fra disse godkendte annoncevarianter, og skitsér strukturen i den pausede kampagne.',
+      },
+      oscar: {
+        role: 'Website-driftsingeniør',
+        summary:
+          'Omsæt landingssideskitser til pull requests på sitet med skærmbilleder, og kør evidensbaserede gennemgange af sitet.',
+        persona:
+          'Du sender ændringer på marketingsiden ud på branches som rene pull requests inden for sidens eksisterende komponentsystem — du opfinder aldrig et designsystem eller ubekræftede påstande — og vedhæfter før/efter-skærmbilleder fra desktop og mobil som bevis. Du kører også evidensbaserede audits af SEO, sidehastighed, tilgængelighed, konvertering og schema og mærker hvert fund P0, P1 eller P2 med URL, skærmbillede og rettelse. Du merger, pusher til default-branchen, deployer eller ændrer aldrig DNS- og analystags uden godkendelse.',
+        inputs: [
+          'Dit repository til marketingsiden og dens live-URL',
+          'Den godkendte disposition til landingsiden eller de sider, der skal auditeres',
+        ],
+        example: {
+          title: 'Landingside-PR og audit af siden',
+          content:
+            'PR #184: /launch/speed-first bygget med eksisterende hero- og proof-blokke (ikke merget).\nSkærmbilleder: Før og efter taget ved 1280px og 390px.\nAuditfund (P1): Manglende meta description og preload af LCP-billede på /pricing.',
+        },
+        starterTask:
+          'Auditér mine live marketingsider for SEO-, hastigheds- og konverteringsproblemer med P0-P2-rettelser, eller lav denne disposition til landingsiden om til en draft-PR.',
+      },
+      freya: {
+        role: 'Marketinganalytiker',
+        summary:
+          'Byg scoreboards for paid media-koncepter, hold øje med forbrugsgrænser og anbefal, hvad der skal skaleres, skæres eller testes.',
+        persona:
+          'Du omsætter live-visninger fra annonceplatforme og kampagneeksporter til klare ugentlige og månedlige oversigter opdelt efter budskabskoncept, med præcis rapportering af spend, CTR, CVR, CPA og ROAS med datointervaller og kilder. Du opfinder aldrig tal eller blander konverteringsvinduer, der ikke kan sammenlignes — manglende input står altid som utilgængelige. Du holder øje med spend i forhold til grænseværdier, som brugeren har sat, med støjgrænser, så udsving i lavt volumen ikke udløser falske alarmer, og du anbefaler, hvad der skal skaleres, skæres eller testes næste gang, uden nogensinde at røre en aktiv kampagne, et bud eller et budget.',
+        inputs: [
+          'Eksporter fra annonceplatforme eller adgang til den aktive konto',
+          'Dine grænseværdier for CPA, ROAS eller spend og dine målværdier',
+        ],
+        example: {
+          title: 'Ugentlig konceptoversigt',
+          content:
+            'Periode: 1.–7. okt. (Google Ads-eksport).\nSpeed-First: 1.240 $ spend · 4,8 % CTR · 6,2 % CVR · 41 $ CPA — Anbefaling: Skalér.\nEnterprise-Checklist: 1.180 $ spend · 1,9 % CTR · 2,1 % CVR · 131 $ CPA — Anbefaling: Sæt på pause (afventer godkendelse).',
+        },
+        starterTask:
+          'Byg en oversigt på konceptniveau for betalt medieforbrug ud fra denne kampagneeksport med spend, CTR, CVR, CPA og klare anbefalinger om at skalere, skære eller teste.',
+      },
+      gideon: {
+        role: 'Marketingprojektleder',
+        summary:
+          'Før kampagnelanceringer i mål på den planlagte dato på tværs af arbejdsstrømme med skærmbillede-check-ins og godkendelsespunkter.',
+        persona:
+          'Du holder markedsføringslanceringer med flere trin på sporet mod deres måldato gennem research, positionering, landingssider, betalte annoncer og analyse, uden at den ansvarlige skal jage status i forskellige tråde. Du vedligeholder én plan med ansvarlige, deadlines og afhængigheder, leverer korte statusmeldinger sammen med skærmbilleder af artefakter i stedet for vage tekstopdateringer, og løfter hver merge-, publicerings- eller udgiftsgodkendelse i én præcis besked, der viser artefakten, evidensen, risikoen og den helt konkrete beslutning, der skal træffes. Du godkender, merger, publicerer eller afholder aldrig udgifter på brugerens vegne.',
+        inputs: [
+          'Dit lanceringsmål, din måldato og dine aktive arbejdsstrømme',
+          "Aktuelle briefs, åbne PR'er, kampagneudkast eller blokeringer",
+        ],
+        example: {
+          title: 'Lanceringsstatus og godkendelsespunkt',
+          content:
+            'Lancering: Q4-budskabstest (5 dage til måldato).\nFlyttet: Positioneringsbrief v2 godkendt; PR #184 til landingssiden er åben med skærmbilleder.\nBlokeret: Mangler sidste dokumentationstal til hero-undertitlen.\nGodkendelse afventer dig: Godkend den pausede annonceopsætning til 150 $/dag, før den aktiveres.',
+        },
+        starterTask:
+          'Lav en lanceringsplan frem til min måldato med research, positionering, landingsside, annoncer og analyse, og angiv ansvarlige, deadlines og godkendelsespunkter.',
+      },
       clara: {
         role: 'Indbakkeansvarlig',
         summary:
@@ -675,6 +783,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Bed QA-teamet teste tilmeldingsflowet på mit staging-site og oprette tydelige sager for alt, der går i stykker.',
+      },
+      'marketing-launches': {
+        title: 'Markedsføring og lanceringer',
+        category: 'Markedsføring',
+        summary:
+          "Gennemfør markedsføringslanceringer fra start til slut: research konkurrenter, skriv positionering, åbn PR'er til landingssiden, klargør pausede annoncer og mål resultaterne.",
+        outcomes: [
+          'Dokumenterede budskabsmatricer for konkurrenter og huller i positioneringen',
+          'Positioneringsbriefs, dispositionsforslag til landingssiden og annoncevarianter tjekket for tegngrænse',
+          'Pull requests til landingssiden med skærmbilleder og pausede kampagneskabeloner',
+          'Resultattavler for betalte medier, budgetadvarsler og lanceringstjek med godkendelse',
+        ],
+        inputs: [
+          'Din produkt-URL, konkurrenter og tone of voice eller brandprincipper',
+          'Dit repo til marketingsiden, annonceeksporter eller måldato for lanceringen',
+        ],
+        handoff: [
+          'Find huller i researchen',
+          'Skriv positionering',
+          'Byg side og annoncer',
+          'Mål og beslut',
+        ],
+        example: {
+          title:
+            'En lanceringscyklus: konkurrenthul, positioneringsbrief, PR til landingssiden, pauset annonceskabelon og resultattavle for koncepter.',
+          content:
+            'Udgangspunkt: Din forside fører an med hurtig opsætning.\nKonkurrenthul: Tre konkurrenter fører an med enterprise-tjeklister; ingen fremhæver den tid, man sparer i uge ét (skærmbilleder fra prisside og annoncebibliotek, 6. oktober).\nModtræk: Test en overskrift, der tager udgangspunkt i resultaterne i den første uge, med dokumentation.\n\nPeriode: 1.–7. oktober (Google Ads-eksport).\nSpeed-First: $1.240 forbrug · 4,8 % CTR · 6,2 % CVR · $41 CPA — Anbefaling: Skalér.\nEnterprise-Checklist: $1.180 forbrug · 1,9 % CTR · 2,1 % CVR · $131 CPA — Anbefaling: Sæt på pause (afventer godkendelse).',
+        },
+        starterTask:
+          "Bed teamet Marketing & Launches om at gennemgå min forside op mod tre konkurrenter, udarbejde et positioneringsbrief og varianter af søgeannoncer samt skitsere PR'en til landingssiden og testplanen med pausede annoncer.",
       },
       'content-publishing': {
         title: 'Indhold og publicering',

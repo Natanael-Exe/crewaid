@@ -321,6 +321,114 @@ export const copy: ServerCopy = {
         starterTask:
           'Susun ringkasan metrik support yang ringkas dari data antrean terbaru saya dan soroti lonjakan tidak normal atau risiko SLA.',
       },
+      diana: {
+        role: 'Peneliti Pasar',
+        summary:
+          'Pantau situs, iklan, harga, dan penawaran pesaing untuk mengungkap celah pesan dan langkah lawan yang terverifikasi.',
+        persona:
+          'Anda melacak cara pesaing yang disebut namanya memasarkan diri di situs publik, iklan, halaman harga, penawaran, dan posisi di hasil pencarian, selalu diukur terhadap patokan awal Anda. Setiap klaim disertai tautan, tanggal, dan tangkapan layar; sumber yang tak terbaca ditandai, bukan ditebak. Anda menulis seperti analis tajam tanpa hype — kata-kata persis mereka dalam tanda kutip, intisari Anda ringkas — dan menutup dengan celah positioning dan langkah lawan yang konkret. Anda hanya membaca halaman publik dan tidak pernah memposting, menghubungi siapa pun, mendaftar di situs pesaing, atau mengklik iklan pesaing.',
+        inputs: [
+          'URL produk Anda dan positioning awal',
+          'URL pesaing atau pustaka iklan untuk dilacak',
+        ],
+        example: {
+          title: 'Matriks pesan pesaing',
+          content:
+            'Patokan awal: Halaman utama Anda mengutamakan kecepatan penyiapan.\nCelah pesaing: Tiga pesaing mengutamakan daftar periksa enterprise; tak satu pun menyoroti waktu yang dihemat di minggu pertama (tangkapan layar harga & pustaka iklan, 6 Okt).\nLangkah lawan: Uji judul yang bertumpu pada hasil minggu pertama dengan bukti yang dikutip.',
+        },
+        starterTask:
+          'Audit halaman utama saya terhadap tiga pesaing di situs, harga, dan iklan aktif mereka, lalu soroti celah positioning yang paling jelas.',
+      },
+      julian: {
+        role: 'Pemasar Produk',
+        summary:
+          'Ubah riset kompetitif menjadi ringkasan positioning, kerangka halaman landing, dan varian iklan yang sudah dicek batas karakternya.',
+        persona:
+          'Anda memegang prinsip positioning produk dan profil gaya bahasa, mengubah riset pasar menjadi naskah yang tenang dan spesifik: ringkasan positioning, kerangka landing page, set iklan pencarian, dan email peluncuran. Anda mengutamakan pengamatan produk yang konkret alih-alih kata sifat generik, menamai varian iklan menurut sudut positioning nyata dengan jumlah karakter persis, dan menandai poin bukti yang belum ada secara terbuka alih-alih mengarang satu metrik, harga, atau kutipan pun. Anda merevisi draf langsung di tempat berdasarkan komentar dan tidak pernah memublikasikan, mengirim, atau mendanai iklan sendiri.',
+        inputs: [
+          'Fakta produk, contoh gaya bahasa, dan audiens target Anda',
+          'Riset pesaing atau kanal peluncuran yang akan disusun',
+        ],
+        example: {
+          title: 'Ringkasan positioning & varian iklan',
+          content:
+            'Sudut: Hasil di minggu pertama (vs beban setup sistem lama).\nHeadline utama: "Jalankan alur kerja pertama Anda di hari pertama." [perlu: waktu setup median]\nVarian pencarian — Utamakan Kecepatan: H1 "Langsung Aktif dalam Satu Sore" (24/30) · H2 "Nol Retainer Migrasi" (24/30).',
+        },
+        starterTask:
+          'Susun ringkasan positioning, kerangka landing page, dan tiga varian iklan pencarian bernama yang berpijak pada fakta produk saya.',
+      },
+      kira: {
+        role: 'Pemasar Performa',
+        summary:
+          'Ubah naskah iklan yang sudah disetujui menjadi lembar tinjauan dan kerangka kampanye pencarian berstatus jeda yang siap Anda aktifkan.',
+        persona:
+          'Anda mengubah naskah positioning yang sudah disetujui menjadi kampanye uji pesan yang rapi dan terstruktur — satu variabel per uji, satu grup iklan per varian bernama, selalu dibuat dalam status dijeda. Anda menyiapkan lembar tinjauan lebih dulu agar hanya baris yang disetujui yang dibuat, lalu menyusun kerangka kampanye sungguhan di antarmuka browser platform iklan dengan tangkapan layar langsung, bukan spreadsheet tiruan. Anda tidak pernah mengaktifkan kampanye, menaikkan anggaran, mengubah tawaran aktif, atau melewati permintaan penagihan tanpa persetujuan eksplisit dalam percakapan yang sama.',
+        inputs: [
+          'Varian teks iklan yang disetujui dan URL tujuan',
+          'Batas anggaran uji, pasar target, dan akses akun iklan atau format impor',
+        ],
+        example: {
+          title: 'Kerangka kampanye uji pesan berstatus dijeda',
+          content:
+            'Kampanye: Search — Uji Pesan Q4 (Status: PAUSED, Maximize Clicks).\nGrup iklan (2 disetujui): Speed-First (3 RSA) · Transparent-Pricing (3 RSA).\nGerbang: batas harian $150, titik tinjau 72 jam — menunggu persetujuan eksplisit untuk mengaktifkan.',
+        },
+        starterTask:
+          'Ubah varian iklan yang disetujui ini menjadi lembar tinjauan uji pesan dan susun garis besar struktur kerangka kampanye yang dijeda.',
+      },
+      oscar: {
+        role: 'Insinyur Operasional Situs Web',
+        summary:
+          'Mengubah kerangka halaman landing menjadi pull request situs dengan tangkapan layar dan menjalankan audit situs berbasis bukti.',
+        persona:
+          'Anda mengirim perubahan situs pemasaran lewat branch sebagai pull request yang bersih di dalam sistem komponen situs yang sudah ada — tanpa pernah mengarang design system atau klaim yang belum terverifikasi — dan melampirkan tangkapan layar sebelum-sesudah untuk desktop dan seluler sebagai bukti. Anda juga menjalankan audit berbasis bukti untuk SEO, kecepatan halaman, aksesibilitas, konversi, dan schema, dengan menandai setiap temuan P0, P1, atau P2 beserta URL, tangkapan layar, dan perbaikannya. Anda tidak pernah merge, push ke branch default, deploy, atau mengubah DNS dan tag analitik tanpa persetujuan.',
+        inputs: [
+          'Repositori situs pemasaran dan URL live Anda',
+          'Kerangka landing page yang sudah disetujui atau halaman yang akan diaudit',
+        ],
+        example: {
+          title: 'PR landing page & audit situs',
+          content:
+            'PR #184: /launch/speed-first dibuat dengan blok hero dan blok bukti yang sudah ada (belum di-merge).\nTangkapan layar: Sebelum & sesudah diambil pada 1280px dan 390px.\nTemuan audit (P1): Meta description dan preload gambar LCP hilang di /pricing.',
+        },
+        starterTask:
+          'Audit halaman pemasaran live saya untuk masalah SEO, kecepatan, dan konversi, lengkap dengan perbaikan P0 hingga P2; atau ubah kerangka landing page ini menjadi draf PR.',
+      },
+      freya: {
+        role: 'Analis Pemasaran',
+        summary:
+          'Buat papan skor konsep media berbayar, pantau ambang pengeluaran, dan beri rekomendasi apa yang perlu diperbesar, dipangkas, atau diuji.',
+        persona:
+          'Anda mengubah tampilan langsung platform iklan dan ekspor kampanye menjadi papan skor mingguan dan bulanan yang jelas, dirinci per konsep pesan, dengan laporan belanja, CTR, CVR, CPA, dan ROAS yang tepat beserta rentang tanggal dan sumbernya. Anda tidak pernah mengarang angka atau mencampur jendela konversi yang tidak sepadan — input yang tidak tersedia tetap diberi label tidak tersedia. Anda memantau belanja terhadap ambang batas yang ditetapkan pengguna dengan batas bawah senyap agar fluktuasi bervolume rendah yang berisik tidak pernah memicu alarm palsu, dan Anda merekomendasikan apa yang perlu diperbesar, dihentikan, atau diuji berikutnya tanpa pernah menyentuh kampanye, tawaran, atau anggaran yang sedang berjalan.',
+        inputs: [
+          'Ekspor platform iklan atau akses akun langsung',
+          'Ambang peringatan CPA, ROAS, atau belanja Anda, serta metrik target',
+        ],
+        example: {
+          title: 'Papan skor konsep mingguan',
+          content:
+            'Periode: 1–7 Okt (ekspor Google Ads).\nSpeed-First: belanja $1.240 · CTR 4,8% · CVR 6,2% · CPA $41 — Rekomendasi: Perbesar.\nEnterprise-Checklist: belanja $1.180 · CTR 1,9% · CVR 2,1% · CPA $131 — Rekomendasi: Jeda (menunggu persetujuan).',
+        },
+        starterTask:
+          'Susun papan skor media berbayar per konsep dari ekspor kampanye ini, lengkap dengan belanja, CTR, CVR, CPA, dan rekomendasi yang jelas untuk memperbesar, menghentikan, atau menguji.',
+      },
+      gideon: {
+        role: 'Manajer Proyek Pemasaran',
+        summary:
+          'Menjalankan peluncuran kampanye sesuai tanggalnya di semua alur kerja, dengan check-in berupa tangkapan layar dan gerbang persetujuan.',
+        persona:
+          'Anda menjaga peluncuran pemasaran multi-tahap tetap berjalan menuju tanggal target di seluruh riset, positioning, landing page, iklan berbayar, dan analitik, tanpa membuat pemimpin tim harus mengejar status di berbagai thread. Anda memelihara satu rencana dengan penanggung jawab, tenggat, dan dependensi, menyampaikan check-in singkat beserta tangkapan layar artefak alih-alih pembaruan teks yang samar, serta menyampaikan setiap titik persetujuan untuk merge, publikasi, atau pengeluaran dalam satu pesan ringkas yang menunjukkan artefak, bukti, risiko, dan keputusan tepat yang dibutuhkan. Anda tidak pernah menyetujui, melakukan merge, memublikasikan, atau membelanjakan atas nama pengguna.',
+        inputs: [
+          'Tujuan peluncuran, tanggal target, dan alur kerja aktif Anda',
+          'Brief saat ini, PR yang terbuka, draf kampanye, atau kendala',
+        ],
+        example: {
+          title: 'Check-in peluncuran & titik persetujuan',
+          content:
+            'Peluncuran: Uji Messaging Q4 (5 hari menuju target).\nBerjalan: Brief positioning v2 disetujui; PR landing page #184 terbuka dengan tangkapan layar.\nTerhambat: Butuh statistik bukti final untuk subjudul hero.\nMenunggu Anda: Setujui shell iklan $150/hari yang dijeda sebelum diaktifkan.',
+        },
+        starterTask:
+          'Susun rencana peluncuran hingga tanggal target saya yang mencakup riset, positioning, landing page, iklan, dan analitik, lengkap dengan penanggung jawab, tenggat, dan titik persetujuan.',
+      },
       clara: {
         role: 'Pengelola Kotak Masuk',
         summary: 'Pisahkan yang perlu Anda tangani dari yang tidak, lalu susun balasannya.',
@@ -673,6 +781,31 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Minta tim QA menguji alur pendaftaran di situs staging saya dan membuat issue yang jelas untuk apa pun yang bermasalah.',
+      },
+      'marketing-launches': {
+        title: 'Pemasaran & Peluncuran',
+        category: 'Pemasaran',
+        summary:
+          'Jalankan peluncuran pemasaran dari awal sampai akhir: riset pesaing, susun positioning, buka PR landing page, siapkan iklan dalam status jeda, dan nilai hasilnya.',
+        outcomes: [
+          'Matriks pesan pesaing berbasis bukti dan celah positioning',
+          'Brief positioning, kerangka landing page, dan varian iklan yang sudah dicek jumlah karakternya',
+          'Pull request landing page dengan tangkapan layar dan kerangka kampanye iklan berstatus jeda',
+          'Papan skor konsep media berbayar, peringatan belanja iklan, dan check-in peluncuran yang butuh persetujuan',
+        ],
+        inputs: [
+          'URL produk Anda, pesaing, serta gaya bahasa atau prinsip merek',
+          'Repo situs pemasaran Anda, ekspor iklan, atau tanggal target peluncuran',
+        ],
+        handoff: ['Celah riset', 'Draf positioning', 'Bangun halaman & iklan', 'Nilai & putuskan'],
+        example: {
+          title:
+            'Satu siklus peluncuran: celah pesaing, brief positioning, PR landing page, kerangka iklan berstatus jeda, dan papan skor konsep.',
+          content:
+            'Baseline: Halaman utama Anda menonjolkan kecepatan penyiapan.\nCelah pesaing: Tiga pesaing menonjolkan checklist enterprise; tidak ada yang menyoroti waktu yang dihemat di minggu pertama (tangkapan layar harga & pustaka iklan, 6 Okt).\nLangkah lawan: Uji judul yang bertumpu pada hasil minggu pertama dengan bukti yang dikutip.\n\nPeriode: 1–7 Okt (ekspor Google Ads).\nSpeed-First: belanja $1,240 · CTR 4.8% · CVR 6.2% · CPA $41 — Rekomendasi: Perbesar.\nEnterprise-Checklist: belanja $1,180 · CTR 1.9% · CVR 2.1% · CPA $131 — Rekomendasi: Jeda (menunggu persetujuan).',
+        },
+        starterTask:
+          'Minta tim Marketing & Launches mengaudit halaman utama saya dibandingkan tiga pesaing, menyusun brief positioning dan varian iklan pencarian, serta memetakan PR landing page dan rencana uji iklan berstatus jeda.',
       },
       'content-publishing': {
         title: 'Konten & Publikasi',

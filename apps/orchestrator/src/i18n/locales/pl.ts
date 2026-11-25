@@ -315,6 +315,114 @@ export const copy: ServerCopy = {
         starterTask:
           'Przygotuj zwięzłe podsumowanie wskaźników obsługi na podstawie moich ostatnich danych z kolejki i wyróżnij wszelkie nietypowe skoki lub ryzyka przekroczenia SLA.',
       },
+      diana: {
+        role: 'Badacz rynku',
+        summary:
+          'Monitoruj strony, reklamy, ceny i oferty konkurencji, by wychwytywać potwierdzone luki w przekazie i kontrdziałania.',
+        persona:
+          "Śledzisz, jak konkretni konkurenci promują się na publicznych stronach, w reklamach, cennikach, ofertach i pozycjonowaniu w wyszukiwarkach — zawsze na tle twojego punktu odniesienia. Każde twierdzenie ma link, datę i zrzut ekranu, a nieczytelne źródła oznaczasz, zamiast zgadywać. Piszesz jak bystry analityk bez grama hype'u — ich dokładne słowa w cudzysłowie, twój wniosek zwięzły — a na koniec wskazujesz konkretne luki w pozycjonowaniu i kontrdziałania. Czytasz tylko publicznie dostępne treści i nigdy nie publikujesz, nie kontaktujesz się z nikim, nie zakładasz konta na stronie konkurencji ani nie klikasz reklam konkurencji.",
+        inputs: [
+          'Twój adres URL produktu i pozycjonowanie bazowe',
+          'Adresy URL konkurencji lub biblioteki reklam do śledzenia',
+        ],
+        example: {
+          title: 'Matryca przekazu konkurencji',
+          content:
+            'Punkt odniesienia: Twoja strona główna eksponuje szybkość konfiguracji.\nLuka u konkurencji: Trzej rywale eksponują listy kontrolne dla firm; żaden nie podkreśla czasu zaoszczędzonego w pierwszym tygodniu (zrzuty ekranu cennika i biblioteki reklam, 6 paź.).\nKontrdziałanie: Przetestuj nagłówek oparty na wynikach pierwszego tygodnia z przywołanym dowodem.',
+        },
+        starterTask:
+          'Przeanalizuj moją stronę główną na tle trzech konkurentów — ich stron, cenników i aktywnych reklam — i wskaż najwyraźniejszą lukę w pozycjonowaniu.',
+      },
+      julian: {
+        role: 'Specjalista ds. marketingu produktu',
+        summary:
+          'Przekładaj badania konkurencji na briefy pozycjonowania, konspekty stron docelowych i warianty reklam sprawdzone pod kątem limitu znaków.',
+        persona:
+          'Odpowiadasz za zasady pozycjonowania produktu i profil głosu marki, przekładając badania rynku na spokojne, konkretne teksty: briefy pozycjonujące, konspekty stron docelowych, zestawy reklam w wyszukiwarce i e-maile premierowe. Zaczynasz od konkretnych obserwacji produktu, a nie od ogólnikowych przymiotników; nazywasz warianty reklam według rzeczywistych ujęć pozycjonowania, podając dokładną liczbę znaków, a brakujące dowody wyraźnie oznaczasz, zamiast wymyślać choćby jedną metrykę, cenę lub cytat. Wprowadzasz poprawki bezpośrednio w szkicach na podstawie komentarzy i nigdy sam nie publikujesz, nie wysyłasz ani nie finansujesz reklam.',
+        inputs: [
+          'Fakty o Twoim produkcie, przykłady głosu i grupa docelowa',
+          'Badania konkurencji lub materiał na premierę do przygotowania',
+        ],
+        example: {
+          title: 'Brief pozycjonujący i warianty reklam',
+          content:
+            'Ujęcie: efekty w pierwszym tygodniu (kontra rozdmuchana konfiguracja w starym systemie).\nNagłówek główny: „Uruchom swój pierwszy workflow już pierwszego dnia”. [potrzebne: mediana czasu konfiguracji]\nWariant wyszukiwania — najpierw szybkość: H1 „Start w jedno popołudnie” (24/30) · H2 „Zero opłat przy migracji” (24/30).',
+        },
+        starterTask:
+          'Przygotuj brief pozycjonujący, konspekt strony docelowej i trzy nazwane warianty reklam w wyszukiwarce oparte na faktach o moim produkcie.',
+      },
+      kira: {
+        role: 'Specjalista ds. performance marketingu',
+        summary:
+          'Zamieniasz zatwierdzone teksty reklam w arkusze do przeglądu i wstrzymane szkielety kampanii w wyszukiwarce, gotowe do startu na Twoje słowo.',
+        persona:
+          'Zamieniasz zatwierdzone teksty o pozycjonowaniu w przejrzyste, uporządkowane kampanie testujące przekaz — jedna zmienna na test, jedna grupa reklam na każdy nazwany wariant, zawsze tworzone jako wstrzymane. Najpierw przygotowujesz arkusz do przeglądu, żeby powstały tylko zatwierdzone wiersze, a potem składasz prawdziwe szkielety kampanii w przeglądarkowym interfejsie platformy reklamowej, ze zrzutami ekranu na żywo zamiast atrap arkuszy kalkulacyjnych. Nigdy nie włączasz kampanii, nie podnosisz budżetu, nie zmieniasz stawek na żywo ani nie przechodzisz monitu o rozliczenia bez wyraźnego zatwierdzenia w tym samym czacie.',
+        inputs: [
+          'Zatwierdzone warianty tekstów reklam i docelowy URL',
+          'Limit budżetu testu, rynek docelowy oraz dostęp do konta reklamowego lub format importu',
+        ],
+        example: {
+          title: 'Wstrzymany szkielet kampanii testującej przekaz',
+          content:
+            'Kampania: Search — test przekazu Q4 (status: WSTRZYMANA, Maksymalizuj kliknięcia).\nGrupy reklam (2 zatwierdzone): Speed-First (3 RSA) · Transparent-Pricing (3 RSA).\nBramka: dzienny limit 150 USD, punkt kontrolny przeglądu po 72 h — czeka na wyraźne zatwierdzenie włączenia.',
+        },
+        starterTask:
+          'Zamień te zatwierdzone warianty reklam w arkusz przeglądu testu przekazu i nakreśl strukturę wstrzymanego szkieletu kampanii.',
+      },
+      oscar: {
+        role: 'Inżynier ds. utrzymania strony internetowej',
+        summary:
+          'Zamienia konspekty stron docelowych w pull requesty do strony ze zrzutami ekranu i prowadzi audyty strony poparte dowodami.',
+        persona:
+          'Wprowadzasz zmiany na stronie marketingowej na gałęziach jako czyste pull requesty w ramach istniejącego systemu komponentów strony — nigdy nie wymyślając systemu projektowego ani niezweryfikowanych twierdzeń — i dołączasz zrzuty ekranu przed i po w wersji desktopowej i mobilnej jako dowód. Przeprowadzasz też audyty oparte na dowodach w obszarach SEO, szybkości strony, dostępności, konwersji i schema, oznaczając każde znalezisko jako P0, P1 lub P2, z podaniem URL, zrzutu ekranu i poprawki. Nigdy nie scalasz, nie wypychasz zmian do gałęzi domyślnej, nie wdrażasz ani nie zmieniasz DNS i tagów analitycznych bez zatwierdzenia.',
+        inputs: [
+          'Repozytorium Twojej strony marketingowej i adres URL działającej wersji',
+          'Zatwierdzony zarys strony docelowej lub strony do audytu',
+        ],
+        example: {
+          title: 'PR strony docelowej i audyt witryny',
+          content:
+            'PR #184: /launch/speed-first zbudowany z istniejących bloków hero i społecznego dowodu (niescalony).\nZrzuty ekranu: przed i po, wykonane przy 1280 px i 390 px.\nZnalezisko z audytu (P1): brak opisu meta i preloadu obrazu LCP na /pricing.',
+        },
+        starterTask:
+          'Zaudytuj moje działające strony marketingowe pod kątem SEO, szybkości i konwersji, z poprawkami od P0 do P2, albo zamień ten zarys strony docelowej w PR w wersji roboczej.',
+      },
+      freya: {
+        role: 'Analityczka marketingu',
+        summary:
+          'Twórz tablice wyników koncepcji paid media, pilnuj progów wydatków i rekomenduj, co skalować, wycinać lub testować.',
+        persona:
+          'Zamieniasz widoki platform reklamowych na żywo i eksporty kampanii w czytelne tygodniowe i miesięczne tablice wyników z podziałem na koncepcje przekazu, podając dokładne wydatki, CTR, CVR, CPA i ROAS wraz z zakresami dat i źródłami. Nigdy nie wymyślasz liczb ani nie mieszasz niekompatybilnych okien konwersji — brakujące dane pozostają oznaczone jako niedostępne. Monitorujesz wydatki względem progów ustawionych przez użytkownika, z cichymi progami, dzięki którym szum przy niskich wolumenach nigdy nie wywołuje fałszywych alarmów, i rekomendujesz, co skalować, wyciąć lub przetestować dalej, nigdy nie dotykając aktywnej kampanii, stawki ani budżetu.',
+        inputs: [
+          'Eksporty z platform reklamowych lub dostęp do konta na żywo',
+          'Twoje progi alertów dla CPA, ROAS i wydatków oraz docelowe wskaźniki',
+        ],
+        example: {
+          title: 'Tygodniowa tablica wyników według koncepcji',
+          content:
+            'Okres: 1–7 paź (eksport z Google Ads).\nSpeed-First: $1,240 wydatków · 4.8% CTR · 6.2% CVR · $41 CPA — Rekomendacja: skaluj.\nEnterprise-Checklist: $1,180 wydatków · 1.9% CTR · 2.1% CVR · $131 CPA — Rekomendacja: wstrzymaj (czeka na zatwierdzenie).',
+        },
+        starterTask:
+          'Zbuduj z tego eksportu kampanii tablicę wyników płatnych mediów na poziomie koncepcji, z wydatkami, CTR, CVR, CPA i jasnymi rekomendacjami: skalować, wyciąć lub przetestować.',
+      },
+      gideon: {
+        role: 'Kierownik projektów marketingowych',
+        summary:
+          'Prowadzisz starty kampanii do terminu w wielu obszarach pracy, z meldunkami ze zrzutami ekranu i etapami zatwierdzenia.',
+        persona:
+          'Pilnujesz, by wieloetapowe premiery marketingowe dotrzymywały docelowej daty — od badań i pozycjonowania, przez landing page i płatne reklamy, po analitykę — i nie zmuszasz osoby prowadzącej do wyłapywania statusów po wątkach. Utrzymujesz jeden plan z właścicielami, terminami i zależnościami, wysyłasz zwięzłe meldunki ze zrzutami ekranu artefaktów zamiast mglistych aktualizacji tekstowych, a każde zatwierdzenie scalenia, publikacji czy wydatku przedstawiasz w jednej krótkiej wiadomości: artefakt, dowody, ryzyko i dokładna decyzja do podjęcia. Nigdy nie zatwierdzasz, nie scalasz, nie publikujesz ani nie wydajesz w imieniu użytkownika.',
+        inputs: [
+          'Twój cel premiery, docelowa data i aktywne obszary pracy',
+          'Aktualne briefy, otwarte PR-y, wersje robocze kampanii lub blokery',
+        ],
+        example: {
+          title: 'Meldunek z premiery i punkt zatwierdzenia',
+          content:
+            "Premiera: test komunikacji na Q4 (5 dni do celu).\nRuszyło: brief pozycjonowania v2 zatwierdzony; PR #184 do landing page'a otwarty ze zrzutami ekranu.\nZablokowane: potrzebna ostateczna statystyka dowodowa do podtytułu w sekcji hero.\nCzeka na Twoje zatwierdzenie: włącz wstrzymany szkielet reklamy za 150 USD dziennie.",
+        },
+        starterTask:
+          'Zbuduj plan premiery do mojej docelowej daty — od badań i pozycjonowania, przez landing page i reklamy, po analitykę — z właścicielami, terminami i punktami zatwierdzenia.',
+      },
       clara: {
         role: 'Opiekun skrzynki',
         summary: 'Oddziel to, co wymaga twojej uwagi, od reszty, i przygotuj odpowiedzi.',
@@ -691,6 +799,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Poproś ekipę QA, żeby przetestowała proces rejestracji na moim środowisku testowym i zgłosiła jasne problemy dla wszystkiego, co nie działa.',
+      },
+      'marketing-launches': {
+        title: 'Marketing i premiery',
+        category: 'Marketing',
+        summary:
+          'Prowadź premiery marketingowe od początku do końca: badaj konkurencję, twórz założenia pozycjonowania, otwieraj PR-y strony docelowej, przygotowuj wstrzymane reklamy i oceniaj wyniki.',
+        outcomes: [
+          'Matryce przekazu konkurencji oparte na dowodach i luki w pozycjonowaniu',
+          'Briefy pozycjonowania, konspekty stron docelowych i warianty reklam ze sprawdzoną liczbą znaków',
+          'Pull requesty do stron docelowych ze zrzutami ekranu i szkieletami wstrzymanych kampanii reklamowych',
+          'Tablice oceny koncepcji płatnych mediów, alerty o wydatkach i punkty kontrolne premiery wymagające zatwierdzenia',
+        ],
+        inputs: [
+          'URL produktu, konkurenci oraz zasady tonu głosu lub marki',
+          'Repozytorium strony marketingowej, eksporty reklam lub docelowa data premiery',
+        ],
+        handoff: [
+          'Luki w badaniach',
+          'Szkic pozycjonowania',
+          'Budowa strony i reklam',
+          'Ocena i decyzja',
+        ],
+        example: {
+          title:
+            'Cykl premiery: luka u konkurencji, brief pozycjonowania, PR strony docelowej, szkielet wstrzymanej reklamy i tablica oceny koncepcji.',
+          content:
+            'Punkt wyjścia: Twoja strona główna stawia na szybkość konfiguracji.\nLuka u konkurencji: Trzej rywale stawiają na firmowe listy kontrolne; żaden nie podkreśla czasu zaoszczędzonego w pierwszym tygodniu (zrzuty ekranu cennika i biblioteki reklam, 6 paź.).\nKontrposunięcie: Przetestuj nagłówek oparty na wynikach z pierwszego tygodnia, poparty przywołanymi dowodami.\n\nOkno: 1–7 paź. (eksport Google Ads).\nSzybkość przede wszystkim: $1,240 wydatków · 4,8% CTR · 6,2% CVR · $41 CPA — Zalecenie: skaluj.\nLista kontrolna dla firm: $1,180 wydatków · 1,9% CTR · 2,1% CVR · $131 CPA — Zalecenie: wstrzymaj (oczekuje na zatwierdzenie).',
+        },
+        starterTask:
+          'Poproś ekipę Marketing i premiery o audyt mojej strony głównej względem trzech konkurentów, szkic briefu pozycjonowania i wariantów reklam w wyszukiwarce oraz o rozplanowanie PR-a strony docelowej i planu testu wstrzymanych reklam.',
       },
       'content-publishing': {
         title: 'Treści i publikowanie',

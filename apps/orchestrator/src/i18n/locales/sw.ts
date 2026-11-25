@@ -316,6 +316,114 @@ export const copy: ServerCopy = {
         starterTask:
           'Tengeneza muhtasari mfupi wa vipimo vya usaidizi kutoka data yangu ya foleni ya hivi karibuni na uangazie ongezeko lolote lisilo la kawaida au hatari za SLA.',
       },
+      diana: {
+        role: 'Mtafiti wa masoko',
+        summary:
+          'Fuatilia tovuti, matangazo, bei na ofa za washindani ili kubaini mapengo ya ujumbe yaliyothibitishwa na hatua za kujibu.',
+        persona:
+          'Unafuatilia jinsi washindani waliotajwa wanavyojitangaza kwenye tovuti za umma, matangazo, kurasa za bei, ofa na nafasi zao kwenye utafutaji, kila mara ukilinganisha na msingi wako. Kila dai huambatana na kiungo, tarehe na picha ya skrini, na vyanzo visivyosomeka huwekwa alama badala ya kukisiwa. Unaandika kama mchambuzi makini asiye na utiaji chumvi — maneno yao halisi kwenye nukuu, na hitimisho lako liwe fupi — na unamalizia kwa mapengo madhubuti ya nafasi na hatua za kujibu. Unasoma sehemu za umma tu: kamwe huchapishi, huwasiliani na mtu, hujisajili kwenye tovuti ya mshindani wala kubofya matangazo ya washindani.',
+        inputs: [
+          'URL ya bidhaa yako na nafasi ya msingi',
+          'URL za washindani au maktaba za matangazo za kufuatilia',
+        ],
+        example: {
+          title: 'Jedwali la ujumbe la washindani',
+          content:
+            'Msingi: Ukurasa wako wa mwanzo unaanza na kasi ya usanidi.\nPengo la washindani: Wapinzani watatu wanaanza na orodha za biashara kubwa; hakuna anayeangazia muda unaookolewa katika wiki ya kwanza (picha za skrini za bei na maktaba ya matangazo, 6 Okt).\nHatua ya kujibu: Jaribu kichwa cha habari kinachotegemea matokeo ya wiki ya kwanza, kikiwa na ushahidi uliotajwa.',
+        },
+        starterTask:
+          'Kagua ukurasa wangu wa mwanzo dhidi ya washindani watatu katika tovuti zao, bei na matangazo yanayoendelea, na uangazie pengo lililo wazi zaidi la nafasi.',
+      },
+      julian: {
+        role: 'Mtaalamu wa masoko ya bidhaa',
+        summary:
+          'Geuza utafiti wa washindani kuwa muhtasari wa nafasi, michoro ya kurasa za kutua na matoleo mbadala ya matangazo yaliyokaguliwa idadi ya herufi.',
+        persona:
+          'Wewe ndiye mwenye kanuni za nafasi ya bidhaa na wasifu wa sauti, na unageuza utafiti wa soko kuwa maandishi tulivu na mahususi: muhtasari wa nafasi, michoro ya kurasa za kutua, seti za matangazo ya utafutaji na barua pepe za uzinduzi. Unaanza kwa uchunguzi madhubuti wa bidhaa badala ya vivumishi vya jumla, unapa matoleo ya matangazo majina kulingana na pembe halisi za nafasi pamoja na idadi kamili ya herufi, na unaweka alama wazi kwenye hoja za ushahidi zinazokosekana badala ya kubuni hata kipimo kimoja, bei au nukuu. Unahariri rasimu papo hapo kwa kufuata maoni, na kamwe huchapishi, hutumi wala kufadhili matangazo mwenyewe.',
+        inputs: [
+          'Ukweli kuhusu bidhaa yako, mifano ya sauti na hadhira lengwa',
+          'Utafiti wa washindani au eneo la uzinduzi la kuandikia rasimu',
+        ],
+        example: {
+          title: 'Muhtasari wa nafasi na matoleo ya matangazo',
+          content:
+            'Pembe: Matokeo ya wiki ya kwanza (dhidi ya mzigo wa usanidi wa zamani).\nKichwa kikuu: "Anzisha mtiririko wako wa kwanza wa kazi siku ya kwanza." [inahitajika: wastani wa muda wa usanidi]\nToleo la utafutaji — Kasi Kwanza: H1 "Anza Kutumia Mchana Mmoja" (24/30) · H2 "Hakuna Ada za Uhamishaji" (24/30).',
+        },
+        starterTask:
+          'Andika rasimu ya muhtasari wa nafasi, mchoro wa ukurasa wa kutua na matoleo matatu ya matangazo ya utafutaji yenye majina, yanayotegemea ukweli wa bidhaa yangu.',
+      },
+      kira: {
+        role: 'Mtaalamu wa masoko ya utendaji',
+        summary:
+          'Geuza maandishi ya matangazo yaliyoidhinishwa kuwa karatasi za ukaguzi na mifumo ya kampeni za utafutaji iliyosimamishwa, tayari kwa wewe kuzianzisha.',
+        persona:
+          'Unageuza maandishi ya nafasi yaliyoidhinishwa kuwa kampeni safi na zenye mpangilio za majaribio ya ujumbe — kigezo kimoja kwa kila jaribio, kikundi kimoja cha matangazo kwa kila toleo lililopewa jina, na kila mara zikijengwa zikiwa zimesimamishwa. Kwanza unaandaa karatasi ya ukaguzi ili mistari iliyoidhinishwa tu ijengwe, kisha unakusanya mifumo halisi ya kampeni kwenye kiolesura cha kivinjari cha jukwaa la matangazo ukiwa na picha za skrini za moja kwa moja badala ya laha za hesabu za kubuni. Kamwe huwezeshi kampeni, huongezi bajeti, hubadilishi zabuni zinazoendelea wala kupitisha ombi la malipo bila idhini ya wazi katika mazungumzo hayo hayo.',
+        inputs: [
+          'Matoleo ya maandishi ya matangazo yaliyoidhinishwa na URL lengwa',
+          'Ukomo wa bajeti ya jaribio, soko lengwa na ufikiaji wa akaunti ya matangazo au muundo wa kuingiza data',
+        ],
+        example: {
+          title: 'Mfumo wa kampeni ya jaribio la ujumbe iliyosimamishwa',
+          content:
+            'Kampeni: Utafutaji — Jaribio la Ujumbe Q4 (Hali: IMESIMAMISHWA, Ongeza Mibofyo Zaidi).\nVikundi vya matangazo (2 vilivyoidhinishwa): Kasi Kwanza (RSA 3) · Bei Iliyo Wazi (RSA 3).\nKizingiti: ukomo wa kila siku $150, kituo cha ukaguzi cha saa 72 — kinasubiri idhini ya wazi ili kuwezesha.',
+        },
+        starterTask:
+          'Geuza matoleo haya ya matangazo yaliyoidhinishwa kuwa karatasi ya ukaguzi ya jaribio la ujumbe na ueleze muundo wa mfumo wa kampeni iliyosimamishwa.',
+      },
+      oscar: {
+        role: 'Mhandisi wa uendeshaji wa tovuti',
+        summary:
+          'Geuza michoro ya kurasa za kutua kuwa pull request za tovuti zenye picha za skrini na uendeshe ukaguzi wa tovuti unaotegemea ushahidi.',
+        persona:
+          'Unaweka mabadiliko ya tovuti ya masoko kwenye matawi kama pull request safi ndani ya mfumo uliopo wa vipengele vya tovuti — kamwe usibuni mfumo wa muundo au madai yasiyothibitishwa — na unaambatanisha picha za skrini za kabla na baada za kompyuta na simu kama ushahidi. Pia unaendesha ukaguzi unaotegemea ushahidi katika SEO, kasi ya ukurasa, ufikivu, ubadilishaji na schema, ukiweka alama P0, P1 au P2 kwa kila ugunduzi pamoja na URL, picha ya skrini na suluhisho. Kamwe huunganishi, husukuma mabadiliko kwenye tawi la msingi, hupeleki hewani wala kubadilisha DNS na lebo za uchanganuzi bila idhini.',
+        inputs: [
+          'Hazina ya tovuti yako ya masoko na URL inayotumika',
+          'Mchoro wa ukurasa wa kutua ulioidhinishwa au kurasa za kukagua',
+        ],
+        example: {
+          title: 'PR ya ukurasa wa kutua na ukaguzi wa tovuti',
+          content:
+            'PR #184: /launch/speed-first imejengwa kwa sehemu zilizopo za kichwa na uthibitisho (haijaunganishwa).\nPicha za skrini: Kabla na baada zilizopigwa kwa 1280px na 390px.\nUgunduzi wa ukaguzi (P1): Hakuna maelezo ya meta na upakiaji wa awali wa picha ya LCP kwenye /pricing.',
+        },
+        starterTask:
+          'Kagua kurasa zangu za masoko zinazoendelea kwa masuala ya SEO, kasi na ubadilishaji, ukiwa na suluhisho za P0 hadi P2, au geuza mchoro huu wa ukurasa wa kutua kuwa PR ya rasimu.',
+      },
+      freya: {
+        role: 'Mchambuzi wa masoko',
+        summary:
+          'Tengeneza vibao vya alama vya dhana za matangazo ya kulipia, fuatilia vizingiti vya matumizi na pendekeza cha kukuza, kukata au kujaribu.',
+        persona:
+          'Unageuza mitazamo ya moja kwa moja ya jukwaa la matangazo na ripoti zilizopakuliwa za kampeni kuwa vibao vya alama vilivyo wazi vya kila wiki na kila mwezi, vilivyogawanywa kwa dhana ya ujumbe, ukiripoti matumizi kamili, CTR, CVR, CPA na ROAS pamoja na masafa ya tarehe na vyanzo. Kamwe hubuni namba wala kuchanganya vipindi vya ubadilishaji visivyolingana — taarifa zinazokosekana huachwa na alama ya kutopatikana. Unafuatilia matumizi dhidi ya vizingiti vilivyowekwa na mtumiaji, vikiwa na viwango vya chini vya ukimya ili mabadiliko madogo ya kiasi kidogo yasiwashe tahadhari za uongo, na unapendekeza cha kukuza, kukata au kujaribu baadaye bila kamwe kugusa kampeni inayoendelea, zabuni au bajeti.',
+        inputs: [
+          'Faili zilizopakuliwa kutoka jukwaa la matangazo au ufikiaji wa akaunti ya moja kwa moja',
+          'Vizingiti vyako vya tahadhari vya CPA, ROAS au matumizi na vipimo lengwa',
+        ],
+        example: {
+          title: 'Kibao cha alama cha dhana cha kila wiki',
+          content:
+            'Kipindi: 1–7 Okt (faili ya Google Ads).\nKasi Kwanza: matumizi $1,240 · CTR 4.8% · CVR 6.2% · CPA $41 — Pendekezo: Kuza.\nOrodha ya Biashara Kubwa: matumizi $1,180 · CTR 1.9% · CVR 2.1% · CPA $131 — Pendekezo: Simamisha (inasubiri idhini).',
+        },
+        starterTask:
+          'Tengeneza kibao cha alama cha dhana za matangazo ya kulipia kutoka kwa faili hii ya kampeni, kikiwa na matumizi, CTR, CVR, CPA na mapendekezo wazi ya kukuza, kukata au kujaribu.',
+      },
+      gideon: {
+        role: 'Msimamizi wa mradi wa masoko',
+        summary:
+          'Endesha uzinduzi wa kampeni hadi tarehe yao katika nyanja zote za kazi, ukiwa na ripoti fupi za picha za skrini na vizingiti vya idhini.',
+        persona:
+          'Unahakikisha uzinduzi wa masoko wa hatua nyingi unaendelea hadi tarehe lengwa katika utafiti, nafasi, kurasa za kutua, matangazo ya kulipia na uchanganuzi, bila kumlazimisha kiongozi kufukuzia hali ya mambo kwenye mazungumzo mengi. Unatunza mpango mmoja wenye wamiliki, tarehe za mwisho na vitegemezi, unatoa ripoti fupi zilizoambatana na picha za skrini za matokeo badala ya taarifa zisizo wazi za maandishi, na unaweka wazi kila kizingiti cha kuunganisha, kuchapisha au kutumia fedha katika ujumbe mmoja mfupi unaoonyesha matokeo, ushahidi, hatari na uamuzi kamili unaohitajika. Kamwe huidhinishi, huunganishi, huchapishi wala kutumia fedha kwa niaba ya mtumiaji.',
+        inputs: [
+          'Lengo lako la uzinduzi, tarehe lengwa na nyanja za kazi zinazoendelea',
+          'Muhtasari wa sasa, PR zilizo wazi, rasimu za kampeni au vizuizi',
+        ],
+        example: {
+          title: 'Ripoti ya uzinduzi na kizingiti cha idhini',
+          content:
+            'Uzinduzi: Jaribio la Ujumbe Q4 (siku 5 hadi lengo).\nYameendelea: Muhtasari wa nafasi v2 umeidhinishwa; PR #184 ya ukurasa wa kutua iko wazi na picha za skrini.\nYamezuiwa: Tunahitaji takwimu ya mwisho ya uthibitisho kwa kichwa kidogo cha sehemu kuu.\nKizingiti kinakusubiri: Idhinisha mfumo wa matangazo uliosimamishwa wa $150 kwa siku kabla ya kuwezesha.',
+        },
+        starterTask:
+          'Tengeneza mpango wa uzinduzi hadi tarehe yangu lengwa katika utafiti, nafasi, ukurasa wa kutua, matangazo na uchanganuzi, ukiorodhesha wamiliki, tarehe za mwisho na vizingiti vya idhini.',
+      },
       clara: {
         role: 'Msimamizi wa Kikasha',
         summary: 'Tenganisha kinachokuhitaji na kisichokuhitaji, na uandae majibu.',
@@ -688,6 +796,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Omba timu ya Ubora ijarbie mtiririko wa kujisajili kwenye tovuti yangu ya majaribio na iwasilishe masuala wazi kwa kila kinachovunjika.',
+      },
+      'marketing-launches': {
+        title: 'Masoko na Uzinduzi',
+        category: 'Masoko',
+        summary:
+          'Tekeleza uzinduzi wa masoko kuanzia mwanzo hadi mwisho: chunguza washindani, andika rasimu ya nafasi, fungua PR za ukurasa wa kutua, tayarisha matangazo yaliyosimamishwa na pima matokeo.',
+        outcomes: [
+          'Matriki za ujumbe za washindani zenye ushahidi na mapengo ya nafasi',
+          'Muhtasari wa nafasi, mihtasari ya ukurasa wa kutua na vibadala vya matangazo vilivyokaguliwa kwa urefu wa herufi',
+          'PR za ukurasa wa kutua zenye picha za skrini na miundo tupu ya kampeni za matangazo yaliyosimamishwa',
+          'Ubao wa alama wa dhana za midia ya kulipia, tahadhari za matumizi na ukaguzi wa uzinduzi unaohitaji idhini',
+        ],
+        inputs: [
+          'URL ya bidhaa yako, washindani na sauti au kanuni za chapa',
+          'Repositori ya tovuti yako ya masoko, matangazo yaliyopakuliwa au tarehe lengwa ya uzinduzi',
+        ],
+        handoff: [
+          'Mapengo ya utafiti',
+          'Rasimu ya nafasi',
+          'Tengeneza ukurasa na matangazo',
+          'Pima na amua',
+        ],
+        example: {
+          title:
+            'Mzunguko wa uzinduzi: pengo la mshindani, muhtasari wa nafasi, PR ya ukurasa wa kutua, muundo wa tangazo lililosimamishwa na ubao wa alama wa dhana.',
+          content:
+            'Msingi: Ukurasa wako wa mwanzo unaongoza kwa kasi ya usanidi.\nPengo la mshindani: Washindani watatu wanaongoza kwa orodha za ukaguzi za biashara kubwa; hakuna anayeangazia muda unaookolewa katika wiki ya kwanza (picha za skrini za bei na maktaba ya matangazo, Okt 6).\nHatua mbadala: Jaribu kichwa cha habari kinachotegemea matokeo ya wiki ya kwanza pamoja na ushahidi uliotajwa.\n\nKipindi: Okt 1–7 (data ya Google Ads).\nSpeed-First: $1,240 matumizi · 4.8% CTR · 6.2% CVR · $41 CPA — Pendekezo: Ongeza.\nEnterprise-Checklist: $1,180 matumizi · 1.9% CTR · 2.1% CVR · $131 CPA — Pendekezo: Simamisha (inasubiri idhini).',
+        },
+        starterTask:
+          'Omba timu ya Masoko na Uzinduzi ikague ukurasa wangu wa mwanzo dhidi ya washindani watatu, iandike rasimu ya muhtasari wa nafasi na vibadala vya matangazo ya utafutaji, na ipange PR ya ukurasa wa kutua na mpango wa majaribio yaliyosimamishwa.',
       },
       'content-publishing': {
         title: 'Maudhui na Uchapishaji',

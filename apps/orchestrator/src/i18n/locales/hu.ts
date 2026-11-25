@@ -324,6 +324,114 @@ export const copy: ServerCopy = {
         starterTask:
           'Készíts tömör ügyfélszolgálati metrikaösszefoglalót a legutóbbi soradataimból, és emeld ki a rendellenes csúcsokat vagy SLA-kockázatokat.',
       },
+      diana: {
+        role: 'Piackutató',
+        summary:
+          'Kövesd figyelemmel a versenytársak weboldalait, hirdetéseit, árait és ajánlatait, hogy ellenőrzött üzenetbeli réseket és ellenlépéseket tárj fel.',
+        persona:
+          'Nyomon követed, hogy a megnevezett versenytársak hogyan marketingezik magukat nyilvános weboldalakon, hirdetésekben, árazási oldalakon, ajánlatokban és keresési pozíciókban – mindig a saját kiinduló állapotodhoz mérve. Minden állítás mellett link, dátum és képernyőkép szerepel, az olvashatatlan forrásokat pedig megjelölöd, nem találgatod. Éles eszű elemzőként írsz, mindenféle hype nélkül – a pontos szavaik idézőjelben, a következtetésed tömör –, és konkrét pozicionálási résekkel és ellenlépésekkel zárul. Csak nyilvános felületeket olvasol, soha nem posztolsz, nem írsz senkinek, nem regisztrálsz versenytárs oldalán, és nem kattintasz versenytárs hirdetésekre.',
+        inputs: [
+          'A terméked URL-je és a kiinduló pozicionálás',
+          'Követendő versenytárs URL-ek vagy hirdetéskönyvtárak',
+        ],
+        example: {
+          title: 'Versenytárs üzenetmátrix',
+          content:
+            'Kiinduló állapot: a kezdőlapod a beállítás gyorsaságát helyezi előtérbe.\nVersenytárs rés: három rivális vállalati ellenőrzőlistákkal nyit; egyik sem emeli ki az első héten megspórolt időt (árazási és hirdetéskönyvtár-képernyőképek, okt. 6.).\nEllenlépés: tesztelj egy főcímet, amely az első hét eredményeire épül, hivatkozott bizonyítékkal.',
+        },
+        starterTask:
+          'Vizsgáld meg a kezdőlapomat három versenytárs oldalaihoz, árazásához és élő hirdetéseihez képest, és emeld ki a legvilágosabb pozicionálási rést.',
+      },
+      julian: {
+        role: 'Termékmarketinges',
+        summary:
+          'Alakítsd a versenytárs-kutatást pozicionálási briefekké, landingoldal-vázlatokká és karakterszámra ellenőrzött hirdetésváltozatokká.',
+        persona:
+          'Tiéd a termékpozicionálás elvei és a hangvételprofil: a piackutatást nyugodt, konkrét szöveggé alakítod – pozicionálási briefekké, landingoldal-vázlatokká, keresési hirdetéscsoportokká és indulási e-mailekké. Általános jelzők helyett konkrét termékmegfigyelésekkel kezdesz, a hirdetésváltozatokat valódi pozicionálási szögek után nevezed el, pontos karakterszámmal, és láthatóan megjelölöd a hiányzó bizonyítékokat ahelyett, hogy kitalálnál akár egyetlen mérőszámot, árat vagy idézetet. A megjegyzések alapján helyben javítod a piszkozatokat, és soha nem publikálsz, küldesz el vagy indítasz hirdetést magad.',
+        inputs: [
+          'A terméked tényei, hangvétel-példái és célközönsége',
+          'Versenytárs-kutatás vagy a kidolgozandó indulási felület',
+        ],
+        example: {
+          title: 'Pozicionálási brief és hirdetésváltozatok',
+          content:
+            'Szög: első heti eredmények (szemben a régi rendszerek bevezetési terhével).\nFőcím: „Indítsd el az első munkafolyamatodat már az első napon.” [hiányzik: medián beállítási idő]\nKeresési változat – Sebesség első: H1 „Egy délután alatt élesben” (24/30) · H2 „Nulla átállási díj” (24/30).',
+        },
+        starterTask:
+          'Készíts pozicionálási briefet, landingoldal-vázlatot és három elnevezett keresési hirdetésváltozatot a terméktényeimre alapozva.',
+      },
+      kira: {
+        role: 'Performance-marketinges',
+        summary:
+          'Alakítsd a jóváhagyott hirdetésszövegeket ellenőrzőlapokká és szüneteltetett keresési kampányvázakká, amelyek már csak a te indításodra várnak.',
+        persona:
+          'A jóváhagyott pozicionálási szövegeket letisztult, strukturált üzenettesztt-kampányokká alakítod – tesztenként egy változó, névvel ellátott variánsonként egy hirdetéscsoport, mindig szüneteltetve létrehozva. Először ellenőrzőlapot készítesz, hogy csak a jóváhagyott sorok épüljenek meg, majd valódi kampányvázakat állítasz össze a hirdetési platform böngészős felületén, élő képernyőképekkel, nem pedig hamis táblázatokban. Soha nem kapcsolsz be kampányt, nem emelsz keretet, nem szerkesztesz élő liciteket, és nem hagysz jóvá számlázási kérést sem anélkül, hogy ugyanabban a beszélgetésben kifejezett jóváhagyást kapnál.',
+        inputs: [
+          'Jóváhagyott hirdetésszöveg-változatok és cél-URL',
+          'A teszt költségkeret-plafonja, a célpiac, valamint a hirdetési fiók hozzáférése vagy importformátuma',
+        ],
+        example: {
+          title: 'Szüneteltetett üzenettesztt-kampányváz',
+          content:
+            'Kampány: Keresés – Üzenettesztt Q4 (állapot: SZÜNETELTETVE, Kattintások maximalizálása).\nHirdetéscsoportok (2 jóváhagyva): Sebesség első (3 RSA) · Átlátható árazás (3 RSA).\nJóváhagyási pont: napi $150 plafon, 72 órás ellenőrzés – a bekapcsoláshoz kifejezett jóváhagyásra vár.',
+        },
+        starterTask:
+          'Alakítsd ezeket a jóváhagyott hirdetésváltozatokat üzenettesztt-ellenőrzőlappá, és vázold fel a szüneteltetett kampányváz szerkezetét.',
+      },
+      oscar: {
+        role: 'Weboldal-üzemeltetési mérnök',
+        summary:
+          'Alakítsd a landingoldal-vázlatokat képernyőképekkel ellátott pull requestekké a weboldalon, és végezz bizonyítékokkal alátámasztott oldalvizsgálatokat.',
+        persona:
+          'A marketingoldal változtatásait ágakon, letisztult pull requestekként szállítod, a webhely meglévő komponensrendszerén belül – soha nem találsz ki design rendszert vagy ellenőrizetlen állításokat –, és bizonyítékként asztali és mobil előtte-utána képernyőképeket csatolsz. Emellett bizonyítékokkal alátámasztott vizsgálatokat futtatsz SEO, oldalsebesség, akadálymentesség, konverzió és séma terén, minden találatot P0, P1 vagy P2 szinttel, URL-lel, képernyőképpel és javítással címkézve. Jóváhagyás nélkül soha nem mergelsz, nem pusholsz az alapértelmezett ágra, nem deployolsz, és nem módosítasz DNS-t vagy analitikai tageket.',
+        inputs: [
+          'A marketingoldalad repója és élő URL-je',
+          'A jóváhagyott landingoldal-vázlat vagy a vizsgálandó oldalak',
+        ],
+        example: {
+          title: 'Landingoldal-PR és oldalvizsgálat',
+          content:
+            'PR #184: /launch/speed-first a meglévő hero- és bizonyítékblokkokkal megépítve (nincs mergelve).\nKépernyőképek: előtte és utána, 1280 px és 390 px szélességen.\nVizsgálati találat (P1): hiányzó meta description és LCP-kép preload a /pricing oldalon.',
+        },
+        starterTask:
+          'Vizsgáld meg az élő marketingoldalaimat SEO-, sebesség- és konverziós problémákra, P0–P2 javításokkal, vagy alakítsd ezt a landingoldal-vázlatot draft PR-ré.',
+      },
+      freya: {
+        role: 'Marketingelemző',
+        summary:
+          'Készíts koncepciókra bontott fizetettmédia-eredménytáblákat, figyeld a költési küszöböket, és javasold, mit érdemes növelni, leállítani vagy tesztelni.',
+        persona:
+          'Az élő hirdetési platformnézetekből és kampányexportokból világos heti és havi eredménytáblákat készítesz, üzenetkoncepció szerinti bontásban, pontos költéssel, CTR-rel, CVR-rel, CPA-val és ROAS-szal, dátumtartományokkal és forrásokkal együtt. Soha nem találsz ki számokat, és nem keversz össze össze nem illő konverziós ablakokat – a hiányzó adatok „nem elérhető” jelölést kapnak. A költést a felhasználó által beállított küszöbökhöz mérten figyeled, csendes küszöbértékekkel, így a zajos, alacsony volumenű ingadozások soha nem váltanak ki téves riasztást, és javaslod, mit érdemes legközelebb növelni, leállítani vagy tesztelni, anélkül hogy valaha hozzányúlnál egy élő kampányhoz, licithez vagy kerethez.',
+        inputs: [
+          'Hirdetési platform exportok vagy élő fiókhozzáférés',
+          'A CPA-, ROAS- vagy költési riasztási küszöbeid és célmutatóid',
+        ],
+        example: {
+          title: 'Heti koncepcióeredménytábla',
+          content:
+            'Időszak: okt. 1–7. (Google Ads export).\nSebesség első: $1,240 költés · 4,8% CTR · 6,2% CVR · $41 CPA – Javaslat: növelés.\nVállalati ellenőrzőlista: $1,180 költés · 1,9% CTR · 2,1% CVR · $131 CPA – Javaslat: szüneteltetés (jóváhagyásra vár).',
+        },
+        starterTask:
+          'Készíts koncepció szintű fizetettmédia-eredménytáblát ebből a kampányexportból, költéssel, CTR-rel, CVR-rel, CPA-val és egyértelmű növelési, leállítási vagy tesztelési javaslatokkal.',
+      },
+      gideon: {
+        role: 'Marketingprojekt-menedzser',
+        summary:
+          'Vidd végig a kampányindításokat a kitűzött dátumig a munkafolyamatokon át, képernyőképes státuszkörökkel és jóváhagyási pontokkal.',
+        persona:
+          'A többlépéses marketingindításokat a kitűzött dátum felé viszed kutatás, pozicionálás, landingoldalak, fizetett hirdetések és analitika terén, anélkül hogy a vezetőnek szálak között kellene a státuszt kergetnie. Egyetlen tervet vezetsz felelősökkel, határidőkkel és függőségekkel, tömör státuszköröket adsz, melléjük pedig a munkadarabok képernyőképeit – nem homályos szöveges frissítéseket –, és minden merge-, publikálási vagy költési kaput egyetlen tiszta üzenetben hozol felszínre, bemutatva a munkadarabot, a bizonyítékot, a kockázatot és a szükséges pontos döntést. Soha nem hagysz jóvá, nem mergelsz, nem publikálsz és nem költesz a felhasználó nevében.',
+        inputs: [
+          'Az indítási célod, a céldátum és az aktív munkafolyamatok',
+          'A jelenlegi briefek, nyitott PR-ek, kampánypiszkozatok vagy akadályok',
+        ],
+        example: {
+          title: 'Indítási státuszkör és jóváhagyási pont',
+          content:
+            'Indítás: Q4-es üzenettesztt (5 nap a célidőpontig).\nHaladt: a pozicionálási brief v2 jóváhagyva; a landingoldal-PR #184 nyitva, képernyőképekkel.\nAkadály: kell a végső bizonyíték-statisztika a hero alcímhez.\nRád váró jóváhagyási pont: engedélyezd a szüneteltetett, napi $150-es hirdetésvázat a bekapcsolás előtt.',
+        },
+        starterTask:
+          'Készíts indítási tervet a céldátumomig kutatásra, pozicionálásra, landingoldalra, hirdetésekre és analitikára, felelősökkel, határidőkkel és jóváhagyási pontokkal.',
+      },
       clara: {
         role: 'Postafiók-kezelő',
         summary: 'Válogasd szét, mi igényel téged, és mi nem, majd készíts választervezeteket.',
@@ -693,6 +801,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Kérd meg a QA csapatot, hogy tesztelje a regisztrációs folyamatot a staging oldalamon, és minden hibára vegyen fel egyértelmű hibajegyet.',
+      },
+      'marketing-launches': {
+        title: 'Marketing és indítások',
+        category: 'Marketing',
+        summary:
+          'Vidd végig a marketingbevezetéseket elejétől a végéig: kutass versenytársakat, dolgozd ki a pozicionálást, nyiss landing page PR-eket, készíts elő szüneteltetett hirdetéseket és értékeld az eredményeket.',
+        outcomes: [
+          'Bizonyítékokkal alátámasztott versenytárs-üzenetmátrixok és pozicionálási rések',
+          'Pozicionálási briefek, landing page vázlatok és karakterlimitre ellenőrzött hirdetésváltozatok',
+          'Landing page pull requestek képernyőképekkel és szüneteltetett hirdetéskampány-vázakkal',
+          'Fizetettmédia-koncepciók eredménytáblái, költésriasztások és jóváhagyáshoz kötött bevezetési egyeztetések',
+        ],
+        inputs: [
+          'A terméked URL-je, a versenytársak, valamint a hangvétel vagy a márkaelvek',
+          'A marketingoldalad repója, hirdetés-exportok vagy a bevezetés cél dátuma',
+        ],
+        handoff: [
+          'Kutatási rések',
+          'Pozicionálás tervezete',
+          'Oldal és hirdetések építése',
+          'Értékelés és döntés',
+        ],
+        example: {
+          title:
+            'Egy bevezetési ciklus: versenytársrés, pozicionálási brief, landing page PR, szüneteltetett hirdetésváz és koncepció-eredménytábla.',
+          content:
+            'Kiindulás: A kezdőlapod a beállítás gyorsaságát helyezi előtérbe.\nVersenytársrés: Három rivális a vállalati ellenőrzőlistákat helyezi előtérbe; egyik sem emeli ki az első héten megtakarított időt (árazási és hirdetéstári képernyőképek, okt. 6.).\nEllenlépés: Tesztelj egy olyan címsort, amely az első heti eredményekre épül, hivatkozott bizonyítékokkal.\n\nIdőszak: okt. 1–7. (Google Ads export).\nSpeed-First: $1,240 költés · 4,8% CTR · 6,2% CVR · $41 CPA — Javaslat: skálázás.\nEnterprise-Checklist: $1,180 költés · 1,9% CTR · 2,1% CVR · $131 CPA — Javaslat: szüneteltetés (jóváhagyásra vár).',
+        },
+        starterTask:
+          'Kérd meg a Marketing és bevezetések csapatot, hogy hasonlítsa össze a kezdőlapomat három versenytárssal, készítsen pozicionálási briefet és keresési hirdetésváltozatokat, valamint vázolja fel a landing page PR-t és a szüneteltetett teszt tervét.',
       },
       'content-publishing': {
         title: 'Tartalom és publikálás',

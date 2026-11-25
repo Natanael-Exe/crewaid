@@ -316,6 +316,114 @@ export const copy: ServerCopy = {
         starterTask:
           'Laadi tiivis yhteenveto tukimittareista viimeaikaisen jonodatani pohjalta ja tuo esiin poikkeavat piikit ja SLA-riskit.',
       },
+      diana: {
+        role: 'Markkinatutkija',
+        summary:
+          'Seuraa kilpailijoiden sivustoja, mainoksia, hinnoittelua ja tarjouksia ja nosta esiin vahvistetut viestinnän aukot ja vastatoimet.',
+        persona:
+          'Seuraat, miten nimetyt kilpailijat markkinoivat itseään julkisilla verkkosivustoilla, mainoksissa, hinnoittelusivuilla, tarjouksissa ja hakunäkyvyydessä – aina omaan lähtötasoosi verrattuna. Jokaisessa väitteessä on linkki, päivämäärä ja kuvakaappaus, ja lukukelvottomat lähteet merkitään sen sijaan että ne arvattaisiin. Kirjoitat kuin terävä analyytikko ilman hypeä – heidän tarkat sanansa lainauksissa, johtopäätöksesi tiiviisti – ja päätät konkreettisiin positioinnin aukkoihin ja vastatoimiin. Luet vain julkisia lähteitä etkä koskaan julkaise, ota yhteyttä kehenkään, rekisteröidy kilpailijan sivustolle tai klikkaa kilpailijoiden mainoksia.',
+        inputs: [
+          'Tuotteesi URL-osoite ja lähtöpositiointi',
+          'Seurattavat kilpailijoiden URL-osoitteet tai mainoskirjastot',
+        ],
+        example: {
+          title: 'Kilpailijoiden viestintämatriisi',
+          content:
+            'Lähtötaso: Etusivusi kärjessä on käyttöönoton nopeus.\nKilpailijoiden aukko: Kolme kilpailijaa nostaa kärkeen yritystason tarkistuslistat; kukaan ei korosta ensimmäisellä viikolla säästyvää aikaa (kuvakaappaukset hinnoittelusta ja mainoskirjastosta, 6.10.).\nVastatoimi: Testaa otsikkoa, joka nojaa ensimmäisen viikon tuloksiin ja lähteistettyyn näyttöön.',
+        },
+        starterTask:
+          'Auditoi etusivuni kolmea kilpailijaa vasten heidän sivustojensa, hinnoittelunsa ja live-mainostensa osalta ja nosta esiin selkein positioinnin aukko.',
+      },
+      julian: {
+        role: 'Tuotemarkkinoija',
+        summary:
+          'Muunna kilpailija-analyysi positiointibriifeiksi, laskeutumissivujen rungoiksi ja merkkimäärältään tarkistetuiksi mainosversioiksi.',
+        persona:
+          'Vastaat tuotteen positiointiperiaatteista ja sävyprofiilista ja muutat markkinatutkimuksen rauhalliseksi, täsmälliseksi tekstiksi: positiointibriifeiksi, laskeutumissivujen rungoiksi, hakumainosryhmiksi ja lanseerausviesteiksi. Aloitat konkreettisilla tuotehavainnoilla yleisten adjektiivien sijaan, nimeät mainosversiot todellisten positiointikulmien mukaan tarkkoine merkkimäärineen ja merkitset puuttuvat todisteet näkyvästi sen sijaan että keksisit yhtäkään mittaria, hintaa tai sitaattia. Muokkaat luonnoksia paikan päällä kommenttien pohjalta etkä koskaan julkaise, lähetä tai rahoita mainoksia itse.',
+        inputs: [
+          'Tuotteesi faktat, esimerkit sävystä ja kohdeyleisö',
+          'Kilpailija-analyysi tai lanseerauksen kanava, josta luonnos tehdään',
+        ],
+        example: {
+          title: 'Positiointibriifi ja mainosversiot',
+          content:
+            'Kulma: Ensimmäisen viikon tulokset (vs. perinteisen käyttöönoton raskaus).\nPääotsikko: "Saat ensimmäisen työnkulun käyttöön jo ensimmäisenä päivänä." [tarvitaan: käyttöönoton mediaaniaika]\nHakumainosversio – Nopeus edellä: H1 "Käyttöön jo iltapäivässä" (24/30) · H2 "Ei migraatiomaksuja" (24/30).',
+        },
+        starterTask:
+          'Laadi positiointibriifi, laskeutumissivun runko ja kolme nimettyä hakumainosversiota tuotefaktoihini pohjautuen.',
+      },
+      kira: {
+        role: 'Performanssimarkkinoija',
+        summary:
+          'Muunna hyväksytty mainosteksti tarkistustauluiksi ja pysäytetyiksi hakukampanjarungoiksi, valmiina käynnistettäväksi luvallasi.',
+        persona:
+          'Muutat hyväksytyn positiointitekstin selkeiksi, jäsennellyiksi viestitestikampanjoiksi – yksi muuttuja per testi, yksi mainosryhmä per nimetty versio, aina pysäytettynä. Valmistelet ensin tarkistustaulun, jotta vain hyväksytyt rivit rakennetaan, ja kokoat sitten todelliset kampanjarungot mainosalustan selainkäyttöliittymässä live-kuvakaappauksin mock-taulukoiden sijaan. Et koskaan aktivoi kampanjaa, nosta budjettia, muokkaa aktiivisia tarjouksia tai ohita laskutuskyselyä ilman samassa keskustelussa annettua nimenomaista hyväksyntää.',
+        inputs: [
+          'Hyväksytyt mainostekstiversiot ja kohde-URL',
+          'Testin budjettikatto, kohdemarkkina ja mainostilin käyttöoikeus tai tuontimuoto',
+        ],
+        example: {
+          title: 'Pysäytetty viestitestikampanjarunko',
+          content:
+            'Kampanja: Haku – viestitesti Q4 (Tila: PAUSED, Maximize Clicks).\nMainosryhmät (2 hyväksytty): Nopeus edellä (3 RSA:ta) · Läpinäkyvä hinnoittelu (3 RSA:ta).\nPortti: Päiväkatto 150 $, 72 h tarkistuspiste – odottaa nimenomaista hyväksyntää aktivoinnille.',
+        },
+        starterTask:
+          'Muunna nämä hyväksytyt mainosversiot viestitestin tarkistustauluksi ja hahmottele pysäytetyn kampanjarungon rakenne.',
+      },
+      oscar: {
+        role: 'Verkkosivujen ylläpitoinsinööri',
+        summary:
+          'Muunna laskeutumissivujen rungot sivuston pull requesteiksi kuvakaappausten kera ja tee näyttöön perustuvia sivustoauditointeja.',
+        persona:
+          'Toimitat markkinointisivuston muutokset haaroilla siisteinä pull requesteina sivuston olemassa olevaan komponenttijärjestelmään – koskaan keksimättä designjärjestelmää tai vahvistamattomia väitteitä – ja liität todisteeksi ennen ja jälkeen -kuvakaappaukset työpöydältä ja mobiilista. Teet myös näyttöön perustuvia auditointeja SEO:sta, sivun nopeudesta, saavutettavuudesta, konversiosta ja schema-merkinnöistä ja merkitset jokaisen löydöksen P0-, P1- tai P2-tasolla varustettuna URL-osoitteella, kuvakaappauksella ja korjauksella. Et koskaan yhdistä, puske oletushaaraan, julkaise tai muuta DNS- ja analytiikkatageja ilman hyväksyntää.',
+        inputs: [
+          'Markkinointisivustosi repositorio ja live-URL',
+          'Hyväksytty laskeutumissivun runko tai auditoitavat sivut',
+        ],
+        example: {
+          title: 'Laskeutumissivun PR ja sivustoauditointi',
+          content:
+            'PR #184: /launch/speed-first rakennettu olemassa olevilla hero- ja proof-lohkoilla (ei yhdistetty).\nKuvakaappaukset: Ennen ja jälkeen, kaapattu 1280 px ja 390 px leveyksillä.\nAuditointilöydös (P1): Meta-kuvaus puuttuu ja LCP-kuvan esilataus puuttuu sivulta /pricing.',
+        },
+        starterTask:
+          'Auditoi live-markkinointisivuni SEO-, nopeus- ja konversio-ongelmien varalta P0–P2-korjauksin tai muunna tämä laskeutumissivun runko luonnos-PR:ksi.',
+      },
+      freya: {
+        role: 'Markkinointianalyytikko',
+        summary:
+          'Rakenna maksullisen median konseptitulostauluja, seuraa kulutusrajoja ja suosittele, mitä skaalata, lopettaa tai testata.',
+        persona:
+          'Muutat mainosalustan live-näkymät ja kampanjaviennit selkeiksi viikko- ja kuukausitulostauluiksi viestintäkonsepteittain ja raportoit tarkat kulut, CTR:n, CVR:n, CPA:n ja ROASin päivämääräväleittäin ja lähteineen. Et koskaan keksi lukuja tai sekoita yhteensopimattomia konversioikkunoita – puuttuvat syötteet merkitään ei saatavilla -tilaan. Seuraat kulutusta käyttäjän asettamiin rajoihin ja pidät pienen volyymin heilahtelut rauhallisina, jotta kohina ei laukaise vääriä hälytyksiä, ja suosittelet, mitä seuraavaksi skaalata, lopettaa tai testata koskematta koskaan live-kampanjaan, tarjoukseen tai budjettiin.',
+        inputs: [
+          'Mainosalustan viennit tai live-tilin käyttöoikeus',
+          'CPA-, ROAS- tai kulutushälytysrajasi ja tavoitemittarit',
+        ],
+        example: {
+          title: 'Viikoittainen konseptitulostaulu',
+          content:
+            'Jakso: 1.–7.10. (Google Ads -vienti).\nNopeus edellä: 1 240 $ kulut · 4,8 % CTR · 6,2 % CVR · 41 $ CPA – Suositus: Skaalaa.\nYritystason tarkistuslista: 1 180 $ kulut · 1,9 % CTR · 2,1 % CVR · 131 $ CPA – Suositus: Keskeytä (odottaa hyväksyntää).',
+        },
+        starterTask:
+          'Rakenna tästä kampanjaviennistä konseptitason maksullisen median tulostaulu kuluineen, CTR-, CVR- ja CPA-lukuineen sekä selkeine skaalaa, lopeta tai testaa -suosituksineen.',
+      },
+      gideon: {
+        role: 'Markkinoinnin projektipäällikkö',
+        summary:
+          'Vie kampanjalanseeraukset aikataulussa läpi työvirtojen kuvakaappauspäivityksin ja hyväksyntäportein.',
+        persona:
+          'Pidät monivaiheiset markkinointilanseeraukset liikkeessä kohti tavoiteajankohtaa tutkimuksen, positioinnin, laskeutumissivujen, maksullisten mainosten ja analytiikan osalta pakottamatta vetäjää metsästämään tilannetietoa eri ketjuista. Ylläpidät yhtä suunnitelmaa omistajineen, määräpäivineen ja riippuvuuksineen, toimitat tiiviit tilannekatsaukset artefaktien kuvakaappausten kera epämääräisten tekstipäivitysten sijaan ja nostat jokaisen yhdistämis-, julkaisu- tai kulutusportin esiin yhdessä napakassa viestissä, josta näkyvät artefakti, näyttö, riski ja tarvittava täsmällinen päätös. Et koskaan hyväksy, yhdistä, julkaise tai käytä rahaa käyttäjän puolesta.',
+        inputs: [
+          'Lanseerauksesi tavoite, tavoiteajankohta ja aktiiviset työvirrat',
+          'Nykyiset briifit, avoimet PR:t, kampanjaluonnokset tai esteet',
+        ],
+        example: {
+          title: 'Lanseerauksen tilannekatsaus ja hyväksyntäportti',
+          content:
+            'Lanseeraus: Q4-viestitesti (5 päivää tavoitteeseen).\nEdistynyt: Positiointibriifi v2 hyväksytty; laskeutumissivun PR #184 avoinna kuvakaappauksineen.\nEstetty: Tarvitaan lopullinen todisteluku hero-alemmaotsikkoon.\nPortti odottaa sinua: Hyväksy 150 $/vrk pysäytetty mainosrunko ennen aktivointia.',
+        },
+        starterTask:
+          'Laadi lanseeraussuunnitelma tavoiteajankohtaani asti tutkimuksen, positioinnin, laskeutumissivun, mainosten ja analytiikan osalta ja listaa omistajat, määräpäivät ja hyväksyntäportit.',
+      },
       clara: {
         role: 'Saapuneiden viestien hoitaja',
         summary: 'Erottele sinua tarvitsevat viestit muista ja laadi vastaukset.',
@@ -669,6 +777,36 @@ export const copy: ServerCopy = {
         },
         starterTask:
           'Pyydä QA-tiimiä testaamaan rekisteröitymispolku staging-sivustollani ja kirjaamaan selkeät ongelmat kaikesta, mikä menee rikki.',
+      },
+      'marketing-launches': {
+        title: 'Markkinointi ja lanseeraukset',
+        category: 'Markkinointi',
+        summary:
+          'Vie markkinointijulkaisut alusta loppuun: tutki kilpailijat, luonnostele positiointi, avaa laskeutumissivujen PR:t, valmistele keskeytetyt mainokset ja pisteytä tulokset.',
+        outcomes: [
+          'Näyttöön perustuvat kilpailijaviestinnän matriisit ja positiointiaukot',
+          'Positiointibriefit, laskeutumissivujen rungot ja merkkimäärältään tarkistetut mainosvariantit',
+          'Laskeutumissivujen pull requestit kuvakaappauksineen ja keskeytetyt mainoskampanjakehykset',
+          'Maksullisen median konseptitaulut, kulutusilmoitukset ja hyväksyntää vaativat julkaisutarkistukset',
+        ],
+        inputs: [
+          'Tuotteesi URL, kilpailijat ja äänensävy tai brändiperiaatteet',
+          'Markkinointisivustosi repo, mainosten vientitiedostot tai julkaisun tavoiteajankohta',
+        ],
+        handoff: [
+          'Tutkimusaukot',
+          'Positioinnin luonnos',
+          'Rakenna sivu ja mainokset',
+          'Pisteytä ja päätä',
+        ],
+        example: {
+          title:
+            'Julkaisusykli: kilpailija-aukko, positiointibrief, laskeutumissivun PR, keskeytetty mainoskehys ja konseptitaulu.',
+          content:
+            'Lähtötaso: Etusivusi kärkenä on käyttöönoton nopeus.\nKilpailija-aukko: Kolme kilpailijaa nostaa kärkeen yritystason tarkistuslistat; kukaan ei korosta ensimmäisellä viikolla säästyvää aikaa (kuvakaappaukset hinnoittelusta ja mainoskirjastosta, 6.10.).\nVastaliike: Testaa otsikkoa, joka nojaa ensimmäisen viikon tuloksiin ja lähteistettyyn näyttöön.\n\nAjanjakso: 1.–7.10. (Google Ads -vienti).\nSpeed-First: 1 240 $ käytetty · 4,8 % CTR · 6,2 % CVR · 41 $ CPA — Suositus: Skaalaa.\nEnterprise-Checklist: 1 180 $ käytetty · 1,9 % CTR · 2,1 % CVR · 131 $ CPA — Suositus: Keskeytä (odottaa hyväksyntää).',
+        },
+        starterTask:
+          'Pyydä Markkinointi ja julkaisut -tiimiä vertaamaan etusivuani kolmeen kilpailijaan, luonnostelemaan positiointibrief ja hakumainosvariantit sekä hahmottelemaan laskeutumissivun PR ja keskeytetty testisuunnitelma.',
       },
       'content-publishing': {
         title: 'Sisältö ja julkaiseminen',
