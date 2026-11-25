@@ -30,6 +30,7 @@ const TITLES: Readonly<Record<string, PlainKey>> = {
   fs_read: 'tools.title.fsRead',
   fs_write: 'tools.title.fsWrite',
   attach_file: 'tools.title.attachFile',
+  present_visual: 'tools.title.presentVisual',
 };
 
 const SOURCES = {
@@ -138,6 +139,11 @@ export function displayStatus(row: FoldedToolPart, context?: PartRenderContext):
       (row.toolName === 'shell' && /^shell ".*" failed:/.test(value)))
   )
     return 'error';
+  if (
+    row.toolName === 'present_visual' &&
+    (value.startsWith('present_visual failed:') || value.startsWith('present_visual refused:'))
+  )
+    return 'error';
   return row.status;
 }
 
@@ -236,6 +242,7 @@ export function isResourceAction(name: string): boolean {
 export function isUserOutput(row: FoldedToolPart, context?: PartRenderContext): boolean {
   if (row.toolName === 'read_template') return true;
   if (row.toolName === 'preview_email') return true;
+  if (row.toolName === 'present_visual') return true;
   const { kind } = toolPresentation(row.toolName, context);
   if (row.toolName === 'fs_write' || row.toolName === 'attach_file') return true;
   return kind === 'connection' && isResourceAction(row.toolName);

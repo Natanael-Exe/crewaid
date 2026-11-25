@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TemplateInstallBodySchema } from './templates.js';
 import { JsonSchema, JsonSchemaObjectSchema } from './primitives.js';
+import { PresentVisualInputSchema } from './visuals.js';
 
 const id = z.string();
 const KIND = z.enum(['preference', 'convention', 'fact', 'decision', 'task_state', 'resource']);
@@ -56,6 +57,7 @@ export const NativeToolInputs = {
       bcc: z.array(z.string().max(320)).max(20).optional(),
     })
     .strict(),
+  present_visual: PresentVisualInputSchema,
   task_list: z.object({
     assignee: z.string().optional(),
     status: z.string().optional(),

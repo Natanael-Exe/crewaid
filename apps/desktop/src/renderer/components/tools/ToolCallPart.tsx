@@ -5,6 +5,7 @@ import { ChatToolGroup } from '../ui';
 import { toolMark, fileMark } from '../attachments/artifactMarks';
 import { systemBrowser } from '../../bridge';
 import { TemplateResultCard } from '../../experience/TemplateResultCard';
+import { VisualCard } from '../visuals/VisualCard';
 import { ResourcePreview } from './ResourcePreview';
 import { resourcePreview, type ResourcePreview as Resource } from './resourcePresentation';
 import { ToolCard, ToolFields, ToolMark, ToolStatusTag } from './ToolCard';
@@ -256,6 +257,8 @@ export function ToolCallPart({
   // A template Crewaid read is a recommendation the person acts on.
   if (row.toolName === 'read_template' && status === 'ok')
     return <TemplateResultCard input={row.input} output={row.output} />;
+  // Declarative visuals always render via their dedicated card, keyed strictly on toolName.
+  if (row.toolName === 'present_visual') return <VisualCard row={row} status={status} />;
   // Cards are for what the user keeps. Everything else is routine work,
   // which renders as a quiet line — or, with "Show thinking and actions" off,
   // is filtered out before it ever reaches a renderer.
@@ -459,7 +462,10 @@ export function ToolActivityPart({
               displayStatus(row, context),
             );
             const tile =
-              preview !== undefined && preview.kind !== 'email' && preview.body === undefined;
+              row.toolName !== 'present_visual' &&
+              preview !== undefined &&
+              preview.kind !== 'email' &&
+              preview.body === undefined;
             return (
               <div
                 key={row.toolCallId}

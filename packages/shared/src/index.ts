@@ -31,4 +31,5 @@ export * from './speakable.js';
 export * from './telegram.js';
 
 export * from './templates.js';
+export * from './visuals.js';
 export * from './welcome.js';

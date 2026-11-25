@@ -73,6 +73,14 @@
     --success: oklch(56% 0.155 151);
     --success-foreground: oklch(100% 0 0);
 
+    /* Data visualization series palette (Day) */
+    --chart-1: oklch(54% 0.175 258);
+    --chart-2: oklch(56% 0.155 156);
+    --chart-3: oklch(64% 0.16 68);
+    --chart-4: oklch(58% 0.18 18);
+    --chart-5: oklch(55% 0.165 302);
+    --chart-6: oklch(58% 0.125 206);
+
     /* Form fields, segments & structural borders */
     --field-background: oklch(21.5% 0.044 290 / 0.055);
     --field-foreground: var(--foreground);
@@ -169,6 +177,12 @@
   --color-needs-you: var(--needs-you);
   --color-accent-soft: var(--accent-soft);
   --color-accent-soft-foreground: var(--accent-soft-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
 }
 
 /*
@@ -251,6 +265,14 @@
     --danger-foreground: oklch(21.5% 0.044 290);
     --success: oklch(80% 0.135 152);
     --success-foreground: oklch(19.5% 0.062 273);
+
+    /* Data visualization series palette (Night) */
+    --chart-1: oklch(72% 0.155 255);
+    --chart-2: oklch(76% 0.145 156);
+    --chart-3: oklch(80% 0.145 76);
+    --chart-4: oklch(74% 0.155 20);
+    --chart-5: oklch(74% 0.155 304);
+    --chart-6: oklch(76% 0.12 204);
 
     --topbar-surface: oklch(20% 0.062 273 / 0.64);
     --crew-hover: oklch(100% 0 0 / 0.06);

@@ -121,6 +121,7 @@ describe('M5-BE-04 the four tools reach a real turn', () => {
     // this provider does not build.
     expect(registry.names()).toEqual([
       'preview_email',
+      'present_visual',
       'browser_navigate',
       'browser_read',
       'browser_click',

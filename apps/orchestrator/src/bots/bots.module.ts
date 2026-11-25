@@ -23,6 +23,7 @@ import {
 import { AgentAttachmentService } from '../agent/agent-attachment.service.js';
 import { ToolsController } from '../agent/tools.controller.js';
 import { previewTools } from '../agent/preview-tools.js';
+import { visualTools } from '../agent/visual-tools.js';
 import { browserTools } from '../agent/browser-tools.js';
 import { boardTools } from '../agent/board-tools.js';
 import { memoryTools } from '../agent/memory-tools.js';
@@ -106,6 +107,7 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
       ): ToolRegistry => {
         const registry = new ToolRegistry();
         for (const entry of previewTools()) registry.register(entry);
+        for (const entry of visualTools()) registry.register(entry);
         for (const entry of browserTools()) registry.register(entry);
         for (const entry of computerTools({ machines: browsers })) registry.register(entry);
         for (const entry of machineTools({ machines: browsers, attachments }))

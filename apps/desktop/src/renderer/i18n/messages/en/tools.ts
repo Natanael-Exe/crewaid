@@ -42,6 +42,7 @@ export const tools = {
   'tools.title.fsRead': 'Read a file',
   'tools.title.fsWrite': 'Write a file',
   'tools.title.attachFile': 'Share a file',
+  'tools.title.presentVisual': 'Present visual',
   'tools.source.connection': 'Connected app',
   'tools.source.computer': 'Computer',
   'tools.source.file': 'File',
