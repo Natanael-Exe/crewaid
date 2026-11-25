@@ -38,4 +38,17 @@ describe('the status dot', () => {
       expect(classOf(status)).not.toMatch(/(^|\s)animate-pulse/);
     }
   });
+
+  it('merges unread state into one dot without stacking a second indicator', () => {
+    const idleUnread = renderToStaticMarkup(<StatusDot status="IDLE" unread={3} />);
+    expect(idleUnread).toContain('bg-accent');
+    expect(idleUnread).not.toContain('animate-pulse');
+    expect(idleUnread).toContain('aria-label="3 unread"');
+    expect(idleUnread).toContain('data-unread="true"');
+
+    const errorUnread = renderToStaticMarkup(<StatusDot status="ERROR" unread={2} />);
+    expect(errorUnread).toContain('bg-danger');
+    expect(errorUnread).toContain('aria-label="Error · 2 unread"');
+    expect(errorUnread.match(/role="img"/g)).toHaveLength(1);
+  });
 });

@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import { formatPreviewInternalPaths } from '../src/renderer/components/markdown/internalPaths';
 import { StreamingMarkdown } from '../src/renderer/components/markdown/StreamingMarkdown';
 import { codeHighlighter } from '../src/renderer/components/markdown/highlight';
 import { renderPart } from '../src/renderer/components/PartRenderer';
@@ -192,5 +193,49 @@ describe('StreamingMarkdown', () => {
     expect(output).toContain('streamed');
     expect(output).toContain('<code');
     expect(output).toContain('content');
+  });
+
+  it('hides internal sandbox paths in prose and standalone inline code behind a hoverable pill', () => {
+    const fullPath =
+      '/home/bot/groups/cmww0x3x30000zq3blkyzxvz0/00-research/competitor-claims.md';
+    const bareGroupDir = '/home/bot/groups/cmww0x3x30000zq3blkyzxvz0';
+    const output = markup(
+      `File: ${fullPath}. Folder: \`${bareGroupDir}\`.\n\n\`\`\`bash\ncat ${fullPath}\n\`\`\``,
+    );
+
+    // Prose path keeps the clean filename and trailing period, hides the raw prefix from visible text.
+    expect(output).toContain(`data-path="${fullPath}"`);
+    expect(output).toContain('data-path-kind="file"');
+    expect(output).toContain('>competitor-claims.md</button>.');
+    // Bare CUID directory falls back to localized "path" rather than exposing the CUID.
+    expect(output).toContain(`data-path="${bareGroupDir}"`);
+    expect(output).toContain('data-path-kind="generic"');
+    expect(output).toContain('>path</button>.');
+    // Fenced code blocks remain verbatim for copying commands.
+    expect(output).toContain(`cat ${fullPath}`);
+    // Never emits a <div> inside <p> (button is valid phrasing content).
+    expect(output).not.toMatch(/<p[^>]*>[\s\S]*?<div[\s\S]*?<\/p>/);
+  });
+
+  it('does not rewrite URLs that happen to contain /home/bot or relative links', () => {
+    const output = markup('Visit https://example.com/home/bot/guide for details.');
+    expect(output).not.toContain('data-internal-path-hint');
+  });
+
+  it('uses hanging indents for ordered and unordered lists', () => {
+    const output = markup('1. **First point.** Supporting details.\n\n- Bullet item');
+    expect(output).toContain('list-outside');
+    expect(output).not.toContain('list-inside');
+  });
+
+  it('formats sidebar message previews without raw /home/bot paths or CUIDs', () => {
+    expect(
+      formatPreviewInternalPaths(
+        'File: /home/bot/groups/cmww0x3x30000zq3blkyzxvz0/00-research/competitor-claims.md.',
+      ),
+    ).toBe('File: competitor-claims.md.');
+    expect(
+      formatPreviewInternalPaths('Check /home/bot/agents/cmww0x3xr0007zq3bw7scat2i now'),
+    ).toBe('Check path now');
   });
 });

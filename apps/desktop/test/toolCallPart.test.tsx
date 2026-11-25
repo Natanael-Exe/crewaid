@@ -177,7 +177,7 @@ describe('ToolCallPart', () => {
     expect(html).toContain('You declined this.');
   });
 
-  it('offers the full arguments and result behind a disclosure', () => {
+  it('offers the full arguments and result behind a collapsed disclosure line', () => {
     const html = render(
       folded([
         call,
@@ -191,10 +191,9 @@ describe('ToolCallPart', () => {
         },
       ]),
     );
-    // HeroUI Disclosure: collapsed by default, keeping its payload inspectable.
+    // HeroUI Disclosure: collapsed by default, keeping its payload inspectable on demand.
     expect(html).toContain('data-slot="disclosure"');
     expect(html).toContain('aria-expanded="false"');
-    expect(html).toContain('Details');
     expect(html).toContain(`${ESC.quot}title${ESC.quot}: ${ESC.quot}Example Domain${ESC.quot}`);
   });
 
@@ -267,11 +266,12 @@ describe('ToolActivityPart', () => {
     ...turn('t2', 'browser_read', {}, 'page text'),
   ];
 
-  it('keeps what the user keeps and omits routine rows entirely when work is hidden', () => {
+  it('keeps deliverables as cards and omits routine rows (including fs_write) when work is hidden', () => {
     const html = renderToStaticMarkup(
       <ToolActivityPart
         part={activity([
           ...routineTurns,
+          ...turn('t4', 'fs_write', { path: '/home/bot/agents/a/patch.py', content: 'x' }, 'wrote'),
           ...turn(
             't3',
             'preview_email',
@@ -287,10 +287,21 @@ describe('ToolActivityPart', () => {
     expect(html).toContain('Proposal');
     expect(html).not.toContain('browser_read');
     expect(html).not.toContain('Fetch emails');
+    expect(html).not.toContain('patch.py');
     expect(html).not.toContain('data-tool-line');
   });
 
-  it('keeps the routine log one collapsed disclosure away when work is shown', () => {
+  it('opens the action log while the reply streams when work is shown', () => {
+    const live = renderToStaticMarkup(
+      <ToolActivityPart
+        part={activity(routineTurns)}
+        context={{ showWork: true, streaming: true }}
+      />,
+    );
+    expect(live).toMatch(/data-slot="chat-tool-group-trigger"[^>]*aria-expanded="true"/);
+  });
+
+  it('keeps the routine log one collapsed disclosure away when settled and work is shown', () => {
     const html = renderToStaticMarkup(
       <ToolActivityPart part={activity(routineTurns)} context={{ showWork: true }} />,
     );
@@ -298,16 +309,6 @@ describe('ToolActivityPart', () => {
     expect(html).toContain('2 actions');
     expect(html).toContain('Fetch emails');
     expect(html).toMatch(/data-slot="chat-tool-group-trigger"[^>]*aria-expanded="false"/);
-  });
-
-  it('opens the action log while the reply streams, for whoever opted into it', () => {
-    const html = renderToStaticMarkup(
-      <ToolActivityPart
-        part={activity(routineTurns)}
-        context={{ showWork: true, streaming: true }}
-      />,
-    );
-    expect(html).toMatch(/data-slot="chat-tool-group-trigger"[^>]*aria-expanded="true"/);
   });
 
   it('surfaces a failure of something the user keeps, in words', () => {
@@ -338,7 +339,7 @@ describe('ToolActivityPart', () => {
     expect(html).toContain('data-tool-activity-status="issue"');
   });
 
-  it('hides a routine failure with the work, and states it plainly when work is shown', () => {
+  it('hides a routine failure with the work, and renders a single routine action as one thin collapsible line when work is shown', () => {
     const failed = activity([
       {
         type: 'tool-call',
@@ -361,9 +362,11 @@ describe('ToolActivityPart', () => {
     const shown = renderToStaticMarkup(
       <ToolActivityPart part={failed} context={{ showWork: true }} />,
     );
-    expect(shown).toContain('1 action');
+    expect(shown).toContain('data-tool-line');
+    expect(shown).toContain('Run a command');
     expect(shown).toContain('the container is not running');
     expect(shown).toContain('data-tool-activity-status="issue"');
+    expect(shown).toContain('aria-expanded="false"');
   });
 });
 
@@ -469,17 +472,36 @@ describe('recoverable tool cards', () => {
     expect(failed).not.toContain('File written');
   });
 
-  it('shows the file a bot wrote as a card with its path, contents in the details', () => {
+  it('renders fs_write and attach_file as thin muted lines with internal paths hidden behind a hoverable path hint', () => {
+    const internalPath = '/home/bot/agents/cmww0x3xr0007zq3bw7scat2i/update.md';
     const html = render({
       type: 'tool-call',
       toolCallId: 'file',
       toolName: 'fs_write',
       status: 'ok',
-      input: { path: '/home/bot/update.md', content: '# Plan' },
+      input: { path: internalPath, content: '# Plan' },
       output: 'wrote 7 bytes',
     });
-    expect(html).toContain('data-tool-card="file"');
+    expect(html).toContain('data-tool-line');
+    expect(html).not.toContain('data-tool-card=');
+    expect(html).toContain('Write a file');
     expect(html).toContain('update.md');
+    expect(html).toContain('data-internal-path-hint="true"');
+    expect(html).toContain(`data-path="${internalPath}"`);
+    expect(html).toContain('>path<');
+    // The expanded details hold the file contents behind the collapsed disclosure.
     expect(html.indexOf('data-slot="disclosure"')).toBeLessThan(html.indexOf('Plan'));
+
+    const attached = render({
+      type: 'tool-call',
+      toolCallId: 'attach-1',
+      toolName: 'attach_file',
+      status: 'ok',
+      input: { path: internalPath },
+      output: 'attached',
+    });
+    expect(attached).toContain('data-tool-line');
+    expect(attached).not.toContain('data-tool-card=');
+    expect(attached).toContain('data-internal-path-hint="true"');
   });
 });

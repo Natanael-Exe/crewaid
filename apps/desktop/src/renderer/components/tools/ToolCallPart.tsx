@@ -8,13 +8,16 @@ import { TemplateResultCard } from '../../experience/TemplateResultCard';
 import { VisualCard } from '../visuals/VisualCard';
 import { ResourcePreview } from './ResourcePreview';
 import { resourcePreview, type ResourcePreview as Resource } from './resourcePresentation';
-import { ToolCard, ToolFields, ToolMark, ToolStatusTag } from './ToolCard';
+import { InternalPathHint, ToolCard, ToolFields, ToolMark, ToolStatusTag } from './ToolCard';
 import {
   displayStatus,
   filePreview,
+  isInternalWorkspacePath,
   isUserOutput,
+  pathBasename,
   previewFields,
   resultPreview,
+  toolFilePath,
   toolPresentation,
   type DisplayStatus,
 } from './toolPresentation';
@@ -164,13 +167,13 @@ function DetailsDisclosure({ row, status }: { row: FoldedToolPart; status: Displ
 }
 
 /**
- * A routine action — a read, a search, a command — as one quiet line.
+ * A routine action — file write, read, search, shell, browser step — rendered
+ * as one thin muted collapsible line with an inline arrow beside the label.
  *
- * Cards are for what the user keeps; everything else a bot does is
- * machinery, and machinery between the bubbles is noise. The line still says
- * what ran and how it ended — in words, since colour is not a state — keeps a
- * failure's sentence on its face, and puts the arguments and the raw result
- * one Details away.
+ * Clicking the line expands its arguments, bounded file preview, result, and
+ * internal tool name. Internal sandbox paths (`/home/bot/...`) stay off the
+ * face and live behind a hoverable "path" hint placed beside the trigger so
+ * interactive elements are never nested.
  */
 function ToolCallLine({
   row,
@@ -185,6 +188,18 @@ function ToolCallLine({
   const status = displayStatus(row, context);
   const presentation = toolPresentation(row.toolName, context);
   const mark = rowMark(row, presentation.kind, status);
+  const filePath = toolFilePath(row.input);
+  const internalPath =
+    filePath !== undefined && isInternalWorkspacePath(filePath) ? filePath : undefined;
+  const filename = filePath !== undefined ? pathBasename(filePath) : undefined;
+  const inputBody = row.input === undefined ? '' : safeJson(row.input, 2);
+  const outputBody =
+    row.output === undefined
+      ? ''
+      : typeof row.output === 'string'
+        ? row.output
+        : safeJson(row.output, 2);
+  const preview = filePreview(row);
   const failure =
     status === 'error' || status === 'denied' || status === 'incomplete'
       ? failureText(row, status)
@@ -200,29 +215,77 @@ function ToolCallLine({
       data-tool-call={row.toolName}
       data-tool-status={status}
       data-tool-line
-      className="crewaid-tool-line my-1"
+      className="crewaid-tool-line my-0.5"
     >
-      <div className="flex min-w-0 items-center gap-2">
-        <ToolMark kind={presentation.kind} mark={mark} variant="line" />
-        {/* Not stretched: the outcome reads right after what ran, instead of
-            across an empty line at the far end. */}
-        <span className="min-w-0 truncate text-caption leading-5" title={presentation.title}>
-          {presentation.title}
-        </span>
-        {presentation.kind === 'computer' && context?.onViewComputer !== undefined ? (
-          <Button size="sm" variant="ghost" onPress={context.onViewComputer}>
-            {t('tools.viewComputer')}
-          </Button>
-        ) : null}
-        <ToolStatusTag status={status} count={count} />
-      </div>
-      {failure === undefined ? null : (
-        <p className="crewaid-tool-line-note mt-1 ps-[30px] text-micro leading-4 text-muted">
-          {failure}
-        </p>
-      )}
-      {asked === undefined ? null : <p className="mt-1 ps-[30px] text-micro text-muted">{asked}</p>}
-      <DetailsDisclosure row={row} status={status} />
+      <Disclosure defaultExpanded={false} className="crewaid-tool-line-disclosure min-w-0">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+          <Disclosure.Heading className="min-w-0">
+            <Disclosure.Trigger className="crewaid-tool-disclosure inline-flex max-w-full items-center gap-1.5 rounded-md py-0.5 text-caption text-muted outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus">
+              <ToolMark kind={presentation.kind} mark={mark} variant="line" />
+              <span className="truncate leading-5" title={presentation.title}>
+                {presentation.title}
+              </span>
+              {filename === undefined ? null : (
+                <span className="truncate font-mono text-micro opacity-80">{filename}</span>
+              )}
+              <Disclosure.Indicator className="size-3.5 shrink-0 text-muted" />
+            </Disclosure.Trigger>
+          </Disclosure.Heading>
+          {internalPath === undefined ? null : <InternalPathHint path={internalPath} />}
+          {presentation.kind === 'computer' && context?.onViewComputer !== undefined ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              onPress={context.onViewComputer}
+              className="h-6 min-h-0 px-1.5 text-micro text-muted hover:text-foreground"
+            >
+              {t('tools.viewComputer')}
+            </Button>
+          ) : null}
+          <ToolStatusTag status={status} count={count} />
+        </div>
+        {failure === undefined ? null : (
+          <p className="crewaid-tool-line-note mt-0.5 ps-[24px] text-micro leading-4 text-muted">
+            {failure}
+          </p>
+        )}
+        {asked === undefined ? null : (
+          <p className="mt-0.5 ps-[24px] text-micro text-muted">{asked}</p>
+        )}
+        <Disclosure.Content>
+          <Disclosure.Body>
+            <div className="mt-1.5 border-s-2 border-separator ps-3 pb-1">
+              {inputBody === '' ? null : (
+                <DetailBlock
+                  label={t('tools.detail.arguments')}
+                  code
+                  body={truncateForDisplay(inputBody, DETAIL_CHARS)}
+                />
+              )}
+              {preview === undefined ? null : (
+                <DetailBlock
+                  label={
+                    row.toolName === 'fs_write'
+                      ? status === 'ok'
+                        ? t('tools.detail.fileWritten')
+                        : t('tools.detail.filePreview')
+                      : t('tools.detail.fileContents')
+                  }
+                  body={preview}
+                />
+              )}
+              {outputBody === '' ? null : (
+                <DetailBlock
+                  label={t('tools.detail.result')}
+                  code={row.toolName === 'shell' || typeof row.output !== 'string'}
+                  body={truncateForDisplay(outputBody, DETAIL_CHARS)}
+                />
+              )}
+              <DetailBlock label={t('tools.detail.tool')} body={row.toolName} code />
+            </div>
+          </Disclosure.Body>
+        </Disclosure.Content>
+      </Disclosure>
     </div>
   );
 }
@@ -379,33 +442,35 @@ function outputRows(
 function RoutineActivityDisclosure({
   routine,
   streaming,
+  autoExpand,
   context,
 }: {
   routine: readonly FoldedToolPart[];
   streaming: boolean;
+  autoExpand: boolean;
   context?: PartRenderContext | undefined;
 }) {
   const t = useT();
-  const [expanded, setExpanded] = useState(streaming);
+  const [expanded, setExpanded] = useState(streaming && autoExpand);
   const wasStreaming = useRef(streaming);
 
-  // Open while streaming, then auto-collapse cleanly when the turn settles
-  // (avoiding native `<details open={undefined}>` getting stuck open).
+  // Only auto-open while streaming when the user opted into live work; once
+  // the turn settles, collapse back into the quiet line so chat stays clean.
   useEffect(() => {
-    if (streaming && !wasStreaming.current) {
+    if (streaming && !wasStreaming.current && autoExpand) {
       setExpanded(true);
     } else if (!streaming && wasStreaming.current) {
       setExpanded(false);
     }
     wasStreaming.current = streaming;
-  }, [streaming]);
+  }, [streaming, autoExpand]);
 
   return (
     <ChatToolGroup.Root
       active={streaming}
       isExpanded={expanded}
       onExpandedChange={setExpanded}
-      className="my-2 text-caption text-muted"
+      className="my-1 text-caption text-muted"
     >
       <ChatToolGroup.Trigger className="crewaid-tool-disclosure">
         {t('tools.actions', { count: routine.length })}
@@ -422,11 +487,10 @@ function RoutineActivityDisclosure({
 /**
  * A turn's actions, placed the way a person reads them.
  *
- * What the user keeps renders as cards; the steps that got there are one
- * collapsed disclosure — open while the reply streams so the work log is
- * live for whoever opted into it, settled and out of the way once the answer
- * lands. With "Show thinking and actions" off only the outputs remain,
- * because a transcript of fetches is machinery, not message.
+ * Deliverables (emails, Workspace docs, visuals, templates) render as cards.
+ * Routine steps (file writes, reads, shell, browser, board lookups) stay hidden
+ * when "Show thinking and actions" is off so chat stays uncluttered, and when
+ * shown collapse into one quiet muted disclosure line inspectable on demand.
  */
 export function ToolActivityPart({
   part,
@@ -477,22 +541,24 @@ export function ToolActivityPart({
           })}
         </div>
       )}
-      {routine.length === 0 ? null : (
+      {routine.length === 1 && routine[0] !== undefined ? (
+        <ToolCallLine row={routine[0]} context={context} />
+      ) : routine.length > 1 ? (
         <RoutineActivityDisclosure
           routine={routine}
           streaming={context?.streaming === true}
+          autoExpand={context?.showWork === true}
           context={context}
         />
-      )}
+      ) : null}
     </div>
   );
 }
 
 // Registered from the feature folder, which is the contract `PartRenderer`
-// states: adding a part type must not touch the transcript. The three outcome
-// types are registered too so a part the fold could not pair — a history page
-// that starts mid-turn — still renders as the action it was rather than as
-// "[unsupported part type]".
+// states: adding a part type must not touch the transcript. Only deliverables
+// stay visible when "Show thinking and actions" is off; routine actions stay
+// hidden until the user opts in.
 function isUserOutputPart(part: AnyPart): boolean {
   return isUserOutput(isFoldedToolPart(part) ? part : looseToolPart(part));
 }

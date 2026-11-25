@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Card } from '@heroui/react';
-import { IconDownload, IconEye } from '@tabler/icons-react';
+import { Spinner } from '@heroui/react';
+import { IconDownload } from '@tabler/icons-react';
 import { fileMark } from './artifactMarks';
 import { artifactIdentity } from './artifactIdentity';
 import {
@@ -17,6 +17,7 @@ import { useT } from '../../i18n/i18n';
 import { formatFileSize } from '../../i18n/fileSize';
 import { DocumentPreviewCard } from '../reader/DocumentPreviewCard';
 import { documentTitle } from '../reader/documentText';
+import { IconButtonTooltip } from '../ui';
 
 /**
  * Text documents up to this size show their opening as a preview card; a
@@ -36,35 +37,34 @@ export interface MessageAttachment {
   durationMs?: number | null;
 }
 
-/** Inline image preview: fetched on mount, shown small, click for full size. */
-function InlineImage({
-  attachment,
-  onOpenFull,
-}: {
-  attachment: MessageAttachment;
-  onOpenFull: () => void;
-}) {
-  const t = useT();
+/**
+ * Fetches an image attachment's blob URL on mount and revokes it on unmount so
+ * the image can render full-bleed without a heavy card wrapper around it.
+ */
+function useAttachmentImageUrl(attachmentId: string, enabled: boolean): string | null {
   const client = useApiClient();
   const [url, setUrl] = useState<string | null>(null);
-  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    if (!enabled) {
+      setUrl(null);
+      return undefined;
+    }
     const mounted = { current: true };
     const controller = new AbortController();
     void (async () => {
       try {
-        const blob = await downloadAttachment(client, attachment.id, controller.signal);
+        const blob = await downloadAttachment(client, attachmentId, controller.signal);
         if (mounted.current) setUrl(URL.createObjectURL(blob));
       } catch {
-        if (mounted.current) setFailed(true);
+        // Fallback file pill remains interactive when inline image fetch fails.
       }
     })();
     return () => {
       mounted.current = false;
       controller.abort();
     };
-  }, [client, attachment.id]);
+  }, [client, attachmentId, enabled]);
 
   // The blob URL must not outlive the element that shows it.
   useEffect(() => {
@@ -73,24 +73,7 @@ function InlineImage({
     };
   }, [url]);
 
-  if (failed || url === null) return null;
-  return (
-    <button
-      type="button"
-      onClick={onOpenFull}
-      aria-label={t('attachments.showFullSize', { name: attachment.filename })}
-      className="cursor-zoom-in self-start overflow-hidden rounded-card border border-border"
-    >
-      <img
-        alt={attachment.filename}
-        src={url}
-        // Bounded, not intrinsic: a full 1280px machine capture renders at
-        // its own size otherwise, and a conversation of screenshots stops
-        // being a conversation.
-        className="max-h-64 max-w-full object-contain"
-      />
-    </button>
-  );
+  return url;
 }
 
 /** A Markdown or text attachment as a page with its title and opening lines. */
@@ -153,6 +136,7 @@ export function AttachmentCard({ attachment }: { attachment: MessageAttachment }
   const kind = previewKindOf(attachment);
   const identity = artifactIdentity(attachment);
   const mark = fileMark(attachment);
+  const imageUrl = useAttachmentImageUrl(attachment.id, kind === 'image');
 
   // A transcript re-renders under the operator — a reconnect resync, a page of
   // older history, switching bots. Without this the fetch keeps buffering a
@@ -191,8 +175,17 @@ export function AttachmentCard({ attachment }: { attachment: MessageAttachment }
   }
 
   const permanent = failure !== null && !isRetryable(failure.code);
+  const sizeLabel = formatFileSize(attachment.sizeBytes);
+  const downloadLabel = failure
+    ? t('attachments.retryDownloadNamed', { name: attachment.filename })
+    : t('attachments.downloadNamed', { name: attachment.filename });
+  const downloadTooltip = busy
+    ? t('attachments.downloading')
+    : failure
+      ? t('attachments.retryDownload')
+      : t('attachments.download');
 
-  // Prose reads as a page; CSV, JSON and logs are data, and keep the file card.
+  // Prose reads as a page; CSV, JSON and logs are data, and keep the compact file card.
   const prose =
     kind === 'markdown' || (kind === 'text' && attachment.mimeType.startsWith('text/plain'));
   if (prose && attachment.sizeBytes <= DOCUMENT_PREVIEW_MAX_BYTES) {
@@ -201,7 +194,7 @@ export function AttachmentCard({ attachment }: { attachment: MessageAttachment }
         <DocumentAttachment
           attachment={attachment}
           kind={kind === 'markdown' ? 'markdown' : 'text'}
-          meta={`${identity.label} · ${formatFileSize(attachment.sizeBytes)}`}
+          meta={`${identity.label} · ${sizeLabel}`}
           onOpen={() => setPreviewing(true)}
         />
         {failure === null ? null : (
@@ -215,7 +208,7 @@ export function AttachmentCard({ attachment }: { attachment: MessageAttachment }
             className="crewaid-artifact-action self-start"
             aria-disabled={busy}
             aria-busy={busy}
-            aria-label={t('attachments.downloadNamed', { name: attachment.filename })}
+            aria-label={downloadLabel}
             onClick={() => void handleDownload()}
           >
             <IconDownload aria-hidden className="size-3.5" />
@@ -229,83 +222,161 @@ export function AttachmentCard({ attachment }: { attachment: MessageAttachment }
     );
   }
 
+  // Loaded images render edge-to-edge as clean media rather than inside a
+  // padded file card with a duplicate image icon and divider footer.
+  if (kind === 'image' && imageUrl !== null) {
+    return (
+      <div
+        className="flex w-fit max-w-full flex-col gap-1"
+        data-attachment-card={attachment.id}
+        data-image-attachment
+      >
+        <div
+          className="crewaid-image-attachment group/media relative inline-flex w-fit max-w-[min(100%,340px)] overflow-hidden rounded-[20px]"
+          aria-label={t('attachments.label', { name: attachment.filename })}
+        >
+          <button
+            type="button"
+            onClick={() => setPreviewing(true)}
+            aria-label={t('attachments.showFullSize', { name: attachment.filename })}
+            className="relative block cursor-zoom-in overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-focus/60"
+          >
+            <img
+              alt={attachment.filename}
+              src={imageUrl}
+              // Bounded, not intrinsic: a full desktop screenshot keeps the
+              // conversation scannable while clicking opens the full lightbox.
+              className="block max-h-[280px] max-w-full object-contain"
+            />
+            <span
+              aria-hidden
+              className="crewaid-image-attachment-ring pointer-events-none absolute inset-0 rounded-[20px]"
+            />
+          </button>
+
+          {permanent ? null : (
+            <div
+              className={`absolute top-2.5 end-2.5 z-10 transition-opacity duration-150 ${
+                busy || failure !== null
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover/media:opacity-100 group-focus-within/media:opacity-100'
+              }`}
+            >
+              <IconButtonTooltip
+                label={downloadLabel}
+                tooltip={downloadTooltip}
+                placement="top"
+                aria-disabled={busy}
+                aria-busy={busy}
+                onPress={() => void handleDownload()}
+                className="crewaid-media-overlay-btn size-8 min-w-8 rounded-full p-0"
+              >
+                {busy ? (
+                  <Spinner size="sm" color="current" aria-hidden className="size-3.5" />
+                ) : (
+                  <IconDownload aria-hidden className="size-4" stroke={1.8} />
+                )}
+              </IconButtonTooltip>
+            </div>
+          )}
+
+          <div
+            aria-hidden
+            className="crewaid-image-attachment-caption pointer-events-none absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-2 px-3.5 pt-7 pb-2.5 text-white opacity-0 transition-opacity duration-150 group-hover/media:opacity-100 group-focus-within/media:opacity-100"
+          >
+            <span className="min-w-0 truncate text-caption font-medium">{attachment.filename}</span>
+            <span className="shrink-0 text-micro tabular-nums text-white/80">{sizeLabel}</span>
+          </div>
+        </div>
+
+        {failure === null ? null : (
+          <p role="alert" className="px-1 text-caption text-danger">
+            {failure.message}
+          </p>
+        )}
+
+        {previewing ? (
+          <AttachmentPreviewOverlay attachment={attachment} onClose={() => setPreviewing(false)} />
+        ) : null}
+      </div>
+    );
+  }
+
+  // Non-image files (and images while loading or offline) use one compact row:
+  // primary identity first, clicking opens preview when supported, trailing
+  // icon button handles download without a divider or second footer bar.
+  const canPreview = kind !== null && kind !== 'image';
+  const fileIdentity = (
+    <>
+      <span className={mark === undefined ? 'crewaid-file-icon' : 'crewaid-file-mark'}>
+        {mark === undefined ? (
+          <identity.Icon aria-hidden className="size-5" stroke={1.6} />
+        ) : (
+          <img src={mark} alt="" aria-hidden className="size-7 object-contain" />
+        )}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="truncate text-footnote font-medium leading-[18px] text-foreground">
+          {attachment.filename}
+        </span>
+        <span className="truncate text-micro leading-4 tabular-nums text-muted">
+          {identity.label} · {sizeLabel}
+        </span>
+      </span>
+    </>
+  );
+
   return (
     <div
-      className="max-w-full"
+      className="flex max-w-full flex-col gap-1"
       data-attachment-card={attachment.id}
       data-audio-attachment={attachment.mimeType.startsWith('audio/') || undefined}
     >
-      <Card
-        variant="default"
-        className="crewaid-tool-card crewaid-artifact-card"
+      <div
+        className="crewaid-file-attachment flex w-[min(100%,340px)] items-center gap-2 rounded-[18px] px-3 py-2.5"
         aria-label={t('attachments.label', { name: attachment.filename })}
       >
-        {kind === 'image' ? (
-          <InlineImage attachment={attachment} onOpenFull={() => setPreviewing(true)} />
-        ) : null}
-        <Card.Header className="flex-row items-start gap-3">
-          <span className={mark === undefined ? 'crewaid-tool-icon' : 'crewaid-tool-mark'}>
-            {mark === undefined ? (
-              <identity.Icon aria-hidden className="size-5" stroke={1.6} />
-            ) : (
-              <img src={mark} alt="" aria-hidden className="size-8 object-contain" />
-            )}
-          </span>
-          <div className="min-w-0 flex-1">
-            <Card.Description className="mb-1 text-micro">
-              {identity.label} · {formatFileSize(attachment.sizeBytes)}
-            </Card.Description>
-            <Card.Title className="break-words text-footnote font-medium">
-              {attachment.filename}
-            </Card.Title>
-          </div>
-        </Card.Header>
-        {failure === null ? null : (
-          <Card.Content>
-            <p role="alert" className="text-caption text-danger">
-              {failure.message}
-            </p>
-          </Card.Content>
+        {canPreview ? (
+          <button
+            type="button"
+            onClick={() => setPreviewing(true)}
+            aria-label={t('attachments.previewNamed', { name: attachment.filename })}
+            className="crewaid-file-preview-trigger flex min-w-0 flex-1 cursor-[var(--cursor-interactive,pointer)] items-center gap-2.5 rounded-xl p-0.5 text-start outline-none transition-colors focus-visible:ring-2 focus-visible:ring-focus/60"
+          >
+            {fileIdentity}
+          </button>
+        ) : (
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 p-0.5">{fileIdentity}</div>
         )}
-        <Card.Footer className="flex-row flex-wrap gap-2 border-t border-border/70 pt-2">
-          {/* An image's inline thumbnail IS its preview; a second chip for it
-              would be a click between the operator and the screenshot. */}
-          {kind === null || kind === 'image' ? null : (
-            <button
-              type="button"
-              className="crewaid-artifact-action"
-              aria-label={t('attachments.previewNamed', { name: attachment.filename })}
-              onClick={() => setPreviewing(true)}
-            >
-              <IconEye aria-hidden className="size-3.5" />
-              {t('attachments.preview')}
-            </button>
-          )}
+
+        <div className="flex shrink-0 items-center">
           {permanent ? (
-            <span className="text-caption text-warning">{t('attachments.unavailable')}</span>
+            <span className="px-1.5 text-micro text-warning">{t('attachments.unavailable')}</span>
           ) : (
-            <button
-              type="button"
-              className="crewaid-artifact-action"
+            <IconButtonTooltip
+              label={downloadLabel}
+              tooltip={downloadTooltip}
+              placement="top"
               aria-disabled={busy}
               aria-busy={busy}
-              aria-label={
-                failure
-                  ? t('attachments.retryDownloadNamed', { name: attachment.filename })
-                  : t('attachments.downloadNamed', { name: attachment.filename })
-              }
-              onClick={() => void handleDownload()}
+              onPress={() => void handleDownload()}
+              className="size-8 min-w-8 rounded-full p-0 text-muted hover:text-foreground"
             >
-              <IconDownload aria-hidden className="size-3.5" />
-              {busy
-                ? t('attachments.downloading')
-                : failure
-                  ? t('attachments.retryDownload')
-                  : t('attachments.download')}
-            </button>
+              {busy ? (
+                <Spinner size="sm" color="current" aria-hidden className="size-3.5" />
+              ) : (
+                <IconDownload aria-hidden className="size-4" stroke={1.8} />
+              )}
+            </IconButtonTooltip>
           )}
-        </Card.Footer>
-      </Card>
+        </div>
+      </div>
+
+      {failure === null ? null : (
+        <p role="alert" className="px-1 text-caption text-danger">
+          {failure.message}
+        </p>
+      )}
 
       {previewing ? (
         <AttachmentPreviewOverlay attachment={attachment} onClose={() => setPreviewing(false)} />

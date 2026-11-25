@@ -5,9 +5,8 @@ import {
   Kbd,
   ListBox,
   ListBoxItem,
-  ListLayout,
+  ScrollShadow,
   SearchField,
-  Virtualizer,
 } from '@heroui/react';
 import {
   IconChevronDown,
@@ -51,20 +50,6 @@ import { UsageNotice } from './UsageNotice';
  * Keyboard: ⌘1..9 switch bots (registered in the shortcut system; the
  * Kbd hints render here).
  */
-
-/**
- * Row pitch in CSS pixels, in one place because two things must agree on it:
- * the virtualizer positions rows from this number without measuring, and
- * BotRow is sized to it. Both text lines truncate, so the content is always
- * two lines regardless of name or preview length.
- */
-const ROW_HEIGHT = 58;
-
-/**
- * A group header's height, for the same reason as ROW_HEIGHT: the layout
- * places sections from this number and never measures the header.
- */
-const HEADER_HEIGHT = 34;
 
 /**
  * What a row's overflow menu can do. One object rather than five props so a
@@ -216,19 +201,6 @@ export function BotSidebar({
     />
   );
 
-  const visibleCount =
-    shownSections === null
-      ? filtered.length
-      : shownSections.reduce(
-          (count, section) =>
-            count + (!searching && section.group?.collapsed === true ? 0 : section.rows.length),
-          0,
-        );
-  const listHeight = Math.max(
-    64,
-    visibleCount * ROW_HEIGHT + (shownSections?.length ?? 0) * HEADER_HEIGHT,
-  );
-
   // Width is owned by the pane layout in App; the aside fills the full column.
   return (
     <aside className="crewaid-crew-dock flex h-full w-full shrink-0 flex-col">
@@ -337,7 +309,8 @@ export function BotSidebar({
                 // One pinned bot (usually the main assistant) gets a full row,
                 // so its name and role never truncate inside a half-width tile.
                 const single = pinnedRows.length === 1;
-                const idle = view.bot.status === 'IDLE';
+                const pinnedUnread = unreadByBot[view.bot.id] ?? 0;
+                const quiet = view.bot.status === 'IDLE' && pinnedUnread === 0;
                 return (
                   <div
                     key={view.bot.id}
@@ -366,7 +339,7 @@ export function BotSidebar({
                           status={view.bot.status}
                         />
                         <span className="crewaid-bot-status-compact">
-                          <StatusDot status={view.bot.status} />
+                          <StatusDot status={view.bot.status} unread={pinnedUnread} />
                         </span>
                       </div>
                       <span
@@ -380,7 +353,7 @@ export function BotSidebar({
                           >
                             {view.bot.name}
                           </span>
-                          {idle ? null : <StatusDot status={view.bot.status} />}
+                          {quiet ? null : <StatusDot status={view.bot.status} unread={pinnedUnread} />}
                         </span>
                         <span
                           className={`mt-0.5 block truncate text-caption leading-[16px] text-room-muted ${
@@ -400,20 +373,16 @@ export function BotSidebar({
         </section>
       )}
 
-      {/* Bot list — selection + action both route through onSelect */}
-      {/* The empty state goes through renderEmptyState, never a child of the
-          collection. ListBox builds its children inside React Aria's stand-in
-          document, which knows how to make collection elements and nothing
-          else — it has no createTextNode, so ANY plain text under a ListBox
-          throws during render and takes the whole tree down with it. */}
-      {/* Virtualizer renders no DOM of its own — it supplies the layout through
-          context, so the ListBox stays the flex child and the scroll container.
-          ROW_HEIGHT must match BotRow's fixed height: the layout positions rows
-          from this number alone, so a row that renders taller overlaps its
-          neighbour instead of pushing it down. */}
-      <Virtualizer
-        layout={ListLayout}
-        layoutOptions={{ rowHeight: ROW_HEIGHT, rowSize: 60, headingHeight: HEADER_HEIGHT }}
+      {/* Bot list — selection + action both route through onSelect.
+          ScrollShadow owns the scrolling viewport so the roster fills all room
+          between Pinned and the footer without clipping the bottom row, and
+          fades top/bottom edges smoothly when the crew overflows. */}
+      <ScrollShadow
+        data-roster-scroll
+        size={20}
+        offset={8}
+        hideScrollBar={false}
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
       >
         <ListBox
           aria-label={t('sidebar.bots')}
@@ -434,19 +403,14 @@ export function BotSidebar({
               </EmptyState.Description>
             </EmptyState>
           )}
-          style={{ height: listHeight }}
-          className="crewaid-roster min-h-0 flex-initial w-full min-w-0 overflow-x-hidden overflow-y-auto px-2.5 py-0 outline-none"
+          className="crewaid-roster w-full min-w-0 overflow-visible px-2.5 pt-0.5 pb-3 outline-none"
           items={shownSections ?? filtered}
         >
-          {/* A render prop, not a mapped array: virtualization needs the
-              collection to stay addressable by key so the layout can build
-              only the rows the viewport asks for. With groups (D-131) each
-              item is a section, and its bots are a nested collection. */}
           {(item: BotRowView | SidebarSection) =>
             'bot' in item ? (
               renderRow(item)
             ) : (
-              <ListBox.Section id={item.id} className="min-w-0 p-0">
+              <ListBox.Section id={item.id} className="w-full min-w-0 items-stretch gap-0.5 p-0">
                 <GroupHeader
                   section={item}
                   collapsed={!searching && item.group?.collapsed === true}
@@ -461,7 +425,7 @@ export function BotSidebar({
             )
           }
         </ListBox>
-      </Virtualizer>
+      </ScrollShadow>
 
       {/* Bottom pinned footer: usage notice + Templates action */}
       {footer !== undefined || usageNotice !== null ? (
@@ -533,11 +497,8 @@ function BotRow({
       textValue={bot.name}
       aria-label={t('sidebar.rowLabel', { name: bot.name, preview })}
       onAction={onSelect}
-      // The virtualizer writes its own width onto the row, so the inset is set
-      // inline too; the icon-wide roster narrows it through the variable.
-      style={{ height: ROW_HEIGHT, width: 'var(--crewaid-row-width, calc(100% - 20px))' }}
       onContextMenu={onContextMenu}
-      className="crewaid-bot-row group flex h-full min-w-0 max-w-full cursor-[var(--cursor-interactive)] items-center gap-3 overflow-hidden rounded-[16px] px-2.5 py-2 outline-none data-[focused]:outline-2 data-[focused]:outline-focus/60"
+      className="crewaid-bot-row group flex h-[58px] w-full min-w-0 max-w-full cursor-[var(--cursor-interactive)] items-center gap-3 overflow-hidden rounded-[16px] px-2.5 py-2 outline-none data-[focused]:outline-2 data-[focused]:outline-focus/60"
     >
       <div
         className="relative size-[42px] shrink-0"
@@ -545,24 +506,19 @@ function BotRow({
       >
         <BotAvatar bot={bot} size="row" status={bot.status} />
         <span className="crewaid-bot-status-compact">
-          <StatusDot status={bot.status} />
+          <StatusDot status={bot.status} unread={unread} />
         </span>
       </div>
       <div className="crewaid-bot-row-copy min-w-0 flex-1">
         <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
           <span className="min-w-0 flex-1 truncate text-body font-semibold">{bot.name}</span>
-          <span className="ms-auto flex shrink-0 items-center gap-1">
-            {/* At rest the row says nothing; a dot appears once there is
-                something to see. The icon-wide roster keeps its compact dot. */}
-            {bot.status === 'IDLE' ? null : <StatusDot status={bot.status} />}
-            {unread > 0 ? (
-              <span
-                role="img"
-                aria-label={t('sidebar.unread', { count: unread })}
-                className="size-2 shrink-0 rounded-full bg-accent"
-              />
-            ) : null}
-          </span>
+          {/* Single merged indicator: hidden when idle and read, otherwise shows
+              the live status color/shape (or static accent dot for unread). */}
+          {bot.status === 'IDLE' && unread === 0 ? null : (
+            <span className="ms-auto flex shrink-0 items-center">
+              <StatusDot status={bot.status} unread={unread} />
+            </span>
+          )}
         </div>
         <div className="mt-0.5 truncate text-caption leading-[16px] text-room-muted">{preview}</div>
       </div>
@@ -598,11 +554,7 @@ function GroupHeader({
   const Chevron = collapsed ? IconChevronRight : IconChevronDown;
   return (
     <Header
-      className="crewaid-group-heading flex min-w-0 items-center gap-1.5 px-2 pt-2.5 pb-1 text-micro font-medium tracking-[0.02em] text-muted"
-      // The same inset as a row: the virtualizer places a header at the
-      // list's full width and ignores its padding, which put the menu button
-      // under the sash.
-      style={{ height: HEADER_HEIGHT, width: 'calc(100% - 1.5rem)' }}
+      className="crewaid-group-heading flex h-[34px] w-full min-w-0 items-center gap-1.5 px-2 pt-2.5 pb-1 text-micro font-medium tracking-[0.02em] text-muted"
       // Right-click, like a bot row — the group's menu has no button of its
       // own. The keyboard's context-menu key lands here too, from the
       // focused name button.

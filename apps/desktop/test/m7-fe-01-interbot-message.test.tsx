@@ -169,13 +169,36 @@ describe('M7-FE-01 a message delivered from another bot', () => {
     const html = render([inbound()]);
     // §6/M7: "a distinct treatment showing the originating bot's name and
     // colour".
+    expect(html).toContain('From');
     expect(html).toContain('Atlas');
     // The colour is the SENDER's own `avatarColor`, so the transcript and
     // the sidebar teach one mapping rather than two.
     expect(html).toContain(PEER_BOT.avatarColor);
+    expect(html).toContain('--peer-accent:');
+    expect(html).not.toContain('border-inline-start');
     expect(html).toContain('data-interbot-mascot');
     expect(html).toMatch(/data-interbot-mascot[^>]*>.*?<svg/s);
     expect(html).toContain('data-from-bot="true"');
+  });
+
+  it('renders an interactive button to open the sending teammate when onBotMention is wired', () => {
+    const html = renderToStaticMarkup(
+      <Transcript
+        bot={SELF_BOT}
+        peers={[SELF_BOT, PEER_BOT]}
+        onBotMention={() => undefined}
+        connection={{ status: 'connected', attempt: 0, retryDelayMs: null }}
+        messages={toTranscript([inbound()], SELF, false)}
+        pending={[]}
+        onSend={() => undefined}
+        onStop={() => undefined}
+        onFiles={() => undefined}
+        onRemovePending={() => undefined}
+        onRetryPending={() => undefined}
+      />,
+    );
+    expect(html).toContain(`data-interbot-attribution="${PEER}"`);
+    expect(html).toContain('Open Atlas&#x27;s conversation');
   });
 
   it('leaves this bots own reply unattributed', () => {

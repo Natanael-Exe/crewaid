@@ -147,7 +147,42 @@ export function displayStatus(row: FoldedToolPart, context?: PartRenderContext):
   return row.status;
 }
 
-export type PreviewField = { label: string; value: string };
+export type PreviewField = {
+  label: string;
+  value: string;
+  /** True when the value is an internal sandbox path hidden behind a hoverable "path" hint. */
+  isInternalPath?: boolean;
+};
+const INTERNAL_PATH_RE = /^\/home\/bot(?:\/|$)/;
+const PATH_KEY_RE = /^(path|file_?path|source_?path|dest_?path|target_?path|cwd|dir|directory)$/i;
+
+/** Whether a string is an internal sandbox filesystem path that should not clutter chat faces. */
+export function isInternalWorkspacePath(value: string): boolean {
+  return INTERNAL_PATH_RE.test(value.trim());
+}
+
+/** Final path segment shown in place of a full internal sandbox path. */
+export function pathBasename(filePath: string): string {
+  const trimmed = filePath.trim().replace(/\/+$/, '');
+  if (trimmed === '' || trimmed === '/home/bot') return 'workspace';
+  if (/^\/home\/bot\/agents(?:\/[^/]+)?$/.test(trimmed)) return 'workspace';
+  if (/^\/home\/bot\/groups(?:\/[^/]+)?$/.test(trimmed)) return 'group folder';
+  if (trimmed === '/home/bot/shared') return 'shared folder';
+  const parts = trimmed.split('/').filter(Boolean);
+  return parts[parts.length - 1] ?? trimmed;
+}
+
+/** Extract the primary file path argument from a tool input object, if any. */
+export function toolFilePath(input: unknown): string | undefined {
+  const obj = record(input);
+  if (obj === undefined) return undefined;
+  for (const key of ['path', 'file_path', 'filePath', 'source_path']) {
+    const value = obj[key];
+    if (typeof value === 'string' && value.trim() !== '') return value.trim();
+  }
+  return undefined;
+}
+
 const OMIT =
   /^(base64|image|images|screenshot|script|content|body|html|raw|payload|headers|access_token|refresh_token|api_key|token)$/i;
 export function previewFields(value: unknown): PreviewField[] {
@@ -159,10 +194,17 @@ export function previewFields(value: unknown): PreviewField[] {
         (typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean'),
     )
     .slice(0, 5)
-    .map(([key, item]) => ({
-      label: readableName(key),
-      value: truncateForDisplay(String(item), 240),
-    }));
+    .map(([key, item]) => {
+      const raw = String(item);
+      const isInternalPath =
+        typeof item === 'string' &&
+        (isInternalWorkspacePath(raw) || (PATH_KEY_RE.test(key) && raw.trim().startsWith('/')));
+      return {
+        label: readableName(key),
+        value: truncateForDisplay(raw, 240),
+        ...(isInternalPath ? { isInternalPath: true } : {}),
+      };
+    });
 }
 
 export function resultPreview(output: unknown): string {
@@ -230,20 +272,19 @@ export function isResourceAction(name: string): boolean {
 }
 
 /**
- * Whether the row is something the user keeps, rather than routine work.
+ * Whether the row is a user-facing deliverable that earns a card, rather than
+ * routine work collapsed into a quiet muted line.
  *
- * The line is drawn at OUTPUT, not at activity: reads, searches, listings,
- * computer control, shell and Work tools are machinery the reply already
- * summarizes — a task lives in the Tasks pane, not as a "Status: open" card
- * between the bubbles — and a transcript that prints every fetch is noise. A
- * tool's failures follow the same rule: a failed send is the user's business,
- * a failed read is not.
+ * Cards are reserved for artifacts the user keeps, reviews, or opens directly:
+ * email drafts/sends, Google Docs/Sheets/Slides, visuals, and templates.
+ * Sandbox file writes (`fs_write`) are intermediate workspace steps and
+ * `attach_file` already produces its own AttachmentCard/DocumentPreviewCard,
+ * so both collapse into quiet muted lines alongside reads, shell, and browser steps.
  */
 export function isUserOutput(row: FoldedToolPart, context?: PartRenderContext): boolean {
   if (row.toolName === 'read_template') return true;
   if (row.toolName === 'preview_email') return true;
   if (row.toolName === 'present_visual') return true;
   const { kind } = toolPresentation(row.toolName, context);
-  if (row.toolName === 'fs_write' || row.toolName === 'attach_file') return true;
   return kind === 'connection' && isResourceAction(row.toolName);
 }

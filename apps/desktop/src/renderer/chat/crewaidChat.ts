@@ -83,6 +83,29 @@ export type ChatInterrupt = {
   readonly status: 'pending' | 'error';
   readonly resolveInterrupt: (answer: unknown) => void;
 };
+/** Failure codes that retrying the exact same request cannot resolve on its own. */
+const NON_RETRYABLE_ERRORS: ReadonlySet<string> = new Set([
+  'PAYMENT_REQUIRED',
+  'PAYLOAD_TOO_LARGE',
+  'INSUFFICIENT_STORAGE',
+  'NOT_FOUND',
+  'THREAD_AWAITING_APPROVAL',
+  'RUN_BUSY',
+  'INTERRUPT_NOT_PENDING',
+]);
+
+type FailedSend = {
+  readonly text: string;
+  readonly data?:
+    | { body: { attachmentIds: string[] }; attachments?: readonly TranscriptAttachment[] }
+    | undefined;
+};
+
+type FailedResume = {
+  readonly resume: ResumeEntry[];
+  readonly parentRunId: string | undefined;
+};
+
 export type ChatSnapshot = {
   readonly messages: Message[];
   readonly interrupts: ChatInterrupt[];
@@ -90,6 +113,8 @@ export type ChatSnapshot = {
   readonly startedAt: number | undefined;
   readonly isLoading: boolean;
   readonly resuming: boolean;
+  readonly retrying: boolean;
+  readonly canRetry: boolean;
   readonly hasOlderMessages: boolean;
   /** Already worded for the person; rendered as given. */
   readonly error: ChatError | undefined;
@@ -116,12 +141,19 @@ export class CrewaidChat {
   private readingRunId: string | undefined;
   // Stored rows announced while a run is read, added once the read ends.
   private readonly held: Message[] = [];
+  // This window's own sends made while a run is read. Unlike `held` they show
+  // at once, layered over the SDK's list, because the SDK's write-back would
+  // erase them from it; they join that list once the read ends.
+  private readonly sentWhileReading: Message[] = [];
   private readonly runStarts = new Map<string, number>();
   private hydrated = false;
   private hydration: Promise<void> | undefined;
   private admitting = 0;
   private resuming = false;
   private resumeError = false;
+  private retrying = false;
+  private lastFailedSend: FailedSend | null = null;
+  private lastFailedResume: FailedResume | null = null;
   private error: ChatError | undefined;
   private cursor: string | undefined;
   private pausedRunId: string | undefined;
@@ -165,9 +197,15 @@ export class CrewaidChat {
     return () => this.listeners.delete(listener);
   };
   readonly getSnapshot = (): ChatSnapshot => this.snapshot;
+  private visibleMessages(): Message[] {
+    const messages = this.agent.messages;
+    if (this.sentWhileReading.length === 0) return messages;
+    const ids = new Set(messages.map((row) => row.id));
+    return [...messages, ...this.sentWhileReading.filter((row) => !ids.has(row.id))];
+  }
   private capture(): ChatSnapshot {
     return {
-      messages: this.agent.messages,
+      messages: this.visibleMessages(),
       interrupts: this.agent.pendingInterrupts.map((interrupt) => {
         const metadata: unknown = interrupt.metadata;
         const fields = object(metadata);
@@ -186,6 +224,12 @@ export class CrewaidChat {
         this.readingRunId === undefined ? undefined : this.runStarts.get(this.readingRunId),
       isLoading: this.admitting > 0,
       resuming: this.resuming,
+      retrying: this.retrying,
+      canRetry:
+        this.error !== undefined &&
+        (this.lastFailedSend !== null ||
+          this.lastFailedResume !== null ||
+          !NON_RETRYABLE_ERRORS.has(this.error.code)),
       hasOlderMessages: this.cursor !== undefined,
       error: this.error,
     };
@@ -234,6 +278,7 @@ export class CrewaidChat {
     this.hydrated = false;
     this.waiting.length = 0;
     this.held.length = 0;
+    this.sentWhileReading.length = 0;
     this.opened.clear();
     this.runStarts.clear();
   }
@@ -347,16 +392,111 @@ export class CrewaidChat {
           },
         }
       : message;
-    this.setMessages([...this.agent.messages, displayed]);
+    // Mid-run, the server stores the message and answers it after the turn
+    // (202). Set into the SDK's list now, it would vanish with the run's next
+    // event, so it is layered on top until the read ends.
+    if (this.readingRunId !== undefined) {
+      this.sentWhileReading.push(displayed);
+      this.changed(true);
+    } else this.setMessages([...this.agent.messages, displayed]);
     try {
       await this.admit([message], data?.body ?? {});
+      this.lastFailedSend = null;
     } catch (error) {
+      const at = this.sentWhileReading.findIndex((row) => row.id === message.id);
+      if (at !== -1) this.sentWhileReading.splice(at, 1);
       this.setMessages(this.agent.messages.filter((row) => row.id !== message.id));
+      const refusal = error instanceof RefusedAdmission ? error.failure.code : undefined;
+      this.lastFailedSend =
+        refusal !== undefined && NON_RETRYABLE_ERRORS.has(refusal)
+          ? null
+          : data === undefined
+            ? { text }
+            : { text, data };
+      this.changed(true);
       throw error;
     }
     // The id the server stores the message under, which is how a
     // caller recognises the run that answers it.
     return message.id;
+  };
+  /**
+   * Retry the last failed operation: replay a rejected/offline send (with its
+   * attachments), resubmit a failed approval answer, re-hydrate a disconnected
+   * stream or failed history load, or ask the bot to retry a failed run.
+   * Returns claimed attachment ids when a failed send succeeds on retry.
+   */
+  readonly retry = async (): Promise<readonly string[] | null> => {
+    if (
+      this.retrying ||
+      this.admitting > 0 ||
+      this.resuming ||
+      this.lifetime.signal.aborted ||
+      this.error === undefined
+    ) {
+      return null;
+    }
+    this.retrying = true;
+    this.changed(true);
+    try {
+      if (this.lastFailedSend !== null) {
+        const failed = this.lastFailedSend;
+        this.lastFailedSend = null;
+        try {
+          await this.sendMessage(failed.text, failed.data);
+          return failed.data?.body.attachmentIds ?? [];
+        } catch {
+          return null;
+        }
+      }
+      if (this.lastFailedResume !== null) {
+        const failed = this.lastFailedResume;
+        this.lastFailedResume = null;
+        this.resuming = true;
+        this.resumeError = false;
+        this.changed(true);
+        try {
+          await this.admit([], {}, failed.resume, failed.parentRunId);
+        } catch (error) {
+          this.resumeError = true;
+          const refusal = error instanceof RefusedAdmission ? error.failure.code : undefined;
+          if (refusal === undefined || !NON_RETRYABLE_ERRORS.has(refusal)) {
+            this.lastFailedResume = failed;
+          }
+        } finally {
+          this.resuming = false;
+          this.changed(true);
+        }
+        return null;
+      }
+      if (this.error.code === 'HISTORY_FAILED' || this.error.code === 'RUN_DISCONNECTED') {
+        this.error = undefined;
+        this.changed(true);
+        try {
+          await this.hydrate();
+          this.hydrated = true;
+          this.options.onHydrated?.();
+          void this.drain();
+        } catch {
+          if (!this.lifetime.signal.aborted) {
+            this.error = { code: 'HISTORY_FAILED', message: t('chat.chatFailure.historyFailed') };
+            this.changed(true);
+          }
+        }
+        return null;
+      }
+      if (!NON_RETRYABLE_ERRORS.has(this.error.code)) {
+        try {
+          await this.sendMessage(t('chat.retryPrompt'));
+        } catch {
+          // sendMessage already surfaced the new error.
+        }
+      }
+      return null;
+    } finally {
+      this.retrying = false;
+      this.changed(true);
+    }
   };
   private async admit(
     messages: Message[],
@@ -432,9 +572,19 @@ export class CrewaidChat {
         { ...this.answers[entry.id]!, metadata: entry.metadata ?? {} },
       ]),
     );
-    void this.admit([], {}, buildResumeArray(pending, responses), this.pausedRunId)
-      .catch(() => {
+    const resume = buildResumeArray(pending, responses);
+    const parentRunId = this.pausedRunId;
+    void this.admit([], {}, resume, parentRunId)
+      .then(() => {
+        this.lastFailedResume = null;
+      })
+      .catch((error) => {
         this.resumeError = true;
+        const refusal = error instanceof RefusedAdmission ? error.failure.code : undefined;
+        this.lastFailedResume =
+          refusal !== undefined && NON_RETRYABLE_ERRORS.has(refusal)
+            ? null
+            : { resume, parentRunId };
         for (const key of Object.keys(this.answers)) delete this.answers[key];
       })
       .finally(() => {
@@ -521,6 +671,16 @@ export class CrewaidChat {
           reader.abort();
           this.reader = undefined;
           this.readingRunId = undefined;
+          // Own sends first: they were typed before any held row could be
+          // announced for them, and the held copy of one then dedupes by id.
+          const sent = this.sentWhileReading.splice(0);
+          if (sent.length > 0) {
+            const ids = new Set(this.agent.messages.map((row) => row.id));
+            this.agent.setMessages([
+              ...this.agent.messages,
+              ...sent.filter((row) => !ids.has(row.id)),
+            ]);
+          }
           for (const message of this.held.splice(0)) this.appendStored(message);
           this.changed(true);
         }

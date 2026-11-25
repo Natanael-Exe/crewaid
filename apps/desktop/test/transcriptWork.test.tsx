@@ -73,19 +73,75 @@ function transcript(
 }
 
 describe('the bot’s work in the transcript', () => {
-  it('removes hidden work-only messages from the layout, including their date and spacing', () => {
+  it('removes hidden work-only messages (including fs_write) from the layout, including their date and spacing', () => {
     const workOnly = Array.from({ length: 25 }, (_, index) => ({
       ...REPLY,
       id: `hidden-${index}`,
       parts: REPLY.parts.slice(0, 2),
       dateLabel: 'Yesterday',
     }));
-    const messages = [...workOnly, REPLY];
+    const fsWriteOnly: TranscriptMessage = {
+      ...REPLY,
+      id: 'hidden-write',
+      dateLabel: 'Yesterday',
+      parts: [
+        {
+          type: 'tool-activity',
+          calls: [
+            {
+              type: 'tool-call',
+              toolCallId: 'w1',
+              toolName: 'fs_write',
+              status: 'ok',
+              input: { path: '/home/bot/agents/a/patch.py', content: 'x' },
+            },
+          ],
+        },
+      ],
+    };
+    const messages = [...workOnly, fsWriteOnly, REPLY];
     const off = transcript(false, false, messages);
     expect(off).not.toContain('data-motion-message="hidden-');
     expect(off).not.toContain('Yesterday');
     expect(off.match(/data-motion-message=/g)).toHaveLength(1);
-    expect(transcript(true, false, messages).match(/data-motion-message=/g)).toHaveLength(26);
+    expect(transcript(true, false, messages).match(/data-motion-message=/g)).toHaveLength(27);
+  });
+
+  it('coalesces consecutive routine-tool-only messages into one collapsed group when work is shown', () => {
+    const steps: TranscriptMessage[] = [
+      { ...REPLY, id: 'intro', parts: [{ type: 'text', text: 'Starting now.' }] },
+      ...[0, 1, 2, 3].map((i): TranscriptMessage => ({
+        ...REPLY,
+        id: `step-${i}`,
+        parts: [
+          {
+            type: 'tool-activity',
+            calls: [
+              {
+                type: 'tool-call',
+                toolCallId: `c-${i}`,
+                toolName: i === 3 ? 'fs_write' : 'shell',
+                status: 'ok',
+                input:
+                  i === 3
+                    ? { path: '/home/bot/agents/a/out.md', content: 'hi' }
+                    : { command: 'ls' },
+              },
+            ],
+          },
+        ],
+      })),
+      { ...REPLY, id: 'done', parts: [{ type: 'text', text: 'All done.' }] },
+    ];
+    const off = transcript(false, false, steps);
+    expect(off.match(/data-motion-message=/g)).toHaveLength(2);
+    expect(off).not.toContain('data-tool-activity');
+
+    const on = transcript(true, false, steps);
+    // Intro + 1 coalesced group (4 actions) + Done = 3 rows, not 6.
+    expect(on.match(/data-motion-message=/g)).toHaveLength(3);
+    expect(on).toContain('4 actions');
+    expect(on).toMatch(/data-slot="chat-tool-group-trigger"[^>]*aria-expanded="false"/);
   });
 
   it('keeps incomplete replies and real system notices even when work is hidden', () => {

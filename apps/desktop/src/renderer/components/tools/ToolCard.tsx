@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Card, Spinner } from '@heroui/react';
+import { Card, Spinner, Tooltip } from '@heroui/react';
 import {
   IconCheck,
   IconCircleX,
@@ -14,7 +14,12 @@ import {
   IconPresentation,
 } from '@tabler/icons-react';
 import type { ResourceKind } from './resourcePresentation';
-import type { DisplayStatus, ToolCardKind, PreviewField } from './toolPresentation';
+import {
+  pathBasename,
+  type DisplayStatus,
+  type ToolCardKind,
+  type PreviewField,
+} from './toolPresentation';
 import { type PlainKey, useT } from '../../i18n/i18n';
 
 // A Map, because a status the wire adds before this build knows it (a part
@@ -166,13 +171,49 @@ export function ToolCard({
   );
 }
 
+/**
+ * Hides noisy internal sandbox paths (e.g. `/home/bot/agents/.../file.py`)
+ * behind a subtle hoverable "path" trigger with a dotted-underline visual
+ * affordance and a keyboard/hover-accessible tooltip showing the full path.
+ */
+export function InternalPathHint({ path }: { path: string }): ReactNode {
+  const t = useT();
+  return (
+    <Tooltip delay={150}>
+      <Tooltip.Trigger
+        aria-label={t('tools.pathLabel', { path })}
+        data-internal-path-hint
+        data-path={path}
+        className="crewaid-path-hint inline-flex shrink-0 cursor-default items-center rounded px-1 py-px text-micro text-muted underline decoration-dotted underline-offset-2 outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
+      >
+        {t('tools.path')}
+      </Tooltip.Trigger>
+      <Tooltip.Content
+        placement="top"
+        className="max-w-[min(85vw,440px)] break-all font-mono text-micro"
+      >
+        {path}
+      </Tooltip.Content>
+    </Tooltip>
+  );
+}
+
 export function ToolFields({ fields }: { fields: readonly PreviewField[] }): ReactNode {
   return (
     <dl className="crewaid-tool-fields">
       {fields.map((field) => (
         <div key={field.label}>
           <dt>{field.label}</dt>
-          <dd>{field.value}</dd>
+          <dd>
+            {field.isInternalPath === true ? (
+              <span className="inline-flex flex-wrap items-center gap-1.5">
+                <span>{pathBasename(field.value)}</span>
+                <InternalPathHint path={field.value} />
+              </span>
+            ) : (
+              field.value
+            )}
+          </dd>
         </div>
       ))}
     </dl>

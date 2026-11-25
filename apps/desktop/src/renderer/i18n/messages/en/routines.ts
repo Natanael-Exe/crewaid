@@ -122,4 +122,5 @@ export const routines = {
   'routines.edit': 'Edit {name}',
   'routines.delete': 'Delete {name}',
   'routines.loadFailed': 'Routines could not be loaded: {reason}',
+  'routines.tryAgain': 'Try again',
 } as const;

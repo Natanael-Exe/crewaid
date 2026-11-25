@@ -1,5 +1,6 @@
-import type { BotWithSandbox } from '@crewaid/shared';
+import { stripModelControlTags, type BotWithSandbox } from '@crewaid/shared';
 import type { MessageAttachment } from '../components/attachments/AttachmentCard';
+import { formatPreviewInternalPaths } from '../components/markdown/internalPaths';
 import type { AnyPart } from '../components/PartRenderer';
 import { currentLocale, t } from '../i18n/i18n';
 
@@ -186,12 +187,16 @@ export function toAttachmentViews(
  */
 export function toBotRowView(bot: BotWithSandbox): BotRowView {
   const preview = bot.thread?.preview ?? null;
+  const cleanedPreview =
+    preview === null
+      ? ''
+      : formatPreviewInternalPaths(stripModelControlTags(preview.text), t('tools.path')).trim();
   return {
     id: bot.id,
     bot,
     // An empty thread says what the bot is FOR instead, which is the more
     // useful line for a bot the operator has not talked to yet.
-    preview: preview === null || preview.text === '' ? bot.role : preview.text,
+    preview: cleanedPreview === '' ? bot.role : cleanedPreview,
     timeLabel: preview === null ? '' : formatTimeLabel(preview.createdAt),
   };
 }

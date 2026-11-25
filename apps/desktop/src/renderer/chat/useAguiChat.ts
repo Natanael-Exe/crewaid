@@ -17,6 +17,7 @@ export function useAguiChat(connection: CrewaidChat) {
     setMessages: connection.setMessages,
     appendStored: connection.appendStored,
     sendMessage: connection.sendMessage,
+    retry: connection.retry,
     stop: connection.stop,
     loadOlderMessages: connection.loadOlderMessages,
   };

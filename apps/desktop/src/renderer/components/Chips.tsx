@@ -27,18 +27,30 @@ const STATUS_TITLE = {
   ERROR: 'status.error',
 } as const satisfies Record<BotStatus, PlainKey>;
 
-export function StatusDot({ status }: { status: BotStatus }) {
+export function StatusDot({ status, unread = 0 }: { status: BotStatus; unread?: number }) {
   const t = useT();
+  const hasUnread = unread > 0;
+  const unreadOnly = status === 'IDLE' && hasUnread;
+  const visual = unreadOnly ? 'bg-accent' : STATUS_STYLE[status];
+  const pulse = status === 'THINKING' || status === 'ACTING' ? 'motion-safe:animate-pulse' : '';
+  const statusLabel = t(STATUS_TITLE[status]);
+  const unreadLabel = hasUnread ? t('sidebar.unread', { count: unread }) : null;
+  const label = unreadOnly
+    ? unreadLabel!
+    : unreadLabel === null
+      ? statusLabel
+      : `${statusLabel} · ${unreadLabel}`;
   return (
     // `role="img"`: an `aria-label` on a plain span is not announced, so the
-    // status was visible and silent.
+    // status was visible and silent. One dot carries both status and unread
+    // state so rows never stack two indicators side by side.
     <span
       role="img"
-      aria-label={t(STATUS_TITLE[status])}
-      title={t(STATUS_TITLE[status])}
-      className={`inline-block size-1.5 shrink-0 rounded-full ${STATUS_STYLE[status]} ${
-        status === 'THINKING' || status === 'ACTING' ? 'motion-safe:animate-pulse' : ''
-      }`}
+      aria-label={label}
+      title={label}
+      data-bot-status={status}
+      data-unread={hasUnread ? 'true' : undefined}
+      className={`inline-block size-2 shrink-0 rounded-full ${visual} ${pulse}`}
     />
   );
 }

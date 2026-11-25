@@ -50,6 +50,8 @@ export type ChatThreadView = {
   /** The thread is producing a run — this window's, or anyone's. */
   readonly generating: boolean;
   readonly error: ChatError | null;
+  readonly retrying: boolean;
+  readonly retry?: (() => void) | undefined;
   readonly approvals: readonly PendingApproval[];
   readonly respondToApproval: (toolCallId: string, approved: boolean, editedArgs?: Json) => void;
   /** The stored message's id once it is admitted; null when it was refused. */
@@ -104,6 +106,8 @@ export type ChatThreadProps = {
    * mounted again to read it from the server. The shell re-keys it.
    */
   readonly onStale?: () => void;
+  /** Clears staged pending attachment chips when a failed send succeeds on retry. */
+  readonly onRetryClaimedAttachments?: (attachmentIds: readonly string[]) => void;
   readonly children: (view: ChatThreadView) => ReactNode;
 };
 
@@ -178,6 +182,7 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
   const locale = useLocale();
   const { botId, thread, endpoint, previewCache, onFrames, onCancel, children } = props;
   const { focusMessageId, onFocusUnreachable, sendRef, onGeneratingChange, onStale } = props;
+  const onRetryClaimedAttachments = props.onRetryClaimedAttachments;
   // Latest callback, read when the thread becomes ready rather than on every render.
   const onSendReady = useRef(props.onSendReady);
   onSendReady.current = props.onSendReady;
@@ -199,7 +204,7 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
   );
 
   const chat = useAguiChat(connection);
-  const { setMessages, appendStored, sendMessage, stop: stopChat } = chat;
+  const { setMessages, appendStored, sendMessage, retry: retryChat, stop: stopChat } = chat;
 
   /**
    * The WebSocket frames the chat client is told about.
@@ -500,6 +505,11 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
   // it here is how "your key was rejected" used to reach them as "something
   // went wrong".
   const error: ChatError | null = chat.error ?? null;
+  const retry = useCallback(() => {
+    void retryChat().then((claimed) => {
+      if (claimed !== null && claimed.length > 0) onRetryClaimedAttachments?.(claimed);
+    });
+  }, [retryChat, onRetryClaimedAttachments]);
 
   return children({
     startedAt: chat.startedAt,
@@ -513,6 +523,8 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
     loadOlder,
     generating,
     error,
+    retrying: chat.retrying,
+    ...(chat.canRetry ? { retry } : {}),
     approvals,
     respondToApproval,
     send,

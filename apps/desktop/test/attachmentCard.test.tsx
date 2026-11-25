@@ -40,12 +40,14 @@ describe('AttachmentCard', () => {
     expect(html).not.toContain('download="leads.csv"');
   });
 
-  it('shows the file identity and size', () => {
+  it('shows the file identity and size in one compact row without a divider footer', () => {
     const html = render(file);
     expect(html).toContain('leads.csv');
     expect(html).toContain('2 KB');
     expect(html).toContain('Spreadsheet');
     expect(html).toContain('Preview leads.csv');
+    expect(html).toContain('crewaid-file-attachment');
+    expect(html).not.toContain('border-t');
   });
 
   it('does not invent a pre-existing server error for a claimed attachment', () => {

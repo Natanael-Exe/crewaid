@@ -96,7 +96,8 @@ describe('resource previews', () => {
       />,
     );
     expect(html).toContain('{partial');
-    expect(html).toContain('Details');
+    expect(html).toContain('data-slot="disclosure"');
+    expect(html).toContain('aria-expanded="false"');
   });
   it('keeps useful outputs visible with routine work hidden and omits routine rows', () => {
     const part = {
@@ -138,6 +139,7 @@ describe('resource previews', () => {
       <ToolActivityPart part={part} context={{ showWork: false }} />,
     );
     expect(html).toContain('Proposal');
+    expect(html).toContain('data-tool-card="email"');
     expect(html).not.toContain('browser_read');
     expect(html).not.toContain('GMAIL_FETCH_EMAILS');
   });

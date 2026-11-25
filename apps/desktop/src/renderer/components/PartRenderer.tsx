@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from 'react';
-import type { ToolInfo } from '@crewaid/shared';
+import { stripModelControlTags, type ToolInfo } from '@crewaid/shared';
 import { StreamingMarkdown } from './markdown/StreamingMarkdown';
 import type { MentionBot } from './composer/botMention';
 
@@ -36,14 +36,17 @@ function TextPartRenderer({
   part: AnyPart;
   context?: PartRenderContext | undefined;
 }): ReactNode {
-  return typeof part.text === 'string' ? (
+  if (typeof part.text !== 'string') return null;
+  const cleaned = stripModelControlTags(part.text);
+  if (cleaned === '') return null;
+  return (
     <StreamingMarkdown
-      source={part.text}
+      source={cleaned}
       streaming={context?.streaming === true}
       {...(context?.mentionBots === undefined ? {} : { mentionBots: context.mentionBots })}
       {...(context?.onBotMention === undefined ? {} : { onBotMention: context.onBotMention })}
     />
-  ) : null;
+  );
 }
 
 /**
