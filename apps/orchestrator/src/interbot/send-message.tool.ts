@@ -279,6 +279,7 @@ export function sendMessageTool(deps: {
 
             // Chain lifecycle gate: block new hops on STOPPED/CLOSED chains and
             // block new delegations while a chain is WRAPPING_UP.
+            let wrapUpHop = false;
             if (deps.workflow !== undefined) {
               const decision = await deps.workflow.canSend(
                 context.userId,
@@ -295,6 +296,9 @@ export function sendMessageTool(deps: {
                 });
                 return decision.reason;
               }
+              // An owner's reply to a wrap-up is bounded by the wrap-up itself,
+              // and a chain is often wrapped up because it hit a ceiling below.
+              wrapUpHop = decision.wrapUp === true;
             }
 
             // Suppress exact duplicate sends to the same peer within a single turn.
@@ -309,7 +313,7 @@ export function sendMessageTool(deps: {
               return `Duplicate message to ${resolved.peer.name} was skipped because you already sent the exact same message this turn.`;
             }
 
-            if (!isWithinHopLimit(position, deps.limits.maxHops)) {
+            if (!wrapUpHop && !isWithinHopLimit(position, deps.limits.maxHops)) {
               // Both halves, and they are for different readers. The OPERATOR
               // gets the system message, because they are the one who can
               // raise the limit. The MODEL gets a result, because it is the
@@ -354,7 +358,7 @@ export function sendMessageTool(deps: {
             // cheaper query and the more specific answer, so a bot that has
             // simply been pestering ONE peer is told that rather than being
             // told the whole chain is out of money.
-            if (deps.limits.maxRepeatSends > 0) {
+            if (!wrapUpHop && deps.limits.maxRepeatSends > 0) {
               const already = await deps.budget.sendsBetween(
                 context.userId,
                 position.chainId,
@@ -383,7 +387,7 @@ export function sendMessageTool(deps: {
             // only when a ceiling exists: D-047 ships it off, and a chain
             // with no budget must not pay for an aggregate per message.
             const budget = effectiveTokenBudget(deps.limits.maxTokens, undefined);
-            if (budget > 0) {
+            if (!wrapUpHop && budget > 0) {
               const spent = await deps.budget.spentTokens(context.userId, position.chainId);
               if (!isWithinTokenBudget(spent, budget)) {
                 if (!announced) {

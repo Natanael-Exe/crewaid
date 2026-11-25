@@ -6,6 +6,7 @@ import {
   type OnModuleDestroy,
   type OnModuleInit,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import {
   projectPublicSpeech,
   type ListWorkflowsResponse,
@@ -25,8 +26,20 @@ import { BOT_MESSAGE_QUEUE, type BotMessageQueue } from './bot-message.queue.js'
 export const DEFAULT_WRAP_UP_DEADLINE_MS = 120_000;
 
 export type ChainGateDecision =
-  | { readonly allowed: true }
+  | {
+      readonly allowed: true;
+      /**
+       * Set when the hop is allowed only because it is part of a wrap-up (the
+       * coordinator's closeout prompt or an owner's reply to it). Those hops
+       * are bounded by the wrap-up itself, so per-chain repeat, hop, and token
+       * ceilings must not drop them — a chain is often wrapped up precisely
+       * because it ran into one.
+       */
+      readonly wrapUp?: true;
+    }
   | { readonly allowed: false; readonly status: WorkflowChainStatus; readonly reason: string };
+
+type ChainStateFields = Omit<Prisma.WorkflowChainStateUncheckedCreateInput, 'chainId' | 'userId'>;
 
 /**
  * Chain-scoped workflow lifecycle control (`Stop workflow` vs. `Wrap up`).
@@ -90,23 +103,31 @@ export class WorkflowControlService implements OnModuleInit, OnModuleDestroy {
     const chainId = await this.resolveTargetChainId(userId, bot, requestedChainId, true);
 
     this.clearTimer(chainId);
-    await this.prisma.workflowChainState.upsert({
-      where: { chainId },
-      create: {
-        chainId,
-        userId,
+    const stopFields = {
+      status: 'STOPPED' as const,
+      closeoutPublished: true,
+      stoppedAt: new Date(),
+    };
+    const stopped = await this.prisma.workflowChainState.updateMany({
+      where: { chainId, userId },
+      data: stopFields,
+    });
+    if (
+      stopped.count === 0 &&
+      !(await this.createChainState(userId, chainId, {
         rootBotId: bot.id,
         groupId: bot.groupId,
-        status: 'STOPPED',
-        closeoutPublished: true,
-        stoppedAt: new Date(),
-      },
-      update: {
-        status: 'STOPPED',
-        closeoutPublished: true,
-        stoppedAt: new Date(),
-      },
-    });
+        ...stopFields,
+      }))
+    ) {
+      // Lost a race with this account's own concurrent create, or the id is
+      // held by a row another account wrote. Only the first is ours to stop.
+      const retried = await this.prisma.workflowChainState.updateMany({
+        where: { chainId, userId },
+        data: stopFields,
+      });
+      if (retried.count === 0) throw new NotFoundException('No active workflow found for this bot.');
+    }
 
     const { cancelledRuns, stoppedBotIds } = await this.cancelChainRuns(userId, chainId);
     const notice = await this.messages.createSystemMessage({
@@ -151,6 +172,37 @@ export class WorkflowControlService implements OnModuleInit, OnModuleDestroy {
     const expectedOwners = ownerBots.map((owner) => owner.id);
     const deadline = expectedOwners.length === 0 ? null : new Date(Date.now() + this.deadlineMs);
 
+    // Claim the ACTIVE -> WRAPPING_UP transition before saying anything. A
+    // chain the user already stopped, closed, or is wrapping up must not be
+    // revived: that would wake every past participant, and the fixed
+    // per-owner deliveryKey would swallow a second round of prompts anyway.
+    const wrapFields = {
+      rootBotId: bot.id,
+      groupId: bot.groupId,
+      status: expectedOwners.length === 0 ? ('CLOSED' as const) : ('WRAPPING_UP' as const),
+      expectedOwners,
+      respondedOwners: [],
+      closeoutPublished: false,
+      deadlineAt: deadline,
+      closedAt: expectedOwners.length === 0 ? new Date() : null,
+    };
+    const claimed = await this.prisma.workflowChainState.updateMany({
+      where: { chainId, userId, status: 'ACTIVE' },
+      data: wrapFields,
+    });
+    if (claimed.count === 0 && !(await this.createChainState(userId, chainId, wrapFields))) {
+      const current = await this.prisma.workflowChainState.findFirst({
+        where: { chainId, userId },
+        select: { status: true },
+      });
+      if (current === null) throw new NotFoundException('No active workflow found for this bot.');
+      throw new ConflictException({
+        code: 'WORKFLOW_NOT_ACTIVE',
+        status: current.status,
+        message: 'This workflow is no longer active, so it cannot be wrapped up.',
+      });
+    }
+
     const ackText =
       expectedOwners.length === 0
         ? 'Wrapping up this workflow now. No other teammates are active on it — publishing closeout.'
@@ -161,32 +213,6 @@ export class WorkflowControlService implements OnModuleInit, OnModuleDestroy {
       content: ackText,
     });
     this.events.emitCreated(bot.id, { ...ackRow, attachments: [] });
-
-    await this.prisma.workflowChainState.upsert({
-      where: { chainId },
-      create: {
-        chainId,
-        userId,
-        rootBotId: bot.id,
-        groupId: bot.groupId,
-        status: expectedOwners.length === 0 ? 'CLOSED' : 'WRAPPING_UP',
-        expectedOwners,
-        respondedOwners: [],
-        closeoutPublished: false,
-        deadlineAt: deadline,
-        ...(expectedOwners.length === 0 ? { closedAt: new Date() } : {}),
-      },
-      update: {
-        rootBotId: bot.id,
-        groupId: bot.groupId,
-        status: expectedOwners.length === 0 ? 'CLOSED' : 'WRAPPING_UP',
-        expectedOwners,
-        respondedOwners: [],
-        closeoutPublished: false,
-        deadlineAt: deadline,
-        ...(expectedOwners.length === 0 ? { closedAt: new Date() } : { closedAt: null }),
-      },
-    });
 
     if (expectedOwners.length === 0) {
       await this.finalizeWrapUp(userId, chainId, 'all-responded');
@@ -277,7 +303,7 @@ export class WorkflowControlService implements OnModuleInit, OnModuleDestroy {
     }
     // WRAPPING_UP: only expected owners replying back to rootBotId are allowed.
     if (toBotId === state.rootBotId && state.expectedOwners.includes(fromBotId)) {
-      return { allowed: true };
+      return { allowed: true, wrapUp: true };
     }
     return {
       allowed: false,
@@ -316,10 +342,10 @@ export class WorkflowControlService implements OnModuleInit, OnModuleDestroy {
       fromBotId === state.rootBotId &&
       state.expectedOwners.includes(toBotId)
     ) {
-      return { allowed: true };
+      return { allowed: true, wrapUp: true };
     }
     if (toBotId === state.rootBotId && state.expectedOwners.includes(fromBotId)) {
-      return { allowed: true };
+      return { allowed: true, wrapUp: true };
     }
     return {
       allowed: false,
@@ -574,12 +600,16 @@ export class WorkflowControlService implements OnModuleInit, OnModuleDestroy {
     userId: string,
     bot: { id: string; groupId: string | null },
     requestedChainId: string | undefined,
-    allowSingleBotFallback: boolean,
+    allowInactiveFallback: boolean,
   ): Promise<string> {
+    const scopeBotIds = await this.scopeBotIds(userId, bot);
     if (requestedChainId !== undefined) {
+      // The id arrives in a request body, so it proves nothing by itself:
+      // only a chain with a message in this account and in this bot's scope
+      // may be stopped or wrapped up from here.
+      await this.assertChainInScope(userId, scopeBotIds, requestedChainId);
       return requestedChainId;
     }
-    const scopeBotIds = await this.scopeBotIds(userId, bot);
     const active = await this.discoverActiveChains(userId, scopeBotIds, bot.groupId);
     if (active.length > 1) {
       throw new ConflictException({
@@ -604,6 +634,11 @@ export class WorkflowControlService implements OnModuleInit, OnModuleDestroy {
       });
       if (trigger !== null) return trigger.chainId ?? trigger.id;
     }
+    // Nothing is live. Stopping the most recent chain anyway is harmless, but
+    // wrapping up a finished one would prompt every bot that ever took part.
+    if (!allowInactiveFallback) {
+      throw new NotFoundException('No active workflow found for this bot.');
+    }
     const latestChainMsg = await this.prisma.message.findFirst({
       where: {
         chainId: { not: null },
@@ -615,18 +650,57 @@ export class WorkflowControlService implements OnModuleInit, OnModuleDestroy {
     if (latestChainMsg?.chainId !== null && latestChainMsg?.chainId !== undefined) {
       return latestChainMsg.chainId;
     }
-    if (allowSingleBotFallback) {
-      const latestTrigger = await this.prisma.message.findFirst({
-        where: {
-          author: 'USER',
-          conversation: { botId: bot.id, bot: { userId } },
-        },
-        orderBy: { sequence: 'desc' },
-        select: { id: true },
-      });
-      if (latestTrigger !== null) return latestTrigger.id;
-    }
+    const latestTrigger = await this.prisma.message.findFirst({
+      where: {
+        author: 'USER',
+        conversation: { botId: bot.id, bot: { userId } },
+      },
+      orderBy: { sequence: 'desc' },
+      select: { id: true },
+    });
+    if (latestTrigger !== null) return latestTrigger.id;
     throw new NotFoundException('No active workflow found for this bot.');
+  }
+
+  private async assertChainInScope(
+    userId: string,
+    scopeBotIds: readonly string[],
+    chainId: string,
+  ): Promise<void> {
+    const inScope = { in: [...scopeBotIds] };
+    const hit = await this.prisma.message.findFirst({
+      where: {
+        conversation: { bot: { userId } },
+        OR: [
+          { id: chainId, conversation: { botId: inScope } },
+          { chainId, conversation: { botId: inScope } },
+          { chainId, fromBotId: inScope },
+        ],
+      },
+      select: { id: true },
+    });
+    if (hit === null) throw new NotFoundException('No active workflow found for this bot.');
+  }
+
+  /**
+   * Creates this account's state row for a chain. False when the id already
+   * has a row — written concurrently by this account, or by another one —
+   * so callers never fall back to writing a row they do not own.
+   */
+  private async createChainState(
+    userId: string,
+    chainId: string,
+    fields: ChainStateFields,
+  ): Promise<boolean> {
+    try {
+      await this.prisma.workflowChainState.create({ data: { ...fields, chainId, userId } });
+      return true;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        return false;
+      }
+      throw error;
+    }
   }
 
   private async discoverActiveChains(

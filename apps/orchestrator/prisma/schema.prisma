@@ -1984,6 +1984,9 @@ enum BoardRevisionKind {
   UPDATE
   DELETE
   RESTORE
+  /// The file's text as an outside edit (a shell command, a person) left it,
+  /// saved before the managed projection replaced it.
+  EXTERNAL_EDIT
 }
 
 /// Durable per-owner board entry projected to `/home/bot/shared/BOARD.md`.

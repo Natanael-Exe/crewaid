@@ -67,6 +67,13 @@ export function boardTools(store?: BoardStoreService): RegisteredTool[] {
               const outcome = await store.read(context, { restore: input?.restore === true });
               switch (outcome.kind) {
                 case 'read':
+                  if (outcome.displaced === true) {
+                    return (
+                      `${outcome.text}\n(Note: ${BOARD_PATH} was restored from durable board ` +
+                      'history. It held edits made outside the board tools; those were saved to ' +
+                      'board history first. Add entries with board_add so they last.)'
+                    );
+                  }
                   return outcome.restored === true
                     ? `${outcome.text}\n(Note: ${BOARD_PATH} was restored from durable board history.)`
                     : outcome.text;

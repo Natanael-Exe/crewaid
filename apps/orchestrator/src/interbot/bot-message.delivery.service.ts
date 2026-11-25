@@ -84,6 +84,7 @@ export class BotMessageDeliveryService {
     // Durable chain-lifecycle gate: enforce STOPPED / CLOSED / WRAPPING_UP
     // before writing any row or starting any turn, including across BullMQ
     // retries and worker restarts.
+    let wrapUpHop = false;
     if (this.workflow !== undefined) {
       const gate = await this.workflow.canDeliver(
         job.userId,
@@ -101,6 +102,12 @@ export class BotMessageDeliveryService {
           ? { kind: 'chain-wrapping-up' }
           : { kind: 'chain-stopped' };
       }
+      // The closeout prompt and the owners' replies are bounded by the
+      // wrap-up itself. The hop, repeat, and token ceilings below exist to
+      // stop runaway delegation; applying them here would drop the very
+      // replies a wrap-up waits for, since a chain is often wrapped up
+      // because it ran into one of them.
+      wrapUpHop = gate.wrapUp === true;
     }
 
     // One query for both bots, scoped to the principal the job names.
@@ -138,7 +145,10 @@ export class BotMessageDeliveryService {
     }
 
     const { maxHops } = this.limits;
-    if (!isWithinHopLimit({ chainId: job.chainId, hopCount: job.hopCount }, maxHops)) {
+    if (
+      !wrapUpHop &&
+      !isWithinHopLimit({ chainId: job.chainId, hopCount: job.hopCount }, maxHops)
+    ) {
       // Checked again here, not only at send: the two are separated by a
       // queue, and a job enqueued while the chain was under the bound must
       // not be delivered after something else pushed it over.
@@ -163,7 +173,7 @@ export class BotMessageDeliveryService {
     // every ceiling is: a queue separates the two, and two messages enqueued
     // while the pair was one under the cap must not both land.
     const { maxRepeatSends } = this.limits;
-    if (maxRepeatSends > 0) {
+    if (!wrapUpHop && maxRepeatSends > 0) {
       const alreadySent = await this.budget.sendsBetween(
         job.userId,
         job.chainId,
@@ -188,7 +198,7 @@ export class BotMessageDeliveryService {
     // cheaper fact first, and before anything is written, because the point
     // is to not start the turn that would spend the next tokens.
     const budget = effectiveTokenBudget(this.limits.maxTokens, undefined);
-    if (budget > 0) {
+    if (!wrapUpHop && budget > 0) {
       const spent = await this.budget.spentTokens(job.userId, job.chainId);
       if (!isWithinTokenBudget(spent, budget)) {
         context.info('interbot.delivery.dropped', {

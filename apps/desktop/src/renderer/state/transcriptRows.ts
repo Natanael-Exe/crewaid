@@ -1,5 +1,4 @@
-import { projectPublicSpeech } from '@crewaid/shared';
-import { isPartOutput, partField, type AnyPart } from '../components/PartRenderer';
+import { isPartOutput, partField, speechOf, type AnyPart } from '../components/PartRenderer';
 import { isFoldedToolPart, type FoldedToolPart } from '../components/tools/toolParts';
 import { isBotWorkPart } from './transcriptPrefs';
 import { incompleteReason, type TranscriptMessage } from './viewTypes';
@@ -39,8 +38,8 @@ const SPEECH_TYPES: ReadonlySet<string> = new Set(['text']);
 
 /** A part's text, or '' for a part that carries none. Also what Copy copies. */
 export function textOfPart(part: AnyPart): string {
-  const text = (part as { text?: unknown }).text;
-  return typeof text === 'string' ? projectPublicSpeech(text) : '';
+  const { text, verbatim } = part as { text?: unknown; verbatim?: unknown };
+  return typeof text === 'string' ? speechOf({ text, verbatim }) : '';
 }
 
 export function toTranscriptRows(parts: readonly AnyPart[]): TranscriptRow[] {

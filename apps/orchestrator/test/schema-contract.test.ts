@@ -915,7 +915,7 @@ const EXPECTED_ENUMS: Record<string, readonly string[]> = {
   DeliverableKind: ['FILE', 'LINK', 'MESSAGE'],
   DeliverableReviewState: ['READY', 'REVIEWED', 'ARCHIVED'],
   WorkflowChainStatus: ['ACTIVE', 'WRAPPING_UP', 'STOPPED', 'CLOSED'],
-  BoardRevisionKind: ['INIT_SNAPSHOT', 'ADD', 'UPDATE', 'DELETE', 'RESTORE'],
+  BoardRevisionKind: ['INIT_SNAPSHOT', 'ADD', 'UPDATE', 'DELETE', 'RESTORE', 'EXTERNAL_EDIT'],
 };
 
 /** Known model names, used to tell a relation field from a scalar one. */

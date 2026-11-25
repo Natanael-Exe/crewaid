@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from 'react';
-import { projectPublicSpeech, type ToolInfo } from '@crewaid/shared';
+import { projectPublicSpeech, stripModelControlTags, type ToolInfo } from '@crewaid/shared';
 import { StreamingMarkdown } from './markdown/StreamingMarkdown';
 import type { MentionBot } from './composer/botMention';
 import type { HandoffActions } from './visuals/HandoffBlock';
@@ -16,6 +16,18 @@ import type { HandoffActions } from './visuals/HandoffBlock';
 export interface TextPart {
   type: 'text';
   text: string;
+  /**
+   * Written by a person, not a model. The public-speech projection exists to
+   * hide what a MODEL leaks (reasoning tags, tool markup, runaway loops); run
+   * over a person's own words it would blank a pasted log or cut an XML
+   * snippet, so their text only loses harness control tags.
+   */
+  verbatim?: true;
+}
+
+/** The text a part shows and copies: a person's words as written, a bot's through the speech projection. */
+export function speechOf(part: { readonly text: string; readonly verbatim?: unknown }): string {
+  return part.verbatim === true ? stripModelControlTags(part.text) : projectPublicSpeech(part.text);
 }
 
 /** Verbatim-unfriendly parts still arrive; the fallback renders them safely. */
@@ -38,7 +50,7 @@ function TextPartRenderer({
   context?: PartRenderContext | undefined;
 }): ReactNode {
   if (typeof part.text !== 'string') return null;
-  const cleaned = projectPublicSpeech(part.text);
+  const cleaned = speechOf({ text: part.text, verbatim: part['verbatim'] });
   if (cleaned === '') return null;
   return (
     <StreamingMarkdown

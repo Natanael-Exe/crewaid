@@ -181,11 +181,25 @@ export class RunSettlementService {
   ): Promise<boolean> {
     // Priority order: explicit "Stop and send" user message -> newest unanswered
     // USER message -> newest unanswered peer BOT message.
-    const candidates = await this.prisma.message.findMany({
+    //
+    // Only rows stored AFTER this run's trigger are waiting on it. Every
+    // user-bodied row keeps `runId: null` forever, so without this bound an
+    // older, already-answered message (or one an earlier run folded in)
+    // would outrank — and so starve — a peer message that arrived mid-run.
+    const anchor = await this.prisma.message.findFirst({
+      where: {
+        id: triggerMessageId,
+        conversationId: lease.threadId,
+        conversation: { bot: { id: bot.id, userId: lease.userId } },
+      },
+      select: { sequence: true },
+    });
+    const found = await this.prisma.message.findMany({
       where: {
         conversationId: lease.threadId,
         conversation: { bot: { id: bot.id, userId: lease.userId } },
         runId: null,
+        ...(anchor === null ? {} : { sequence: { gt: anchor.sequence } }),
         OR: [
           ...(priorityTriggerId === undefined
             ? []
@@ -207,6 +221,9 @@ export class RunSettlementService {
       take: 10,
       select: { id: true, author: true, content: true, chainId: true, hopCount: true },
     });
+    // A trigger deleted mid-run leaves no bound to compare against; fall back
+    // to the newest row alone, which is all the old single-row lookup saw.
+    const candidates = anchor === null ? found.slice(0, 1) : found;
     const candidateChainIds = [
       ...new Set(
         candidates
@@ -226,22 +243,32 @@ export class RunSettlementService {
       });
       haltedChains = new Set(stopped.map((row) => row.chainId));
     }
-    const eligible = candidates.filter(
-      (row) => row.author !== 'BOT' || row.chainId === null || !haltedChains.has(row.chainId),
+    const unhalted = candidates.filter(
+      (row) =>
+        row.id !== triggerMessageId &&
+        (row.author !== 'BOT' || row.chainId === null || !haltedChains.has(row.chainId)),
     );
+    if (unhalted.length === 0) return false;
+    // A row another run already started is not waiting; skip it rather than
+    // letting it hide the unclaimed rows behind it.
+    const claims = await this.prisma.agentTurn.findMany({
+      where: {
+        triggerMessageId: { in: unhalted.map((row) => row.id) },
+        botId: bot.id,
+        bot: { userId: lease.userId },
+      },
+      select: { triggerMessageId: true },
+    });
+    const taken = new Set(claims.map((row) => row.triggerMessageId));
+    const eligible = unhalted.filter((row) => !taken.has(row.id));
     const newest =
       (priorityTriggerId === undefined
         ? undefined
         : eligible.find((row) => row.id === priorityTriggerId)) ??
-      eligible.find((row) => row.author === 'USER' && row.id !== triggerMessageId) ??
-      eligible.find((row) => row.id !== triggerMessageId) ??
+      eligible.find((row) => row.author === 'USER') ??
+      eligible[0] ??
       null;
-    if (newest === null || newest.id === triggerMessageId) return false;
-    const claimed = await this.prisma.agentTurn.findFirst({
-      where: { triggerMessageId: newest.id, botId: bot.id, bot: { userId: lease.userId } },
-      select: { id: true },
-    });
-    if (claimed !== null) return false;
+    if (newest === null) return false;
     logger.info('turn.deferred.answering', {
       triggerMessageId: newest.id,
       ...(priorityTriggerId === newest.id ? { priority: true } : {}),

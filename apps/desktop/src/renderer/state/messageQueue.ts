@@ -33,12 +33,14 @@ export interface QueuedMessage {
 
 export type MessageQueues = Readonly<Record<string, readonly QueuedMessage[]>>;
 
-let counter = 0;
-
-/** Ids are per-session and never leave the client, so a counter is enough. */
+/**
+ * Ids never leave the client, but they do outlive the page: queues are kept in
+ * sessionStorage across reloads. A counter restarts at zero on every load and
+ * would hand out `q1` again beside a restored `q1`, so that removing one —
+ * which matches by id — removes both.
+ */
 export function nextLocalId(): string {
-  counter += 1;
-  return `q${counter}`;
+  return `q-${crypto.randomUUID()}`;
 }
 
 export function queueOf(queues: MessageQueues, botId: string): readonly QueuedMessage[] {
@@ -117,6 +119,7 @@ export function readPersistedQueues(storage: StorageLike | null, key: string): M
     for (const [botId, value] of Object.entries(parsed as Record<string, unknown>)) {
       if (!Array.isArray(value)) continue;
       const items: QueuedMessage[] = [];
+      const seen = new Set<string>();
       for (const entry of value) {
         if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) continue;
         const row = entry as Record<string, unknown>;
@@ -124,8 +127,11 @@ export function readPersistedQueues(storage: StorageLike | null, key: string): M
         const attachmentIds = Array.isArray(row['attachmentIds'])
           ? row['attachmentIds'].filter((id): id is string => typeof id === 'string')
           : [];
+        // A store written before ids were unique can hold the same id twice.
+        const localId = seen.has(row['localId']) ? nextLocalId() : row['localId'];
+        seen.add(localId);
         items.push({
-          localId: row['localId'],
+          localId,
           text: row['text'],
           attachmentIds,
           ...(typeof row['messageId'] === 'string' ? { messageId: row['messageId'] } : {}),

@@ -706,6 +706,8 @@ export const ListDeliverablesQuerySchema = z.object({
   goalId: CuidSchema.optional(),
   taskId: CuidSchema.optional(),
   botId: CuidSchema.optional(),
+  /** The deliverable a file attachment was filed as — whichever bot published it. */
+  attachmentId: CuidSchema.optional(),
   kind: DeliverableKindSchema.optional(),
   /** Only deliverables filed under nothing. */
   unfiled: QueryBooleanSchema.optional(),

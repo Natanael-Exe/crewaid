@@ -40,7 +40,10 @@ function makeMemoryTx() {
       }),
     },
     task: {
-      findFirst: async () => null,
+      findFirst: async ({ where }: { where: { id?: string } }) =>
+        where.id?.startsWith('task_') === true
+          ? { id: where.id, goalId: null, projectId: null, title: where.id }
+          : null,
       findMany: async () => [],
     },
     goal: {
@@ -58,18 +61,17 @@ function makeMemoryTx() {
       },
     },
     deliverable: {
-      findMany: async ({
-        where,
-      }: {
-        where: { userId?: string; kind?: string; title?: string; id?: string };
-      }) =>
+      findMany: async ({ where }: { where: Record<string, unknown> }) =>
         deliverables
-          .filter(
-            (row) =>
-              (where.userId === undefined || row.userId === where.userId) &&
-              (where.kind === undefined || row.kind === where.kind) &&
-              (where.title === undefined || row.title === where.title) &&
-              (where.id === undefined || row.id === where.id),
+          .filter((row) =>
+            Object.entries(where).every(([key, value]) => {
+              if (value === undefined) return true;
+              const actual = (row as unknown as Record<string, unknown>)[key];
+              if (typeof value === 'object' && value !== null && 'in' in value) {
+                return (value as { in: unknown[] }).in.includes(actual);
+              }
+              return actual === value;
+            }),
           )
           .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
           .map((row) => ({
@@ -222,6 +224,57 @@ describe('Phase 3 — Deliverable immutable snapshots & exact lookup', () => {
     expect(v2.supersededById).toBeNull();
     expect(v2.reviewState).toBe('READY');
     expect(adCopy.supersededById).toBeNull();
+  });
+
+  it('never chains same-named files filed on different tasks or at different workspace paths', async () => {
+    const { tx, deliverables } = makeMemoryTx();
+
+    await recordFileDeliverable(tx, {
+      userId: 'user_1',
+      attachmentId: 'att_alpha',
+      replyId: 'msg_1',
+      title: 'report.md',
+      filing: { triggerMessageId: 'trig_1', taskId: 'task_alpha' },
+    });
+    const beta = await recordFileDeliverable(tx, {
+      userId: 'user_1',
+      attachmentId: 'att_beta',
+      replyId: 'msg_2',
+      title: 'report.md',
+      filing: { triggerMessageId: 'trig_2', taskId: 'task_beta' },
+    });
+    expect(beta.version).toBe(1);
+    expect(beta.supersededDeliverableId).toBeNull();
+
+    await recordFileDeliverable(tx, {
+      userId: 'user_1',
+      attachmentId: 'att_one',
+      replyId: 'msg_3',
+      title: 'report.md',
+      filing: { triggerMessageId: 'trig_3', sourcePath: '/home/bot/one/report.md' },
+    });
+    const two = await recordFileDeliverable(tx, {
+      userId: 'user_1',
+      attachmentId: 'att_two',
+      replyId: 'msg_4',
+      title: 'report.md',
+      filing: { triggerMessageId: 'trig_4', sourcePath: '/home/bot/two/report.md' },
+    });
+    expect(two.version).toBe(1);
+    expect(two.supersededDeliverableId).toBeNull();
+
+    const alphaRevision = await recordFileDeliverable(tx, {
+      userId: 'user_1',
+      attachmentId: 'att_alpha_2',
+      replyId: 'msg_5',
+      title: 'report.md',
+      filing: { triggerMessageId: 'trig_5', taskId: 'task_alpha' },
+    });
+    expect(alphaRevision.version).toBe(2);
+    expect(alphaRevision.supersededDeliverableId).toBe('deliv_v1');
+    expect(deliverables.filter((row) => row.supersededById !== null).map((row) => row.id)).toEqual([
+      'deliv_v1',
+    ]);
   });
 
   it('serves GET /deliverables/:id with publisherName, reviewState, and supersededById and enforces ownership', async () => {

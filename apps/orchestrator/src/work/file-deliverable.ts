@@ -50,13 +50,30 @@ export async function recordFileDeliverable(
     triggerMessageId: filing.triggerMessageId,
   });
 
-  // Preserve immutable prior snapshots sharing this filename and chain the
-  // newest active snapshot to supersede them rather than overwriting or colliding.
+  // Preserve immutable prior snapshots of the SAME file and chain the newest
+  // active snapshot to supersede them. A filename alone is not an identity —
+  // every project has a `report.md` — so only snapshots filed in the same
+  // place (task, else goal, else the same bot's unfiled work at the same
+  // workspace path) count as earlier revisions.
+  const sameFile: Prisma.DeliverableWhereInput =
+    place.taskId !== null
+      ? { taskId: place.taskId }
+      : place.goalId !== null
+        ? { taskId: null, goalId: place.goalId }
+        : {
+            taskId: null,
+            goalId: null,
+            botId: bot?.id ?? null,
+            ...(filing.sourcePath === undefined || filing.sourcePath === ''
+              ? {}
+              : { sourcePath: filing.sourcePath }),
+          };
   const priorSnapshots = await tx.deliverable.findMany({
     where: {
       userId,
       kind: 'FILE',
       title: input.title,
+      ...sameFile,
     },
     orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     select: { id: true, supersededById: true },

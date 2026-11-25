@@ -36,6 +36,7 @@ export class DeliverablesService {
       ...(query.goalId !== undefined && { goalId: query.goalId }),
       ...(query.taskId !== undefined && { taskId: query.taskId }),
       ...(query.botId !== undefined && { botId: query.botId }),
+      ...(query.attachmentId !== undefined && { attachmentId: query.attachmentId }),
       ...(query.kind !== undefined && { kind: query.kind }),
       ...(query.unfiled === true && { taskId: null, goalId: null, projectId: null }),
       // Under AND, because the cursor below adds an OR of its own.

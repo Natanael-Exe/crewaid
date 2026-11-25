@@ -405,8 +405,10 @@ function AppShell({ session }: { session: LaunchSession }) {
         handleOpenDeliverableById(target.deliverableId, target.label);
         return;
       }
-      if (target.attachmentId !== undefined && nav.selectedId !== null) {
-        void listDeliverables(client, { botId: nav.selectedId, kind: 'FILE', limit: 100 })
+      if (target.attachmentId !== undefined) {
+        // A crew handoff lists teammates' files too, so look the attachment up
+        // directly rather than among this bot's own recent deliverables.
+        void listDeliverables(client, { attachmentId: target.attachmentId, kind: 'FILE', limit: 1 })
           .then((page) => {
             const match = page.items.find((item) => item.attachmentId === target.attachmentId);
             if (match !== undefined) {

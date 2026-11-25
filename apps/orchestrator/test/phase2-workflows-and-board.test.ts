@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
+import { ConflictException, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import type { ToolDefinition as Tool } from '../src/agent/tool-contract.js';
 import type { ToolContext } from '../src/agent/tool-registry.js';
 import type { PrismaService } from '../src/prisma/prisma.service.js';
@@ -37,7 +39,12 @@ describe('Phase 2 — send_message FYI, duplicate suppression, and workflow gate
       chainId: string,
       fromBotId: string,
       toBotId: string,
-    ) => Promise<{ allowed: true } | { allowed: false; status: 'STOPPED' | 'WRAPPING_UP' | 'CLOSED'; reason: string }>;
+    ) => Promise<
+      | { allowed: true; wrapUp?: true }
+      | { allowed: false; status: 'STOPPED' | 'WRAPPING_UP' | 'CLOSED'; reason: string }
+    >;
+    spentTokens?: number;
+    maxTokens?: number;
   }) {
     const sent: BotMessageJobData[] = [];
     const entry = sendMessageTool({
@@ -49,11 +56,11 @@ describe('Phase 2 — send_message FYI, duplicate suppression, and workflow gate
       directory: { peers: async () => [DIANA, JULIAN] },
       notice: { post: async () => undefined },
       budget: {
-        spentTokens: async () => 0,
+        spentTokens: async () => overrides?.spentTokens ?? 0,
         sendsBetween: async () => 0,
         participatedInChain: async () => false,
       },
-      limits: { maxHops: 0, maxTokens: 0, maxRepeatSends: 0 },
+      limits: { maxHops: 0, maxTokens: overrides?.maxTokens ?? 0, maxRepeatSends: 0 },
       ...(overrides?.canSend !== undefined ? { workflow: { canSend: overrides.canSend } } : {}),
     });
     const built = entry.build({
@@ -104,6 +111,19 @@ describe('Phase 2 — send_message FYI, duplicate suppression, and workflow gate
     expect(result).toContain('wrapping up');
     expect(sent).toHaveLength(0);
   });
+
+  it("lets an owner's wrap-up reply through a spent token budget", async () => {
+    const exhausted = { spentTokens: 5_000, maxTokens: 1_000 };
+    const wrapping = makeTool({ ...exhausted, canSend: async () => ({ allowed: true, wrapUp: true }) });
+    const reply = await wrapping.call({ toBot: 'Diana', content: 'Done: pricing.csv' }, 'tc_reply');
+    expect(reply).toContain('queued for Diana');
+    expect(wrapping.sent).toHaveLength(1);
+
+    const ordinary = makeTool({ ...exhausted, canSend: async () => ({ allowed: true }) });
+    const refused = await ordinary.call({ toBot: 'Diana', content: 'One more audit' }, 'tc_more');
+    expect(refused).toContain('token budget');
+    expect(ordinary.sent).toHaveLength(0);
+  });
 });
 
 describe('Phase 2 — BotMessageDeliveryService durable FYI, idempotency, and stopped chains', () => {
@@ -113,6 +133,8 @@ describe('Phase 2 — BotMessageDeliveryService durable FYI, idempotency, and st
 
   function harness(opts?: {
     chainStatus?: 'ACTIVE' | 'STOPPED' | 'WRAPPING_UP' | 'CLOSED';
+    maxTokens?: number;
+    spentTokens?: number;
   }) {
     const storedByKey = new Map<string, { id: string; content: string; expectReply: boolean }>();
     const createdEvents: unknown[] = [];
@@ -165,7 +187,7 @@ describe('Phase 2 — BotMessageDeliveryService durable FYI, idempotency, and st
 
     const budget = {
       sendsBetween: vi.fn().mockResolvedValue(0),
-      spentTokens: vi.fn().mockResolvedValue(0),
+      spentTokens: vi.fn().mockResolvedValue(opts?.spentTokens ?? 0),
     } as unknown as ChainBudgetService;
 
     const workflow = {
@@ -177,6 +199,7 @@ describe('Phase 2 — BotMessageDeliveryService durable FYI, idempotency, and st
         if (status === 'WRAPPING_UP' && wrapUpKind !== 'request') {
           return { allowed: false as const, status: 'WRAPPING_UP' as const, reason: 'chain-wrapping-up' };
         }
+        if (status === 'WRAPPING_UP') return { allowed: true as const, wrapUp: true as const };
         return { allowed: true as const };
       }),
       recordOwnerResponse: vi.fn(async (_u: string, chainId: string, ownerBotId: string) => {
@@ -191,7 +214,7 @@ describe('Phase 2 — BotMessageDeliveryService durable FYI, idempotency, and st
       events,
       notice,
       budget,
-      { maxHops: 0, maxTokens: 0, maxRepeatSends: 0 },
+      { maxHops: 0, maxTokens: opts?.maxTokens ?? 0, maxRepeatSends: 0 },
       noopLogger(),
       workflow,
     );
@@ -240,6 +263,34 @@ describe('Phase 2 — BotMessageDeliveryService durable FYI, idempotency, and st
     expect(createdEvents).toHaveLength(1);
     expect(notices).toHaveLength(1);
     expect(startedTurns).toHaveLength(1);
+  });
+
+  it('delivers wrap-up closeout prompts even after the chain spent its token budget', async () => {
+    const job: BotMessageJobData = {
+      userId: USER,
+      fromBotId: GIDEON.id,
+      toBotId: DIANA.id,
+      toBotName: DIANA.name,
+      content: 'Wrap-up: report finished deliverables and blockers.',
+      chainId: 'chain_spent',
+      hopCount: 1,
+      deliveryKey: 'wrapup:chain_spent:bot_diana',
+      wrapUpKind: 'request',
+    };
+    const wrapping = harness({ chainStatus: 'WRAPPING_UP', maxTokens: 1_000, spentTokens: 5_000 });
+    await expect(wrapping.service.deliver(job)).resolves.toEqual({
+      kind: 'delivered',
+      messageId: 'msg_1',
+    });
+    expect(wrapping.startedTurns).toHaveLength(1);
+
+    // An ordinary hop on an exhausted chain is still dropped.
+    const active = harness({ maxTokens: 1_000, spentTokens: 5_000 });
+    const { wrapUpKind: _omit, ...ordinary } = job;
+    await expect(
+      active.service.deliver({ ...ordinary, deliveryKey: 'k_ordinary' }),
+    ).resolves.toEqual({ kind: 'token-budget', spent: 5_000, budget: 1_000 });
+    expect(active.startedTurns).toHaveLength(0);
   });
 
   it('drops queued deliveries and retries when the chain is STOPPED', async () => {
@@ -330,7 +381,35 @@ describe('Phase 2 — WorkflowControlService Stop workflow vs Wrap up lifecycles
           }
           return [];
         }),
-        findFirst: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn(
+          async ({
+            where,
+          }: {
+            where: {
+              OR?: Array<{
+                id?: string;
+                chainId?: string;
+                conversation?: { botId: { in: string[] } };
+                fromBotId?: { in: string[] };
+              }>;
+            };
+          }) => {
+            // Only the chain-scope check queries with OR; the other lookups find nothing.
+            if (where.OR === undefined) return null;
+            const hit = chainMessages.find((m) =>
+              where.OR!.some(
+                (clause) =>
+                  (clause.id === undefined || clause.id === m.id) &&
+                  (clause.chainId === undefined || clause.chainId === m.chainId) &&
+                  (clause.conversation === undefined ||
+                    clause.conversation.botId.in.includes(m.conversation.botId)) &&
+                  (clause.fromBotId === undefined ||
+                    (m.fromBotId !== null && clause.fromBotId.in.includes(m.fromBotId))),
+              ),
+            );
+            return hit === undefined ? null : { id: hit.id };
+          },
+        ),
       },
       agentTurn: {
         findMany: vi.fn(async ({ where }: { where: { triggerMessageId?: { in: string[] } } }) => {
@@ -342,40 +421,42 @@ describe('Phase 2 — WorkflowControlService Stop workflow vs Wrap up lifecycles
         findFirst: vi.fn().mockResolvedValue(null),
       },
       workflowChainState: {
-        upsert: vi.fn(async ({ where, create, update }: { where: { chainId: string }; create: Record<string, unknown>; update: Record<string, unknown> }) => {
-          const existing = states.get(where.chainId);
+        create: vi.fn(async ({ data }: { data: Record<string, unknown> & { chainId: string } }) => {
+          if (states.has(data.chainId)) {
+            throw new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+              code: 'P2002',
+              clientVersion: 'test',
+            });
+          }
           const now = new Date();
-          const next = existing
-            ? { ...existing, ...update, updatedAt: now }
-            : {
-                chainId: where.chainId,
-                userId: 'usr_1',
-                rootBotId: 'bot_gideon',
-                groupId: null,
-                status: 'ACTIVE',
-                expectedOwners: [],
-                respondedOwners: [],
-                closeoutPublished: false,
-                deadlineAt: null,
-                stoppedAt: null,
-                closedAt: null,
-                createdAt: now,
-                updatedAt: now,
-                ...create,
-              };
-          states.set(where.chainId, next as typeof states extends Map<string, infer V> ? V : never);
+          const next = {
+            groupId: null,
+            status: 'ACTIVE',
+            expectedOwners: [],
+            respondedOwners: [],
+            closeoutPublished: false,
+            deadlineAt: null,
+            stoppedAt: null,
+            closedAt: null,
+            createdAt: now,
+            updatedAt: now,
+            ...data,
+          };
+          states.set(data.chainId, next as typeof states extends Map<string, infer V> ? V : never);
           return next;
         }),
-        findFirst: vi.fn(async ({ where }: { where: { chainId: string; status?: string } }) => {
+        findFirst: vi.fn(async ({ where }: { where: { chainId: string; userId?: string; status?: string } }) => {
           const row = states.get(where.chainId) ?? null;
           if (row === null) return null;
+          if (where.userId !== undefined && row.userId !== where.userId) return null;
           if (where.status !== undefined && row.status !== where.status) return null;
           return row;
         }),
         findMany: vi.fn(async () => [...states.values()]),
-        updateMany: vi.fn(async ({ where, data }: { where: { chainId: string; closeoutPublished?: boolean; status?: string | { in: string[] } }; data: Record<string, unknown> }) => {
+        updateMany: vi.fn(async ({ where, data }: { where: { chainId: string; userId?: string; closeoutPublished?: boolean; status?: string | { in: string[] } }; data: Record<string, unknown> }) => {
           const row = states.get(where.chainId);
           if (!row) return { count: 0 };
+          if (where.userId !== undefined && row.userId !== where.userId) return { count: 0 };
           if (where.closeoutPublished !== undefined && row.closeoutPublished !== where.closeoutPublished) {
             return { count: 0 };
           }
@@ -439,6 +520,70 @@ describe('Phase 2 — WorkflowControlService Stop workflow vs Wrap up lifecycles
     service.onModuleDestroy();
   });
 
+  it('refuses a chain id outside the bot scope or held by another account, writing nothing', async () => {
+    const { service, states, cancelledRuns } = makeWorkflowHarness();
+    // chain_b belongs to Clara, who is not in Gideon's group.
+    await expect(service.stopWorkflow('usr_1', 'bot_gideon', 'chain_b')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+    await expect(service.wrapUpWorkflow('usr_1', 'bot_gideon', 'chain_b')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+    await expect(
+      service.stopWorkflow('usr_1', 'bot_gideon', 'chain_does_not_exist'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(states.size).toBe(0);
+    expect(cancelledRuns).toHaveLength(0);
+
+    // A row another account already wrote for this id is never taken over.
+    const now = new Date();
+    states.set('chain_a', {
+      chainId: 'chain_a',
+      userId: 'usr_2',
+      rootBotId: 'bot_x',
+      groupId: null,
+      status: 'STOPPED',
+      expectedOwners: [],
+      respondedOwners: [],
+      closeoutPublished: true,
+      deadlineAt: null,
+      stoppedAt: now,
+      closedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await expect(service.stopWorkflow('usr_1', 'bot_gideon', 'chain_a')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+    expect(states.get('chain_a')?.userId).toBe('usr_2');
+    service.onModuleDestroy();
+  });
+
+  it('refuses to wrap up a chain that is stopped or already wrapping up, without prompting anyone', async () => {
+    const { service, enqueued, systemMessages, states } = makeWorkflowHarness(10_000);
+    await service.stopWorkflow('usr_1', 'bot_gideon', 'chain_a');
+    const afterStop = systemMessages.length;
+
+    await expect(service.wrapUpWorkflow('usr_1', 'bot_gideon', 'chain_a')).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+    expect(states.get('chain_a')?.status).toBe('STOPPED');
+    expect(enqueued).toHaveLength(0);
+    expect(systemMessages).toHaveLength(afterStop);
+    service.onModuleDestroy();
+
+    const second = makeWorkflowHarness(10_000);
+    await second.service.wrapUpWorkflow('usr_1', 'bot_gideon', 'chain_a');
+    await second.service.recordOwnerResponse('usr_1', 'chain_a', 'bot_diana');
+    await expect(
+      second.service.wrapUpWorkflow('usr_1', 'bot_gideon', 'chain_a'),
+    ).rejects.toBeInstanceOf(ConflictException);
+    // The first round's progress is kept and no second round of prompts went out.
+    expect(second.states.get('chain_a')?.respondedOwners).toEqual(['bot_diana']);
+    expect(second.enqueued).toHaveLength(2);
+    second.service.onModuleDestroy();
+  });
+
   it('Wrap up acknowledges immediately, prompts each owner once, and publishes closeout on deadline naming missing owners', async () => {
     const { service, enqueued, systemMessages, states } = makeWorkflowHarness(120);
     const res = await service.wrapUpWorkflow('usr_1', 'bot_gideon', 'chain_a');
@@ -482,6 +627,7 @@ describe('Phase 2 — WorkflowControlService Stop workflow vs Wrap up lifecycles
 describe('Phase 2 — BoardStoreService owner protection, initial snapshot, and shell-overwrite recovery', () => {
   function makeBoardHarness(initialDisk: string | null) {
     let disk = initialDisk;
+    let diskReachable = true;
     const entries: Array<{
       id: string;
       userId: string;
@@ -582,6 +728,7 @@ describe('Phase 2 — BoardStoreService owner protection, initial snapshot, and 
         session: async () => ({
           readTextFile: async ({ path }: { path: string }) => {
             if (path !== MANAGED_BOARD_PATH) throw new Error(path);
+            if (!diskReachable) throw new Error('computer unreachable');
             return disk;
           },
           writeTextFile: async ({ path, content }: { path: string; content: string }) => {
@@ -607,8 +754,56 @@ describe('Phase 2 — BoardStoreService owner protection, initial snapshot, and 
       overwriteDiskViaShell: (text: string) => {
         disk = text;
       },
+      setDiskReachable: (reachable: boolean) => {
+        diskReachable = reachable;
+      },
     };
   }
+
+  it('saves outside edits to history before any projection overwrites them', async () => {
+    const h = makeBoardHarness(null);
+    const diana = h.ctxFor('bot_diana', 'Diana');
+    await h.runTool('board_add', diana, { entry: '- [ ] Draft pricing page' });
+
+    // A shell append keeps the marker but changes the text.
+    const appended = `${h.getDisk()}- [ ] Ship v2 (added from the shell)\n`;
+    h.overwriteDiskViaShell(appended);
+    const read = await h.runTool('board_read', diana, {});
+    expect(read).toContain('edits made outside the board tools');
+    expect(h.revisions.filter((r) => r.kind === 'EXTERNAL_EDIT').map((r) => r.snapshot)).toEqual([
+      appended,
+    ]);
+
+    // A write after another outside edit saves that edit too.
+    h.overwriteDiskViaShell('Hand-written notes\n');
+    await h.runTool('board_add', diana, { entry: '- [ ] Review hero copy' });
+    expect(h.revisions.filter((r) => r.kind === 'EXTERNAL_EDIT').at(-1)?.snapshot).toBe(
+      'Hand-written notes\n',
+    );
+    expect(h.getDisk()).toContain('Review hero copy');
+
+    // An unchanged projection records nothing new.
+    const before = h.revisions.length;
+    await h.runTool('board_read', diana, {});
+    expect(h.revisions).toHaveLength(before);
+  });
+
+  it('does not skip adopting a legacy board when the first read of it fails', async () => {
+    const h = makeBoardHarness('- [ ] Legacy baseline task\n');
+    const diana = h.ctxFor('bot_diana', 'Diana');
+
+    h.setDiskReachable(false);
+    const failed = await h.runTool('board_add', diana, { entry: '- [ ] New entry' });
+    expect(failed).toContain('failed');
+    expect(h.entries).toHaveLength(0);
+    expect(h.revisions).toHaveLength(0);
+
+    h.setDiskReachable(true);
+    await h.runTool('board_add', diana, { entry: '- [ ] New entry' });
+    expect(h.revisions[0]?.kind).toBe('INIT_SNAPSHOT');
+    expect(h.getDisk()).toContain('Legacy baseline task');
+    expect(h.getDisk()).toContain('New entry');
+  });
 
   it('captures pre-existing BOARD.md as INIT_SNAPSHOT, blocks cross-bot overwrites, and recovers after shell wipe', async () => {
     const h = makeBoardHarness('- [ ] Legacy baseline task\n');

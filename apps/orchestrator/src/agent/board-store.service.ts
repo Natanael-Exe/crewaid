@@ -10,7 +10,13 @@ const MANAGED_BOARD_MARKER = '<!-- crewaid-managed-board -->';
 const MAX_BOARD_CHARS = 32_000;
 
 export type ManagedBoardReadResult =
-  | { readonly kind: 'read'; readonly text: string; readonly restored?: boolean }
+  | {
+      readonly kind: 'read';
+      readonly text: string;
+      readonly restored?: boolean;
+      /** The file held edits made outside the board tools; they were saved to history first. */
+      readonly displaced?: boolean;
+    }
   | { readonly kind: 'absent' }
   | { readonly kind: 'empty' }
   | { readonly kind: 'failed'; readonly detail: string };
@@ -24,6 +30,9 @@ export type ManagedBoardWriteResult =
   | { readonly kind: 'not-owner'; readonly ownerName: string }
   | { readonly kind: 'too-large'; readonly would: number; readonly limit: number }
   | { readonly kind: 'failed'; readonly detail: string };
+
+/** What a read of the projected file found: its text (null when absent), or that it could not be read. */
+type DiskRead = { readonly ok: true; readonly text: string | null } | { readonly ok: false };
 
 export interface ManagedBoardRow {
   readonly id: string;
@@ -95,6 +104,9 @@ function parseLegacyEntries(raw: string): string[] {
  * 3. Every change appends a `BoardRevision` snapshot; if a shell command wipes
  *    or overwrites `BOARD.md`, managed entries remain intact in Postgres and
  *    are restored cleanly.
+ * 4. The projection never overwrites text it did not write without saving it
+ *    first: whatever an outside edit left in the file is kept as an
+ *    `EXTERNAL_EDIT` revision before the managed board replaces it.
  */
 @Injectable()
 export class BoardStoreService {
@@ -130,37 +142,41 @@ export class BoardStoreService {
       try {
         await this.ensureInitialized(context, scopeKey);
         const entries = await this.listActive(this.prisma, context.userId, scopeKey);
+        const disk = await this.readDisk(context);
         if (entries.length === 0) {
-          const disk = await this.tryReadDisk(context);
-          if (disk === null) return { kind: 'absent' };
-          return disk.trim() === '' ? { kind: 'empty' } : { kind: 'read', text: disk };
+          if (!disk.ok) return { kind: 'failed', detail: `could not read ${MANAGED_BOARD_PATH}` };
+          if (disk.text === null) return { kind: 'absent' };
+          return disk.text.trim() === '' ? { kind: 'empty' } : { kind: 'read', text: disk.text };
         }
 
         const rendered = renderManagedBoard(entries);
-        const disk = await this.tryReadDisk(context);
-        const diskCorrupted =
-          disk === null ||
-          disk.trim() === '' ||
-          !disk.includes(MANAGED_BOARD_MARKER) ||
-          disk.trim() !== rendered.trim();
+        // A file that cannot be read cannot be compared, so it is left alone.
+        if (!disk.ok) return { kind: 'read', text: rendered };
+        const differs = disk.text === null || disk.text.trim() !== rendered.trim();
+        if (options?.restore !== true && !differs) return { kind: 'read', text: rendered };
 
-        if (options?.restore === true || diskCorrupted) {
-          await this.tryWriteDisk(context, rendered);
-          if (
-            options?.restore === true ||
-            (disk !== null && !disk.includes(MANAGED_BOARD_MARKER))
-          ) {
-            await this.prisma.boardRevision.create({
-              data: {
-                userId: context.userId,
-                scopeKey,
-                ownerBotId: context.botId,
-                kind: 'RESTORE',
-                snapshot: rendered,
-              },
-            });
-            return { kind: 'read', text: rendered, restored: true };
-          }
+        const displaced = await this.saveOutsideEdits(context, scopeKey, rendered, disk);
+        await this.tryWriteDisk(context, rendered);
+        if (
+          options?.restore === true ||
+          displaced ||
+          (disk.text !== null && !disk.text.includes(MANAGED_BOARD_MARKER))
+        ) {
+          await this.prisma.boardRevision.create({
+            data: {
+              userId: context.userId,
+              scopeKey,
+              ownerBotId: context.botId,
+              kind: 'RESTORE',
+              snapshot: rendered,
+            },
+          });
+          return {
+            kind: 'read',
+            text: rendered,
+            restored: true,
+            ...(displaced ? { displaced: true } : {}),
+          };
         }
 
         return { kind: 'read', text: rendered };
@@ -178,17 +194,20 @@ export class BoardStoreService {
         await this.ensureInitialized(context, scopeKey);
         const ownerName = await this.resolveOwnerName(context);
 
-        const outcome = await this.prisma.$transaction(async (tx) => {
+        const { outcome, before } = await this.prisma.$transaction(async (tx): Promise<{
+          outcome: ManagedBoardWriteResult;
+          before: string;
+        }> => {
           const existing = await this.listActive(tx, context.userId, scopeKey);
+          const before = renderManagedBoard(existing);
           const prospective = renderManagedBoard([
             ...existing,
             { id: 'pending', ownerBotId: context.botId, ownerName, content: text, version: 1 },
           ]);
           if (prospective.length > MAX_BOARD_CHARS) {
             return {
-              kind: 'too-large' as const,
-              would: prospective.length,
-              limit: MAX_BOARD_CHARS,
+              outcome: { kind: 'too-large', would: prospective.length, limit: MAX_BOARD_CHARS },
+              before,
             };
           }
           const created = await tx.boardEntry.create({
@@ -213,11 +232,11 @@ export class BoardStoreService {
               snapshot: rendered,
             },
           });
-          return { kind: 'written' as const, entryId: created.id, text: rendered };
+          return { outcome: { kind: 'written', entryId: created.id, text: rendered }, before };
         });
 
         if (outcome.kind === 'written') {
-          await this.tryWriteDisk(context, outcome.text);
+          await this.project(context, scopeKey, before, outcome.text);
         }
         return outcome;
       } catch (error) {
@@ -235,9 +254,14 @@ export class BoardStoreService {
     return this.withScopeLock(`${context.userId}:${scopeKey}`, async () => {
       try {
         await this.ensureInitialized(context, scopeKey);
-        const outcome = await this.prisma.$transaction(async (tx) => {
+        const { outcome, before } = await this.prisma.$transaction(async (tx): Promise<{
+          outcome: ManagedBoardWriteResult;
+          before: string;
+        }> => {
           const entries = await this.listActive(tx, context.userId, scopeKey);
-          if (entries.length === 0) return { kind: 'absent' as const };
+          const before = renderManagedBoard(entries);
+          const done = (result: ManagedBoardWriteResult) => ({ outcome: result, before });
+          if (entries.length === 0) return done({ kind: 'absent' });
 
           const needle = find.trim();
           const matches = entries.filter(
@@ -245,26 +269,26 @@ export class BoardStoreService {
               entry.content.includes(find) ||
               (needle !== '' && entry.content.includes(needle)),
           );
-          if (matches.length === 0) return { kind: 'not-found' as const };
+          if (matches.length === 0) return done({ kind: 'not-found' });
           if (matches.length > 1) {
             // If only one matched entry belongs to this bot, target it; otherwise ambiguous.
             const ownMatches = matches.filter((entry) => entry.ownerBotId === context.botId);
             if (ownMatches.length !== 1) {
-              return { kind: 'ambiguous' as const };
+              return done({ kind: 'ambiguous' });
             }
             matches.splice(0, matches.length, ownMatches[0]!);
           }
 
           const target = matches[0]!;
           if (target.ownerBotId !== null && target.ownerBotId !== context.botId) {
-            return { kind: 'not-owner' as const, ownerName: target.ownerName };
+            return done({ kind: 'not-owner', ownerName: target.ownerName });
           }
 
           const matchedToken = target.content.includes(find) ? find : needle;
           const first = target.content.indexOf(matchedToken);
-          if (first === -1) return { kind: 'not-found' as const };
+          if (first === -1) return done({ kind: 'not-found' });
           if (target.content.indexOf(matchedToken, first + matchedToken.length) !== -1) {
-            return { kind: 'ambiguous' as const };
+            return done({ kind: 'ambiguous' });
           }
 
           const nextContent = `${target.content.slice(0, first)}${replace}${target.content.slice(first + matchedToken.length)}`.trim();
@@ -279,11 +303,7 @@ export class BoardStoreService {
               );
           const rendered = renderManagedBoard(updatedEntries);
           if (rendered.length > MAX_BOARD_CHARS) {
-            return {
-              kind: 'too-large' as const,
-              would: rendered.length,
-              limit: MAX_BOARD_CHARS,
-            };
+            return done({ kind: 'too-large', would: rendered.length, limit: MAX_BOARD_CHARS });
           }
 
           await tx.boardEntry.updateMany({
@@ -302,13 +322,15 @@ export class BoardStoreService {
               snapshot: rendered,
             },
           });
-          return removing
-            ? { kind: 'removed' as const, entryId: target.id, text: rendered }
-            : { kind: 'written' as const, entryId: target.id, text: rendered };
+          return done(
+            removing
+              ? { kind: 'removed', entryId: target.id, text: rendered }
+              : { kind: 'written', entryId: target.id, text: rendered },
+          );
         });
 
         if (outcome.kind === 'written' || outcome.kind === 'removed') {
-          await this.tryWriteDisk(context, outcome.text);
+          await this.project(context, scopeKey, before, outcome.text);
         }
         return outcome;
       } catch (error) {
@@ -327,6 +349,9 @@ export class BoardStoreService {
   ): Promise<{ readonly restored: boolean; readonly text: string }> {
     const scopeKey = boardScopeKey(context);
     return this.withScopeLock(`${context.userId}:${scopeKey}`, async () => {
+      const current = renderManagedBoard(
+        await this.listActive(this.prisma, context.userId, scopeKey),
+      );
       let snapshot: string;
       if (revisionId !== undefined) {
         const rev = await this.prisma.boardRevision.findFirst({
@@ -336,10 +361,9 @@ export class BoardStoreService {
         if (rev === null) return { restored: false, text: '' };
         snapshot = rev.snapshot;
       } else {
-        const entries = await this.listActive(this.prisma, context.userId, scopeKey);
-        snapshot = renderManagedBoard(entries);
+        snapshot = current;
       }
-      await this.tryWriteDisk(context, snapshot);
+      await this.project(context, scopeKey, current, snapshot);
       await this.prisma.boardRevision.create({
         data: {
           userId: context.userId,
@@ -360,7 +384,17 @@ export class BoardStoreService {
     });
     if (existingRevision !== null) return;
 
-    const rawDisk = await this.tryReadDisk(context);
+    // Adoption happens once: the first revision marks the scope initialized.
+    // A read that FAILED is not an empty board — carrying on would write that
+    // first revision and the next projection would overwrite the legacy file
+    // without it ever having been imported.
+    const disk = await this.readDisk(context);
+    if (!disk.ok) {
+      throw new Error(
+        `could not read ${MANAGED_BOARD_PATH} to adopt it; try again once this computer is reachable`,
+      );
+    }
+    const rawDisk = disk.text;
     if (rawDisk === null || rawDisk.trim() === '') return;
 
     const legacyLines = parseLegacyEntries(rawDisk);
@@ -417,13 +451,50 @@ export class BoardStoreService {
     return row?.name.trim() || context.botId;
   }
 
-  private async tryReadDisk(context: ToolContext): Promise<string | null> {
+  private async readDisk(context: ToolContext): Promise<DiskRead> {
     try {
       const session = await context.session();
-      return await session.readTextFile({ path: MANAGED_BOARD_PATH });
+      return { ok: true, text: await session.readTextFile({ path: MANAGED_BOARD_PATH }) };
     } catch {
-      return null;
+      return { ok: false };
     }
+  }
+
+  /**
+   * Keeps whatever an outside edit left in the file as an `EXTERNAL_EDIT`
+   * revision. `expected` is what the projection last wrote; anything else
+   * non-empty on disk was written by someone else. True when it saved one.
+   */
+  private async saveOutsideEdits(
+    context: ToolContext,
+    scopeKey: string,
+    expected: string,
+    disk: DiskRead,
+  ): Promise<boolean> {
+    if (!disk.ok || disk.text === null) return false;
+    const onDisk = disk.text.trim();
+    if (onDisk === '' || onDisk === expected.trim()) return false;
+    await this.prisma.boardRevision.create({
+      data: {
+        userId: context.userId,
+        scopeKey,
+        ownerBotId: null,
+        kind: 'EXTERNAL_EDIT',
+        snapshot: disk.text,
+      },
+    });
+    return true;
+  }
+
+  /** Writes the managed board to disk, saving any outside edits it would replace. */
+  private async project(
+    context: ToolContext,
+    scopeKey: string,
+    before: string,
+    next: string,
+  ): Promise<void> {
+    await this.saveOutsideEdits(context, scopeKey, before, await this.readDisk(context));
+    await this.tryWriteDisk(context, next);
   }
 
   private async tryWriteDisk(context: ToolContext, content: string): Promise<void> {
