@@ -180,7 +180,7 @@ describe('BotSidebar', () => {
     expect(copyHtml).toContain('aria-label="Error · 2 unread"');
   });
 
-  it('fills available vertical space inside a HeroUI ScrollShadow instead of hard-clipping rows to an inline height', () => {
+  it('fills the remaining column instead of hard-clipping rows to an inline height', () => {
     const quill = groupedRow('bot_q', 'grp_sales', 'Quill');
     const scout = groupedRow('bot_s', null, 'Scout');
     const sales = {
@@ -196,8 +196,7 @@ describe('BotSidebar', () => {
     const sections = sidebarSections([quill, scout], [sales], {});
     const html = render([quill, scout], [], { sections, groups: [sales] });
 
-    expect(html).toContain('data-roster-scroll');
-    expect(html).toContain('scroll-shadow');
+    expect(html).toMatch(/crewaid-roster[^"]*\bflex-1\b/);
     expect(html).not.toMatch(/crewaid-roster[^>]*style="height:/);
   });
 });

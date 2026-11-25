@@ -1249,6 +1249,7 @@
   }
   .crewaid-crew-dock [role='listbox'] {
     padding-inline: 6px;
+    --crewaid-row-width: calc(100% - 12px);
   }
   .crewaid-bot-row {
     justify-content: center;

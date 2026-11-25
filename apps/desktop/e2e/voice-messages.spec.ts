@@ -174,7 +174,7 @@ test('voice messages disclose their text in the footer and keep a text fallback 
     await expect(file.locator('[data-message-bubble]')).toBeVisible();
     await expect(file.locator('[data-voice-note]')).toHaveCount(0);
     // A voice note the person sent wears the same material as their text.
-    await expect(file.locator('[data-audio-attachment] > .card')).toHaveCSS(
+    await expect(file.locator('[data-audio-attachment] > .crewaid-file-attachment')).toHaveCSS(
       'background-color',
       await tokenColor(page, '--message-user'),
     );
