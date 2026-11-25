@@ -143,6 +143,21 @@ const EXEMPT: readonly Exemption[] = [
     reason:
       'M6-BE-07. BotPluginsService.replace resolves the bot by principal.userId, then re-reads every submitted server id under the same scope before it writes — a foreign server id is a 404, not a link.',
   },
+  {
+    route: 'GET /bots/:id/workflows',
+    reason:
+      'Phase 2. WorkflowControlService.listWorkflows resolves the bot by id AND principal.userId before querying active chains under the same userId scope.',
+  },
+  {
+    route: 'POST /bots/:id/workflows/stop',
+    reason:
+      'Phase 2. WorkflowControlService.stopWorkflow resolves the bot by id AND principal.userId before cancelling runs or writing chain state under the same userId scope.',
+  },
+  {
+    route: 'POST /bots/:id/workflows/wrap-up',
+    reason:
+      'Phase 2. WorkflowControlService.wrapUpWorkflow resolves the bot by id AND principal.userId before enqueuing owner closeout prompts or writing chain state under the same userId scope.',
+  },
 ];
 
 describe('D-010 — every direct-by-id route is fenced', () => {

@@ -271,6 +271,11 @@ export function buildLifecycleMiddleware(input: {
       state.status = 'completed';
     },
     onAbort() {
+      if (state.corruptOutput !== undefined) {
+        callRecorder.recordOpen('error', state.failure?.code ?? 'PROVIDER_UNAVAILABLE');
+        state.status = 'failed';
+        return;
+      }
       callRecorder.recordOpen('interrupted');
       if (state.status === 'interrupted') return;
       state.status = limits.stopped() === undefined ? 'aborted' : 'completed';
@@ -373,6 +378,31 @@ export function buildPersistenceCommitMiddleware(input: {
     async onAbort(ctx, info) {
       // Once parked, cancel settles the run separately; a released producer cannot reclaim it.
       if (state.closedStatus !== undefined) return;
+      if (state.corruptOutput !== undefined) {
+        const corruptId = state.corruptOutput.messageId;
+        const error = state.failure ?? {
+          code: 'PROVIDER_UNAVAILABLE' as const,
+          message: failureCopy(state.language).garbledReply,
+        };
+        state.failure = error;
+        await close('failed', async () => {
+          const preserved = ctx.messages.filter((message) => message.id !== corruptId);
+          if (preserved.length > 0) {
+            await persistence.persistence.stores.messages.saveThread(request.threadId, preserved);
+          }
+          await persistence.withdraw(request.threadId, corruptId).catch(() => undefined);
+          await persistence.progress({
+            steps: state.completedSteps(persistence.budget.steps),
+            workingMs: limits.elapsedMs(),
+          });
+          await persistence.persistence.stores.runs.update(request.runId, {
+            status: 'failed',
+            finishedAt: Date.now(),
+            error,
+          });
+        });
+        return;
+      }
       if (limits.stopped() !== undefined) {
         await close('completed', async () => {
           await checkpointer.checkpointStep(ctx, state.finishReason);

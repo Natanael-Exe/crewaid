@@ -1,12 +1,14 @@
 import { IconAlertCircle } from '@tabler/icons-react';
 import { resolveVisualForRender, type VisualBlock } from '@crewaid/shared';
 import { useT } from '../../i18n/i18n';
+import { formatPreviewInternalPaths } from '../markdown/internalPaths';
 import { resultValue, type DisplayStatus } from '../tools/toolPresentation';
 import type { FoldedToolPart } from '../tools/toolParts';
 import { TextShimmer } from '../ui';
 import { CalloutBlock } from './CalloutBlock';
 import { ChartBlock } from './ChartBlock';
 import { ComparisonBlock } from './ComparisonBlock';
+import { HandoffBlock, type HandoffActions } from './HandoffBlock';
 import { MetricsBlock } from './MetricsBlock';
 import { TableBlock } from './TableBlock';
 import { TimelineBlock } from './TimelineBlock';
@@ -24,7 +26,13 @@ function errorMessage(row: FoldedToolPart): string | undefined {
   return undefined;
 }
 
-function VisualBlockView({ block }: { readonly block: VisualBlock }) {
+function VisualBlockView({
+  block,
+  handoffActions,
+}: {
+  readonly block: VisualBlock;
+  readonly handoffActions?: HandoffActions | undefined;
+}) {
   switch (block.kind) {
     case 'metrics':
       return <MetricsBlock block={block} />;
@@ -38,6 +46,8 @@ function VisualBlockView({ block }: { readonly block: VisualBlock }) {
       return <TimelineBlock block={block} />;
     case 'callout':
       return <CalloutBlock block={block} />;
+    case 'handoff':
+      return <HandoffBlock block={block} actions={handoffActions} />;
   }
 }
 
@@ -49,14 +59,20 @@ function VisualBlockView({ block }: { readonly block: VisualBlock }) {
 export function VisualCard({
   row,
   status,
+  handoffActions,
 }: {
   readonly row: FoldedToolPart;
   readonly status: DisplayStatus;
+  readonly handoffActions?: HandoffActions | undefined;
 }) {
   const t = useT();
 
+  const pathLabel = t('tools.path');
+  const cleanText = (value: string): string => formatPreviewInternalPaths(value, pathLabel);
+
   if (status === 'running') {
-    const title = partialTitle(row.input);
+    const rawTitle = partialTitle(row.input);
+    const title = rawTitle === undefined ? undefined : cleanText(rawTitle);
     return (
       <div
         data-visual-card="loading"
@@ -86,11 +102,18 @@ export function VisualCard({
         <IconAlertCircle aria-hidden className="mt-0.5 size-4 shrink-0 text-danger" />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="font-medium text-foreground">{t('visuals.errorTitle')}</span>
-          {detail !== undefined ? <span className="break-words text-muted">{detail}</span> : null}
+          {detail !== undefined ? (
+            <span className="break-words text-muted">{cleanText(detail)}</span>
+          ) : null}
         </div>
       </div>
     );
   }
+
+  const displayTitle = payload.title === undefined ? undefined : cleanText(payload.title);
+  const displaySubtitle = payload.subtitle === undefined ? undefined : cleanText(payload.subtitle);
+  const displaySources = payload.sources?.map(cleanText);
+  const displayNotes = payload.notes?.map(cleanText);
 
   return (
     <article
@@ -98,32 +121,36 @@ export function VisualCard({
       data-visual-version={payload.version}
       className="my-2 flex max-w-[640px] flex-col gap-4 rounded-card border border-border bg-surface px-5 py-4 shadow-[var(--surface-shadow)]"
     >
-      {payload.title !== undefined || payload.subtitle !== undefined ? (
+      {displayTitle !== undefined || displaySubtitle !== undefined ? (
         <header className="flex flex-col gap-0.5">
-          {payload.title !== undefined ? (
+          {displayTitle !== undefined ? (
             <h3 className="m-0 text-headline font-semibold tracking-tight text-foreground">
-              {payload.title}
+              {displayTitle}
             </h3>
           ) : null}
-          {payload.subtitle !== undefined ? (
-            <p className="m-0 text-caption text-muted">{payload.subtitle}</p>
+          {displaySubtitle !== undefined ? (
+            <p className="m-0 text-caption text-muted">{displaySubtitle}</p>
           ) : null}
         </header>
       ) : null}
 
       <div className="flex flex-col gap-5">
         {payload.blocks.map((block, idx) => (
-          <VisualBlockView key={`${block.kind}-${idx}`} block={block} />
+          <VisualBlockView
+            key={`${block.kind}-${idx}`}
+            block={block}
+            handoffActions={handoffActions}
+          />
         ))}
       </div>
 
-      {(payload.sources !== undefined && payload.sources.length > 0) ||
-      (payload.notes !== undefined && payload.notes.length > 0) ? (
+      {(displaySources !== undefined && displaySources.length > 0) ||
+      (displayNotes !== undefined && displayNotes.length > 0) ? (
         <footer className="flex flex-col gap-0.5 border-t border-separator/80 pt-2.5 text-micro text-muted">
-          {payload.sources !== undefined && payload.sources.length > 0 ? (
-            <span>{t('visuals.sources', { files: payload.sources.join(', ') })}</span>
+          {displaySources !== undefined && displaySources.length > 0 ? (
+            <span>{t('visuals.sources', { files: displaySources.join(', ') })}</span>
           ) : null}
-          {payload.notes?.map((note, idx) => (
+          {displayNotes?.map((note, idx) => (
             <span key={idx}>{note}</span>
           ))}
         </footer>

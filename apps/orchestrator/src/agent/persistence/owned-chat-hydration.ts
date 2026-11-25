@@ -56,19 +56,9 @@ export async function hydrateOwnedChat(
     page?: unknown;
   };
   const wire = uiMessagesToWire(body.messages, { includeSnapshotStructuredOutput: true });
-  // The codec's reasoning fan-outs omit metadata. Associate them with their
-  // following anchor so hydration can replace all active-run parts during replay.
-  let anchor: (typeof wire)[number] | undefined;
-  const attributed = wire
-    .toReversed()
-    .map((message) => {
-      if (message.role === 'assistant') anchor = message;
-      else if (message.role === 'user' || message.role === 'system') anchor = undefined;
-      if (message.role === 'reasoning' && anchor?.metadata !== undefined)
-        return { ...message, metadata: anchor.metadata };
-      return message;
-    })
-    .reverse();
+  // Provider reasoning stays internal to the execution engine and is excluded
+  // from operator hydration payloads.
+  const attributed = wire.filter((message) => message.role !== 'reasoning');
   const envelope = ChatHydrationSchema.parse({ ...body, messages: attributed });
   if (envelope.activeRun !== null) {
     const active = await runs.get(envelope.activeRun.runId);

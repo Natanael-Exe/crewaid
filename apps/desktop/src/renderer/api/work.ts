@@ -253,6 +253,13 @@ export function listDeliverables(
   });
 }
 
+export function getDeliverable(client: ApiClient, id: string): Promise<DeliverableView> {
+  return client.request(API_ROUTES.deliverables.get, {
+    params: { id },
+    schema: DeliverableViewSchema,
+  });
+}
+
 /** A link the user records, or a transcript message saved as a deliverable. */
 export function createDeliverable(
   client: ApiClient,

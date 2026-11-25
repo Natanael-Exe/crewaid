@@ -32,7 +32,12 @@ export async function recordFileDeliverable(
     /** A text-like file's head, for search (`extractSearchText`). */
     readonly searchText?: string | null;
   },
-): Promise<{ deliverableId: string; taskId: string | null }> {
+): Promise<{
+  deliverableId: string;
+  taskId: string | null;
+  version: number;
+  supersededDeliverableId: string | null;
+}> {
   const { userId, filing } = input;
   const reply = await tx.message.findFirst({
     where: { id: input.replyId, conversation: { bot: { userId } } },
@@ -44,6 +49,23 @@ export async function recordFileDeliverable(
     goalId: filing.goalId,
     triggerMessageId: filing.triggerMessageId,
   });
+
+  // Preserve immutable prior snapshots sharing this filename and chain the
+  // newest active snapshot to supersede them rather than overwriting or colliding.
+  const priorSnapshots = await tx.deliverable.findMany({
+    where: {
+      userId,
+      kind: 'FILE',
+      title: input.title,
+    },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    select: { id: true, supersededById: true },
+  });
+  const activePriorIds = priorSnapshots
+    .filter((row) => row.supersededById === null)
+    .map((row) => row.id);
+  const version = priorSnapshots.length + 1;
+
   const deliverable = await tx.deliverable.create({
     data: {
       userId,
@@ -54,9 +76,18 @@ export async function recordFileDeliverable(
       attachmentId: input.attachmentId,
       sourcePath: filing.sourcePath ?? null,
       searchText: input.searchText ?? null,
+      reviewState: 'READY',
       ...place,
     },
   });
+
+  if (activePriorIds.length > 0) {
+    await tx.deliverable.updateMany({
+      where: { userId, id: { in: activePriorIds }, supersededById: null },
+      data: { supersededById: deliverable.id },
+    });
+  }
+
   if (place.taskId !== null) {
     await writeTaskEvent(
       tx,
@@ -69,5 +100,10 @@ export async function recordFileDeliverable(
       { deliverableId: deliverable.id, title: deliverable.title },
     );
   }
-  return { deliverableId: deliverable.id, taskId: place.taskId };
+  return {
+    deliverableId: deliverable.id,
+    taskId: place.taskId,
+    version,
+    supersededDeliverableId: activePriorIds[0] ?? null,
+  };
 }

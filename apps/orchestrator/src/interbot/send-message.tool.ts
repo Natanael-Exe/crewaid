@@ -15,6 +15,22 @@ import {
   tokenBudgetNotice,
 } from './chain.js';
 import type { ChainLimits } from './chain.config.js';
+import type { ChainGateDecision } from './workflow-control.service.js';
+import type { StructuredLogger } from '../logging/structured-logger.js';
+
+export interface WorkflowChainGatePort {
+  canSend(
+    userId: string,
+    chainId: string,
+    fromBotId: string,
+    toBotId: string,
+  ): Promise<ChainGateDecision>;
+}
+
+function normalizeDuplicateKey(toBotId: string, content: string, expectReply: boolean): string {
+  const normalized = content.trim().replace(/\s+/g, ' ');
+  return `${toBotId}:${expectReply ? '1' : '0'}:${normalized}`;
+}
 
 /** A bot the sender is allowed to message: the principal's, and not itself. */
 export interface Peer {
@@ -189,6 +205,10 @@ export function sendMessageTool(deps: {
   limits: ChainLimits;
   /** Absent in a harness that predates tasks: every message is then about none. */
   tasks?: TaskContextPort;
+  /** Chain-scoped Stop / Wrap-up gate. Optional for isolated unit harnesses. */
+  workflow?: WorkflowChainGatePort;
+  /** Optional structured logger for repeat-work & duplicate-send telemetry. */
+  logger?: StructuredLogger;
 }): RegisteredTool {
   return {
     name: 'send_message',
@@ -212,23 +232,31 @@ export function sendMessageTool(deps: {
        * time: the result is what makes it do something else.
        */
       let announced = false;
+      /** Exact duplicate sends suppressed within this single turn. */
+      const sentInTurn = new Set<string>();
+      let callSeq = 0;
       return tool({
         description:
           'Send a message to another bot on this team and let it work on something ' +
           'independently. The message is delivered to that bot as if the user had sent ' +
-          'it, and it answers in its own conversation. This returns as soon as the ' +
-          "message is queued — it does NOT return the other bot's reply. If that bot " +
-          'replies to you, it arrives as a new message and you will be asked to respond ' +
-          'then, so do not wait or send again. Use it to delegate, not to look something ' +
-          'up you could find yourself. When it succeeds, confirm it to the user in one ' +
-          'short sentence — never explain queuing, delivery timing, or what the other ' +
-          'bot will do with the message; the transcript already shows the send.',
+          'it, and it answers in its own conversation. Pass expectReply: false for FYI ' +
+          'notices that belong in context without starting a turn or requesting a reply. ' +
+          'This returns as soon as the message is queued — it does NOT return the other ' +
+          "bot's reply. If that bot replies to you, it arrives as a new message and you " +
+          'will be asked to respond then, so do not wait or send again. Use it to delegate, ' +
+          'not to look something up you could find yourself. When it succeeds, confirm it ' +
+          'to the user in one short sentence — never explain queuing, delivery timing, or ' +
+          'what the other bot will do with the message; the transcript already shows the send.',
         inputSchema: NativeToolInputs.send_message,
-        execute: async (input: {
-          toBot: string;
-          content: string;
-          taskId?: string | null | undefined;
-        }) => {
+        execute: async (
+          input: {
+            toBot: string;
+            content: string;
+            taskId?: string | null | undefined;
+            expectReply?: boolean | undefined;
+          },
+          options?: { readonly toolCallId?: string },
+        ) => {
           try {
             const peers = await deps.directory.peers(context.userId, context.botId);
             const resolved = resolvePeer(peers, input.toBot);
@@ -247,6 +275,40 @@ export function sendMessageTool(deps: {
             }
 
             const position = nextHop(context.trigger);
+            const expectReply = input.expectReply ?? true;
+
+            // Chain lifecycle gate: block new hops on STOPPED/CLOSED chains and
+            // block new delegations while a chain is WRAPPING_UP.
+            if (deps.workflow !== undefined) {
+              const decision = await deps.workflow.canSend(
+                context.userId,
+                position.chainId,
+                context.botId,
+                resolved.peer.id,
+              );
+              if (!decision.allowed) {
+                deps.logger?.info('interbot.send.blocked_by_workflow', {
+                  botId: context.botId,
+                  toBotId: resolved.peer.id,
+                  chainId: position.chainId,
+                  status: decision.status,
+                });
+                return decision.reason;
+              }
+            }
+
+            // Suppress exact duplicate sends to the same peer within a single turn.
+            const dupKey = normalizeDuplicateKey(resolved.peer.id, input.content, expectReply);
+            if (sentInTurn.has(dupKey)) {
+              deps.logger?.info('interbot.send.duplicate_suppressed', {
+                botId: context.botId,
+                toBotId: resolved.peer.id,
+                chainId: position.chainId,
+                hopCount: position.hopCount,
+              });
+              return `Duplicate message to ${resolved.peer.name} was skipped because you already sent the exact same message this turn.`;
+            }
+
             if (!isWithinHopLimit(position, deps.limits.maxHops)) {
               // Both halves, and they are for different readers. The OPERATOR
               // gets the system message, because they are the one who can
@@ -357,6 +419,13 @@ export function sendMessageTool(deps: {
               }
             }
 
+            callSeq += 1;
+            const callToken =
+              options?.toolCallId !== undefined && options.toolCallId !== ''
+                ? options.toolCallId
+                : `call-${callSeq}`;
+            const deliveryKey = `${context.trigger.id}:${context.botId}:${resolved.peer.id}:${callToken}`;
+
             await deps.queue.enqueue({
               userId: context.userId,
               fromBotId: context.botId,
@@ -367,10 +436,22 @@ export function sendMessageTool(deps: {
               content: input.content,
               chainId: position.chainId,
               hopCount: position.hopCount,
+              deliveryKey,
+              ...(input.expectReply === false ? { expectReply: false } : {}),
               ...(deps.tasks !== undefined && { taskId }),
             });
+            sentInTurn.add(dupKey);
+            deps.logger?.info('interbot.send.enqueued', {
+              botId: context.botId,
+              toBotId: resolved.peer.id,
+              chainId: position.chainId,
+              hopCount: position.hopCount,
+              expectReply,
+            });
 
-            return `Message queued for ${resolved.peer.name}. It will reply in its own time.`;
+            return expectReply
+              ? `Message queued for ${resolved.peer.name}. It will reply in its own time.`
+              : `FYI note queued for ${resolved.peer.name} (no reply requested).`;
           } catch (error) {
             // Including the unconfigured-queue refusal, which is the one an
             // operator without Redis will actually hit. Its sentence names

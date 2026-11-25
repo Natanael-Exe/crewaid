@@ -6,7 +6,7 @@ import {
   NotFoundException,
   Optional,
 } from '@nestjs/common';
-import type { Attachment, Bot, Message, Prisma } from '@prisma/client';
+import { Prisma, type Attachment, type Bot, type Message } from '@prisma/client';
 import type { DeleteMessagesResponse, SendMessageBody } from '@crewaid/shared';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { triggerRowColumns } from '../agent/persistence/transcript.js';
@@ -125,20 +125,44 @@ export class MessagesService {
     hopCount: number;
     /** The task the message is about, already owner-checked by the delivery. */
     taskId?: string | null;
-  }): Promise<Message & { attachments: Attachment[] }> {
+    /** False for durable FYI notices that should not trigger a turn or deferred wakeup. */
+    expectReply?: boolean;
+    /** Idempotency key so BullMQ retries never persist a duplicate inbound message. */
+    deliveryKey?: string | null;
+  }): Promise<Message & { attachments: Attachment[]; deduplicated?: boolean }> {
     const conversationId = await this.findConversationId(input.toBotId);
-    return this.prisma.message.create({
-      data: {
-        conversationId,
-        // BOT-authored with the SENDER's id, and a canonical `user`
-        // body beside it, because that is what the receiving bot reads it as.
-        ...triggerRowColumns(input.toBotId, input.content, input.fromBotId),
-        chainId: input.chainId,
-        hopCount: input.hopCount,
-        taskId: input.taskId ?? null,
-      },
-      include: { attachments: true },
-    });
+    const deliveryKey = input.deliveryKey ?? null;
+    try {
+      return await this.prisma.message.create({
+        data: {
+          conversationId,
+          // BOT-authored with the SENDER's id, and a canonical `user`
+          // body beside it, because that is what the receiving bot reads it as.
+          ...triggerRowColumns(input.toBotId, input.content, input.fromBotId),
+          chainId: input.chainId,
+          hopCount: input.hopCount,
+          expectReply: input.expectReply ?? true,
+          deliveryKey,
+          taskId: input.taskId ?? null,
+        },
+        include: { attachments: true },
+      });
+    } catch (error) {
+      if (
+        deliveryKey !== null &&
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const existing = await this.prisma.message.findFirst({
+          where: { deliveryKey, conversationId },
+          include: { attachments: true },
+        });
+        if (existing !== null) {
+          return { ...existing, deduplicated: true };
+        }
+      }
+      throw error;
+    }
   }
 
   /** SYSTEM/TOOL messages (limits hit, interruptions, approval notes). */

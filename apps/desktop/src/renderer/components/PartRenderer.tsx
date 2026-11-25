@@ -1,7 +1,8 @@
 import type { ComponentType, ReactNode } from 'react';
-import { stripModelControlTags, type ToolInfo } from '@crewaid/shared';
+import { projectPublicSpeech, type ToolInfo } from '@crewaid/shared';
 import { StreamingMarkdown } from './markdown/StreamingMarkdown';
 import type { MentionBot } from './composer/botMention';
+import type { HandoffActions } from './visuals/HandoffBlock';
 
 /**
  * Part-renderer registry.
@@ -37,7 +38,7 @@ function TextPartRenderer({
   context?: PartRenderContext | undefined;
 }): ReactNode {
   if (typeof part.text !== 'string') return null;
-  const cleaned = stripModelControlTags(part.text);
+  const cleaned = projectPublicSpeech(part.text);
   if (cleaned === '') return null;
   return (
     <StreamingMarkdown
@@ -108,6 +109,7 @@ export interface PartRenderContext {
   readonly pendingToolCalls?: ReadonlySet<string>;
   readonly mentionBots?: readonly MentionBot[];
   readonly onBotMention?: (botId: string) => void;
+  readonly handoffActions?: HandoffActions | undefined;
   /**
    * The part belongs to the reply still being written. Only then is half-typed
    * Markdown repaired: in settled text an unclosed `[link](` is what was
@@ -146,5 +148,36 @@ export function renderPart(part: AnyPart, context?: PartRenderContext): ReactNod
   return <Renderer part={part} context={context} />;
 }
 
+/**
+ * Pre-tool working prose emitted on intermediate tool-calling steps. Hidden
+ * when "Show thinking and actions" is off; when enabled, shown quietly inside
+ * the work log rather than as a permanent speech bubble.
+ */
+function WorkNotePartRenderer({
+  part,
+  context,
+}: {
+  part: AnyPart;
+  context?: PartRenderContext | undefined;
+}): ReactNode {
+  if (typeof part.text !== 'string') return null;
+  const cleaned = projectPublicSpeech(part.text);
+  if (cleaned === '') return null;
+  return (
+    <div
+      data-work-note
+      className="my-0.5 max-w-[72%] border-s-2 border-separator ps-2.5 text-caption leading-[19px] text-muted"
+    >
+      <StreamingMarkdown
+        source={cleaned}
+        streaming={context?.streaming === true}
+        {...(context?.mentionBots === undefined ? {} : { mentionBots: context.mentionBots })}
+        {...(context?.onBotMention === undefined ? {} : { onBotMention: context.onBotMention })}
+      />
+    </div>
+  );
+}
+
 registerPartRenderer('text', TextPartRenderer);
+registerPartRenderer('work-note', WorkNotePartRenderer);
 registerPartRenderer('system-event', SystemEventPartRenderer);

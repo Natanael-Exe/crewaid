@@ -74,9 +74,18 @@ export const composer = {
   'composer.stop.hint': 'Stop — keeps the partial reply',
   'composer.send': 'Send message',
   'composer.send.hint': 'Send — Enter',
+  'composer.queue.badge': 'Queued',
   'composer.queue.one': 'Queued — sends when this turn ends',
   'composer.queue.many': '{count} queued',
   'composer.queue.editLabel': 'Edit queued message',
+  'composer.queue.stopAndSend': 'Stop and send',
+  'composer.queue.stopAndSendHint': 'Stop the current step and send this now',
+  'composer.queue.stopAndSendLabel': 'Stop current work and send "{text}"',
+  'composer.queue.stopping': 'Stopping…',
+  'composer.queue.targetChanged':
+    'The bot moved to a new step. Press Stop and send again to interrupt it.',
+  'composer.queue.interruptFailed':
+    'Could not interrupt right now. Your message is still queued.',
   'composer.queue.sendNowHint': 'Send now — the bot answers it after this turn',
   'composer.queue.sendNow': 'Send "{text}" now',
   'composer.queue.edit': 'Edit "{text}"',

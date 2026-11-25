@@ -11,6 +11,7 @@ import type { Bot, Prisma, SandboxState } from '@prisma/client';
 import {
   DEFAULT_AUTO_REVIEW_RULES,
   MODEL_REF_DEFAULT,
+  projectPublicSpeech,
   type CreateBotBody,
   type MarkBotReadResponse,
   type ThreadPreview,
@@ -114,30 +115,43 @@ export class BotsService {
    * last thing actually said is still the useful answer.
    */
   private async previews(userId: string): Promise<Map<string, ThreadPreview>> {
-    const rows = await this.prisma.$queryRaw<{ botId: string; text: string; createdAt: Date }[]>`
-      SELECT DISTINCT ON (c."botId")
-        c."botId", m.content AS "text", m."createdAt"
-      FROM "Message" m
-      JOIN "Conversation" c ON c.id = m."conversationId"
-      JOIN "Bot" b ON b.id = c."botId"
-      WHERE b."userId" = ${userId}
-        AND m.author IN ('USER'::"MessageAuthor", 'BOT'::"MessageAuthor")
-        AND btrim(m.content) <> ''
-      ORDER BY c."botId", m."createdAt" DESC, m.id DESC
+    const rows = await this.prisma.$queryRaw<
+      { botId: string; author: 'USER' | 'BOT'; text: string; createdAt: Date }[]
+    >`
+      SELECT ranked."botId", ranked.author, ranked."text", ranked."createdAt"
+      FROM (
+        SELECT c."botId",
+               m.author,
+               m.content AS "text",
+               m."createdAt",
+               ROW_NUMBER() OVER (
+                 PARTITION BY c."botId"
+                 ORDER BY m."createdAt" DESC, m.id DESC
+               ) AS rn
+        FROM "Message" m
+        JOIN "Conversation" c ON c.id = m."conversationId"
+        JOIN "Bot" b ON b.id = c."botId"
+        WHERE b."userId" = ${userId}
+          AND m.author IN ('USER'::"MessageAuthor", 'BOT'::"MessageAuthor")
+          AND btrim(m.content) <> ''
+      ) ranked
+      WHERE ranked.rn <= 10
+      ORDER BY ranked."botId", ranked.rn ASC
     `;
-    return new Map(
-      rows.map((row) => [
-        row.botId,
-        // Flattened here rather than in the client: every client wants the
-        // same one line, and a newline in the middle of a sidebar row is the
-        // kind of thing each of them would otherwise fix differently. Raw SQL
-        // returns the stored value, which is sealed.
-        {
-          text: openStoredMessageText(row.text).replace(/\s+/g, ' ').trim(),
-          createdAt: row.createdAt,
-        },
-      ]),
-    );
+    const result = new Map<string, ThreadPreview>();
+    for (const row of rows) {
+      if (result.has(row.botId)) continue;
+      // Raw SQL returns the sealed value; project BOT speech through the same
+      // boundary filter as live/history so leaked reasoning or legacy loops
+      // fall back to the previous spoken message instead of filling the sidebar.
+      const opened = openStoredMessageText(row.text);
+      const clean = (row.author === 'BOT' ? projectPublicSpeech(opened) : opened)
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (clean === '') continue;
+      result.set(row.botId, { text: clean, createdAt: row.createdAt });
+    }
+    return result;
   }
 
   /**

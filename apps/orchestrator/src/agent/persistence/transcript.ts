@@ -5,6 +5,7 @@ import { parseRunUsage } from './run-usage.js';
 import type { InterruptRecord } from '@tanstack/ai-persistence';
 import {
   JsonSchema,
+  projectPublicSpeech,
   type CrewaidMessageMetadata,
   type Json,
   type TranscriptAttachment,
@@ -558,7 +559,22 @@ export function fromTranscriptRowForOperator(
   // this one is not one. Reported rather than assumed away.
   if (read.value === null)
     return { ok: false, violation: { kind: 'unreadable-body', detail: 'no model message' } };
-  return { ok: true, value: { ...read.value, metadata: { ...read.value.metadata, crewaid } } };
+  // Exclude provider reasoning from operator hydration/history (it remains on
+  // `fromTranscriptRow` for the model) and apply canonical public-speech
+  // projection so legacy traces with leaked reasoning/repetition are cleaned on read.
+  const { thinking: _omittedThinking, ...publicBase } = read.value;
+  const projectedContent =
+    row.author === 'BOT' && typeof publicBase.content === 'string'
+      ? projectPublicSpeech(publicBase.content)
+      : publicBase.content;
+  return {
+    ok: true,
+    value: {
+      ...publicBase,
+      content: projectedContent,
+      metadata: { ...publicBase.metadata, crewaid },
+    },
+  };
 }
 
 // Runs

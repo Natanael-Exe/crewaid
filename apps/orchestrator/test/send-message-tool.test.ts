@@ -189,6 +189,7 @@ describe('M7-BE-01 sending', () => {
         content: 'please check the invoice',
         chainId: 'msg_trigger',
         hopCount: 1,
+        deliveryKey: `msg_trigger:${SENDER}:${QUILL.id}:c1`,
       },
     ]);
     expect(result).toContain('queued for Quill');

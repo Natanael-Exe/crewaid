@@ -1,3 +1,4 @@
+import { projectPublicSpeech } from '@crewaid/shared';
 import type { PrismaService } from '../prisma/prisma.service.js';
 
 /**
@@ -67,13 +68,22 @@ export async function searchTranscripts(
   });
   if (recent.length === 0) return [];
 
+  // Apply the canonical public-speech projection before ranking and headline
+  // extraction so internal reasoning or legacy runaway meltdowns never surface
+  // in search hits or outrank user requests.
+  const searchable = recent.flatMap((message) => {
+    const raw = message.content.replaceAll('\u0000', '');
+    const clean = message.author === 'BOT' ? projectPublicSpeech(raw) : raw;
+    return clean.trim() === '' ? [] : [{ message, content: clean }];
+  });
+  if (searchable.length === 0) return [];
+
   // Newest first, so a position is also the tie-break the index's query used.
-  // Postgres refuses U+0000 in text, and sealed text can hold one.
   const ranked = await prisma.$queryRaw<{ position: bigint; excerpt: string; rank: number }[]>`
     SELECT t.position,
            ts_headline('english', t.content, q.query, ${TRANSCRIPT_HEADLINE}) AS excerpt,
            ts_rank_cd(to_tsvector('english', t.content), q.query) AS rank
-    FROM unnest(${recent.map((message) => message.content.replaceAll('\u0000', ''))}::text[])
+    FROM unnest(${searchable.map((entry) => entry.content)}::text[])
            WITH ORDINALITY AS t(content, position),
          websearch_to_tsquery('english', ${query}) AS q(query)
     WHERE to_tsvector('english', t.content) @@ q.query
@@ -82,7 +92,8 @@ export async function searchTranscripts(
   `;
 
   return ranked.flatMap((hit) => {
-    const message = recent[Number(hit.position) - 1];
+    const entry = searchable[Number(hit.position) - 1];
+    const message = entry?.message;
     if (message === undefined || (message.author !== 'USER' && message.author !== 'BOT')) return [];
     return [
       {

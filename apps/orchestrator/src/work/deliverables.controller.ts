@@ -38,6 +38,12 @@ export class DeliverablesController {
     return this.deliverables.list(principal.userId, query);
   }
 
+  @Get(':id')
+  @OwnedResource('deliverable')
+  get(@Param('id') id: string, @CurrentUser() principal: Principal) {
+    return this.deliverables.get(principal.userId, id);
+  }
+
   @Post()
   create(
     @Body(new ZodValidationPipe(CreateDeliverableBodySchema)) body: CreateDeliverableBody,

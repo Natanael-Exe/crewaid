@@ -1,6 +1,6 @@
 import { EventType, type StreamChunk } from '@tanstack/ai';
 import type { ChatWithInterruptsPersistence } from '@tanstack/ai-persistence';
-import type { BotStatus, Locale, ProviderExplanation } from '@crewaid/shared';
+import type { BotStatus, CorruptOutputKind, Locale, ProviderExplanation } from '@crewaid/shared';
 import type { ResolvedTextModel } from '../../models/model-resolution.service.js';
 import type { ModelErrorContext } from '../../models/normalize-error.js';
 import type { NormalizedUsage } from '../../models/tanstack/usage.js';
@@ -62,6 +62,8 @@ export class RunExecutionState {
   workingMs = 0;
   stoppedBy: ExecutionOutcome['stoppedBy'];
   stall: StallDetail | undefined;
+  /** Set when the streaming output circuit-breaker aborts a corrupt reply. */
+  corruptOutput: { readonly messageId: string; readonly reason: CorruptOutputKind } | undefined;
 
   runtime: TanStackExecutionPersistence | undefined;
   closedStatus: ClosingRunStatus | undefined;
@@ -149,6 +151,7 @@ export class RunExecutionState {
 
   reconcilePostStream(aborted: boolean): void {
     if (this.closedStatus === 'interrupted') this.status = 'interrupted';
+    else if (this.corruptOutput !== undefined) this.status = 'failed';
     else if (aborted && this.stoppedBy === undefined) this.status = 'aborted';
     else if (this.failure !== undefined) this.status = 'failed';
   }

@@ -1,10 +1,11 @@
 import { Button, Input, Modal, useOverlayState } from '@heroui/react';
 import { useEffect, useMemo, useState } from 'react';
-import type {
-  BotWithSandbox,
-  DeliverableView,
-  GoalWithProgress,
-  ProjectWithCounts,
+import {
+  projectPublicSpeech,
+  type BotWithSandbox,
+  type DeliverableView,
+  type GoalWithProgress,
+  type ProjectWithCounts,
 } from '@crewaid/shared';
 import { failureOf } from '../api';
 import type { ApiClient } from '../api/apiClient';
@@ -46,7 +47,7 @@ export function MessageWorkDialogs({
   onOpenDeliverable: (deliverable: DeliverableView) => void;
 }) {
   const [goals, setGoals] = useState<readonly GoalWithProgress[]>([]);
-  const content = request?.message.content ?? '';
+  const content = projectPublicSpeech(request?.message.content ?? '');
   const defaults = useMemo(
     () => ({ projectId: null, ...taskDraftFromMessage(content) }),
     [content],

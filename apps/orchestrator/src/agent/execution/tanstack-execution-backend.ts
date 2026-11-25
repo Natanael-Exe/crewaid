@@ -1,11 +1,12 @@
 import { chat, EventType, RUN_CANCEL_REASON, type ModelMessage, type StreamChunk } from '@tanstack/ai';
 import {
-  createModelControlTagFilter,
+  createPublicOutputGuard,
   JsonSchema,
-  stripModelControlTags,
-  type StreamTextFilter,
+  projectPublicSpeech,
+  type PublicOutputGuard,
 } from '@crewaid/shared';
 import type { StructuredLogger } from '../../logging/structured-logger.js';
+import { failureCopy } from '../../models/failure-copy.js';
 import type { ResolvedTextModel } from '../../models/model-resolution.service.js';
 import {
   httpStatusOf,
@@ -311,7 +312,10 @@ export class TanStackExecutionBackend implements ExecutionBackend {
             append,
             vault,
             streamRehydrators,
+            controller,
+            this.deps.logger,
           );
+          if (state.corruptOutput !== undefined) break;
         }
       }
       // The engine isolates terminal hook errors; rethrow any rejected boundary transaction.
@@ -325,6 +329,22 @@ export class TanStackExecutionBackend implements ExecutionBackend {
     }
 
     state.reconcilePostStream(controller.signal.aborted);
+    if (state.corruptOutput !== undefined && state.closedStatus === undefined) {
+      const corruptId = state.corruptOutput.messageId;
+      const error = state.failure ?? {
+        code: 'PROVIDER_UNAVAILABLE' as const,
+        message: failureCopy(state.language).garbledReply,
+      };
+      state.failure = error;
+      await close('failed', async () => {
+        await persistence.withdraw(request.threadId, corruptId).catch(() => undefined);
+        await persistence.persistence.stores.runs.update(request.runId, {
+          status: 'failed',
+          finishedAt: Date.now(),
+          error,
+        });
+      });
+    }
     // The library ends its stream on abort without firing a terminal hook; close the run
     // explicitly so the active-run fence does not stay locked until lease recovery.
     if (state.status === 'aborted' && state.closedStatus === undefined) {
@@ -344,7 +364,13 @@ export class TanStackExecutionBackend implements ExecutionBackend {
     close: CloseRunBoundary,
     controller: AbortController,
   ): Promise<void> {
-    if (controller.signal.aborted && !state.boundaryFailed) {
+    if (state.corruptOutput !== undefined) {
+      state.status = 'failed';
+      state.failure ??= {
+        code: 'PROVIDER_UNAVAILABLE',
+        message: failureCopy(state.language).garbledReply,
+      };
+    } else if (controller.signal.aborted && !state.boundaryFailed) {
       state.status = 'aborted';
     } else {
       state.status = 'failed';
@@ -368,13 +394,18 @@ export class TanStackExecutionBackend implements ExecutionBackend {
       const persistence = state.runtime;
       const next = state.status === 'aborted' ? 'aborted' : 'failed';
       try {
-        await close(next, () =>
-          persistence.persistence.stores.runs.update(request.runId, {
+        await close(next, async () => {
+          if (state.corruptOutput !== undefined) {
+            await persistence
+              .withdraw(request.threadId, state.corruptOutput.messageId)
+              .catch(() => undefined);
+          }
+          await persistence.persistence.stores.runs.update(request.runId, {
             status: next,
             finishedAt: Date.now(),
             ...(state.failure === undefined ? {} : { error: state.failure }),
-          }),
-        );
+          });
+        });
       } catch (closingError) {
         this.deps.logger.warn('turn.persistence.close.failed', {
           runId: request.runId,
@@ -393,7 +424,7 @@ function sanitizeAssistantControlTags(messages: readonly ModelMessage[]): ModelM
   const next = messages.map((message) => {
     if (message.role !== 'assistant' || message.content === null) return message;
     if (typeof message.content === 'string') {
-      const cleaned = stripModelControlTags(message.content);
+      const cleaned = projectPublicSpeech(message.content);
       if (cleaned === message.content) return message;
       changed = true;
       return { ...message, content: cleaned };
@@ -401,7 +432,7 @@ function sanitizeAssistantControlTags(messages: readonly ModelMessage[]): ModelM
     let partsChanged = false;
     const nextParts = message.content.map((part) => {
       if (part.type !== 'text' || typeof part.content !== 'string') return part;
-      const cleaned = stripModelControlTags(part.content);
+      const cleaned = projectPublicSpeech(part.content);
       if (cleaned === part.content) return part;
       partsChanged = true;
       return { ...part, content: cleaned };
@@ -451,10 +482,8 @@ function createEventAppender(ports: ExecutionPorts, state: RunExecutionState) {
 interface StreamRehydratorRegistry {
   readonly text: (messageId: string) => StreamTokenRehydrator | undefined;
   readonly flushText: (messageId: string) => string;
-  readonly controlFilter: (messageId: string) => StreamTextFilter;
-  readonly flushControlFilter: (messageId: string) => string;
-  readonly reasoning: (messageId: string) => StreamTokenRehydrator | undefined;
-  readonly flushReasoning: (messageId: string) => string;
+  readonly outputGuard: (messageId: string) => PublicOutputGuard;
+  readonly deleteOutputGuard: (messageId: string) => void;
   readonly toolArgs: (toolCallId: string) => StreamTokenRehydrator | undefined;
   readonly flushToolArgs: (toolCallId: string) => string;
 }
@@ -464,8 +493,7 @@ function createStreamRehydratorRegistry(
 ): StreamRehydratorRegistry {
   const maskSecrets = process.env['AGENT_PRIVACY_MASK_SECRETS'] === 'true';
   const textStreams = new Map<string, StreamTokenRehydrator>();
-  const controlFilters = new Map<string, StreamTextFilter>();
-  const reasoningStreams = new Map<string, StreamTokenRehydrator>();
+  const outputGuards = new Map<string, PublicOutputGuard>();
   const toolArgStreams = new Map<string, StreamTokenRehydrator>();
 
   const getOrCreate = (
@@ -495,22 +523,17 @@ function createStreamRehydratorRegistry(
   return {
     text: (id) => getOrCreate(textStreams, id),
     flushText: (id) => flushAndDelete(textStreams, id),
-    controlFilter: (id) => {
-      let filter = controlFilters.get(id);
-      if (filter === undefined) {
-        filter = createModelControlTagFilter();
-        controlFilters.set(id, filter);
+    outputGuard: (id) => {
+      let guard = outputGuards.get(id);
+      if (guard === undefined) {
+        guard = createPublicOutputGuard();
+        outputGuards.set(id, guard);
       }
-      return filter;
+      return guard;
     },
-    flushControlFilter: (id) => {
-      const filter = controlFilters.get(id);
-      if (filter === undefined) return '';
-      controlFilters.delete(id);
-      return filter.flush();
+    deleteOutputGuard: (id) => {
+      outputGuards.delete(id);
     },
-    reasoning: (id) => getOrCreate(reasoningStreams, id),
-    flushReasoning: (id) => flushAndDelete(reasoningStreams, id),
     toolArgs: (id) => getOrCreate(toolArgStreams, id, true),
     flushToolArgs: (id) => flushAndDelete(toolArgStreams, id),
   };
@@ -526,46 +549,90 @@ async function consumeStreamChunk(
   append: (event: StreamChunk) => Promise<void>,
   vault: PrivacyVault | undefined,
   rehydrators: StreamRehydratorRegistry,
+  controller: AbortController,
+  logger: Pick<StructuredLogger, 'warn'>,
 ): Promise<void> {
+  // Provider reasoning remains available to the execution engine in canonical
+  // persistence (`Message.parts.thinking`), but never crosses into public SSE
+  // events, snapshots, or replay logs.
+  if (
+    chunk.type === EventType.REASONING_START ||
+    chunk.type === EventType.REASONING_END ||
+    chunk.type === EventType.REASONING_MESSAGE_START ||
+    chunk.type === EventType.REASONING_MESSAGE_CONTENT ||
+    chunk.type === EventType.REASONING_MESSAGE_END ||
+    chunk.type === EventType.REASONING_MESSAGE_CHUNK ||
+    chunk.type === EventType.REASONING_ENCRYPTED_VALUE
+  ) {
+    return;
+  }
+  if (chunk.type === EventType.MESSAGES_SNAPSHOT) {
+    const filteredMessages = chunk.messages
+      .filter((message) => message.role !== 'reasoning')
+      .map((message) => {
+        if (message.role !== 'assistant' || typeof message.content !== 'string') return message;
+        const cleaned = projectPublicSpeech(message.content);
+        return cleaned === message.content ? message : { ...message, content: cleaned };
+      });
+    await append({ ...chunk, messages: filteredMessages });
+    return;
+  }
+  const tripCorrupt = (messageId: string, reason: 'leaked-tool-markup' | 'runaway-repetition') => {
+    state.corruptOutput = { messageId, reason };
+    state.failure = {
+      code: 'PROVIDER_UNAVAILABLE',
+      message: failureCopy(state.language).garbledReply,
+    };
+    state.status = 'failed';
+    crashCheckpoint.discard(messageId);
+    rehydrators.deleteOutputGuard(messageId);
+    logger.warn('turn.output.corrupt', {
+      runId: request.runId,
+      botId: request.botId,
+      reason,
+    });
+    controller.abort('CORRUPT_OUTPUT');
+  };
   if (chunk.type === EventType.TEXT_MESSAGE_START) {
     crashCheckpoint.onTextStart(chunk.messageId);
   }
   if (chunk.type === EventType.TEXT_MESSAGE_CONTENT) {
     const stream = rehydrators.text(chunk.messageId);
     const rehydrated = stream === undefined ? chunk.delta : stream.push(chunk.delta);
-    const delta = rehydrated === '' ? '' : rehydrators.controlFilter(chunk.messageId).push(rehydrated);
-    if (delta === '') return;
-    await crashCheckpoint.onTextDelta(chunk.messageId, delta, persistence, request.threadId);
-    await append(delta === chunk.delta ? chunk : { ...chunk, delta });
+    if (rehydrated === '') return;
+    const step = rehydrators.outputGuard(chunk.messageId).push(rehydrated);
+    if (step.corrupt !== null) {
+      tripCorrupt(chunk.messageId, step.corrupt.kind);
+      return;
+    }
+    if (step.emit === '') return;
+    await crashCheckpoint.onTextDelta(chunk.messageId, step.emit, persistence, request.threadId);
+    await append(step.emit === chunk.delta ? chunk : { ...chunk, delta: step.emit });
     return;
   }
   if (chunk.type === EventType.TEXT_MESSAGE_END) {
     const rehydratedTail = rehydrators.flushText(chunk.messageId);
-    const filter = rehydrators.controlFilter(chunk.messageId);
-    const pushed = rehydratedTail === '' ? '' : filter.push(rehydratedTail);
-    const tail = pushed + rehydrators.flushControlFilter(chunk.messageId);
+    const guard = rehydrators.outputGuard(chunk.messageId);
+    let tail = '';
+    if (rehydratedTail !== '') {
+      const pushed = guard.push(rehydratedTail);
+      if (pushed.corrupt !== null) {
+        tripCorrupt(chunk.messageId, pushed.corrupt.kind);
+        return;
+      }
+      tail += pushed.emit;
+    }
+    const flushed = guard.flush();
+    rehydrators.deleteOutputGuard(chunk.messageId);
+    if (flushed.corrupt !== null) {
+      tripCorrupt(chunk.messageId, flushed.corrupt.kind);
+      return;
+    }
+    tail += flushed.emit;
     if (tail !== '') {
       await crashCheckpoint.onTextDelta(chunk.messageId, tail, persistence, request.threadId);
       await append({
         type: EventType.TEXT_MESSAGE_CONTENT,
-        messageId: chunk.messageId,
-        delta: tail,
-        ...(chunk.timestamp === undefined ? {} : { timestamp: chunk.timestamp }),
-      });
-    }
-  }
-  if (chunk.type === EventType.REASONING_MESSAGE_CONTENT) {
-    const stream = rehydrators.reasoning(chunk.messageId);
-    const delta = stream === undefined ? chunk.delta : stream.push(chunk.delta);
-    if (delta === '') return;
-    await append(delta === chunk.delta ? chunk : { ...chunk, delta });
-    return;
-  }
-  if (chunk.type === EventType.REASONING_MESSAGE_END) {
-    const tail = rehydrators.flushReasoning(chunk.messageId);
-    if (tail !== '') {
-      await append({
-        type: EventType.REASONING_MESSAGE_CONTENT,
         messageId: chunk.messageId,
         delta: tail,
         ...(chunk.timestamp === undefined ? {} : { timestamp: chunk.timestamp }),

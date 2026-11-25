@@ -96,6 +96,11 @@ export function admissionFailure(
             code: 'INTERRUPT_NOT_PENDING',
             message: t('chat.chatFailure.thatRequestWasAlreadyAnswered'),
           };
+        case 'TARGET_RUN_CHANGED':
+          return {
+            code: 'TARGET_RUN_CHANGED',
+            message: t('composer.queue.targetChanged'),
+          };
       }
   }
   return {
@@ -105,6 +110,18 @@ export function admissionFailure(
         ? t('chat.chatFailure.messageNotSent')
         : t('chat.chatFailure.answerNotSent'),
   };
+}
+
+/** Reads `activeRunId` from a 409 `TARGET_RUN_CHANGED` response body, if present. */
+export function conflictActiveRunId(rawBody: string | undefined): string | null {
+  if (rawBody === undefined) return null;
+  try {
+    const parsed: unknown = JSON.parse(rawBody);
+    const id = field(parsed, 'activeRunId');
+    return typeof id === 'string' && id !== '' ? id : null;
+  } catch {
+    return null;
+  }
 }
 
 function field(value: unknown, key: string): unknown {

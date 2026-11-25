@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
-import type { BotStatus } from '@crewaid/shared';
+import type { BotStatus, ToolInfo } from '@crewaid/shared';
+import type { TranscriptMessage } from '../state/viewTypes';
 import { BotAvatar, type AvatarBot } from './BotAvatar';
+import { partField } from './PartRenderer';
+import { isFoldedToolPart, type FoldedToolPart } from './tools/toolParts';
+import { readableName } from './tools/toolPresentation';
 import { TextShimmer } from './ui';
 import { t, useT } from '../i18n/i18n';
 
@@ -74,14 +78,90 @@ function useElapsed(startedAt: number): number {
   return Math.max(0, now - startedAt);
 }
 
+/** Maps an active tool name to a concise, trusted operator-facing status label. */
+export function statusLabelForTool(toolName: string, tools?: readonly ToolInfo[]): string {
+  const separator = toolName.indexOf('__');
+  if (separator > 0) {
+    return t('working.usingTool', { source: readableName(toolName.slice(0, separator)) });
+  }
+  switch (toolName) {
+    case 'fs_read':
+    case 'memory_read':
+    case 'memory_search':
+      return t('working.reviewingFiles');
+    case 'fs_write':
+    case 'attach_file':
+      return t('working.preparingFiles');
+    case 'board_read':
+      return t('working.checkingBoard');
+    case 'board_add':
+    case 'board_update':
+      return t('working.updatingBoard');
+    case 'shell':
+      return t('working.runningCommand');
+    case 'send_message':
+      return t('working.messagingTeam');
+    case 'present_visual':
+      return t('working.preparingSummary');
+    default: {
+      if (
+        toolName.startsWith('browser_') ||
+        toolName === 'capture_screen' ||
+        toolName === 'screenshot'
+      ) {
+        return t('working.checkingPage');
+      }
+      if (/^(task|goal|deliverable)_/.test(toolName)) {
+        return t('working.updatingWork');
+      }
+      const info = tools?.find((tool) => tool.name === toolName);
+      return info?.label ?? t('working.working');
+    }
+  }
+}
+
+/**
+ * Derives a short, trusted status phrase from the currently executing tool call
+ * in the live turn, falling back to the bot's coarse status when no tool is
+ * active. Raw pre-tool prose is never used as the live status label.
+ */
+export function liveWorkPhase(
+  messages: readonly TranscriptMessage[],
+  status: BotStatus | undefined,
+  tools?: readonly ToolInfo[],
+): string {
+  const latest = messages.at(-1);
+  if (latest?.live === true) {
+    const calls: FoldedToolPart[] = [];
+    for (const part of latest.parts) {
+      if (part.type === 'tool-activity') {
+        const inner = partField(part, 'calls');
+        if (Array.isArray(inner)) calls.push(...inner.filter(isFoldedToolPart));
+      } else if (isFoldedToolPart(part)) {
+        calls.push(part);
+      }
+    }
+    const running = [...calls].reverse().find((call) => call.status === 'running');
+    if (running !== undefined) return statusLabelForTool(running.toolName, tools);
+    if (status === 'ACTING' && calls.length > 0) {
+      const lastCall = calls.at(-1);
+      if (lastCall !== undefined) return statusLabelForTool(lastCall.toolName, tools);
+    }
+  }
+  return phaseOf(status);
+}
+
 export function WorkingIndicator({
   bot,
   startedAt,
   status,
+  phase,
 }: {
   bot: AvatarBot;
   startedAt: number;
   status?: BotStatus | undefined;
+  /** Optional trusted live status label derived from the active tool. */
+  phase?: string | undefined;
 }) {
   const t = useT();
   const elapsed = useElapsed(startedAt);
@@ -98,7 +178,7 @@ export function WorkingIndicator({
         <BotAvatar bot={bot} size="xs" status={status ?? 'THINKING'} detail />
       </span>
       <TextShimmer className="tabular-nums">
-        {t('working.for', { phase: phaseOf(status), elapsed: formatElapsed(elapsed) })}
+        {t('working.for', { phase: phase ?? phaseOf(status), elapsed: formatElapsed(elapsed) })}
       </TextShimmer>
     </div>
   );

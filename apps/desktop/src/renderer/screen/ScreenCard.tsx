@@ -192,6 +192,40 @@ export function ScreenCard({
     };
   }, [expanded, interactive, onExpandedChange]);
 
+  // Keep the right rail compact when the computer is simply asleep (`STOPPED`),
+  // distinguishing idle sleep clearly from an unexpected display disconnect and
+  // freeing rail height for the active handoff and pending decisions.
+  if (!expanded && view.kind === 'stopped' && botId !== null) {
+    return (
+      <div
+        data-screen-surface="rail"
+        data-computer-compact="sleeping"
+        className="flex items-center justify-between gap-2 rounded-card border border-border bg-surface px-3 py-2.5 text-surface-foreground"
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          <span aria-hidden className="size-2 shrink-0 rounded-full bg-foreground-faint" />
+          <div className="min-w-0">
+            <div className="truncate text-caption font-medium text-foreground">
+              {t('screen.screenCardState.sleeping')}
+            </div>
+            <div className="truncate text-micro text-muted">
+              {t('screen.screenCardState.thisComputerIsAsleep')}
+            </div>
+          </div>
+        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          data-screen-action="open"
+          onPress={() => onWake(botId)}
+          className="h-7 shrink-0 rounded-full px-2.5 text-caption font-medium"
+        >
+          {t('screen.screenCardState.wake')}
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <FocusScope contain={expanded}>
       <div
@@ -598,8 +632,14 @@ function ScreenViewer({
           </div>
         </div>
       ) : failure === null ? null : (
-        <div className="absolute inset-0 z-10 grid place-items-center bg-surface-secondary px-4 text-center text-caption text-muted">
-          <div className="flex flex-col items-center gap-3">
+        <div
+          data-computer-disconnected
+          className="absolute inset-0 z-10 grid place-items-center bg-surface-secondary px-4 text-center text-caption text-muted"
+        >
+          <div className="flex flex-col items-center gap-2">
+            <span className="rounded-full bg-danger/15 px-2 py-0.5 text-micro font-medium text-danger">
+              {t('screen.screenCardState.disconnected')}
+            </span>
             <span role="status">{failure}</span>
             <Button size="sm" onPress={() => setAttempt((value) => value + 1)}>
               {t('screen.screenCard.reconnectDisplay')}

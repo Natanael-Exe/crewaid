@@ -191,6 +191,11 @@ model User {
   runInterrupts  RunInterrupt[]
   toolDispatches ToolDispatch[]
   runEvents      RunEvent[]
+
+  // Phase 2: chain-scoped workflow lifecycles and durable managed board state.
+  workflowChains WorkflowChainState[]
+  boardEntries   BoardEntry[]
+  boardRevisions BoardRevision[]
 }
 
 /// D-233: a person's own Telegram bot, linked to the Telegram account that confirmed it.
@@ -516,6 +521,12 @@ model Message {
   run            AgentTurn?    @relation("RunMessages", fields: [runId], references: [id], onDelete: SetNull)
   chainId        String? // inter-bot conversation chain
   hopCount       Int           @default(0)
+  // Phase 2: durable FYI flag. False persists peer context without starting a
+  // turn or waking deferred-trigger recovery.
+  expectReply    Boolean       @default(true)
+  // Phase 2: idempotency key for inter-bot deliveries so BullMQ retries never
+  // duplicate messages or double-trigger turns.
+  deliveryKey    String?       @unique
   // D-133: the task this message is about — a Start brief, or work another bot
   // delegated with `send_message({taskId})`. It is what files a deliverable the
   // turn produces (D-136 rule 2).
@@ -1678,8 +1689,14 @@ model Deliverable {
   goal         Goal?           @relation(fields: [goalId], references: [id], onDelete: SetNull)
   projectId    String? // denormalised from task/goal (D-136)
   project      Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  searchText   String?         @db.Text // P1: bounded extract of a text-like file
-  createdAt    DateTime        @default(now())
+  searchText     String?                @db.Text // P1: bounded extract of a text-like file
+  // Phase 3: review state and immutable revision chain when a newer snapshot
+  // replaces an earlier artifact sharing the same filename.
+  reviewState    DeliverableReviewState @default(READY)
+  supersededById String?
+  supersededBy   Deliverable?           @relation("DeliverableSupersession", fields: [supersededById], references: [id], onDelete: SetNull)
+  supersedes     Deliverable[]          @relation("DeliverableSupersession")
+  createdAt      DateTime               @default(now())
 
   @@index([userId, createdAt])
   @@index([taskId])
@@ -1687,12 +1704,19 @@ model Deliverable {
   @@index([projectId])
   @@index([botId])
   @@index([messageId])
+  @@index([supersededById])
 }
 
 enum DeliverableKind {
   FILE
   LINK
   MESSAGE
+}
+
+enum DeliverableReviewState {
+  READY
+  REVIEWED
+  ARCHIVED
 }
 
 /// D-144 — how a bot's actions are approved, chosen from the composer.
@@ -1922,4 +1946,75 @@ model TemplateInstallation {
   createdAt DateTime @default(now())
   @@unique([userId, idempotencyKey])
   @@index([userId, createdAt])
+}
+
+// ── Phase 2: Chain-scoped workflow controls & durable shared board ──────────
+
+enum WorkflowChainStatus {
+  ACTIVE
+  WRAPPING_UP
+  STOPPED
+  CLOSED
+}
+
+/// Durable chain-scoped lifecycle state for Stop workflow and Wrap up.
+model WorkflowChainState {
+  chainId           String              @id
+  userId            String
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rootBotId         String
+  groupId           String?
+  status            WorkflowChainStatus @default(ACTIVE)
+  expectedOwners    String[]            @default([])
+  respondedOwners   String[]            @default([])
+  closeoutPublished Boolean             @default(false)
+  deadlineAt        DateTime?
+  stoppedAt         DateTime?
+  closedAt          DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, rootBotId])
+}
+
+enum BoardRevisionKind {
+  INIT_SNAPSHOT
+  ADD
+  UPDATE
+  DELETE
+  RESTORE
+}
+
+/// Durable per-owner board entry projected to `/home/bot/shared/BOARD.md`.
+model BoardEntry {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scopeKey   String
+  ownerBotId String?
+  ownerName  String
+  content    String   @db.Text
+  version    Int      @default(1)
+  deleted    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, scopeKey, deleted])
+  @@index([userId, scopeKey, ownerBotId])
+}
+
+/// Append-only board revision history for audit and recovery after shell overwrites.
+model BoardRevision {
+  id         String            @id @default(cuid())
+  userId     String
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scopeKey   String
+  entryId    String?
+  ownerBotId String?
+  kind       BoardRevisionKind
+  snapshot   String            @db.Text
+  createdAt  DateTime          @default(now())
+
+  @@index([userId, scopeKey, createdAt])
 }

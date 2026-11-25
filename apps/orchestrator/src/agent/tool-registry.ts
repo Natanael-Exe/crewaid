@@ -163,6 +163,10 @@ export type ToolContext = {
   readonly userId: string;
   /** The bot acting. Which skills are reachable and whose computer is used. */
   readonly botId: string;
+  /** Optional display name of the acting bot (for per-owner board entries). */
+  readonly botName?: string;
+  /** Optional shared machine id of the acting bot (scopes durable shared board). */
+  readonly sandboxId?: string | null;
   /**
    * The bot's sidebar group, or null. Decides which group folder the
    * file tools treat as this bot's. Optional so a context built before groups

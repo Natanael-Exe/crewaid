@@ -325,6 +325,67 @@ const VisualCalloutBlockSchema = z
   .strict();
 export type VisualCalloutBlock = z.infer<typeof VisualCalloutBlockSchema>;
 
+export const VisualHandoffItemStatusSchema = z.enum(['published', 'unpublished', 'superseded']);
+export type VisualHandoffItemStatus = z.infer<typeof VisualHandoffItemStatusSchema>;
+
+export const VisualHandoffItemSchema = z
+  .object({
+    label: z.string().min(1).max(160),
+    deliverableId: z.string().min(1).max(128).optional(),
+    attachmentId: z.string().min(1).max(128).optional(),
+    status: VisualHandoffItemStatusSchema.default('published'),
+    owner: z.string().min(1).max(80).optional(),
+    version: z.number().int().positive().optional(),
+    note: z.string().max(300).optional(),
+  })
+  .strict();
+export type VisualHandoffItem = z.infer<typeof VisualHandoffItemSchema>;
+
+export const VisualHandoffOpenItemSchema = z
+  .object({
+    item: z.string().min(1).max(240),
+    owner: z.string().min(1).max(80).optional(),
+    blocker: z.string().max(240).optional(),
+  })
+  .strict();
+export type VisualHandoffOpenItem = z.infer<typeof VisualHandoffOpenItemSchema>;
+
+export const VisualDecisionOptionSchema = z
+  .object({
+    label: z.string().min(1).max(100),
+    /** Text placed into the composer for review/editing — never auto-sent. */
+    replyText: z.string().min(1).max(1000),
+  })
+  .strict();
+export type VisualDecisionOption = z.infer<typeof VisualDecisionOptionSchema>;
+
+export const VisualHandoffDecisionSchema = z
+  .object({
+    id: z.string().min(1).max(64),
+    question: z.string().min(1).max(300),
+    recommendation: z.string().min(1).max(300).optional(),
+    consequence: z.string().min(1).max(300).optional(),
+    options: z.array(VisualDecisionOptionSchema).min(1).max(5),
+  })
+  .strict();
+export type VisualHandoffDecision = z.infer<typeof VisualHandoffDecisionSchema>;
+
+/**
+ * First-class structured handoff block rendered in strict section order:
+ * Outcome -> Ready to review -> Still open -> Waiting on you.
+ */
+export const VisualHandoffBlockSchema = z
+  .object({
+    kind: z.literal('handoff'),
+    revision: z.number().int().positive().optional(),
+    outcome: z.string().min(1).max(600),
+    readyToReview: z.array(VisualHandoffItemSchema).max(24).default([]),
+    stillOpen: z.array(VisualHandoffOpenItemSchema).max(24).default([]),
+    waitingOnYou: z.array(VisualHandoffDecisionSchema).max(12).default([]),
+  })
+  .strict();
+export type VisualHandoffBlock = z.infer<typeof VisualHandoffBlockSchema>;
+
 export const VisualBlockInputSchema = z.discriminatedUnion('kind', [
   VisualMetricsBlockSchema,
   VisualChartBlockInputSchema,
@@ -332,6 +393,7 @@ export const VisualBlockInputSchema = z.discriminatedUnion('kind', [
   VisualComparisonBlockSchema,
   VisualTimelineBlockSchema,
   VisualCalloutBlockSchema,
+  VisualHandoffBlockSchema,
 ]);
 export type VisualBlockInput = z.infer<typeof VisualBlockInputSchema>;
 
@@ -342,6 +404,7 @@ const VisualBlockResolvedSchema = z.discriminatedUnion('kind', [
   VisualComparisonBlockSchema,
   VisualTimelineBlockSchema,
   VisualCalloutBlockSchema,
+  VisualHandoffBlockSchema,
 ]);
 export type VisualBlock = z.infer<typeof VisualBlockResolvedSchema>;
 
@@ -639,6 +702,43 @@ export function formatVisualSummary(payload: VisualPayload): string {
         const lines: string[] = [`[${tag}] ${block.title}`, block.body];
         if (block.points !== undefined) {
           for (const point of block.points) lines.push(`• ${point}`);
+        }
+        sections.push(lines.join('\n'));
+        break;
+      }
+      case 'handoff': {
+        const lines: string[] = [
+          block.revision !== undefined ? `Outcome (v${block.revision}):` : 'Outcome:',
+          block.outcome,
+        ];
+        if (block.readyToReview.length > 0) {
+          lines.push('', 'Ready to review:');
+          for (const item of block.readyToReview) {
+            const ver = item.version !== undefined ? ` (v${item.version})` : '';
+            const tag = item.status === 'unpublished' ? ' [Unpublished]' : item.status === 'superseded' ? ' [Superseded]' : '';
+            const owner = item.owner !== undefined ? ` — ${item.owner}` : '';
+            lines.push(`• ${item.label}${ver}${tag}${owner}`);
+          }
+        }
+        if (block.stillOpen.length > 0) {
+          lines.push('', 'Still open:');
+          for (const open of block.stillOpen) {
+            const owner = open.owner !== undefined ? ` (${open.owner})` : '';
+            const blocker = open.blocker !== undefined ? ` — ${open.blocker}` : '';
+            lines.push(`• ${open.item}${owner}${blocker}`);
+          }
+        }
+        if (block.waitingOnYou.length > 0) {
+          lines.push('', 'Waiting on you:');
+          for (const decision of block.waitingOnYou) {
+            lines.push(`• ${decision.question}`);
+            if (decision.recommendation !== undefined) {
+              lines.push(`  Recommendation: ${decision.recommendation}`);
+            }
+            if (decision.consequence !== undefined) {
+              lines.push(`  Impact: ${decision.consequence}`);
+            }
+          }
         }
         sections.push(lines.join('\n'));
         break;

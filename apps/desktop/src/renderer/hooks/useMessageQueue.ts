@@ -19,10 +19,25 @@ import {
   nextDrain,
   nextLocalId,
   queueOf,
+  readPersistedQueues,
   removeQueued,
+  setQueuedNotice,
+  writePersistedQueues,
   type MessageQueues,
   type QueuedMessage,
 } from '../state/messageQueue';
+import { t } from '../i18n/i18n';
+
+const QUEUE_STORAGE_KEY = 'crewaid.queued-messages';
+
+function queueStorage(): Pick<Storage, 'getItem' | 'setItem'> | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Drop exactly the chips a send claimed. `attachmentIds` are remote ids while
@@ -47,9 +62,12 @@ export interface UseMessageQueueOptions {
 
 export interface MessageQueueController {
   readonly threadSend: RefObject<ChatThreadView['send'] | null>;
+  readonly threadSendQueued: RefObject<ChatThreadView['sendQueued'] | null>;
   readonly threadGenerating: boolean;
   readonly threadStartedAt: number | null;
+  readonly interruptingId: string | null;
   readonly noteGenerating: (generating: boolean) => void;
+  readonly noteActiveRun: (runId: string | null) => void;
   readonly pending: PendingAttachment[];
   readonly stageFiles: (files: File[]) => void;
   readonly removePending: (localId: string) => void;
@@ -83,21 +101,33 @@ export function useMessageQueue({
   selectedId,
 }: UseMessageQueueOptions): MessageQueueController {
   const [pending, setPending] = useState<PendingMap>({});
-  // Held outside the chat reducer because queued drafts never originate from
-  // server frames and must survive bot switches.
-  const [queues, setQueues] = useState<MessageQueues>({});
+  // Held outside the chat reducer and persisted in sessionStorage so queued
+  // messages and their target run survive bot switches and reconnects.
+  const [queues, setQueues] = useState<MessageQueues>(() =>
+    readPersistedQueues(queueStorage(), QUEUE_STORAGE_KEY),
+  );
+  useEffect(() => {
+    writePersistedQueues(queueStorage(), QUEUE_STORAGE_KEY, queues);
+  }, [queues]);
   // Ref keeps one stable map across renders so abort and upload always agree.
   const aborters = useRef(new Map<string, AbortController>()).current;
   const held = useRef(new Set<string>()).current;
 
   const threadSend = useRef<ChatThreadView['send'] | null>(null);
+  const threadSendQueued = useRef<ChatThreadView['sendQueued'] | null>(null);
+  const activeRunIdRef = useRef<string | null>(null);
   const [threadGenerating, setThreadGenerating] = useState(false);
   // Local timestamp when the user clicked Send, before server status frames arrive.
   const [threadStartedAt, setThreadStartedAt] = useState<number | null>(null);
+  const [interruptingId, setInterruptingId] = useState<string | null>(null);
 
   const noteGenerating = useCallback((generating: boolean) => {
     setThreadGenerating(generating);
     setThreadStartedAt((current) => (generating ? (current ?? Date.now()) : null));
+  }, []);
+
+  const noteActiveRun = useCallback((runId: string | null) => {
+    activeRunIdRef.current = runId;
   }, []);
 
   const postMessageId = useCallback(
@@ -136,7 +166,22 @@ export function useMessageQueue({
     if (next === undefined) return;
     const { botId, message } = next;
     held.add(botId);
-    void postMessage(message.text, message.attachmentIds).then((sent) => {
+    const sendQueued = threadSendQueued.current;
+    const attempt =
+      sendQueued !== null
+        ? sendQueued({
+            text: message.text,
+            attachmentIds: message.attachmentIds,
+            messageId: message.messageId,
+          }).then((result) => {
+            if (result.kind === 'sent') {
+              setPending((list) => claimedRemoved(list, [...message.attachmentIds]));
+              return true;
+            }
+            return false;
+          })
+        : postMessage(message.text, message.attachmentIds);
+    void attempt.then((sent) => {
       if (!sent) return;
       held.delete(botId);
       setQueues((current) => removeQueued(current, botId, message.localId));
@@ -157,12 +202,14 @@ export function useMessageQueue({
       updateQueues(botId, (current) =>
         enqueue(current, botId, {
           localId: nextLocalId(),
+          messageId: crypto.randomUUID(),
+          targetRunId: botId === selectedId ? activeRunIdRef.current : null,
           text,
           attachmentIds,
         }),
       );
     },
-    [updateQueues],
+    [selectedId, updateQueues],
   );
 
   const queueOrSend = useCallback(
@@ -193,11 +240,55 @@ export function useMessageQueue({
   const sendQueuedNow = useCallback(
     (botId: string, localId: string) => {
       const item = queueOf(queues, botId).find((row) => row.localId === localId);
-      if (item === undefined) return;
-      updateQueues(botId, (current) => removeQueued(current, botId, localId));
-      void postMessage(item.text, item.attachmentIds);
+      if (item === undefined || interruptingId !== null) return;
+      const sendQueued = threadSendQueued.current;
+      if (sendQueued === null) {
+        updateQueues(botId, (current) => removeQueued(current, botId, localId));
+        void postMessage(item.text, item.attachmentIds);
+        return;
+      }
+      const targetRunId =
+        threadGenerating
+          ? (item.targetRunId ?? activeRunIdRef.current ?? undefined)
+          : undefined;
+      setInterruptingId(localId);
+      held.add(botId);
+      void sendQueued({
+        text: item.text,
+        attachmentIds: item.attachmentIds,
+        messageId: item.messageId,
+        ...(targetRunId === undefined ? {} : { interruptRunId: targetRunId }),
+      })
+        .then((result) => {
+          if (result.kind === 'sent') {
+            setPending((list) => claimedRemoved(list, [...item.attachmentIds]));
+            held.delete(botId);
+            setQueues((current) => removeQueued(current, botId, localId));
+            return;
+          }
+          if (result.kind === 'target-changed') {
+            // Preserve the message, refresh its target run, and ask the user to retry.
+            const nextRun = result.activeRunId ?? activeRunIdRef.current;
+            setQueues((current) =>
+              setQueuedNotice(
+                current,
+                botId,
+                localId,
+                t('composer.queue.targetChanged'),
+                nextRun,
+              ),
+            );
+            return;
+          }
+          setQueues((current) =>
+            setQueuedNotice(current, botId, localId, t('composer.queue.interruptFailed')),
+          );
+        })
+        .finally(() => {
+          setInterruptingId(null);
+        });
     },
-    [queues, updateQueues, postMessage],
+    [queues, interruptingId, threadGenerating, held, updateQueues, postMessage],
   );
 
   const moveQueuedMessage = useCallback(
@@ -276,9 +367,12 @@ export function useMessageQueue({
 
   return {
     threadSend,
+    threadSendQueued,
     threadGenerating,
     threadStartedAt,
+    interruptingId,
     noteGenerating,
+    noteActiveRun,
     pending: pendingList,
     stageFiles,
     removePending,

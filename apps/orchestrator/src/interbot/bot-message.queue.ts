@@ -71,6 +71,21 @@ export interface BotMessageJobData {
    * delivers, as a message about no task.
    */
   readonly taskId?: string | null;
+  /**
+   * False for durable FYI notices: persist into recipient context without
+   * starting a turn or triggering deferred-message recovery. Defaults to true.
+   */
+  readonly expectReply?: boolean;
+  /**
+   * Deterministic delivery idempotency key so BullMQ retries never create
+   * duplicate messages or double-trigger a turn.
+   */
+  readonly deliveryKey?: string;
+  /**
+   * Set for bounded wrap-up orchestration hops so `WRAPPING_UP` chains permit
+   * the single closeout prompt per owner while blocking new delegation hops.
+   */
+  readonly wrapUpKind?: 'request';
 }
 
 export const BOT_MESSAGE_QUEUE = 'BOT_MESSAGE_QUEUE';

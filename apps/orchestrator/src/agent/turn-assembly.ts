@@ -206,6 +206,8 @@ export async function assembleTurn(
       policy: dispatch,
       seat: services.seatControl?.portFor(bot.id),
       botId: bot.id,
+      botName: bot.name,
+      sandboxId: bot.sandboxId,
       groupId: botGroup?.id ?? null,
       attachmentHost: input.attachmentHost,
       trigger: input.trigger,

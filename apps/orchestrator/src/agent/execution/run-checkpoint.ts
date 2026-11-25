@@ -1,5 +1,5 @@
 import type { ChatMiddlewareContext, ModelMessage } from '@tanstack/ai';
-import { JsonSchema, stripModelControlTags } from '@crewaid/shared';
+import { JsonSchema, projectPublicSpeech } from '@crewaid/shared';
 import { TranscriptBodySchema } from '../persistence/transcript.js';
 import type { ClosingRunStatus } from '../persistence/owned-run-boundary.js';
 import type { TurnLimitAccount } from '../turn-limits.js';
@@ -58,6 +58,11 @@ export class CrashCheckpointTracker {
     for (const message of messages) {
       if (message.id !== undefined) this.partialText.delete(message.id);
     }
+  }
+
+  /** Drops an in-flight corrupted reply so terminal close never snapshots it. */
+  discard(messageId: string): void {
+    this.partialText.delete(messageId);
   }
 
   async flushForClose(persistence: TanStackExecutionPersistence, threadId: string): Promise<void> {
@@ -137,13 +142,13 @@ export function createRunCheckpointer(input: {
         (message) => {
           if (message.role !== 'assistant' || message.content === null) return message;
           if (typeof message.content === 'string') {
-            const cleaned = stripModelControlTags(message.content);
+            const cleaned = projectPublicSpeech(message.content);
             return cleaned === message.content ? message : { ...message, content: cleaned };
           }
           let changed = false;
           const nextParts = message.content.map((part) => {
             if (part.type !== 'text' || typeof part.content !== 'string') return part;
-            const cleaned = stripModelControlTags(part.content);
+            const cleaned = projectPublicSpeech(part.content);
             if (cleaned === part.content) return part;
             changed = true;
             return { ...part, content: cleaned };

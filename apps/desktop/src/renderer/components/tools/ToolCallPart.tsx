@@ -321,7 +321,15 @@ export function ToolCallPart({
   if (row.toolName === 'read_template' && status === 'ok')
     return <TemplateResultCard input={row.input} output={row.output} />;
   // Declarative visuals always render via their dedicated card, keyed strictly on toolName.
-  if (row.toolName === 'present_visual') return <VisualCard row={row} status={status} />;
+  if (row.toolName === 'present_visual') {
+    return (
+      <VisualCard
+        row={row}
+        status={status}
+        handoffActions={context?.handoffActions}
+      />
+    );
+  }
   // Cards are for what the user keeps. Everything else is routine work,
   // which renders as a quiet line — or, with "Show thinking and actions" off,
   // is filtered out before it ever reaches a renderer.

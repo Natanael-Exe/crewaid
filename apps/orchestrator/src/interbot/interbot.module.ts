@@ -13,6 +13,8 @@ import { BotMessageProcessor } from './bot-message.processor.js';
 import { PrismaPeerDirectory } from './peer-directory.js';
 import { SendMessageRegistrar } from './send-message.registrar.js';
 import { TaskContext } from './task-context.js';
+import { WorkflowControlController } from './workflow-control.controller.js';
+import { WorkflowControlService } from './workflow-control.service.js';
 import {
   BOT_MESSAGE_JOB,
   BOT_MESSAGE_QUEUE,
@@ -65,6 +67,7 @@ const { redisUrl, workerEnabled } = describeDeliveryConfig();
           BullModule.registerQueue({ name: BOT_MESSAGE_JOB }),
         ]),
   ],
+  controllers: [WorkflowControlController],
   providers: [
     PrismaPeerDirectory,
     ChainNoticeService,
@@ -73,6 +76,7 @@ const { redisUrl, workerEnabled } = describeDeliveryConfig();
     // read so a suite proving a limit FIRES can supply one without mutating
     // the process environment; a malformed value still throws at boot.
     { provide: CHAIN_LIMITS, useFactory: () => readChainLimits() },
+    WorkflowControlService,
     BotMessageDeliveryService,
     SendMessageRegistrar,
     TaskContext,
@@ -82,6 +86,6 @@ const { redisUrl, workerEnabled } = describeDeliveryConfig();
       ? { provide: BOT_MESSAGE_QUEUE, useValue: UNCONFIGURED_QUEUE }
       : { provide: BOT_MESSAGE_QUEUE, useExisting: BullBotMessageQueue },
   ],
-  exports: [BOT_MESSAGE_QUEUE, BotMessageDeliveryService, CHAIN_LIMITS],
+  exports: [BOT_MESSAGE_QUEUE, BotMessageDeliveryService, CHAIN_LIMITS, WorkflowControlService],
 })
 export class InterbotModule {}

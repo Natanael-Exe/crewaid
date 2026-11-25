@@ -19,4 +19,7 @@ export const sidebar = {
   'sidebar.unread': '{count} unread',
   'sidebar.unassigned': 'Unassigned',
   'sidebar.needsYou': 'Needs you',
+  'sidebar.needsYouLabel': 'Open pending approvals ({count})',
+  'sidebar.needsYouPopover': 'Pending approvals',
+  'sidebar.needsYouWaiting': 'Waiting for approval',
 } as const;

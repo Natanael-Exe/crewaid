@@ -1,12 +1,17 @@
-import type { Bot, Json, ProviderExplanation, ToolInfo } from '@crewaid/shared';
-import { ScrollShadow } from '@heroui/react';
-import { useMemo } from 'react';
+import type { Bot, Json, ProviderExplanation, ToolInfo, WorkflowChainSummary } from '@crewaid/shared';
+import { Button, ScrollShadow } from '@heroui/react';
+import { IconArrowLeft } from '@tabler/icons-react';
+import { useEffect, useMemo } from 'react';
 import { ConnectionStatusBadge } from '../connection/ConnectionStatusBadge';
 import type { WsConnectionState } from '../connection/wsClient';
 import { useT } from '../i18n/i18n';
 import type { PendingApproval, TurnActivity } from '../state/chatReducer';
 import type { QueuedMessage } from '../state/messageQueue';
-import { coalesceRoutineMessages, hasVisibleTranscriptContent } from '../state/transcriptRows';
+import {
+  coalesceDeliveryReceipts,
+  coalesceRoutineMessages,
+  hasVisibleTranscriptContent,
+} from '../state/transcriptRows';
 import type { TranscriptMessage } from '../state/viewTypes';
 import type { PendingVoiceNote } from '../voice/useVoiceOutbox';
 import type { PendingAttachment } from './attachments/attachmentState';
@@ -25,7 +30,13 @@ import {
   OlderHistoryBanner,
 } from './transcript/TranscriptStates';
 import { useTranscriptScroll } from './transcript/useTranscriptScroll';
-import { WorkingIndicator } from './WorkingIndicator';
+import { WorkflowControls } from './transcript/WorkflowControls';
+import {
+  extractLatestHandoff,
+  type HandoffActions,
+  type LatestHandoffSummary,
+} from './visuals/HandoffBlock';
+import { liveWorkPhase, WorkingIndicator } from './WorkingIndicator';
 
 export type { TranscriptMessage } from '../state/viewTypes';
 export type { MessageAction, MessageWorkAction, PeerLabel } from './transcript/MessageBubble';
@@ -47,7 +58,12 @@ export interface TranscriptProps {
   emptyState?: React.ReactNode;
   threadStart?: React.ReactNode;
   afterMessages?: React.ReactNode;
-  composerSeed?: { readonly text: string; readonly nonce: number } | null | undefined;
+  composerSeed?:
+    | { readonly text: string; readonly nonce: number; readonly mode?: 'replace' | 'append' }
+    | null
+    | undefined;
+  handoffActions?: HandoffActions | undefined;
+  onLatestHandoffChange?: ((handoff: LatestHandoffSummary | null) => void) | undefined;
   composerPlaceholder?: string | undefined;
   voice?: ComposerVoice | undefined;
   spokenReplyId?: string | null;
@@ -68,6 +84,15 @@ export interface TranscriptProps {
       }[]
     | undefined;
   onBotMention?: ((botId: string) => void) | undefined;
+  /** Opens a peer bot's thread at the exact handoff exchange and saves a return position. */
+  onOpenPeerExchange?: ((peerBotId: string, msg: TranscriptMessage) => void) | undefined;
+  /** Return-back affordance after following a peer attribution link. */
+  returnTo?: { readonly botName: string; readonly onReturn: () => void } | null | undefined;
+  /** Active multi-bot chains involving this bot or its group (for Stop workflow / Wrap up). */
+  workflows?: readonly WorkflowChainSummary[] | undefined;
+  workflowBusyChainId?: string | null | undefined;
+  onWrapUpWorkflow?: ((chainId: string) => void) | undefined;
+  onStopWorkflow?: ((chainId: string) => void) | undefined;
   connection: WsConnectionState;
   messages: readonly TranscriptMessage[];
   pending: PendingAttachment[];
@@ -92,6 +117,7 @@ export interface TranscriptProps {
   onRetryPending: (localId: string) => void;
   activity?: TurnActivity | undefined;
   queued?: readonly QueuedMessage[] | undefined;
+  interruptingQueuedId?: string | null | undefined;
   onQueue?: ((text: string, attachmentIds: string[]) => void) | undefined;
   onEditQueued?: ((localId: string, text: string) => void) | undefined;
   onRemoveQueued?: ((localId: string) => void) | undefined;
@@ -127,6 +153,7 @@ export function Transcript({
   onRetryPending,
   activity,
   queued,
+  interruptingQueuedId,
   onQueue,
   onEditQueued,
   onRemoveQueued,
@@ -136,6 +163,12 @@ export function Transcript({
   onViewComputer,
   catalogVersion,
   onBotMention,
+  onOpenPeerExchange,
+  returnTo,
+  workflows,
+  workflowBusyChainId,
+  onWrapUpWorkflow,
+  onStopWorkflow,
   historyLoaded = false,
   hasOlderMessages = false,
   loadingOlder = false,
@@ -147,6 +180,8 @@ export function Transcript({
   threadStart,
   afterMessages,
   composerSeed,
+  handoffActions,
+  onLatestHandoffChange,
   composerPlaceholder,
   pendingVoiceNotes,
   onRetryVoiceNote,
@@ -164,7 +199,8 @@ export function Transcript({
       toolLabels === undefined &&
       mentionBots === undefined &&
       onViewComputer === undefined &&
-      approvals === undefined
+      approvals === undefined &&
+      handoffActions === undefined
     )
       return undefined;
     return {
@@ -178,8 +214,14 @@ export function Transcript({
       ...(onViewComputer === undefined ? {} : { onViewComputer }),
       ...(mentionBots === undefined ? {} : { mentionBots }),
       ...(onBotMention === undefined ? {} : { onBotMention }),
+      ...(handoffActions === undefined ? {} : { handoffActions }),
     };
-  }, [onBotMention, peers, tools, onViewComputer, approvals]);
+  }, [onBotMention, peers, tools, onViewComputer, approvals, handoffActions]);
+
+  const latestHandoff = useMemo(() => extractLatestHandoff(messages), [messages]);
+  useEffect(() => {
+    onLatestHandoffChange?.(latestHandoff);
+  }, [latestHandoff, onLatestHandoffChange]);
 
   const {
     scrollRef,
@@ -207,10 +249,25 @@ export function Transcript({
 
   const tail = useMemo(() => {
     const visible = messages.filter((message) => hasVisibleTranscriptContent(message, showBotWork));
-    return showBotWork ? coalesceRoutineMessages(visible, focusMessageId) : visible;
+    const groupedReceipts = coalesceDeliveryReceipts(visible, focusMessageId);
+    return showBotWork ? coalesceRoutineMessages(groupedReceipts, focusMessageId) : groupedReceipts;
   }, [messages, showBotWork, focusMessageId]);
   const writing = messages.at(-1)?.live === true;
   const hasApprovals = approvals !== undefined && approvals.length > 0;
+  const botNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    map.set(bot.id, bot.name);
+    for (const peer of peers ?? []) map.set(peer.id, peer.name);
+    return map;
+  }, [bot.id, bot.name, peers]);
+
+  const livePhase = useMemo(
+    () =>
+      activity === undefined
+        ? undefined
+        : liveWorkPhase(messages, activity.status ?? bot.status, tools),
+    [activity, messages, bot.status, tools],
+  );
 
   return (
     <section
@@ -230,10 +287,34 @@ export function Transcript({
             <p className="truncate text-footnote text-room-muted">{bot.role}</p>
           </div>
           <div className="ms-auto flex items-center gap-2">
+            {returnTo == null ? null : (
+              <Button
+                variant="secondary"
+                size="sm"
+                data-return-to-bot
+                onPress={returnTo.onReturn}
+                className="h-7 gap-1 rounded-full px-2.5 text-caption font-medium"
+              >
+                <IconArrowLeft aria-hidden className="size-3.5" stroke={1.8} />
+                <span>{t('transcript.returnTo', { bot: returnTo.botName })}</span>
+              </Button>
+            )}
+            {workflows !== undefined &&
+            workflows.length > 0 &&
+            onWrapUpWorkflow !== undefined &&
+            onStopWorkflow !== undefined ? (
+              <WorkflowControls
+                chains={workflows}
+                botNameById={botNameById}
+                busyChainId={workflowBusyChainId}
+                onWrapUp={onWrapUpWorkflow}
+                onStopWorkflow={onStopWorkflow}
+              />
+            ) : null}
             {/* Rest is the default and says nothing; only work in progress is
               worth a badge. */}
             {activity === undefined ? null : (
-              <span className="crewaid-working-pill">{t('transcript.working')}</span>
+              <span className="crewaid-working-pill">{livePhase ?? t('transcript.working')}</span>
             )}
             <ConnectionStatusBadge state={connection} />
           </div>
@@ -299,6 +380,8 @@ export function Transcript({
                   settled={msg.live !== true}
                   showWork={showBotWork}
                   autoplayVoice={msg.id === spokenReplyId}
+                  focused={focusMessageId === msg.id}
+                  onOpenPeerExchange={onOpenPeerExchange}
                 />
               );
             })}
@@ -328,6 +411,7 @@ export function Transcript({
                 bot={bot}
                 startedAt={activity.startedAt}
                 status={activity.status ?? bot.status}
+                phase={livePhase}
               />
             ) : null}
 
@@ -368,6 +452,7 @@ export function Transcript({
             // Queue whenever a turn is active, even during quiet tool stretches with no streaming text.
             streaming={writing || activity !== undefined}
             queued={queued}
+            interruptingQueuedId={interruptingQueuedId}
             onQueue={onQueue}
             onEditQueued={onEditQueued}
             onRemoveQueued={onRemoveQueued}

@@ -99,7 +99,27 @@ function parts(
       ...(live ? { state: 'streaming' } : {}),
     });
   else if (message.role === 'tool') result.push(toolResult(message));
-  else result.push(...content(message));
+  else {
+    const textParts = content(message);
+    // Assistant text on a tool-calling step is pre-tool working narration, not
+    // the settled reply. Keep it out of permanent speech bubbles (folded into
+    // the work log when "Show thinking and actions" is enabled).
+    const isPreToolStep =
+      message.role === 'assistant' &&
+      (message.toolCalls?.length ?? 0) > 0 &&
+      crewaidMetadataIn(message).author === 'BOT';
+    if (isPreToolStep) {
+      for (const part of textParts) {
+        if (part.type === 'text' && typeof part.text === 'string') {
+          result.push({ type: 'work-note', text: part.text });
+        } else {
+          result.push(part);
+        }
+      }
+    } else {
+      result.push(...textParts);
+    }
+  }
   if (message.role === 'assistant') {
     const calls = object(object(metadata(message)?.['tanstack'])?.['toolCallMetadata']);
     for (const call of message.toolCalls ?? []) {
@@ -170,6 +190,7 @@ function row(
     ...(live ? { live: true as const } : {}),
     ...(attachments.length > 0 ? { attachments } : {}),
     ...(crewaid.taskId !== null ? { taskId: crewaid.taskId } : {}),
+    ...(crewaid.chainId !== null ? { chainId: crewaid.chainId } : {}),
     ...(crewaid.startsTopic ? { startsTopic: true as const } : {}),
     ...(crewaid.author === 'BOT' && crewaid.fromBotId !== null && crewaid.fromBotId !== botId
       ? { fromBotId: crewaid.fromBotId }

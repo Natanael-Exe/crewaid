@@ -1,11 +1,12 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Deliverable, Prisma } from '@prisma/client';
-import type {
-  CreateDeliverableBody,
-  DeliverableView,
-  ListDeliverablesQuery,
-  ListDeliverablesResponse,
-  UpdateDeliverableBody,
+import {
+  projectPublicSpeech,
+  type CreateDeliverableBody,
+  type DeliverableView,
+  type ListDeliverablesQuery,
+  type ListDeliverablesResponse,
+  type UpdateDeliverableBody,
 } from '@crewaid/shared';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { refile, resolveFiling } from './deliverable-filing.js';
@@ -75,6 +76,13 @@ export class DeliverablesService {
     return { items: shown, nextCursor: more ? (shown.at(-1)?.id ?? null) : null, total };
   }
 
+  /** `GET /deliverables/:id` — exact ownership-verified snapshot lookup. */
+  async get(userId: string, deliverableId: string): Promise<DeliverableView> {
+    const [view] = await deliverableViews(this.prisma, userId, { id: deliverableId }, 1);
+    if (view === undefined) throw new NotFoundException('Deliverable not found');
+    return view;
+  }
+
   /**
    * `POST /deliverables` — the user records a LINK, or saves a transcript
    * MESSAGE as a deliverable. Filed by the ids named,
@@ -100,7 +108,9 @@ export class DeliverablesService {
         if (message === null) throw new NotFoundException('Message not found');
         if (message.author === 'BOT') botId = message.conversation.botId;
         provenance = message.run?.triggerMessageId ?? input.messageId;
-        searchText = boundedSearchText(message.content);
+        const cleanContent =
+          message.author === 'BOT' ? projectPublicSpeech(message.content) : message.content;
+        searchText = boundedSearchText(cleanContent);
       }
       const place = await resolveFiling(tx, userId, {
         taskId: input.taskId,
@@ -150,6 +160,7 @@ export class DeliverablesService {
         data: {
           ...(input.title !== undefined && { title: input.title }),
           ...(input.summary !== undefined && { summary: input.summary }),
+          ...(input.reviewState !== undefined && { reviewState: input.reviewState }),
           ...(filing !== null && filing),
         },
       });

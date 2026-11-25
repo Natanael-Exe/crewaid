@@ -26,6 +26,7 @@ import { previewTools } from '../agent/preview-tools.js';
 import { visualTools } from '../agent/visual-tools.js';
 import { browserTools } from '../agent/browser-tools.js';
 import { boardTools } from '../agent/board-tools.js';
+import { BoardStoreService } from '../agent/board-store.service.js';
 import { memoryTools } from '../agent/memory-tools.js';
 import { identityTools } from '../agent/identity-tools.js';
 import { computerTools } from '../agent/computer-tools.js';
@@ -80,23 +81,7 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
     MessagesService,
     TurnControlService,
     TurnHistoryService,
-    // The one place a tool's definition and its out-of-band behavior
-    // descriptor are read from. The browser built-ins are registered
-    // here because they need nothing this module does not already have.
-    // The skill tools register from SkillsModule instead, and that is
-    // the shape the registry was built for rather than a workaround:
-    // SkillsModule already imports this one, so it can reach the registry,
-    // while this module importing SkillsModule back would be the cycle
-    // TurnEventsModule was extracted to break. A tool group registers itself
-    // from wherever its dependencies already live.
-    // Registration happens at construction rather than in a module hook so a
-    // duplicate name fails at boot, where the stack names the colliding
-    // caller, rather than at the first turn that offers the tool.
-    // The first tool group with a dependency, hence the first `inject` here.
-    // MemoryService arrives at REGISTRATION rather than through ToolContext:
-    // the context carries what varies per turn (which bot, which reply), and
-    // a service does not vary. Threading it through the context would widen a
-    // type every tool sees for the benefit of three.
+    BoardStoreService,
     {
       provide: ToolRegistry,
       useFactory: (
@@ -104,6 +89,7 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
         browsers: AgentBrowserService,
         attachments: AgentAttachmentService,
         bots: BotsService,
+        boardStore: BoardStoreService,
       ): ToolRegistry => {
         const registry = new ToolRegistry();
         for (const entry of previewTools()) registry.register(entry);
@@ -114,11 +100,17 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
           registry.register(entry);
         for (const entry of botTools({ bots })) registry.register(entry);
         for (const entry of identityTools()) registry.register(entry);
-        for (const entry of boardTools()) registry.register(entry);
+        for (const entry of boardTools(boardStore)) registry.register(entry);
         for (const entry of memoryTools(memories)) registry.register(entry);
         return registry;
       },
-      inject: [MemoryService, AgentBrowserService, AgentAttachmentService, BotsService],
+      inject: [
+        MemoryService,
+        AgentBrowserService,
+        AgentAttachmentService,
+        BotsService,
+        BoardStoreService,
+      ],
     },
     // The holder a turn asks for a bot's plugin tools. Empty until
     // `McpModule` registers itself into it, the same way the tool groups
