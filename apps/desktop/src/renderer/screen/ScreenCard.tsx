@@ -330,7 +330,7 @@ export function ScreenCard({
             <div
               role="status"
               data-screen-control-notice
-              className="pointer-events-none absolute bottom-6 left-1/2 z-30 w-max max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl border border-border bg-surface px-4 py-3 text-center text-footnote text-foreground shadow-lg"
+              className="pointer-events-none absolute top-4 left-1/2 z-30 w-max max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl border border-border bg-surface px-4 py-3 text-center text-footnote text-foreground shadow-lg"
             >
               {controlNotice.message}
             </div>
