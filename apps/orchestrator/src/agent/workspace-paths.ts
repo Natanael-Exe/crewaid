@@ -227,6 +227,32 @@ export function resolveWorkspacePath(
 }
 
 /**
+ * Why a file tool may not WRITE `path`, or null when it may.
+ *
+ * Git runs commands its own configuration names — hooks, `core.fsmonitor`,
+ * clean and smudge filters, `core.sshCommand` — and that configuration lives
+ * in a repository's `.git` (a directory, or a file pointing Git at one) and
+ * in `~/.gitconfig`. `fs_write` and `fs_edit` run without approval, so if they
+ * could write there, a prompt-injected model could plant a command that the
+ * next approved `git push` (D-208) or any other git call would run without
+ * anyone having approved it. `shell` can still change Git's configuration,
+ * and `shell` asks. Reading stays allowed.
+ *
+ * `path` is the absolute path `resolveWorkspacePath` returned. The check is
+ * on the path as written; a symlink planted in a checkout is not followed.
+ */
+export function gitConfigWriteRefusal(path: string): string | null {
+  if (path.split('/').includes('.git') || path === `${MACHINE_HOME}/.gitconfig`) {
+    return (
+      `${path} is Git's own configuration, and file tools cannot change it because Git ` +
+      'runs commands named there. If this change is really needed, use shell, which asks ' +
+      'for approval.'
+    );
+  }
+  return null;
+}
+
+/**
  * POSIX-normalize without touching the host filesystem.
  *
  * `node:path` would be the obvious tool and is the wrong one: this resolves a

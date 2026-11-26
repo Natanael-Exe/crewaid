@@ -175,6 +175,26 @@ describe('fs_edit', () => {
     expect(wrote[0]?.content).toBe('one\r\ntwo\nTHREE\n');
   });
 
+  it('refuses to edit Git config, before reading or writing anything', async () => {
+    let read = false;
+    const { context: ctx, wrote } = context({
+      readTextFile: () => {
+        read = true;
+        return '[core]\n';
+      },
+    });
+
+    const result = (await run('fs_edit', ctx, {
+      path: 'repo/.git/config',
+      oldText: '[core]',
+      newText: '[core]\n\tfsmonitor = sh -c true',
+    })) as string;
+
+    expect(result).toContain('fs_edit refused');
+    expect(read).toBe(false);
+    expect(wrote).toHaveLength(0);
+  });
+
   it('refuses missing, binary, outside-workspace, and oversized files', async () => {
     const missing = context({ readTextFile: () => null });
     expect(
@@ -308,7 +328,9 @@ describe('fs_glob', () => {
 
     expect(ran[0]?.env?.['CREWAID_MAX_LINES']).toBe('3');
     expect(ran[0]?.command).toContain('LC_ALL=C sort');
-    expect(result).toBe(`${OWN}/a.md\n[showing 1 of 57 files — narrow path or pattern to see more]`);
+    expect(result).toBe(
+      `${OWN}/a.md\n[showing 1 of 57 files — narrow path or pattern to see more]`,
+    );
   });
 
   it('returns empty without executing when searching /home/bot/groups outside any group', async () => {

@@ -55,8 +55,8 @@ function scriptedModel(
 function makeFakeSession(
   options: {
     files?: Record<string, string>;
-    gitPorcelainBefore?: string;
-    gitPorcelainAfter?: string;
+    /** What the end-of-run scan (`find … -newermt`) prints. */
+    modifiedSince?: string;
     onRun?: (command: string, cwd?: string) => { exitCode: number; stdout: string; stderr: string };
   } = {},
 ): {
@@ -74,7 +74,6 @@ function makeFakeSession(
     workingDirectory?: string | undefined;
     env?: Record<string, string> | undefined;
   }> = [];
-  let gitCalls = 0;
 
   const session = {
     run: async (req: {
@@ -87,13 +86,11 @@ function makeFakeSession(
         workingDirectory: req.workingDirectory,
         env: req.env,
       });
-      if (req.command.includes('status --porcelain')) {
-        gitCalls += 1;
-        const stdout =
-          gitCalls === 1
-            ? (options.gitPorcelainBefore ?? '')
-            : (options.gitPorcelainAfter ?? options.gitPorcelainBefore ?? '');
-        return { exitCode: 0, stdout, stderr: '' };
+      if (req.command === 'date +%s.%N') {
+        return { exitCode: 0, stdout: '1764158400.123456789\n', stderr: '' };
+      }
+      if (req.command.includes('-newermt')) {
+        return { exitCode: 0, stdout: options.modifiedSince ?? '', stderr: '' };
       }
       if (req.command.includes('stat -c %s')) {
         const match = /stat -c %s '([^']+)'/.exec(req.command);
@@ -179,9 +176,9 @@ describe('BuiltInCodingRunner', () => {
       files: {
         [`${REPO}/src/math.ts`]: 'export const add = (a: number, b: number) => a - b;\n',
       },
-      // Pre-existing dirty file should NOT be reported in filesChanged; generated.ts created during shell SHOULD be.
-      gitPorcelainBefore: ' M dirty-before.txt\n',
-      gitPorcelainAfter: ' M dirty-before.txt\n M src/math.ts\n?? src/generated.ts\n',
+      // Only files modified during the run are listed: math.ts (also an fs_edit
+      // receipt, reported once) and generated.ts, which a shell command wrote.
+      modifiedSince: './src/math.ts\n./src/generated.ts\n',
       onRun: (command) => {
         if (command.includes('pnpm test')) {
           return { exitCode: 0, stdout: '1 passed\n', stderr: '' };
@@ -296,14 +293,15 @@ describe('BuiltInCodingRunner', () => {
     );
 
     // shell command cds into REPO inside its shell-quoted wrapper script
-    // The runner's own git status runs with no approval, so it must not run a
-    // command the repository configures (core.fsmonitor) or hold index.lock.
-    const gitStatuses = ranCommands.filter((cmd) => cmd.command.includes('status --porcelain'));
-    expect(gitStatuses.length).toBeGreaterThanOrEqual(2);
-    for (const status of gitStatuses) {
-      expect(status.command).toContain('-c core.fsmonitor=false');
-      expect(status.env).toEqual({ GIT_OPTIONAL_LOCKS: '0' });
-    }
+    // The runner's own commands run with no approval, so none of them may be
+    // Git, which runs commands a repository configures. Its changed-files scan
+    // is a `find` that skips .git and takes the start time from the env.
+    const ownCommands = ranCommands.filter((cmd) => !cmd.command.includes('pnpm test'));
+    expect(ownCommands.some((cmd) => /(^|[\s;&|(])git\s/.test(cmd.command))).toBe(false);
+    const scan = ranCommands.find((cmd) => cmd.command.includes('-newermt'));
+    expect(scan?.command).toContain("-name '.git'");
+    expect(scan?.env).toEqual({ CREWAID_SINCE: '1764158400.123456789' });
+    expect(scan?.workingDirectory).toBe(REPO);
 
     const testRun = ranCommands.find((cmd) => cmd.command.includes('pnpm test'));
     expect(testRun?.command).toContain(`cd '\\''${REPO}'\\''`);

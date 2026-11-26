@@ -5,6 +5,7 @@ import { CONTAINED_BUILTIN, OBSERVING_BUILTIN } from './tool-registry.js';
 import type { RegisteredTool, ToolContext } from './tool-registry.js';
 import {
   MACHINE_HOME,
+  gitConfigWriteRefusal,
   resolveWorkspacePath,
   resolveWorkspaceSearchPlan,
   type WorkspaceSearchPlan,
@@ -294,6 +295,8 @@ export function codingTools(): RegisteredTool[] {
               context.workingDirectory,
             );
             if (!verdict.ok) return `fs_edit refused: ${verdict.reason}`;
+            const gitRefusal = gitConfigWriteRefusal(verdict.path);
+            if (gitRefusal !== null) return `fs_edit refused: ${gitRefusal}`;
             try {
               const session = await context.session();
               const raw = await session.readTextFile({ path: verdict.path });

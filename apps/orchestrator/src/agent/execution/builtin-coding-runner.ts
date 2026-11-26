@@ -73,7 +73,28 @@ const OBSERVATION_TOOLS = new Set(['fs_read', 'fs_grep', 'fs_glob', 'process_out
 const MAX_SUMMARY_CHARS = 8_000;
 const MAX_COMMANDS_TRACKED = 25;
 const MAX_FILES_TRACKED = 60;
-const GIT_STATUS_TIMEOUT_MS = 5_000;
+const CHANGE_SCAN_TIMEOUT_MS = 5_000;
+/** Most paths one changed-files scan reads back. */
+const CHANGE_SCAN_MAX_PATHS = 200;
+/** Directories a changed-files scan skips: VCS metadata, dependencies, caches and build output. */
+const CHANGE_SCAN_PRUNE = [
+  '.git',
+  'node_modules',
+  '.venv',
+  'venv',
+  '__pycache__',
+  '.pytest_cache',
+  '.mypy_cache',
+  '.next',
+  '.turbo',
+  '.vite',
+  '.cache',
+  'dist',
+  'build',
+  'out',
+  'coverage',
+  'target',
+];
 
 const FinishTaskInputSchema = z.object({
   summary: z
@@ -213,45 +234,61 @@ function extractShellExitCode(output: unknown): number | null {
 }
 
 /**
- * Snapshot `git status --porcelain=v1 -uall` in `cwd` (best-effort) so edits
- * made indirectly via `shell` (formatters, codegen, `mv`/`rm`) are captured
- * while pre-existing dirty files are excluded by diffing before vs. after.
+ * The container's clock, read before the coding model acts, so the scan at the
+ * end can list what was modified after it. Null when it cannot be read.
  */
-async function snapshotGitPorcelain(
+async function containerClock(
   session: ToolSandboxSession,
-  cwd: string,
   signal?: AbortSignal,
-): Promise<Map<string, string> | null> {
+): Promise<string | null> {
   if (signal?.aborted === true) return null;
   try {
-    // This runs with no approval, so it must not run anything the repository
-    // asks for: `core.fsmonitor` in `.git/config` names a command `git status`
-    // executes, and `fs_write` (which needs no approval) can set it. Optional
-    // locks off, so a status in the background never holds `index.lock` against
-    // the model's own git commands.
     const res = await session.run({
-      command: `git -c core.fsmonitor=false -C ${shellQuote(cwd)} status --porcelain=v1 -uall 2>/dev/null`,
-      workingDirectory: cwd,
-      env: { GIT_OPTIONAL_LOCKS: '0' },
+      command: 'date +%s.%N',
       abortSignal:
         signal === undefined
-          ? AbortSignal.timeout(GIT_STATUS_TIMEOUT_MS)
-          : AbortSignal.any([signal, AbortSignal.timeout(GIT_STATUS_TIMEOUT_MS)]),
+          ? AbortSignal.timeout(CHANGE_SCAN_TIMEOUT_MS)
+          : AbortSignal.any([signal, AbortSignal.timeout(CHANGE_SCAN_TIMEOUT_MS)]),
+    });
+    const value = res.stdout.trim();
+    return res.exitCode === 0 && /^\d+(\.\d+)?$/.test(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Files under `cwd` modified after `since`, relative to `cwd`, so edits made
+ * through `shell` (formatters, codegen, `mv`) are reported alongside the
+ * fs_edit/fs_write receipts.
+ *
+ * Deliberately not `git status`. This runs with no approval, and Git runs
+ * commands a repository configures — `core.fsmonitor`, clean filters, a `.git`
+ * file pointing at another config, a submodule's own config — so a repository
+ * the bot works in could make this call execute code nobody approved. `find`
+ * reads nothing the repository controls and does not follow symlinks. Deleted
+ * files are not reported.
+ */
+async function filesModifiedSince(
+  session: ToolSandboxSession,
+  cwd: string,
+  since: string,
+): Promise<string[] | null> {
+  const prune = CHANGE_SCAN_PRUNE.map((name) => `-name ${shellQuote(name)}`).join(' -o ');
+  try {
+    const res = await session.run({
+      command:
+        `find . \\( ${prune} \\) -prune -o -type f -newermt "@$CREWAID_SINCE" -print ` +
+        `2>/dev/null | head -n ${String(CHANGE_SCAN_MAX_PATHS)}`,
+      workingDirectory: cwd,
+      env: { CREWAID_SINCE: since },
+      abortSignal: AbortSignal.timeout(CHANGE_SCAN_TIMEOUT_MS),
     });
     if (res.exitCode !== 0) return null;
-    const entries = new Map<string, string>();
-    for (const line of res.stdout.split('\n')) {
-      if (line.length < 4) continue;
-      const status = line.slice(0, 2);
-      const rawPath = line.slice(3).trim();
-      if (rawPath === '') continue;
-      const arrowIdx = rawPath.indexOf(' -> ');
-      const target = (arrowIdx === -1 ? rawPath : rawPath.slice(arrowIdx + 4))
-        .replace(/^"(.*)"$/, '$1')
-        .trim();
-      if (target !== '') entries.set(target, status);
-    }
-    return entries;
+    return res.stdout
+      .split('\n')
+      .map((line) => line.trim().replace(/^\.\//, ''))
+      .filter((line) => line !== '');
   } catch {
     return null;
   }
@@ -483,9 +520,9 @@ export class BuiltInCodingRunner implements CodingRunner {
         recordTelemetry(iteration, outcome, null, errorCode);
     };
 
-    // Memoize session access and capture a best-effort git status baseline on first wake.
+    // Memoize session access, and read the container's clock on first wake for the changed-files scan.
     let sandboxSession: ToolSandboxSession | undefined;
-    let gitBefore: Map<string, string> | null = null;
+    let changesSince: string | null = null;
     const ensureSession = async (): Promise<ToolSandboxSession> => {
       if (sandboxSession === undefined) {
         sandboxSession = await invocation.session();
@@ -493,11 +530,11 @@ export class BuiltInCodingRunner implements CodingRunner {
       return sandboxSession;
     };
 
-    // Baseline git status in cwd (best-effort) before the model makes any edits.
+    // The moment before the model makes any edits (best-effort).
     if (!controller.signal.aborted) {
       try {
         const liveSession = await ensureSession();
-        gitBefore = await snapshotGitPorcelain(liveSession, task.cwd, controller.signal);
+        changesSince = await containerClock(liveSession, controller.signal);
       } catch {
         // Session wake failures surface through tool calls or abort cleanly below.
       }
@@ -896,15 +933,12 @@ export class BuiltInCodingRunner implements CodingRunner {
         .catch(() => undefined);
     }
 
-    // Best-effort post-run git status diff to capture files modified indirectly via shell.
-    if (!cancelled && sandboxSession !== undefined && gitBefore !== null) {
-      const gitAfter = await snapshotGitPorcelain(sandboxSession, task.cwd);
-      if (gitAfter !== null) {
-        for (const [relPath, status] of gitAfter) {
-          if (gitBefore.get(relPath) !== status && filesChangedSet.size < MAX_FILES_TRACKED) {
-            filesChangedSet.add(relPath);
-          }
-        }
+    // Best-effort: files modified since then, including those changed through shell.
+    if (!cancelled && sandboxSession !== undefined && changesSince !== null) {
+      const modified = await filesModifiedSince(sandboxSession, task.cwd, changesSince);
+      for (const relPath of modified ?? []) {
+        if (filesChangedSet.size >= MAX_FILES_TRACKED) break;
+        filesChangedSet.add(relPath);
       }
     }
 
