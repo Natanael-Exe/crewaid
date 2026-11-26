@@ -31,7 +31,7 @@ describe('D-231 the provider copy opens on the person', () => {
   it('is what the run middleware hands the provider, without touching the stored list', async () => {
     const middleware = providerContext(
       { tools: {} } as never,
-      false,
+      { kind: 'anthropic', vision: false },
       async (_request, ids) => new Map(ids.map((id) => [id, []])),
     );
     const messages = [question, task];

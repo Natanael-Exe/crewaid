@@ -88,7 +88,10 @@ export function StepperStep({
       <li
         data-slot="stepper-step"
         data-status={status}
-        className={cx('flex min-w-0 items-start', isLast ? 'flex-none' : 'flex-1', className)}
+        // The last step takes its own width but may still give some back: a
+        // translated title can be far longer than the English one, and a step
+        // that cannot shrink pushes its title over its neighbours'.
+        className={cx('flex min-w-0 items-start', isLast ? 'flex-initial' : 'flex-1', className)}
         {...props}
       >
         {clickable ? (
@@ -97,7 +100,7 @@ export function StepperStep({
             data-slot="stepper-step-button"
             aria-current={status === 'active' ? 'step' : undefined}
             onClick={() => onStepChange(stepIndex)}
-            className="flex shrink-0 cursor-[var(--cursor-interactive)] flex-col items-center gap-1.5 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            className="flex min-w-0 cursor-[var(--cursor-interactive)] flex-col items-center gap-1.5 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             {parts}
           </button>
@@ -105,7 +108,7 @@ export function StepperStep({
           <div
             data-slot="stepper-step-header"
             aria-current={status === 'active' ? 'step' : undefined}
-            className="flex shrink-0 flex-col items-center gap-1.5"
+            className="flex min-w-0 flex-col items-center gap-1.5"
           >
             {parts}
           </div>
@@ -151,7 +154,8 @@ export function StepperTitle({ className, ...props }: ComponentPropsWithRef<'spa
     <span
       data-slot="stepper-title"
       className={cx(
-        'whitespace-nowrap text-caption',
+        // Wraps rather than overflowing into the next step's title.
+        'max-w-full text-balance break-words text-center text-caption',
         status === 'inactive' ? 'text-muted' : 'text-foreground',
         status === 'active' && 'font-medium',
         className,

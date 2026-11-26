@@ -573,17 +573,27 @@ export function LocalHarnessesView({
                   )}
                 </div>
                 {harness.available ? null : harness.installCommand !== null ? (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onPress={() =>
-                      handleCopy(`install:${harness.id}`, harness.installCommand ?? harness.installHint)
-                    }
-                  >
-                    {copiedField === `install:${harness.id}`
-                      ? t('settings.localHarnesses.copied')
-                      : t('settings.localHarnesses.copyInstall')}
-                  </Button>
+                  <Tooltip delay={200}>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onPress={() =>
+                        handleCopy(
+                          `install:${harness.id}`,
+                          harness.installCommand ?? harness.installHint,
+                        )
+                      }
+                    >
+                      {copiedField === `install:${harness.id}`
+                        ? t('settings.localHarnesses.copied')
+                        : t('settings.localHarnesses.copyInstall')}
+                    </Button>
+                    <Tooltip.Content placement="top" className="max-w-xs">
+                      {t('settings.localHarnesses.copyInstallTooltip', {
+                        harness: harness.label,
+                      })}
+                    </Tooltip.Content>
+                  </Tooltip>
                 ) : (
                   <Tooltip delay={200}>
                     <Tooltip.Trigger>

@@ -7,8 +7,10 @@ import { CodingRunStoreService } from '../agent/coding/coding-run-store.service.
 import { TURN_BOT_SELECT } from '../agent/turn-assembly.js';
 import {
   cancelPendingToolResults,
+  openOwnedTanStackPersistence,
   readAdmittedResume,
   recoverExpiredRuns,
+  settleUnansweredToolResultsTx,
 } from '../agent/persistence/owned-tanstack-persistence.js';
 import {
   RUN_HEARTBEAT_MS,
@@ -82,8 +84,86 @@ export class RunRecoveryService implements OnModuleDestroy {
     return this.recoverySweep;
   }
 
+  /**
+   * Reconciles orphaned split-brain interrupts whose private proposal was
+   * already resolved/cancelled and whose continuation has already reached a
+   * terminal state, leaving `nativeStatus = 'pending'` (and any unanswered
+   * parent tool calls if the continuation died before saving tool results).
+   */
+  private async reconcileOrphanedNativeInterrupts(): Promise<void> {
+    const orphaned = await this.prisma.$queryRaw<
+      Array<{
+        readonly userId: string;
+        readonly botId: string;
+        readonly threadId: string;
+        readonly runId: string;
+        readonly continuationId: string;
+      }>
+    >`
+      SELECT DISTINCT ON (i."runId")
+        i."userId",
+        r."botId",
+        i."conversationId" AS "threadId",
+        i."runId",
+        c.id AS "continuationId"
+      FROM "RunInterrupt" i
+      JOIN "AgentTurn" r ON r.id = i."runId"
+      JOIN "AgentTurn" c ON c."resumesRunId" = i."runId"
+      WHERE i."nativeInterruptId" IS NOT NULL
+        AND i."nativeStatus" = 'pending'
+        AND i.status IN ('resolved', 'cancelled')
+        AND NOT EXISTS (
+          SELECT 1 FROM "AgentTurn" live
+          WHERE live."resumesRunId" = i."runId" AND live.status = 'running'
+        )
+      ORDER BY i."runId", c.sequence DESC
+      LIMIT 100`;
+    if (orphaned.length === 0) return;
+    let repaired = 0;
+    for (const item of orphaned) {
+      const now = new Date();
+      const count = await this.prisma.$transaction(async (tx) => {
+        const resolved = await tx.runInterrupt.updateMany({
+          where: {
+            runId: item.runId,
+            userId: item.userId,
+            conversationId: item.threadId,
+            nativeInterruptId: { not: null },
+            nativeStatus: 'pending',
+            status: 'resolved',
+          },
+          data: { nativeStatus: 'resolved', nativeResolvedAt: now },
+        });
+        const cancelled = await tx.runInterrupt.updateMany({
+          where: {
+            runId: item.runId,
+            userId: item.userId,
+            conversationId: item.threadId,
+            nativeInterruptId: { not: null },
+            nativeStatus: 'pending',
+            status: 'cancelled',
+          },
+          data: { nativeStatus: 'cancelled', nativeResolvedAt: now },
+        });
+        await settleUnansweredToolResultsTx(
+          tx,
+          { userId: item.userId, botId: item.botId, threadId: item.threadId },
+          [item.runId, item.continuationId],
+          item.continuationId,
+          'failed',
+        );
+        return resolved.count + cancelled.count;
+      });
+      repaired += count;
+    }
+    if (repaired > 0) {
+      this.logger.info('turn.recovery.orphaned-interrupts-repaired', { count: repaired });
+    }
+  }
+
   /** Rebuild owned input; the producer fences checkpoints and effect replay. */
   private async sweepAbandonedRuns(hooks: RecoveryHooks): Promise<void> {
+    await this.reconcileOrphanedNativeInterrupts();
     const result = await recoverExpiredRuns({
       leases: this.leases,
       resume: async (lease) => {
@@ -111,7 +191,17 @@ export class RunRecoveryService implements OnModuleDestroy {
         if (run.eventsClosedAt !== null) {
           // A closed log cannot accept another producer; settle once rather
           // than reclaiming the broken row every lease TTL.
-          await this.leases.finish(lease, 'failed');
+          if (run.resumesRunId !== null) {
+            const persistence = await openOwnedTanStackPersistence(this.prisma, lease);
+            await persistence.boundary('failed', () =>
+              persistence.persistence.stores.runs.update(lease.runId, {
+                status: 'failed',
+                finishedAt: Date.now(),
+              }),
+            );
+          } else {
+            await this.leases.finish(lease, 'failed');
+          }
           await this.approvalHub.finishRun(lease.userId, lease.runId);
           await hooks.writeStatus(lease.botId, 'ERROR');
           this.logger.warn('turn.recovery.closed-log', { runId: lease.runId });
@@ -157,22 +247,35 @@ export class RunRecoveryService implements OnModuleDestroy {
   /** A dead worker cannot acknowledge Stop; recovery closes it without dispatch. */
   private async settleCanceledRecovery(lease: RunLease, parentRunId: string | null): Promise<void> {
     const boundary = new OwnedRunBoundary(this.prisma, lease);
+    const runIds = parentRunId === null ? [lease.runId] : [lease.runId, parentRunId];
+    const now = new Date();
     await boundary.close('aborted', () =>
       boundary.transaction(async (tx) => {
         await boundary.fence(tx);
         await cancelPendingToolResults(this.prisma, lease, parentRunId, boundary);
         await tx.runInterrupt.updateMany({
           where: {
-            runId: { in: parentRunId === null ? [lease.runId] : [lease.runId, parentRunId] },
+            runId: { in: runIds },
             userId: lease.userId,
             conversationId: lease.threadId,
             OR: [{ status: 'pending' }, { nativeStatus: 'pending' }],
           },
           data: {
             status: 'cancelled',
+            resolvedAt: now,
+          },
+        });
+        await tx.runInterrupt.updateMany({
+          where: {
+            runId: { in: runIds },
+            userId: lease.userId,
+            conversationId: lease.threadId,
+            nativeInterruptId: { not: null },
+            nativeStatus: 'pending',
+          },
+          data: {
             nativeStatus: 'cancelled',
-            resolvedAt: new Date(),
-            nativeResolvedAt: new Date(),
+            nativeResolvedAt: now,
           },
         });
         await tx.agentTurn.updateMany({

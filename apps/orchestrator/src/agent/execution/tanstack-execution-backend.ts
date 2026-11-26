@@ -273,7 +273,7 @@ export class TanStackExecutionBackend implements ExecutionBackend {
             lifecycle,
             providerContext(
               request,
-              resolved.capabilities.vision,
+              { kind: resolved.kind, vision: resolved.capabilities.vision },
               this.deps.loadAttachments,
               this.deps.loadSenders,
               () => state.drainNotices(),

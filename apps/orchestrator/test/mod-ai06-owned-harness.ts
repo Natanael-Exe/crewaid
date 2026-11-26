@@ -107,6 +107,7 @@ export function produceOwned(
     /** Attach the run's D-197 dispatch ledger, fenced by the lease. */
     readonly ledger?: boolean;
     readonly ports?: Partial<ExecutionPorts>;
+    readonly adapter?: ScriptedAdapter;
   } = {},
 ) {
   const state: PolicyState =
@@ -133,7 +134,7 @@ export function produceOwned(
       logger: { warn: () => undefined },
       loadAttachments: async () => new Map(),
       resolveModel: async () => ({
-        adapter: new ScriptedAdapter(),
+        adapter: options.adapter ?? new ScriptedAdapter(),
         modelId: 'fixture',
         kind: 'custom',
         connectionId: 'fixture',

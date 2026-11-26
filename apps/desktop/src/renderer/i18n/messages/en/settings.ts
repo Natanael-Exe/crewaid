@@ -527,6 +527,8 @@ export const settings = {
   'settings.localHarnesses.harnessReady': 'Ready',
   'settings.localHarnesses.harnessMissing': 'Not installed',
   'settings.localHarnesses.copyInstall': 'Copy install',
+  'settings.localHarnesses.copyInstallTooltip':
+    'Copy and run this command in a terminal to install {harness}, then click Refresh.',
   'settings.localHarnesses.installAction': 'Install',
   'settings.localHarnesses.noHarnessesInstalled':
     'Install at least one coding harness above (Claude Code, Codex, OpenCode, or Antigravity), then click Refresh before connecting a folder.',

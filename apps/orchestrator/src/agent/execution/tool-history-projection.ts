@@ -1,6 +1,7 @@
 import type { ContentPart, ModelMessage } from '@tanstack/ai';
 import { z } from 'zod';
 import { JsonSchema } from '@crewaid/shared';
+import type { BuiltTextAdapter } from '../../models/tanstack/text-adapter.js';
 import type { ModelToolOutput, ToolSet } from '../tool-contract.js';
 
 const FileSchema = z.object({
@@ -100,6 +101,78 @@ export async function projectToolHistory(
  */
 const SCREENSHOT_STUB =
   '[an earlier screenshot was removed to save context — take a new screenshot if you need to see the screen now]';
+
+/**
+ * Where a tool result's images can go in this provider's request.
+ *
+ * - `tool-result`: inside the tool result, which Anthropic and OpenAI
+ *   Responses accept.
+ * - `follow-up`: in a user message after the results. Chat Completions tool
+ *   messages are text only. TanStack's adapter `JSON.stringify`s an array
+ *   there, so one 1,920×1080 screenshot became ~170k tokens of base64. That
+ *   failed every later request in the conversation. OpenRouter's adapter
+ *   silently keeps only the text.
+ * - `none`: the model takes no images, so they are described instead.
+ */
+export type ToolImagePlacement = 'tool-result' | 'follow-up' | 'none';
+
+export function toolImagePlacement(
+  kind: BuiltTextAdapter['kind'],
+  vision: boolean,
+): ToolImagePlacement {
+  if (!vision) return 'none';
+  switch (kind) {
+    case 'anthropic':
+    case 'openai':
+      return 'tool-result';
+    case 'openrouter':
+    case 'custom':
+      return 'follow-up';
+  }
+}
+
+const NO_VISION_NOTE =
+  '[the screenshot is not shown: this model does not accept images — read the screen another way, or ask the user]';
+const FOLLOW_UP_NOTE = '[screenshot attached in the next message]';
+const FOLLOW_UP_LEAD = 'The screenshot from the tool result above:';
+
+export function placeToolImages(
+  messages: readonly ModelMessage[],
+  placement: ToolImagePlacement,
+): ModelMessage[] {
+  if (placement === 'tool-result') return [...messages];
+  const out: ModelMessage[] = [];
+  // Chat Completions requires every result of one assistant turn to follow it
+  // directly, so the images wait until the run of tool messages ends.
+  let pending: ContentPart[] = [];
+  const flush = () => {
+    if (pending.length === 0) return;
+    out.push({ role: 'user', content: [{ type: 'text', content: FOLLOW_UP_LEAD }, ...pending] });
+    pending = [];
+  };
+  for (const message of messages) {
+    if (message.role !== 'tool') flush();
+    // Any array is flattened, not only one holding images: the stub that
+    // replaced an older screenshot is a text part the same adapters mangle.
+    if (message.role !== 'tool' || !Array.isArray(message.content)) {
+      out.push(message);
+      continue;
+    }
+    const images = message.content.filter((part) => part.type === 'image');
+    if (placement === 'follow-up') pending.push(...images);
+    const note = placement === 'follow-up' ? FOLLOW_UP_NOTE : NO_VISION_NOTE;
+    out.push({
+      ...message,
+      // A string: the adapters that need this placement keep nothing else.
+      content: message.content
+        .map((part) => (part.type === 'image' ? note : part.type === 'text' ? part.content : ''))
+        .filter((text) => text !== '')
+        .join('\n'),
+    });
+  }
+  flush();
+  return out;
+}
 
 export function stubOlderScreenshots(
   messages: readonly ModelMessage[],

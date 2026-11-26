@@ -367,6 +367,52 @@ describe('localConnectorTools + PolicyRuntime end-to-end', () => {
     ).toBe('user-approval');
   });
 
+  it('omits duplicate workspace name in approval binding when connector name matches workspaceName', async () => {
+    const connector = onlineConnector({ name: 'crewaid-public', workspaceName: 'crewaid-public' });
+    const connectors: LocalConnectorToolsStore = {
+      list: vi.fn(async () => ({ connectors: [connector] })),
+      resolveForDispatch: vi.fn(async () => ({ ok: true as const, connector })),
+    };
+    const runner: LocalConnectorTaskRunner = { runLocalTask: vi.fn() };
+    const registry = new ToolRegistry();
+    const resolved = registry.resolveFor(
+      makeContext(),
+      localConnectorTools({
+        userId: USER_ID,
+        botId: BOT_ID,
+        botName: 'Atlas',
+        connectors,
+        runner,
+      }),
+    );
+    const policy = createPolicyRuntime({
+      project: (name, args) => resolved.projectCall(name, args),
+      read: async () => ({
+        snapshot: {
+          mode: 'ASK',
+          rules: [],
+          grantRevision: policyHash(['g']),
+          grantValid: true,
+          seat: null,
+          resourceRevision: null,
+        },
+      }),
+      store: makeProposalStore(),
+    });
+    const input: Json = { connectorId: CONNECTOR_ID, goal: 'Inspect README' };
+    expect(
+      await policy.decide({ toolCall: { toolCallId: 'tc-dup', toolName: 'local_code_task', input } }),
+    ).toBe('user-approval');
+    const prompt = policy.prompt({
+      approvalId: 'apr-dup',
+      toolCallId: 'tc-dup',
+      toolName: 'local_code_task',
+      args: input,
+    });
+    expect(prompt.binding.commit?.account).toBe('crewaid-public');
+    expect(prompt.binding.commit?.destinations).toEqual([`${CONNECTOR_ID}:.`]);
+  });
+
   it('refuses CONNECTOR_ON_OTHER_INSTANCE, busy, unavailable harness, and traversal paths before asking approval', async () => {
     const connector = onlineConnector({ harnesses: ['claude-code'], defaultHarness: 'claude-code' });
     const resolveForDispatch = vi.fn();

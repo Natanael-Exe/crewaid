@@ -22,6 +22,8 @@ import {
   type OwnedResume,
   type OwnedThread,
 } from './mod-ai06-owned-harness.js';
+import { ScriptedAdapter } from './mod-02-tanstack-harness.js';
+import { EventType, type StreamChunk, type TextOptions } from '@tanstack/ai';
 
 const DATABASE_URL = process.env['DATABASE_URL'];
 
@@ -43,7 +45,11 @@ describe.skipIf(!DATABASE_URL)('MOD-AI-06 owned approval resume end to end (real
     lease: RunLease,
     action: (args: Json) => Promise<unknown>,
     resume?: OwnedResume,
-    options?: { readonly leases?: RunLeaseService; readonly maxSteps?: number },
+    options?: {
+      readonly leases?: RunLeaseService;
+      readonly maxSteps?: number;
+      readonly adapter?: ScriptedAdapter;
+    },
   ) => produceOwned(prisma, t, lease, action, resume, options);
 
   async function parked() {
@@ -159,7 +165,7 @@ describe.skipIf(!DATABASE_URL)('MOD-AI-06 owned approval resume end to end (real
   });
 
   it('a continuation counts its parent chain against the run ceilings', async () => {
-    const { t, answer, scope } = await parked();
+    const { t, proposal, answer, scope } = await parked();
     // The parked run's own share is on its row; pretend earlier steps used the ceiling.
     await prisma.agentTurn.update({ where: { id: t.first.runId }, data: { stepIndex: 3 } });
     const batch = answer({ approved: true });
@@ -175,6 +181,80 @@ describe.skipIf(!DATABASE_URL)('MOD-AI-06 owned approval resume end to end (real
     expect(outcome.status).toBe('completed');
     expect(outcome.stoppedBy).toBeDefined();
     expect(action).not.toHaveBeenCalled();
+    // Even though the ceiling ended the continuation before chat() ran, the
+    // native interrupt must be settled so later messages do not strand the thread.
+    expect(
+      await prisma.runInterrupt.findUniqueOrThrow({ where: { id: proposal.id } }),
+    ).toMatchObject({ status: 'resolved', nativeStatus: 'resolved' });
+    const nextMsg = await userMessage(prisma, t.botId, t.threadId, 'carry on');
+    const nextClaim = await new RunLeaseService(prisma).claim({
+      userId: owner.userId,
+      botId: t.botId,
+      threadId: t.threadId,
+      runId: randomUUID(),
+      triggerMessageId: nextMsg,
+    });
+    if (nextClaim.kind !== 'claimed') throw new Error('expected next claim');
+    expect((await produce(t, nextClaim.lease, action)).status).toBe('completed');
+  });
+
+  it('settles native interrupts when a resumed run fails after tool execution so later turns stay usable', async () => {
+    const { t, proposal, answer, scope } = await parked();
+    const batch = answer({ approved: true });
+    const { lease } = await admitOwnedToolResumeBatch(prisma, scope, batch);
+    const action = vi.fn(async () => ({ ok: true }));
+
+    class TimeoutAfterToolAdapter extends ScriptedAdapter {
+      override async *chatStream(
+        options: TextOptions<Record<string, never>>,
+      ): AsyncIterable<StreamChunk> {
+        const runId = options.runId ?? randomUUID();
+        const threadId = options.threadId ?? randomUUID();
+        yield {
+          type: EventType.RUN_STARTED,
+          runId,
+          threadId,
+          timestamp: Date.now(),
+        } as StreamChunk;
+        yield {
+          type: EventType.RUN_ERROR,
+          runId,
+          threadId,
+          timestamp: Date.now(),
+          code: 'TIMEOUT',
+          message: 'Upstream model timed out',
+        } as StreamChunk;
+      }
+    }
+
+    const failed = await produce(
+      t,
+      lease,
+      action,
+      { parentRunId: t.first.runId, batch },
+      { adapter: new TimeoutAfterToolAdapter() },
+    );
+    expect(failed.status).toBe('failed');
+    expect(action).toHaveBeenCalledOnce();
+    expect(
+      await prisma.runInterrupt.findUniqueOrThrow({ where: { id: proposal.id } }),
+    ).toMatchObject({ status: 'resolved', nativeStatus: 'resolved' });
+
+    // A follow-up turn (e.g. automatic retry or user saying "Please try again.")
+    // must start cleanly rather than failing with InterruptResumeValidationError.
+    const nextMsg = await userMessage(prisma, t.botId, t.threadId, 'Please try again.');
+    const nextClaim = await new RunLeaseService(prisma).claim({
+      userId: owner.userId,
+      botId: t.botId,
+      threadId: t.threadId,
+      runId: randomUUID(),
+      triggerMessageId: nextMsg,
+    });
+    if (nextClaim.kind !== 'claimed') throw new Error('expected next claim');
+    const retryAction = vi.fn(async () => 'must not repeat');
+    const nextOutcome = await produce(t, nextClaim.lease, retryAction);
+    expect(nextOutcome.status).toBe('completed');
+    expect(retryAction).not.toHaveBeenCalled();
   });
 
   it("records each run's own steps and time, including the paused one", async () => {
