@@ -111,7 +111,7 @@ function taggedCommand(command: string, id: string): string {
  * Killing only the matched pids would leave whatever the command spawned — a
  * backgrounded child survives a kill aimed at its parent.
  *
- * `[g]rog-shell:` is the standard self-exclusion: the bracket matches the same
+ * `[c]rewaid-shell:` is the standard self-exclusion: the bracket matches the same
  * text while the pattern itself does not contain it, so this command line is
  * not one of its own hits. Without it the loop kills its own process group and
  * stops partway through, leaving part of the tree alive.
@@ -123,7 +123,7 @@ function taggedCommand(command: string, id: string): string {
  * container.
  */
 function killByTag(id: string): string {
-  const pattern = shellQuote(`[g]rog-shell:${id}`);
+  const pattern = shellQuote(`[c]rewaid-shell:${id}`);
   const sweep =
     `for p in $(pgrep -f ${pattern}); do ` +
     `pgid=$(ps -o pgid= -p "$p" | tr -d ' '); ` +

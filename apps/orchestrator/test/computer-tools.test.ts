@@ -286,6 +286,39 @@ describe('shell', () => {
     expect(await run('shell', ctx, { command: '   ' })).toContain('a command is required');
     expect(ran).toHaveLength(0);
   });
+
+  it('kills a cancelled command using a pgrep pattern that matches its own tag and excludes itself', async () => {
+    // `taggedCommand` prefixes the bash script with `crewaid-shell:<id>`, and
+    // `killByTag` sweeps for it via `pgrep -f` using bracket self-exclusion.
+    // A mismatch between the two prefixes silently disables cancel cleanup and
+    // leaves the command running until the 120s timeout expires.
+    const controller = new AbortController();
+    const { context: ctx, ran } = context({
+      run: () => {
+        if (!controller.signal.aborted) controller.abort();
+        return { exitCode: 143, stdout: '', stderr: '' };
+      },
+    });
+
+    await run('shell', ctx, { command: 'sleep 60' }, { abortSignal: controller.signal });
+    await Promise.resolve();
+
+    expect(ran.length).toBeGreaterThanOrEqual(2);
+    const launched = ran[0]?.command ?? '';
+    const cleanup = ran[1]?.command ?? '';
+    const tagMatch = launched.match(/crewaid-shell:([0-9a-f-]+)/);
+    expect(tagMatch).not.toBeNull();
+    const id = tagMatch?.[1] ?? '';
+
+    const patternMatch = cleanup.match(/pgrep -f '([^']+)'/);
+    expect(patternMatch).not.toBeNull();
+    const pattern = patternMatch?.[1] ?? '';
+    expect(pattern).toBe(`[c]rewaid-shell:${id}`);
+
+    const matcher = new RegExp(pattern);
+    expect(matcher.test(`crewaid-shell:${id}`)).toBe(true);
+    expect(matcher.test(cleanup)).toBe(false);
+  });
 });
 
 describe('fs_read', () => {
