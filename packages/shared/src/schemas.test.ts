@@ -3327,6 +3327,28 @@ const pairs: Record<string, Pair> = {
     },
     invalid: { kind: 'handoff', outcome: '' },
   },
+  VisualCheckStatusSchema: {
+    schema: shared.VisualCheckStatusSchema,
+    valid: 'done',
+    validEach: ['warning', 'failed', 'pending', 'skipped'],
+    invalid: 'unknown',
+  },
+  VisualCheckItemSchema: {
+    schema: shared.VisualCheckItemSchema,
+    valid: { label: 'Orders', result: '27 pulled', status: 'done' },
+    invalid: { label: '' },
+  },
+  VisualChecksBlockSchema: {
+    schema: shared.VisualChecksBlockSchema,
+    valid: {
+      kind: 'checks',
+      items: [
+        { label: 'Orders', result: '27 pulled', status: 'done' },
+        { label: 'Payments', result: '27 matched' },
+      ],
+    },
+    invalid: { kind: 'checks', items: [] },
+  },
   DeliverableReviewStateSchema: {
     schema: shared.DeliverableReviewStateSchema,
     valid: 'READY',

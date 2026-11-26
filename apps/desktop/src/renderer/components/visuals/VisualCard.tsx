@@ -7,6 +7,7 @@ import type { FoldedToolPart } from '../tools/toolParts';
 import { TextShimmer } from '../ui';
 import { CalloutBlock } from './CalloutBlock';
 import { ChartBlock } from './ChartBlock';
+import { ChecksBlock } from './ChecksBlock';
 import { ComparisonBlock } from './ComparisonBlock';
 import { HandoffBlock, type HandoffActions } from './HandoffBlock';
 import { MetricsBlock } from './MetricsBlock';
@@ -48,6 +49,8 @@ function VisualBlockView({
       return <CalloutBlock block={block} />;
     case 'handoff':
       return <HandoffBlock block={block} actions={handoffActions} />;
+    case 'checks':
+      return <ChecksBlock block={block} />;
   }
 }
 
@@ -114,12 +117,26 @@ export function VisualCard({
   const displaySubtitle = payload.subtitle === undefined ? undefined : cleanText(payload.subtitle);
   const displaySources = payload.sources?.map(cleanText);
   const displayNotes = payload.notes?.map(cleanText);
+  const hasFooter =
+    (displaySources !== undefined && displaySources.length > 0) ||
+    (displayNotes !== undefined && displayNotes.length > 0);
+  const compactChecks =
+    payload.blocks.length === 1 &&
+    payload.blocks[0]?.kind === 'checks' &&
+    displayTitle === undefined &&
+    displaySubtitle === undefined &&
+    !hasFooter;
 
   return (
     <article
       data-visual-card="ready"
       data-visual-version={payload.version}
-      className="my-2 flex max-w-[640px] flex-col gap-4 rounded-card border border-border bg-surface px-5 py-4 shadow-[var(--surface-shadow)]"
+      data-visual-compact={compactChecks ? 'checks' : undefined}
+      className={
+        compactChecks
+          ? 'my-1.5 flex w-fit max-w-[min(100%,520px)] flex-col rounded-message border border-border bg-surface px-4 py-3 shadow-[var(--surface-shadow)]'
+          : 'my-2 flex max-w-[640px] flex-col gap-4 rounded-card border border-border bg-surface px-5 py-4 shadow-[var(--surface-shadow)]'
+      }
     >
       {displayTitle !== undefined || displaySubtitle !== undefined ? (
         <header className="flex flex-col gap-0.5">
@@ -144,8 +161,7 @@ export function VisualCard({
         ))}
       </div>
 
-      {(displaySources !== undefined && displaySources.length > 0) ||
-      (displayNotes !== undefined && displayNotes.length > 0) ? (
+      {hasFooter ? (
         <footer className="flex flex-col gap-0.5 border-t border-separator/80 pt-2.5 text-micro text-muted">
           {displaySources !== undefined && displaySources.length > 0 ? (
             <span>{t('visuals.sources', { files: displaySources.join(', ') })}</span>

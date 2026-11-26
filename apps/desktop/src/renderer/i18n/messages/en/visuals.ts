@@ -46,4 +46,9 @@ export const visuals = {
   },
   'visuals.handoff.unavailableArtifact':
     '“{label}” could not be opened — it may have been removed or was not published.',
+  'visuals.checks.status.done': 'Done',
+  'visuals.checks.status.warning': 'Needs attention',
+  'visuals.checks.status.failed': 'Failed',
+  'visuals.checks.status.pending': 'Pending',
+  'visuals.checks.status.skipped': 'Skipped',
 } as const;

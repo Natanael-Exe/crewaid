@@ -386,6 +386,33 @@ export const VisualHandoffBlockSchema = z
   .strict();
 export type VisualHandoffBlock = z.infer<typeof VisualHandoffBlockSchema>;
 
+export const VisualCheckStatusSchema = z.enum(['done', 'warning', 'failed', 'pending', 'skipped']);
+export type VisualCheckStatus = z.infer<typeof VisualCheckStatusSchema>;
+
+export const VisualCheckItemSchema = z
+  .object({
+    label: z.string().min(1).max(160),
+    /** Short outcome shown after an arrow, e.g. "27 pulled" or "27 matched". */
+    result: z.string().min(1).max(240).optional(),
+    status: VisualCheckStatusSchema.default('done'),
+  })
+  .strict();
+export type VisualCheckItem = z.infer<typeof VisualCheckItemSchema>;
+
+/**
+ * Compact completed-steps / verification checklist block, e.g.:
+ *   ✓ Orders → 27 pulled
+ *   ✓ Payments → 27 matched
+ */
+export const VisualChecksBlockSchema = z
+  .object({
+    kind: z.literal('checks'),
+    title: z.string().min(1).max(120).optional(),
+    items: z.array(VisualCheckItemSchema).min(1).max(16),
+  })
+  .strict();
+export type VisualChecksBlock = z.infer<typeof VisualChecksBlockSchema>;
+
 export const VisualBlockInputSchema = z.discriminatedUnion('kind', [
   VisualMetricsBlockSchema,
   VisualChartBlockInputSchema,
@@ -394,6 +421,7 @@ export const VisualBlockInputSchema = z.discriminatedUnion('kind', [
   VisualTimelineBlockSchema,
   VisualCalloutBlockSchema,
   VisualHandoffBlockSchema,
+  VisualChecksBlockSchema,
 ]);
 export type VisualBlockInput = z.infer<typeof VisualBlockInputSchema>;
 
@@ -405,6 +433,7 @@ const VisualBlockResolvedSchema = z.discriminatedUnion('kind', [
   VisualTimelineBlockSchema,
   VisualCalloutBlockSchema,
   VisualHandoffBlockSchema,
+  VisualChecksBlockSchema,
 ]);
 export type VisualBlock = z.infer<typeof VisualBlockResolvedSchema>;
 
@@ -739,6 +768,26 @@ export function formatVisualSummary(payload: VisualPayload): string {
               lines.push(`  Impact: ${decision.consequence}`);
             }
           }
+        }
+        sections.push(lines.join('\n'));
+        break;
+      }
+      case 'checks': {
+        const lines: string[] = [];
+        if (block.title !== undefined) lines.push(block.title);
+        for (const item of block.items) {
+          const mark =
+            item.status === 'done'
+              ? '✓'
+              : item.status === 'warning'
+                ? '⚠'
+                : item.status === 'failed'
+                  ? '✗'
+                  : item.status === 'skipped'
+                    ? '–'
+                    : '○';
+          const outcome = item.result !== undefined ? ` → ${item.result}` : '';
+          lines.push(`${mark} ${item.label}${outcome}`);
         }
         sections.push(lines.join('\n'));
         break;

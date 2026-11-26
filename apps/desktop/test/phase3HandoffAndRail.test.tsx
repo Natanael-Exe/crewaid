@@ -8,6 +8,7 @@ import {
   HandoffBlock,
   extractLatestHandoff,
 } from '../src/renderer/components/visuals/HandoffBlock';
+import { VisualCard } from '../src/renderer/components/visuals/VisualCard';
 import { RightRailHandoffSection } from '../src/renderer/components/visuals/RightRailHandoffSection';
 import { applyComposerSeed } from '../src/renderer/components/composer/composerState';
 import { ScreenCard } from '../src/renderer/screen/ScreenCard';
@@ -336,5 +337,46 @@ describe('Phase 3 — Handoff card, composer draft preservation, snapshots & rig
     expect(sections![0]!.unread).toBe(7);
     expect(sections![0]!.needsApproval).toBe(true);
     expect(sections![0]!.approvalBots.map((r) => r.bot.name)).toEqual(['Diana', 'Kira']);
+  });
+
+  it('renders a standalone checks visual block as a compact bubble-like checklist card', () => {
+    const html = renderToStaticMarkup(
+      <VisualCard
+        status="ok"
+        row={{
+          type: 'tool-call',
+          toolCallId: 'tc_checks_1',
+          toolName: 'present_visual',
+          status: 'ok',
+          input: {
+            blocks: [
+              {
+                kind: 'checks',
+                items: [
+                  { label: 'Orders', result: '27 pulled', status: 'done' },
+                  { label: 'Payments', result: '27 matched', status: 'done' },
+                  {
+                    label: '/home/bot/groups/cmww0x/packing-list.csv',
+                    result: '1 address missing',
+                    status: 'warning',
+                  },
+                ],
+              },
+            ],
+          },
+          output: 'Visual displayed in chat.',
+        }}
+      />,
+    );
+
+    expect(html).toContain('data-visual-compact="checks"');
+    expect(html).toContain('data-visual-block="checks"');
+    expect(html).toContain('Orders');
+    expect(html).toContain('27 pulled');
+    expect(html).toContain('Payments');
+    expect(html).toContain('27 matched');
+    expect(html).toContain('data-check-status="warning"');
+    expect(html).toContain('packing-list.csv');
+    expect(html).not.toContain('/home/bot/groups/cmww0x');
   });
 });
