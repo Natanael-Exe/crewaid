@@ -290,14 +290,16 @@ describe('ConnectorClient end-to-end (loopback WS + real ACP subprocess)', () =>
     cleanups.push(srv.close);
 
     let resolveConfirm!: (value: boolean) => void;
-    const confirmTask = vi
-      .fn()
-      .mockImplementationOnce(
-        () =>
-          new Promise<boolean>((resolve) => {
-            resolveConfirm = resolve;
-          }),
-      );
+    let markConfirmStarted!: () => void;
+    const confirmStarted = new Promise<void>((resolve) => {
+      markConfirmStarted = resolve;
+    });
+    const confirmTask = vi.fn().mockImplementationOnce(() => {
+      markConfirmStarted();
+      return new Promise<boolean>((resolve) => {
+        resolveConfirm = resolve;
+      });
+    });
     const resolveHarness = vi.fn((id: 'claude-code' | 'codex' | 'opencode' | 'antigravity' | 'custom') => ({
       id,
       label: 'Mock ACP',
@@ -345,8 +347,8 @@ describe('ConnectorClient end-to-end (loopback WS + real ACP subprocess)', () =>
       maxDurationMs: 15_000,
     });
 
-    // Wait briefly so sess_1 is awaiting local confirmation, then send overlapping sess_2
-    await new Promise((r) => setTimeout(r, 40));
+    // Wait until sess_1 is awaiting local confirmation, then send overlapping sess_2
+    await confirmStarted;
     srv.sendToLatest({
       type: 'task.dispatch',
       sessionId: 'sess_2',
@@ -438,8 +440,14 @@ describe('ConnectorClient end-to-end (loopback WS + real ACP subprocess)', () =>
 
     // Shut down server completely so reconnect cannot succeed before disconnectGraceMs
     await srv.close();
-    await new Promise((r) => setTimeout(r, 250));
-    expect(logs.some((line) => line.includes('cancelling active local task sess_drop'))).toBe(true);
+    await vi.waitFor(
+      () => {
+        expect(logs.some((line) => line.includes('cancelling active local task sess_drop'))).toBe(
+          true,
+        );
+      },
+      { timeout: 3_000 },
+    );
   });
 
   it.each([

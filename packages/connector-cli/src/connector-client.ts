@@ -589,6 +589,10 @@ export class ConnectorClient {
       // the OS pipe buffer and deadlock. Stream to terminal under `--verbose`
       // and keep a bounded tail for failure diagnostics.
       let stderrTail = '';
+      const stderrDrained = new Promise<void>((resolve) => {
+        child.stderr.once('end', resolve);
+        child.stderr.once('close', resolve);
+      });
       child.stderr.on('data', (chunk: Buffer | string) => {
         const text = typeof chunk === 'string' ? chunk : chunk.toString('utf8');
         this.options.onHarnessStderr?.(text);
@@ -632,6 +636,17 @@ export class ConnectorClient {
       } finally {
         clearTimeout(deadlineTimer);
       }
+
+      // Let any remaining bytes already flushed into the stderr pipe reach
+      // `stderrTail` / `onHarnessStderr` before reporting the final result.
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, 250);
+        timer.unref();
+        void stderrDrained.then(() => {
+          clearTimeout(timer);
+          resolve();
+        });
+      });
 
       const git = await readGitHandoffInfo(confined.absoluteCwd);
       const errorDetail =

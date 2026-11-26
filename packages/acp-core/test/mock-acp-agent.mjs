@@ -38,10 +38,18 @@ const app = agent({ name: 'mock-acp-agent' })
     }
 
     if (scenario === 'chatty-stderr') {
-      // Exceed macOS/Linux default 64 KB pipe buffer to prove callers drain stderr.
+      // Exceed macOS/Linux default 64 KB pipe buffer and honor backpressure so
+      // the harness genuinely blocks if the parent leaves stderr unread and
+      // flushes every byte into the pipe before ending the turn.
       const chunk = `${'stderr-diagnostic-line-'.repeat(40)}\n`;
       for (let i = 0; i < 350; i += 1) {
-        process.stderr.write(chunk);
+        if (i === 349) {
+          await new Promise((resolve, reject) =>
+            process.stderr.write(chunk, (err) => (err ? reject(err) : resolve())),
+          );
+        } else if (!process.stderr.write(chunk)) {
+          await new Promise((resolve) => process.stderr.once('drain', resolve));
+        }
       }
       await client.notify(methods.client.session.update, {
         sessionId,
