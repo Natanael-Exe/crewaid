@@ -8,6 +8,7 @@ import {
   IconLogout,
   IconPlugConnected,
   IconSettings,
+  IconTerminal2,
 } from '@tabler/icons-react';
 import type { BillingResponse } from '@crewaid/shared';
 import { useEffect, useRef, useState } from 'react';
@@ -16,6 +17,7 @@ import { ConnectionsPane } from './ConnectionsPane';
 import { GeneralPane } from './GeneralPane';
 import { PlanPane } from './PlanPane';
 import { ComputerPane } from './ComputerPane';
+import { LocalHarnessesPane } from './LocalHarnessesPane';
 import { ChannelsPane } from './ChannelsPane';
 import { AboutPane } from './AboutPane';
 import { AccountIdentity, AccountUsage } from './AccountSummary';
@@ -42,11 +44,18 @@ const PANE_ICONS: Record<SettingsPaneId, typeof IconSettings> = {
   connections: IconPlugConnected,
   plan: IconCreditCard,
   computer: IconDeviceDesktop,
+  localHarnesses: IconTerminal2,
   about: IconInfoCircle,
 };
 
 /** The index's main group; Plan has its own card and About its own group. */
-const MAIN_GROUP: readonly SettingsPaneId[] = ['general', 'connections', 'channels', 'computer'];
+const MAIN_GROUP: readonly SettingsPaneId[] = [
+  'general',
+  'connections',
+  'channels',
+  'computer',
+  'localHarnesses',
+];
 
 type SettingsView = 'index' | SettingsPaneId;
 
@@ -67,6 +76,8 @@ export type SettingsModalProps = {
   /** Who is signed in; the index leads with it. */
   readonly account?: SettingsAccount;
   readonly onSignOut?: () => void;
+  /** Bumped on `connector.status` WS frames so Local harnesses refreshes live. */
+  readonly connectorsVersion?: number | undefined;
 };
 
 function rowId(id: SettingsPaneId): string {
@@ -80,6 +91,7 @@ export function SettingsModal({
   initialPane,
   account,
   onSignOut,
+  connectorsVersion,
 }: SettingsModalProps) {
   const t = useT();
   const edition = useAppEdition();
@@ -165,7 +177,11 @@ export function SettingsModal({
               <h2>{settingsPane(active).label}</h2>
               <p className="mt-1">{settingsPane(active).summary}</p>
             </div>
-            <SettingsPaneBody id={active} onCredentialsSaved={onCredentialsSaved} />
+            <SettingsPaneBody
+              id={active}
+              onCredentialsSaved={onCredentialsSaved}
+              connectorsVersion={connectorsVersion}
+            />
           </div>
         )}
       </ScrollShadow>
@@ -242,9 +258,11 @@ export function SettingsIndex({
 export function SettingsPaneBody({
   id,
   onCredentialsSaved,
+  connectorsVersion,
 }: {
   id: SettingsPaneId;
   onCredentialsSaved?: (() => void) | undefined;
+  connectorsVersion?: number | undefined;
 }) {
   switch (id) {
     case 'channels':
@@ -257,6 +275,8 @@ export function SettingsPaneBody({
       return <PlanPane />;
     case 'computer':
       return <ComputerPane />;
+    case 'localHarnesses':
+      return <LocalHarnessesPane connectorsVersion={connectorsVersion} />;
     case 'about':
       return <AboutPane />;
   }

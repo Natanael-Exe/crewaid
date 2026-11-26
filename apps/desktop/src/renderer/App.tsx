@@ -965,6 +965,7 @@ function AppShell({ session }: { session: LaunchSession }) {
             image: session.user.image,
           },
           onSignOut: session.signOut,
+          connectorsVersion: chat.connectorsVersion,
           onCredentialsSaved: () => {
             previewCache.clear();
             setCredentialRevision((revision) => revision + 1);

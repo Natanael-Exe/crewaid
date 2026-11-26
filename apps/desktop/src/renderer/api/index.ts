@@ -31,3 +31,4 @@ export * from './voice';
 export * from './calls';
 export * from './telegram';
 export * from './settings';
+export * from './connectors';

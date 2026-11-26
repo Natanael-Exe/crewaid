@@ -323,6 +323,8 @@ export interface ChatState {
   readonly viewedBotId: string | null;
   /** What each Work view has to refetch for. */
   readonly work: WorkRevisions;
+  /** Bumped on `connector.status` WS events so Settings → Local harnesses refreshes live. */
+  readonly connectorsVersion: number;
   /**
    * The latest plan-use notice this window saw, until dismissed. One
    * slot, not a list — a newer crossing (100% after 80%, or the other meter)
@@ -346,6 +348,7 @@ export const initialChatState: ChatState = {
   unreadByBot: {},
   viewedBotId: null,
   work: { tasks: 0, projects: 0, goals: 0, deliverables: 0 },
+  connectorsVersion: 0,
   usageNotice: null,
 };
 
@@ -1263,8 +1266,9 @@ function applyFrame(state: ChatState, frame: ServerFrame): ChatState {
     // ignored — the discriminated union makes an omission a compile error.
     case 'turn.step':
     case 'mcp.status':
-    case 'connector.status':
       return state;
+    case 'connector.status':
+      return { ...state, connectorsVersion: state.connectorsVersion + 1 };
     // D-159 §3.8. The run's events arrive on its own delivery log, which the
     // TanStack chat client joins; this reducer holds no run state. What it
     // does hold is the last failure's sentence, and a new run is the moment it

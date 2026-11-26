@@ -229,6 +229,60 @@ jobs:
             --data-binary @"$RUNNER_TEMP/install.sh" \
             https://downloads.crewaid.io/selfhost/install.sh
 
+  # Standalone local ACP connector CLI (D-241 Step 5): `npx crewaid-connect`.
+  # Bundled into a single standalone ESM file with zero workspace:* runtime deps.
+  connector-cli:
+    name: connector-cli (npm)
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Is this the newest release?
+        id: newest
+        run: |
+          if .github/scripts/newest-release.sh "${GITHUB_REF_NAME#v}"; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      # Trusted Publishing needs npm 11.5.1 or later; Node 22 ships npm 10.
+      - run: npm install -g npm@11.21.0
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Stamp version, build standalone bundle, and test
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          npm --prefix packages/connector-cli version "$version" --no-git-tag-version --allow-same-version
+          pnpm --filter @crewaid/shared build
+          pnpm --filter @crewaid/acp-core build
+          pnpm --filter crewaid-connect build
+          pnpm --filter crewaid-connect test
+      - name: Smoke-test packed npm tarball standalone
+        working-directory: packages/connector-cli
+        run: |
+          tarball="$(npm pack --silent)"
+          smoke_dir="$(mktemp -d)"
+          tar -xzf "$tarball" -C "$smoke_dir"
+          node "$smoke_dir/package/dist/bin.mjs" --version | grep -qx "${GITHUB_REF_NAME#v}"
+          node "$smoke_dir/package/dist/bin.mjs" --help > /dev/null
+          rm -rf "$tarball" "$smoke_dir"
+      - name: Publish crewaid-connect to npm
+        working-directory: packages/connector-cli
+        run: |
+          if [ "${{ steps.newest.outputs.value }}" = true ]; then tag=latest; else tag=previous; fi
+          npm publish --access public --tag "$tag"
+
   # The sandbox image on Runtime (D-219): Runtime pulls the release's GHCR
   # image with the read token stored in it once, so nothing is built twice.
   # Only the newest release moves crewaid-sandbox:latest, which deployments

@@ -296,7 +296,7 @@ function ToolCallLine({
         : t('tools.youApproved')
       : undefined;
   const codingProgress =
-    row.toolName === 'code_task' && status === 'running'
+    (row.toolName === 'code_task' || row.toolName === 'local_code_task') && status === 'running'
       ? context?.codingProgress?.get(row.toolCallId)
       : undefined;
   const codingAction =
@@ -304,20 +304,40 @@ function ToolCallLine({
   const codingProgressLabel =
     codingProgress === undefined
       ? undefined
-      : codingProgress.kind === 'step' && codingAction !== undefined
-        ? t('tools.coding.stepAction', {
-            step: codingProgress.step,
-            max: codingProgress.maxSteps,
-            action: codingAction,
-          })
-        : codingProgress.kind === 'step'
-          ? t('tools.coding.step', {
-              step: codingProgress.step,
-              max: codingProgress.maxSteps,
+      : codingProgress.kind === 'waiting_local_permission'
+        ? codingProgress.title !== undefined && codingProgress.title !== ''
+          ? t('tools.coding.waitingLocalPermission', {
+              connector: codingProgress.connectorName ?? '',
+              title: codingProgress.title,
             })
-          : codingProgress.kind === 'started' && codingProgress.modelLabel !== undefined
-            ? t('tools.coding.starting', { model: codingProgress.modelLabel })
-            : undefined;
+          : t('tools.coding.waitingLocalPermissionGeneric', {
+              connector: codingProgress.connectorName ?? '',
+            })
+        : codingProgress.kind === 'resumed'
+          ? t('tools.coding.resumedLocal', {
+              connector: codingProgress.connectorName ?? '',
+            })
+          : codingProgress.kind === 'step' && codingAction !== undefined
+            ? codingProgress.maxSteps > 0
+              ? t('tools.coding.stepAction', {
+                  step: codingProgress.step,
+                  max: codingProgress.maxSteps,
+                  action: codingAction,
+                })
+              : t('tools.coding.localStepAction', {
+                  step: codingProgress.step,
+                  action: codingAction,
+                })
+            : codingProgress.kind === 'step'
+              ? codingProgress.maxSteps > 0
+                ? t('tools.coding.step', {
+                    step: codingProgress.step,
+                    max: codingProgress.maxSteps,
+                  })
+                : t('tools.coding.localStep', { step: codingProgress.step })
+              : codingProgress.kind === 'started' && codingProgress.modelLabel !== undefined
+                ? t('tools.coding.starting', { model: codingProgress.modelLabel })
+                : undefined;
   return (
     <div
       data-tool-call={row.toolName}

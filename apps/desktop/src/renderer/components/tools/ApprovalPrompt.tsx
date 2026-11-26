@@ -43,6 +43,65 @@ function scriptUnderReview(toolName: string, args: unknown): string | null {
   return typeof script === 'string' && script !== '' ? script : null;
 }
 
+interface LocalTaskReview {
+  readonly connector: string;
+  readonly folder: string;
+  readonly harness: string | null;
+  readonly verifyCommand: string | null;
+  readonly hashPrefix: string | null;
+  readonly fullPrompt: string;
+}
+
+/**
+ * Extracts the bound target and full untruncated prompt for `local_code_task`
+ * so the operator reviews the exact text being dispatched to their machine
+ * without truncation.
+ */
+function localTaskUnderReview(
+  toolName: string,
+  args: unknown,
+  binding: PendingApproval['binding'],
+): LocalTaskReview | null {
+  if (toolName !== 'local_code_task') return null;
+  if (typeof args !== 'object' || args === null || Array.isArray(args)) return null;
+  const record = args as Record<string, unknown>;
+  const goal = typeof record['goal'] === 'string' ? record['goal'].trim() : '';
+  if (goal === '') return null;
+  const extraContext = typeof record['context'] === 'string' ? record['context'].trim() : '';
+  const fullPrompt = extraContext === '' ? goal : `${goal}\n\n${extraContext}`;
+  const connectorId = typeof record['connectorId'] === 'string' ? record['connectorId'] : '';
+  const destination = binding.commit?.destinations[0];
+  const destFolder =
+    destination !== undefined && destination.includes(':')
+      ? destination.slice(destination.indexOf(':') + 1)
+      : undefined;
+  const rawRelative =
+    typeof record['relativeCwd'] === 'string' && record['relativeCwd'].trim() !== ''
+      ? record['relativeCwd'].trim()
+      : undefined;
+  const folder = destFolder ?? rawRelative ?? '.';
+  const harness =
+    typeof record['harness'] === 'string' && record['harness'].trim() !== ''
+      ? record['harness'].trim()
+      : null;
+  const verifyCommand =
+    typeof record['verifyCommand'] === 'string' && record['verifyCommand'].trim() !== ''
+      ? record['verifyCommand'].trim()
+      : null;
+  const hashPrefix =
+    binding.commit?.contentRevision !== undefined
+      ? binding.commit.contentRevision.slice(0, 12)
+      : null;
+  return {
+    connector: binding.commit?.account ?? (connectorId !== '' ? connectorId : 'local'),
+    folder,
+    harness,
+    verifyCommand,
+    hashPrefix,
+    fullPrompt,
+  };
+}
+
 export function ApprovalPrompt({
   approval,
   botName,
@@ -76,6 +135,7 @@ export function ApprovalPrompt({
   const internalPath =
     filePath !== undefined && isInternalWorkspacePath(filePath) ? filePath : undefined;
   const script = scriptUnderReview(approval.toolName, approval.args);
+  const localTask = localTaskUnderReview(approval.toolName, reviewArgs, approval.binding);
   const full = approval.args === undefined ? '' : safeJson(approval.args, 2);
   const answered = approval.answered;
   const summary = summarizeInput(approval.args, 160);
@@ -176,6 +236,48 @@ export function ApprovalPrompt({
             >
               {script}
             </pre>
+          </div>
+        )}
+
+        {localTask === null ? null : (
+          <div className="mt-2 space-y-2" data-local-code-task-review>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-caption">
+              <dt className="text-muted">{t('tools.approval.localTask.connector')}</dt>
+              <dd className="break-words font-medium text-foreground">{localTask.connector}</dd>
+              <dt className="text-muted">{t('tools.approval.localTask.folder')}</dt>
+              <dd className="break-all font-mono text-foreground">{localTask.folder}</dd>
+              <dt className="text-muted">{t('tools.approval.localTask.harness')}</dt>
+              <dd className="text-foreground">
+                {localTask.harness ?? t('tools.approval.localTask.defaultHarness')}
+              </dd>
+              {localTask.verifyCommand === null ? null : (
+                <>
+                  <dt className="text-muted">{t('tools.approval.localTask.verify')}</dt>
+                  <dd className="break-all font-mono text-foreground">{localTask.verifyCommand}</dd>
+                </>
+              )}
+              {localTask.hashPrefix === null ? null : (
+                <>
+                  <dt className="text-muted">{t('tools.approval.localTask.boundHash')}</dt>
+                  <dd className="font-mono text-muted">{localTask.hashPrefix}</dd>
+                </>
+              )}
+            </dl>
+            <div>
+              <div className="text-micro font-semibold text-muted">
+                {t('tools.approval.localTask.promptLabel')}
+              </div>
+              <pre
+                data-approval-local-prompt
+                dir="ltr"
+                className="mt-0.5 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-separator bg-field px-2.5 py-2 font-mono text-micro leading-[15px] text-foreground"
+              >
+                {localTask.fullPrompt}
+              </pre>
+            </div>
+            <p className="text-caption leading-[17px] text-muted">
+              {t('tools.approval.localTask.privacyNote')}
+            </p>
           </div>
         )}
 

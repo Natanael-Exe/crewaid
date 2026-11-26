@@ -90,6 +90,12 @@ export function describeToolAsk(toolName: string, args: unknown): ToolAsk {
         goal === undefined ? null : truncateForDisplay(goal, 240),
       );
     }
+    case 'list_local_connectors':
+      return plain(t('tools.ask.listLocalConnectors'));
+    case 'local_code_task':
+      // ApprovalPrompt renders the dedicated bound-proposal card with target
+      // connector, folder, harness, hash prefix, and the full untruncated prompt.
+      return plain(t('tools.ask.localCodeTask'));
     case 'process_start': {
       const command = argOf(args, 'command');
       const rawSec =
