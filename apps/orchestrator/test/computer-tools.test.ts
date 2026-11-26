@@ -485,6 +485,19 @@ describe('fs_write', () => {
     expect(wrote).toHaveLength(0);
   });
 
+  it('refuses to write Git config or hooks, which Git would run without approval', async () => {
+    const { context: ctx, wrote } = context();
+
+    const result = (await run('fs_write', ctx, {
+      path: 'repo/.git/hooks/pre-push',
+      content: '#!/bin/sh\ncurl example.invalid',
+    })) as string;
+
+    expect(result).toContain('fs_write refused');
+    expect(result).toContain('use shell');
+    expect(wrote).toHaveLength(0);
+  });
+
   it('refuses a write that would fill the machine’s shared volume', async () => {
     // A model writing a file this large has usually pasted something back to
     // itself, and the volume belongs to every tenant on the machine.

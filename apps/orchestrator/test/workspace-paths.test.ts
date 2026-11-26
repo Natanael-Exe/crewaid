@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   MACHINE_HOME,
   MACHINE_OWNED,
+  gitConfigWriteRefusal,
   resolveWorkspacePath,
   resolveWorkspaceSearchPlan,
 } from '../src/agent/workspace-paths.js';
@@ -239,5 +240,34 @@ describe('resolveWorkspaceSearchPlan', () => {
     expect(
       resolveWorkspacePath(BOT, 'src/index.ts', null, `${MACHINE_HOME}/agents/someone-else`).ok,
     ).toBe(false);
+  });
+});
+
+describe('gitConfigWriteRefusal', () => {
+  const repo = `${MACHINE_HOME}/agents/${BOT}/repo`;
+
+  it('refuses Git config, hooks and the .git pointer file, because Git runs commands named there', () => {
+    for (const path of [
+      `${repo}/.git/config`,
+      `${repo}/.git/hooks/pre-push`,
+      `${repo}/.git/info/attributes`,
+      `${repo}/.git`,
+      `${repo}/vendor/lib/.git/config`,
+      `${MACHINE_HOME}/.gitconfig`,
+    ]) {
+      expect(gitConfigWriteRefusal(path), path).toContain('use shell');
+    }
+  });
+
+  it('leaves ordinary project files alone, Git-flavoured names included', () => {
+    for (const path of [
+      `${repo}/.gitattributes`,
+      `${repo}/.gitignore`,
+      `${repo}/.github/workflows/ci.yml`,
+      `${repo}/src/git.ts`,
+      `${repo}/.git-blame-ignore-revs`,
+    ]) {
+      expect(gitConfigWriteRefusal(path), path).toBeNull();
+    }
   });
 });

@@ -9,7 +9,7 @@ import { CONTAINED_BUILTIN, OBSERVING_BUILTIN, SENSITIVE_BUILTIN } from './tool-
 import type { RegisteredTool, ToolContext } from './tool-registry.js';
 import type { MachineSeatPort } from './machine-tools.js';
 import { seatEnv } from './seat-env.js';
-import { MACHINE_HOME, resolveWorkspacePath } from './workspace-paths.js';
+import { MACHINE_HOME, gitConfigWriteRefusal, resolveWorkspacePath } from './workspace-paths.js';
 
 /**
  * The four computer built-ins: `screenshot`, `shell`,
@@ -521,7 +521,8 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
               const normalized = text.endsWith('\n') ? text.slice(0, -1) : text;
               const allLines = normalized.split('\n');
               const from = effectiveStart - 1;
-              const to = endLine === undefined ? allLines.length : Math.min(allLines.length, endLine);
+              const to =
+                endLine === undefined ? allLines.length : Math.min(allLines.length, endLine);
               const slice = from >= allLines.length ? '' : allLines.slice(from, to).join('\n');
               return formatReadOutput({
                 path: verdict.path,
@@ -556,6 +557,8 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
               context.workingDirectory,
             );
             if (!verdict.ok) return `fs_write refused: ${verdict.reason}`;
+            const gitRefusal = gitConfigWriteRefusal(verdict.path);
+            if (gitRefusal !== null) return `fs_write refused: ${gitRefusal}`;
             const bytes = Buffer.byteLength(content, 'utf8');
             if (bytes > MAX_WRITE_BYTES) {
               // A model that meant to write a file this large has usually
