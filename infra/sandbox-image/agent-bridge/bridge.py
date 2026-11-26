@@ -29,6 +29,15 @@ from typing import Callable
 
 import exec_stream
 import screen_key
+from processes import (
+    DEFAULT_MAX_DURATION_S,
+    MAX_MAX_DURATION_S,
+    MAX_WAIT_MS,
+    MIN_MAX_DURATION_S,
+    ProcessError,
+    ProcessLimitError,
+    ProcessRegistry,
+)
 from seats import SeatError, SeatRegistry, _seat_env, browser_sandbox
 from seat_control import ControlError, ReplayControl
 
@@ -58,6 +67,7 @@ MAX_SKILL_ERROR_CHARS = 1_000
 # hold the lock that makes seat creation attributable.
 SEATS = SeatRegistry()
 REPLAYS = ReplayControl()
+PROCESSES = ProcessRegistry()
 
 
 class BridgeFailure(RuntimeError):
@@ -681,6 +691,10 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 # instead of dropping the HTTP connection without an answer.
                 self._send_json(HTTPStatus.SERVICE_UNAVAILABLE,
                                 {"ok": False, "code": "SEAT_UNAVAILABLE", "detail": str(exc)[:300]})
+        elif path == "/processes":
+            self._list_processes()
+        elif path.startswith("/processes/") and path.count("/") == 2:
+            self._read_process(path.split("/")[2])
         elif path in {"/skill/run", "/exec"}:
             self._method_not_allowed("POST")
         else:
@@ -721,6 +735,12 @@ class BridgeHandler(BaseHTTPRequestHandler):
             self._close_seat(path.split("/")[2])
         elif path == "/screen/key":
             self._publish_screen_key()
+        elif path == "/processes":
+            self._start_process()
+        elif path == "/processes/stop-run":
+            self._stop_run_processes()
+        elif path.startswith("/processes/") and path.endswith("/stop") and path.count("/") == 3:
+            self._stop_process(path.split("/")[2])
         elif path in {"/health", "/screenshot", "/atspi/events"}:
             self._method_not_allowed("GET")
         else:
@@ -1003,6 +1023,118 @@ class BridgeHandler(BaseHTTPRequestHandler):
             return
         self._send_json(HTTPStatus.OK, {"ok": True})
 
+    def _query_params(self) -> dict[str, str]:
+        query = self.path.split("?", 1)[1] if "?" in self.path else ""
+        return dict(urllib.parse.parse_qsl(query))
+
+    def _list_processes(self) -> None:
+        bot_id = self._query_params().get("botId", "")
+        if not bot_id:
+            self._send_json(
+                HTTPStatus.BAD_REQUEST,
+                {"ok": False, "code": "INVALID_PROCESS_REQUEST", "detail": "botId is required"},
+            )
+            return
+        self._send_json(HTTPStatus.OK, {"ok": True, "processes": PROCESSES.list(bot_id)})
+
+    def _read_process(self, process_id: str) -> None:
+        params = self._query_params()
+        bot_id = params.get("botId", "")
+        if not bot_id or not process_id:
+            self._send_json(
+                HTTPStatus.BAD_REQUEST,
+                {"ok": False, "code": "INVALID_PROCESS_REQUEST", "detail": "botId and processId are required"},
+            )
+            return
+        try:
+            offset = int(params.get("offset", "0"))
+            wait_ms = int(params.get("waitMs", "0"))
+            if offset < 0 or wait_ms < 0 or wait_ms > MAX_WAIT_MS:
+                raise ValueError("offset must be >= 0 and waitMs must be 0..30000")
+        except ValueError as exc:
+            self._send_json(
+                HTTPStatus.BAD_REQUEST,
+                {"ok": False, "code": "INVALID_PROCESS_REQUEST", "detail": str(exc)},
+            )
+            return
+        result = PROCESSES.read_output(bot_id, process_id, offset=offset, wait_ms=wait_ms)
+        if result is None:
+            self._send_json(HTTPStatus.NOT_FOUND, {"ok": False, "code": "NO_SUCH_PROCESS"})
+            return
+        self._send_json(HTTPStatus.OK, {"ok": True, "process": result})
+
+    def _start_process(self) -> None:
+        request = self._seat_request()
+        if request is None:
+            return
+        try:
+            spec = validate_process_start_request(request)
+        except ValueError as exc:
+            self._send_json(
+                HTTPStatus.BAD_REQUEST,
+                {"ok": False, "code": "INVALID_PROCESS_REQUEST", "detail": str(exc)},
+            )
+            return
+        try:
+            started = PROCESSES.start(**spec)  # type: ignore[arg-type]
+        except ProcessLimitError as exc:
+            self._send_json(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                {"ok": False, "code": exc.code, "detail": str(exc)},
+            )
+            return
+        except (ProcessError, OSError) as exc:
+            self._send_json(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                {"ok": False, "code": "PROCESS_START_FAILED", "detail": str(exc)[:300]},
+            )
+            return
+        self._send_json(HTTPStatus.OK, {"ok": True, "process": started})
+
+    def _stop_process(self, process_id: str) -> None:
+        request = self._seat_request()
+        if request is None:
+            return
+        unknown = set(request) - {"botId"}
+        bot_id = request.get("botId")
+        if unknown or not isinstance(bot_id, str) or not bot_id:
+            self._send_json(
+                HTTPStatus.BAD_REQUEST,
+                {"ok": False, "code": "INVALID_PROCESS_REQUEST", "detail": "send only non-empty botId"},
+            )
+            return
+        stopped = PROCESSES.stop(bot_id, process_id)
+        if stopped is None:
+            self._send_json(HTTPStatus.NOT_FOUND, {"ok": False, "code": "NO_SUCH_PROCESS"})
+            return
+        self._send_json(HTTPStatus.OK, {"ok": True, "process": stopped})
+
+    def _stop_run_processes(self) -> None:
+        request = self._seat_request()
+        if request is None:
+            return
+        unknown = set(request) - {"botId", "runId"}
+        bot_id = request.get("botId")
+        run_id = request.get("runId")
+        if (
+            unknown
+            or not isinstance(bot_id, str)
+            or not bot_id
+            or not isinstance(run_id, str)
+            or not run_id
+        ):
+            self._send_json(
+                HTTPStatus.BAD_REQUEST,
+                {
+                    "ok": False,
+                    "code": "INVALID_PROCESS_REQUEST",
+                    "detail": "send non-empty botId and runId",
+                },
+            )
+            return
+        stopped = PROCESSES.stop_run(bot_id, run_id)
+        self._send_json(HTTPStatus.OK, {"ok": True, "stopped": stopped})
+
     def log_message(self, fmt: str, *args: object) -> None:
         # Per-request stderr drowns the entrypoint supervision log.
         pass
@@ -1081,6 +1213,47 @@ class BridgeServer(ThreadingHTTPServer):
         self.server_port = self.server_address[1]
 
 
+def validate_process_start_request(value: dict[str, object]) -> dict[str, object]:
+    unknown = set(value) - {"botId", "command", "cwd", "env", "runId", "maxDurationSec"}
+    if unknown:
+        raise ValueError(f"unknown field(s): {', '.join(sorted(unknown))}")
+    bot_id = value.get("botId")
+    if not isinstance(bot_id, str) or not bot_id:
+        raise ValueError("botId must be a non-empty string")
+    command = value.get("command")
+    if not isinstance(command, str) or not command.strip():
+        raise ValueError("command must be a non-empty string")
+    cwd = value.get("cwd", os.environ.get("HOME", "/home/bot"))
+    if not isinstance(cwd, str) or not cwd.startswith("/"):
+        raise ValueError("cwd must be an absolute path")
+    env = value.get("env")
+    if env is not None and (
+        not isinstance(env, dict)
+        or not all(isinstance(k, str) and isinstance(v, str) for k, v in env.items())
+    ):
+        raise ValueError("env must map strings to strings")
+    run_id = value.get("runId")
+    if run_id is not None and (not isinstance(run_id, str) or not run_id):
+        raise ValueError("runId must be a non-empty string")
+    max_duration = value.get("maxDurationSec", DEFAULT_MAX_DURATION_S)
+    if (
+        isinstance(max_duration, bool)
+        or not isinstance(max_duration, int)
+        or not MIN_MAX_DURATION_S <= max_duration <= MAX_MAX_DURATION_S
+    ):
+        raise ValueError(
+            f"maxDurationSec must be an integer between {MIN_MAX_DURATION_S} and {MAX_MAX_DURATION_S}"
+        )
+    return {
+        "bot_id": bot_id,
+        "command": command,
+        "cwd": cwd,
+        "env": env,
+        "run_id": run_id,
+        "max_duration_s": max_duration,
+    }
+
+
 def main() -> None:
     server = BridgeServer(("0.0.0.0", PORT), BridgeHandler)
     server.daemon_threads = True
@@ -1094,6 +1267,7 @@ def main() -> None:
         server.serve_forever()
     finally:
         server.server_close()
+        PROCESSES.close_all()
         SEATS.close_all()
 
 

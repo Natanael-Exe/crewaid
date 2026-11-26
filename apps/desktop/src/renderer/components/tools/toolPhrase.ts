@@ -80,6 +80,29 @@ export function describeToolAsk(toolName: string, args: unknown): ToolAsk {
         detailIsCode: true,
       };
     }
+    case 'process_start': {
+      const command = argOf(args, 'command');
+      const rawSec =
+        typeof args === 'object' && args !== null && !Array.isArray(args)
+          ? (args as Record<string, unknown>)['maxDurationSec']
+          : undefined;
+      const secs = typeof rawSec === 'number' && Number.isFinite(rawSec) ? rawSec : 1800;
+      const limit =
+        secs < 60
+          ? `${Math.round(secs)}s`
+          : secs % 60 === 0
+            ? `${Math.round(secs / 60)}m`
+            : `${Math.floor(secs / 60)}m ${Math.round(secs % 60)}s`;
+      return {
+        question: t('tools.ask.processStart', { limit }),
+        detail: command ?? null,
+        detailIsCode: true,
+      };
+    }
+    case 'process_output':
+      return plain(t('tools.ask.processOutput'), argOf(args, 'processId') ?? null);
+    case 'process_stop':
+      return plain(t('tools.ask.processStop'), argOf(args, 'processId') ?? null);
     case 'fs_write': {
       const path = argOf(args, 'path');
       return plain(

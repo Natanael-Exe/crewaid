@@ -36,7 +36,13 @@ export interface KeepRunningLease {
  * afterwards; naming them in a union is what keeps a sixth one from appearing
  * without a decision to point at.
  */
-export type ComputerOwner = 'explicit-open' | 'recording' | 'skill' | 'agent-tool' | 'managed-job';
+export type ComputerOwner =
+  | 'explicit-open'
+  | 'recording'
+  | 'skill'
+  | 'agent-tool'
+  | 'managed-job'
+  | 'background-process';
 
 /**
  * Keep-running leases.

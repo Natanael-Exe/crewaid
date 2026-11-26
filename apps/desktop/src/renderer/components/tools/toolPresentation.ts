@@ -7,6 +7,9 @@ export type DisplayStatus = FoldedToolPart['status'] | 'incomplete';
 
 const COMPUTER = new Set([
   'shell',
+  'process_start',
+  'process_output',
+  'process_stop',
   'capture_screen',
   'screenshot',
   'mouse_move',
@@ -19,6 +22,9 @@ const COMPUTER = new Set([
 const FILE = new Set(['fs_read', 'fs_write', 'fs_edit', 'fs_grep', 'fs_glob', 'attach_file']);
 const TITLES: Readonly<Record<string, PlainKey>> = {
   shell: 'tools.title.shell',
+  process_start: 'tools.title.processStart',
+  process_output: 'tools.title.processOutput',
+  process_stop: 'tools.title.processStop',
   capture_screen: 'tools.title.captureScreen',
   screenshot: 'tools.title.captureScreen',
   mouse_move: 'tools.title.mouseMove',
@@ -120,7 +126,13 @@ export function displayStatus(row: FoldedToolPart, context?: PartRenderContext):
   )
     return 'error';
   if (typeof value !== 'string') return row.status;
-  if (row.toolName === 'shell' && value.startsWith('shell: the turn was cancelled'))
+  if (
+    (row.toolName === 'shell' && value.startsWith('shell: the turn was cancelled')) ||
+    (row.toolName === 'process_start' &&
+      value.startsWith('process_start: the turn was cancelled')) ||
+    (row.toolName === 'process_output' &&
+      value.startsWith('process_output: stopped waiting because the turn was cancelled'))
+  )
     return 'incomplete';
   if (row.toolName.startsWith('browser_') && value.startsWith(`${row.toolName.slice(8)} failed:`))
     return 'error';

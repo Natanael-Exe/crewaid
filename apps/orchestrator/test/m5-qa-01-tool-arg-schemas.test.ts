@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { browserTools } from '../src/agent/browser-tools.js';
 import { computerTools } from '../src/agent/computer-tools.js';
 import { codingTools } from '../src/agent/coding-tools.js';
+import { processTools } from '../src/agent/process-tools.js';
 import { identityTools } from '../src/agent/identity-tools.js';
 import { boardTools } from '../src/agent/board-tools.js';
 import { memoryTools } from '../src/agent/memory-tools.js';
@@ -57,6 +58,15 @@ function allTools(): RegisteredTool[] {
     // sweeps executes a tool (see the comment on `session` above).
     ...computerTools({ machines: { ensureSeatFor: () => Promise.reject(new Error('unused')) } }),
     ...codingTools(),
+    ...processTools({
+      machines: { ensureSeatFor: () => Promise.reject(new Error('unused')) },
+      processes: {
+        start: () => Promise.reject(new Error('unused')),
+        list: () => Promise.reject(new Error('unused')),
+        readOutput: () => Promise.reject(new Error('unused')),
+        stop: () => Promise.reject(new Error('unused')),
+      },
+    }),
     ...identityTools(),
     ...boardTools(),
     ...memoryTools(NO_MEMORY_SERVICE),
@@ -208,6 +218,14 @@ describe('M5-QA-01 the computer tools', () => {
 
     expect(accepts('fs_glob', { pattern: '**/*.ts', maxResults: 100 })).toBe(true);
     expect(accepts('fs_glob', { pattern: '' })).toBe(false);
+
+    expect(accepts('process_start', { command: 'pnpm dev', maxDurationSec: 600 })).toBe(true);
+    expect(accepts('process_start', { command: '' })).toBe(false);
+    expect(accepts('process_output', {})).toBe(true);
+    expect(accepts('process_output', { processId: 'proc-1', waitMs: 5000 })).toBe(true);
+    expect(accepts('process_output', { waitMs: 999_999 })).toBe(false);
+    expect(accepts('process_stop', { processId: 'proc-1' })).toBe(true);
+    expect(accepts('process_stop', {})).toBe(false);
   });
 
   it('leaves WHERE a path may point to the resolver, not the schema', () => {

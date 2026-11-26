@@ -339,6 +339,48 @@ export const NativeToolInputs = {
       .optional()
       .describe('Maximum matching file paths to return (default 200)'),
   }),
+  process_start: z.object({
+    command: z
+      .string()
+      .min(1)
+      .describe('Shell command to start in the background, e.g. "pnpm dev" or "pnpm test"'),
+    cwd: z
+      .string()
+      .optional()
+      .describe('Working directory inside the workspace (defaults to your own area)'),
+    maxDurationSec: z
+      .number()
+      .int()
+      .min(10)
+      .max(3600)
+      .optional()
+      .describe('Hard lifetime limit in seconds (default 1800, max 3600)'),
+  }),
+  process_output: z.object({
+    processId: z
+      .string()
+      .min(1)
+      .optional()
+      .describe(
+        'Managed process ID from process_start; omit to list your running and recent processes',
+      ),
+    offset: z
+      .number()
+      .int()
+      .min(0)
+      .optional()
+      .describe('Byte offset returned by the previous call to read only new output'),
+    waitMs: z
+      .number()
+      .int()
+      .min(0)
+      .max(30_000)
+      .optional()
+      .describe('Wait up to this many ms for new output or process exit (default 5000)'),
+  }),
+  process_stop: z.object({
+    processId: z.string().min(1).describe('Managed process ID to terminate'),
+  }),
   browser_navigate: z.object({
     url: z.string().describe('An absolute http(s) URL, e.g. https://example.com/pricing'),
   }),

@@ -31,7 +31,9 @@ import { memoryTools } from '../agent/memory-tools.js';
 import { identityTools } from '../agent/identity-tools.js';
 import { computerTools } from '../agent/computer-tools.js';
 import { codingTools } from '../agent/coding-tools.js';
+import { processTools } from '../agent/process-tools.js';
 import { machineTools } from '../agent/machine-tools.js';
+import { MachineProcessService } from '../sandbox/machine-process.service.js';
 import { botTools } from '../agent/bot-tools.js';
 import { AttachmentsModule } from '../attachments/attachments.module.js';
 import { AgentSessionService } from '../agent/agent-session.service.js';
@@ -91,6 +93,7 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
         attachments: AgentAttachmentService,
         bots: BotsService,
         boardStore: BoardStoreService,
+        processes: MachineProcessService,
       ): ToolRegistry => {
         const registry = new ToolRegistry();
         for (const entry of previewTools()) registry.register(entry);
@@ -98,6 +101,8 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
         for (const entry of browserTools()) registry.register(entry);
         for (const entry of computerTools({ machines: browsers })) registry.register(entry);
         for (const entry of codingTools()) registry.register(entry);
+        for (const entry of processTools({ machines: browsers, processes }))
+          registry.register(entry);
         for (const entry of machineTools({ machines: browsers, attachments }))
           registry.register(entry);
         for (const entry of botTools({ bots })) registry.register(entry);
@@ -112,6 +117,7 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
         AgentAttachmentService,
         BotsService,
         BoardStoreService,
+        MachineProcessService,
       ],
     },
     // The holder a turn asks for a bot's plugin tools. Empty until
