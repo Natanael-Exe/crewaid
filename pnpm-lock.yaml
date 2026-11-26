@@ -366,6 +366,22 @@ importers:
         specifier: 4.1.11
         version: 4.1.11(@types/node@26.4.1)(vite@8.2.4(@types/node@26.4.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
 
+  packages/acp-core:
+    dependencies:
+      '@agentclientprotocol/sdk':
+        specifier: 2.12.0
+        version: 2.12.0(zod@4.6.6)
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 4.1.11
+        version: 4.1.11(@types/node@26.4.1)(vite@8.2.4(@types/node@26.4.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
   packages/brand:
     devDependencies:
       '@types/react':
@@ -624,6 +640,15 @@ packages:
 
   '@ag-ui/proto@1.0.1':
     resolution: {integrity: sha512-w7R2gLeXv04Mss0B29thkF+nLitSx6aLeqhUpvmeJZNjBPbwZ6zkXdK3/KEqavCMtHvot7AGj6RaHG1DvbJwww==}
+
+  '@agentclientprotocol/sdk@2.12.0':
+    resolution: {integrity: sha512-nSkamfY4Lw9/AVBU5G5V9p82ScXhANDMBybQwcPH/9+euUtZm04/VFUMaLj4gLFEXxQEy+QP1VQiKgSRbYVIPg==}
+    peerDependencies:
+      '@modelcontextprotocol/server': ^2.4.0
+      zod: 4.6.6
+    peerDependenciesMeta:
+      '@modelcontextprotocol/server':
+        optional: true
 
   '@ai-sdk/gateway@4.0.71':
     resolution: {integrity: sha512-QSkcaJkJl4Gn8DuLlRi6xVbty5grQ71VlIt90Grd79lJ4y2KOixiLjQNU2n3mDNFKTKzIdFynzM6fUSuawKhmQ==}
@@ -5971,6 +5996,10 @@ snapshots:
       '@bufbuild/protobuf': 2.16.0
       '@protobuf-ts/protoc': 2.11.1
       zod: 3.25.76
+
+  '@agentclientprotocol/sdk@2.12.0(zod@4.6.6)':
+    dependencies:
+      zod: 4.6.6
 
   '@ai-sdk/gateway@4.0.71(zod@4.6.6)':
     dependencies:

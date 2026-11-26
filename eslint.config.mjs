@@ -37,6 +37,9 @@ const DOCKERODE_ALLOWLIST = ['packages/sandbox-supervisor/src/docker-engine.ts']
 /** M2-BE-02: the single file permitted to name `@ai-sdk/harness`. */
 const HARNESS_ALLOWLIST = ['packages/sandbox-core/src/types.ts'];
 
+/** D-241: the single package permitted to import `@agentclientprotocol/sdk`. */
+const ACP_ALLOWLIST = ['packages/acp-core/src/**/*.ts', 'packages/acp-core/test/**/*.ts'];
+
 /**
  * V1-10: who may ask a LIVE CONNECTION who it belongs to.
  *
@@ -207,6 +210,18 @@ const HARNESS_BAN = {
     're-export is what keeps an upstream rename a one-file fix instead of a repo-wide sweep.',
 };
 
+const ACP_SDK_BAN = {
+  name: '@agentclientprotocol/sdk',
+  message:
+    'D-241: @agentclientprotocol/sdk enters the workspace only through packages/acp-core ' +
+    'so local and sandbox ACP runners share one pinned protocol boundary.',
+};
+
+const ACP_SDK_PATTERN_BAN = {
+  group: ['@agentclientprotocol/*'],
+  message: 'D-241: import ACP types and runners from @crewaid/acp-core instead.',
+};
+
 const BASE_PATH_BANS = [DOCKERODE_BAN, HARNESS_BAN];
 
 const BASE_PATTERN_BANS = [
@@ -280,15 +295,16 @@ function rendererTanstackBans() {
  * Build a `no-restricted-imports` option that ALWAYS carries the repo-wide
  * architectural bans, plus any scope-specific additions.
  *
- * @param {{composioSeam?: boolean, elevenlabsSeam?: boolean, eeSeam?: boolean, paths?: Array<{name: string, message: string}>, patterns?: Array<{group: string[], message: string}>}} [extra]
+ * @param {{acpSeam?: boolean, composioSeam?: boolean, elevenlabsSeam?: boolean, eeSeam?: boolean, paths?: Array<{name: string, message: string}>, patterns?: Array<{group: string[], message: string}>}} [extra]
  */
 function restrictedImports(extra = {}) {
   return [
     'error',
     {
-      paths: [...BASE_PATH_BANS, ...(extra.paths ?? [])],
+      paths: [...BASE_PATH_BANS, ...(extra.acpSeam ? [] : [ACP_SDK_BAN]), ...(extra.paths ?? [])],
       patterns: [
         ...BASE_PATTERN_BANS,
+        ...(extra.acpSeam ? [] : [ACP_SDK_PATTERN_BAN]),
         ...(extra.composioSeam
           ? []
           : [
@@ -424,11 +440,13 @@ export default tseslint.config(
     name: 'crewaid/r2-dockerode-allowlist',
     files: DOCKERODE_ALLOWLIST,
     rules: {
-      // Still bans @ai-sdk/harness: this file consumes the re-export like
-      // everyone else. Only the dockerode ban is lifted.
+      // Still bans @ai-sdk/harness and @agentclientprotocol/*: only dockerode is lifted.
       'no-restricted-imports': [
         'error',
-        { paths: [HARNESS_BAN], patterns: [BASE_PATTERN_BANS[1]] },
+        {
+          paths: [HARNESS_BAN, ACP_SDK_BAN],
+          patterns: [BASE_PATTERN_BANS[1], ACP_SDK_PATTERN_BAN],
+        },
       ],
     },
   },
@@ -438,11 +456,23 @@ export default tseslint.config(
     name: 'crewaid/m2be02-harness-allowlist',
     files: HARNESS_ALLOWLIST,
     rules: {
-      // Still bans dockerode: re-exporting types needs no container runtime.
+      // Still bans dockerode and @agentclientprotocol/*: re-exporting types needs neither.
       'no-restricted-imports': [
         'error',
-        { paths: [DOCKERODE_BAN], patterns: [BASE_PATTERN_BANS[0]] },
+        {
+          paths: [DOCKERODE_BAN, ACP_SDK_BAN],
+          patterns: [BASE_PATTERN_BANS[0], ACP_SDK_PATTERN_BAN],
+        },
       ],
+    },
+  },
+
+  // ── D-241 escape hatch: the shared ACP protocol package ───────────────────
+  {
+    name: 'crewaid/d241-acp-allowlist',
+    files: ACP_ALLOWLIST,
+    rules: {
+      'no-restricted-imports': restrictedImports({ acpSeam: true }),
     },
   },
 
