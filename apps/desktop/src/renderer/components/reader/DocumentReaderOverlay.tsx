@@ -57,7 +57,7 @@ export function DocumentReaderOverlay({
           <Dropdown>
             <Dropdown.Trigger
               aria-label={t('reader.more')}
-              className="button button--secondary button--icon-only crewaid-sheet-button size-10 min-w-10 rounded-full"
+              className="button button--secondary button--icon-only crewaid-sheet-button inline-flex size-10 min-w-10 shrink-0 items-center justify-center rounded-full p-0"
             >
               <IconDots className="size-4" stroke={1.8} aria-hidden />
             </Dropdown.Trigger>

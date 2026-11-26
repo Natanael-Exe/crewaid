@@ -321,7 +321,7 @@ export function ConnectionCard({
               <Tooltip delay={400}>
                 <Dropdown.Trigger
                   aria-label={t('settings.connection.options', { name: connection.name })}
-                  className="button button--ghost button--sm button--icon-only size-8 shrink-0 rounded-full text-muted"
+                  className="button button--ghost button--sm button--icon-only inline-flex size-8 shrink-0 items-center justify-center rounded-full p-0 text-muted"
                 >
                   <IconDotsVertical className="size-4" stroke={1.8} aria-hidden />
                 </Dropdown.Trigger>

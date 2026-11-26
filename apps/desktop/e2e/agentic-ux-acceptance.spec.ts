@@ -594,6 +594,24 @@ test('Agentic UX acceptance — Gideon Marketing & Launches end-to-end in Electr
     // Screenshot 3: Opened v2 artifact right next to Gideon's handoff card
     await page.screenshot({ path: path.join(screenshotDir, 'agentic-ux-artifact-open.png') });
 
+    // Open full-window Document Reader and verify the circular dropdown trigger centers its icon
+    await rail.getByRole('button', { name: 'Open reader' }).click();
+    const readerMore = page.locator('.crewaid-reader .dropdown__trigger');
+    await expect(readerMore).toBeVisible();
+    const triggerBox = await readerMore.boundingBox();
+    const iconBox = await readerMore.locator('svg').boundingBox();
+    expect(triggerBox).not.toBeNull();
+    expect(iconBox).not.toBeNull();
+    expect(Math.abs(iconBox!.x + iconBox!.width / 2 - (triggerBox!.x + triggerBox!.width / 2))).toBeLessThanOrEqual(1);
+    expect(Math.abs(iconBox!.y + iconBox!.height / 2 - (triggerBox!.y + triggerBox!.height / 2))).toBeLessThanOrEqual(1);
+    await readerMore.click();
+    await expect(page.getByRole('menuitem', { name: 'Copy Markdown' })).toBeVisible();
+    await page.screenshot({ path: path.join(screenshotDir, 'agentic-ux-reader-dropdown.png') });
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menuitem', { name: 'Copy Markdown' })).toHaveCount(0);
+    await page.locator('.crewaid-reader').getByRole('button', { name: /Close/i }).click();
+    await expect(page.locator('.crewaid-reader')).toHaveCount(0);
+
     // Close deliverable pane via Escape and open the same artifact from Deliverables tab
     await page.keyboard.press('Escape');
     await expect(rail.locator('[data-rail-handoff]')).toBeVisible();
