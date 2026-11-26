@@ -9,6 +9,7 @@ export const VISUAL_MAX_SERIES = 6;
 export const VISUAL_MAX_TABLE_ROWS = 100;
 export const VISUAL_MAX_TABLE_COLS = 12;
 export const VISUAL_MAX_NOTE_CHARS = 240;
+export const VISUAL_MAX_DIFF_CHARS = 12_000;
 export const VISUAL_INLINE_ACK = 'Visual shown in chat.';
 
 // One set of field bounds for both the model's input and the rendered payload:
@@ -413,6 +414,21 @@ export const VisualChecksBlockSchema = z
   .strict();
 export type VisualChecksBlock = z.infer<typeof VisualChecksBlockSchema>;
 
+/**
+ * One file's change as a unified diff, e.g. "what changed" at the end of a
+ * coding task. `language` names the highlighter language; when it is left
+ * out, the file's extension decides.
+ */
+export const VisualDiffBlockSchema = z
+  .object({
+    kind: z.literal('diff'),
+    path: z.string().min(1).max(240),
+    language: z.string().min(1).max(40).optional(),
+    diff: z.string().min(1).max(VISUAL_MAX_DIFF_CHARS),
+  })
+  .strict();
+export type VisualDiffBlock = z.infer<typeof VisualDiffBlockSchema>;
+
 export const VisualBlockInputSchema = z.discriminatedUnion('kind', [
   VisualMetricsBlockSchema,
   VisualChartBlockInputSchema,
@@ -422,6 +438,7 @@ export const VisualBlockInputSchema = z.discriminatedUnion('kind', [
   VisualCalloutBlockSchema,
   VisualHandoffBlockSchema,
   VisualChecksBlockSchema,
+  VisualDiffBlockSchema,
 ]);
 export type VisualBlockInput = z.infer<typeof VisualBlockInputSchema>;
 
@@ -434,6 +451,7 @@ const VisualBlockResolvedSchema = z.discriminatedUnion('kind', [
   VisualCalloutBlockSchema,
   VisualHandoffBlockSchema,
   VisualChecksBlockSchema,
+  VisualDiffBlockSchema,
 ]);
 export type VisualBlock = z.infer<typeof VisualBlockResolvedSchema>;
 
@@ -788,6 +806,16 @@ export function formatVisualSummary(payload: VisualPayload): string {
                     : '○';
           const outcome = item.result !== undefined ? ` → ${item.result}` : '';
           lines.push(`${mark} ${item.label}${outcome}`);
+        }
+        sections.push(lines.join('\n'));
+        break;
+      }
+      case 'diff': {
+        const maxLines = 20;
+        const diffLines = block.diff.replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n');
+        const lines = [block.path, ...diffLines.slice(0, maxLines)];
+        if (diffLines.length > maxLines) {
+          lines.push(`… (+${diffLines.length - maxLines} more lines in Crewaid)`);
         }
         sections.push(lines.join('\n'));
         break;

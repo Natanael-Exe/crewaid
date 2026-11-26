@@ -166,6 +166,19 @@ The radius scale is **concentric**: an inner corner equals the outer corner minu
 - Focus rings use `--focus` (2px). It follows the bot's accent inside bot context.
 - Scrollbars are thin with a thumb at 3:1 contrast over glass.
 
+## Code
+
+- Code reads left to right in a monospace face, in both Markdown fences (Streamdown) and tool
+  cards (`components/code/CodeView`). Both use one dependency-free highlighter
+  (`components/markdown/highlight.ts`) that emits only `hljs-*` classes, never HTML.
+- Token colors are semantic tokens, set in `app.css`: keywords, titles and TOML sections in
+  `--accent-soft-foreground`, strings `--danger`, numbers and literals `--warning`, comments
+  `--crewaid-muted-foreground` (not `--muted`, which Markdown repurposes as a fill).
+- A diff uses the status colors: added lines `--success`, removed lines `--danger`, each row tinted
+  with 12% of its color; hunk and file headers are muted.
+- Line numbers and `+`/`-` markers are generated content (`::before` from data attributes) in
+  `--foreground-faint`, so selecting code and copying it picks up only the code.
+
 ## Copy and i18n
 
 - Every user-facing string lives in `apps/desktop/src/renderer/i18n/messages/en/`. Never hardcode

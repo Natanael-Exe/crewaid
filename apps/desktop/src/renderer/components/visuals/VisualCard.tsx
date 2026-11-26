@@ -9,6 +9,7 @@ import { CalloutBlock } from './CalloutBlock';
 import { ChartBlock } from './ChartBlock';
 import { ChecksBlock } from './ChecksBlock';
 import { ComparisonBlock } from './ComparisonBlock';
+import { DiffBlock } from './DiffBlock';
 import { HandoffBlock, type HandoffActions } from './HandoffBlock';
 import { MetricsBlock } from './MetricsBlock';
 import { TableBlock } from './TableBlock';
@@ -51,6 +52,8 @@ function VisualBlockView({
       return <HandoffBlock block={block} actions={handoffActions} />;
     case 'checks':
       return <ChecksBlock block={block} />;
+    case 'diff':
+      return <DiffBlock block={block} />;
   }
 }
 
