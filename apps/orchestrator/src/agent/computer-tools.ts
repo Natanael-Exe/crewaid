@@ -47,6 +47,71 @@ import { MACHINE_HOME, resolveWorkspacePath } from './workspace-paths.js';
 /** Ceilings on what one tool call may bring back into the context window. */
 const MAX_OUTPUT_CHARS = 16_000;
 const MAX_WRITE_BYTES = 1024 * 1024;
+/** Slice fetch ceiling passed to `readTextFileRange` when reading large files. */
+const RANGE_FETCH_MAX_BYTES = 64 * 1024;
+
+/**
+ * Format read lines with 1-based `cat -n`-style tab prefixes (`12\tcode`),
+ * keeping the 16k-character ceiling as the default bound and adding a range
+ * footer only when the output was truncated or explicitly sliced.
+ */
+function formatReadOutput(input: {
+  readonly path: string;
+  readonly text: string;
+  readonly startLine: number;
+  readonly endLineRequested: number | undefined;
+  readonly totalLines: number;
+  readonly totalChars: number;
+  readonly byteTruncated: boolean;
+}): string {
+  const { path, text, startLine, endLineRequested, totalLines, totalChars, byteTruncated } = input;
+  if (totalLines === 0) {
+    return startLine > 1 ? `fs_read: ${path} is empty (0 lines)` : '';
+  }
+  if (startLine > totalLines) {
+    return `fs_read: ${path} has ${totalLines.toLocaleString('en-US')} line(s); startLine ${startLine} is past end of file.`;
+  }
+  // From here at least one line is in range, so an empty `text` is one blank
+  // line and still gets its number.
+  const lines = text.split('\n');
+  const out: string[] = [];
+  let usedChars = 0;
+  let charTruncated = false;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const rawLine = lines[i] ?? '';
+    const cleanLine = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine;
+    const formatted = `${startLine + i}\t${cleanLine}`;
+    const separator = out.length === 0 ? 0 : 1;
+    if (usedChars + separator + formatted.length > MAX_OUTPUT_CHARS) {
+      if (out.length === 0) {
+        out.push(formatted.slice(0, MAX_OUTPUT_CHARS));
+      }
+      charTruncated = true;
+      break;
+    }
+    out.push(formatted);
+    usedChars += separator + formatted.length;
+  }
+
+  const shownEnd = startLine + out.length - 1;
+  const sliced = startLine > 1 || endLineRequested !== undefined || shownEnd < totalLines;
+  const body = out.join('\n');
+
+  if (charTruncated && totalLines === 1 && out.length === 1) {
+    return `${body}\n… truncated: ${totalChars.toLocaleString('en-US')} characters in total (line 1 of 1).`;
+  }
+  if (charTruncated || byteTruncated || shownEnd < totalLines) {
+    return (
+      `${body}\n[lines ${startLine}–${shownEnd} of ${totalLines.toLocaleString('en-US')} — ` +
+      'pass startLine/endLine to read more]'
+    );
+  }
+  if (sliced) {
+    return `${body}\n[lines ${startLine}–${shownEnd} of ${totalLines.toLocaleString('en-US')}]`;
+  }
+  return body;
+}
 
 /**
  * How long a command may run, enforced INSIDE the container.
@@ -371,30 +436,87 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
       build: (context: ToolContext) =>
         tool({
           description:
-            `Read a text file from this bot’s computer. Your own area is ` +
+            `Read a text file from this bot’s computer with 1-based line numbers. Your own area is ` +
             `${MACHINE_HOME}/agents/${context.botId}; ${MACHINE_HOME}/shared is the team's. ` +
-            'A relative path is resolved against your own area.',
+            'A relative path is resolved against your own area. Pass startLine and endLine ' +
+            'to read a specific slice of large files.',
           inputSchema: NativeToolInputs.fs_read,
-          execute: async ({ path }: { path: string }) => {
+          execute: async ({
+            path,
+            startLine,
+            endLine,
+          }: {
+            path: string;
+            startLine?: number | undefined;
+            endLine?: number | undefined;
+          }) => {
             const verdict = resolveWorkspacePath(context.botId, path, context.groupId ?? null);
             if (!verdict.ok) return `fs_read refused: ${verdict.reason}`;
+            if (startLine !== undefined && endLine !== undefined && endLine < startLine) {
+              return `fs_read refused: endLine (${endLine}) must be greater than or equal to startLine (${startLine}).`;
+            }
+            const effectiveStart = startLine ?? 1;
             try {
               const session = await context.session();
+              if (session.readTextFileRange !== undefined) {
+                const ranged = await session.readTextFileRange({
+                  path: verdict.path,
+                  ...(startLine !== undefined ? { startLine } : {}),
+                  ...(endLine !== undefined ? { endLine } : {}),
+                  maxBytes: RANGE_FETCH_MAX_BYTES,
+                });
+                if (ranged === null) return `fs_read: ${verdict.path} does not exist`;
+                if (ranged.binary) {
+                  return (
+                    `fs_read refused: ${JSON.stringify(verdict.path)} contains binary data. ` +
+                    'This tool reads text files only. Use screenshot or capture_screen to view the computer; ' +
+                    'use shell to extract text from binary documents first.'
+                  );
+                }
+                return formatReadOutput({
+                  path: verdict.path,
+                  text: ranged.text,
+                  startLine: ranged.startLine,
+                  endLineRequested: endLine,
+                  totalLines: ranged.totalLines,
+                  totalChars: Math.max(ranged.text.length, ranged.totalBytes),
+                  byteTruncated: ranged.byteTruncated,
+                });
+              }
+
               const text = await session.readTextFile({ path: verdict.path });
-              // `null` is the sandbox's "no such file", not an empty one. A
-              // model told the file is empty stops looking; told it is absent,
-              // it checks the path.
               if (text === null) return `fs_read: ${verdict.path} does not exist`;
-              // PostgreSQL text and JSONB reject null characters. Refuse a
-              // binary file before truncation so neither the event log nor
-              // the canonical tool result receives those decoded bytes.
               if (text.includes('\u0000'))
                 return (
                   `fs_read refused: ${JSON.stringify(verdict.path)} contains binary data. ` +
                   'This tool reads text files only. Use screenshot or capture_screen to view the computer; ' +
                   'use shell to extract text from binary documents first.'
                 );
-              return bounded(text);
+              if (text === '') {
+                return formatReadOutput({
+                  path: verdict.path,
+                  text: '',
+                  startLine: effectiveStart,
+                  endLineRequested: endLine,
+                  totalLines: 0,
+                  totalChars: 0,
+                  byteTruncated: false,
+                });
+              }
+              const normalized = text.endsWith('\n') ? text.slice(0, -1) : text;
+              const allLines = normalized.split('\n');
+              const from = effectiveStart - 1;
+              const to = endLine === undefined ? allLines.length : Math.min(allLines.length, endLine);
+              const slice = from >= allLines.length ? '' : allLines.slice(from, to).join('\n');
+              return formatReadOutput({
+                path: verdict.path,
+                text: slice,
+                startLine: effectiveStart,
+                endLineRequested: endLine,
+                totalLines: allLines.length,
+                totalChars: text.length,
+                byteTruncated: false,
+              });
             } catch (error) {
               return failure(`fs_read ${JSON.stringify(verdict.path)}`, error);
             }

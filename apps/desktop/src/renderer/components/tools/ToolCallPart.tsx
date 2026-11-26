@@ -147,7 +147,11 @@ function DetailsDisclosure({ row, status }: { row: FoldedToolPart; status: Displ
                   ? status === 'ok'
                     ? t('tools.detail.fileWritten')
                     : t('tools.detail.filePreview')
-                  : t('tools.detail.fileContents')
+                  : row.toolName === 'fs_edit'
+                    ? status === 'ok'
+                      ? t('tools.detail.fileEdited')
+                      : t('tools.detail.filePreview')
+                    : t('tools.detail.fileContents')
               }
               body={preview}
             />
@@ -269,7 +273,11 @@ function ToolCallLine({
                       ? status === 'ok'
                         ? t('tools.detail.fileWritten')
                         : t('tools.detail.filePreview')
-                      : t('tools.detail.fileContents')
+                      : row.toolName === 'fs_edit'
+                        ? status === 'ok'
+                          ? t('tools.detail.fileEdited')
+                          : t('tools.detail.filePreview')
+                        : t('tools.detail.fileContents')
                   }
                   body={preview}
                 />

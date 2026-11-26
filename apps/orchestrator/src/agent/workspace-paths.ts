@@ -49,7 +49,7 @@ export const MACHINE_HOME = '/home/bot';
  * container; what this closes is the path where a confused model reads a
  * sibling's session through the one tool that is supposed to be scoped.
  */
-const MACHINE_OWNED = [
+export const MACHINE_OWNED: readonly string[] = [
   '.chrome',
   '.seats',
   '.config',
@@ -57,6 +57,63 @@ const MACHINE_OWNED = [
   '.local',
   '.crewaid-deleted-profiles',
 ];
+
+/** Directories skipped by default in recursive code searches (`fs_grep`, `fs_glob`). */
+export const DEFAULT_SEARCH_EXCLUDES: readonly string[] = ['.git', 'node_modules'];
+
+export type WorkspaceSearchPlan =
+  | { readonly ok: false; readonly reason: string }
+  | { readonly ok: true; readonly mode: 'empty' }
+  | {
+      readonly ok: true;
+      readonly mode: 'root';
+      readonly path: string;
+      readonly excludes: readonly string[];
+    }
+  | {
+      readonly ok: true;
+      readonly mode: 'machine-home';
+      readonly ownDir: string;
+      readonly groupDir: string | null;
+      readonly skipTopLevel: readonly string[];
+      readonly excludes: readonly string[];
+    };
+
+/**
+ * Resolve a recursive search root (`fs_grep` / `fs_glob`) and compute pre-search
+ * exclusions so sibling bots' folders and machine state are never scanned or
+ * allowed to consume result limits before post-filtering runs.
+ */
+export function resolveWorkspaceSearchPlan(
+  botId: string,
+  requested: string | undefined,
+  groupId: string | null = null,
+): WorkspaceSearchPlan {
+  const ownDir = `${MACHINE_HOME}/agents/${botId}`;
+  const groupDir = groupId === null ? null : `${MACHINE_HOME}/groups/${groupId}`;
+  const target = requested === undefined || requested.trim() === '' ? ownDir : requested;
+  const verdict = resolveWorkspacePath(botId, target, groupId);
+  if (!verdict.ok) return verdict;
+
+  if (verdict.path === MACHINE_HOME) {
+    return {
+      ok: true,
+      mode: 'machine-home',
+      ownDir,
+      groupDir,
+      skipTopLevel: [...MACHINE_OWNED, ...DEFAULT_SEARCH_EXCLUDES, 'agents', 'groups'],
+      excludes: DEFAULT_SEARCH_EXCLUDES,
+    };
+  }
+  if (verdict.path === `${MACHINE_HOME}/agents`) {
+    return { ok: true, mode: 'root', path: ownDir, excludes: DEFAULT_SEARCH_EXCLUDES };
+  }
+  if (verdict.path === `${MACHINE_HOME}/groups`) {
+    if (groupDir === null) return { ok: true, mode: 'empty' };
+    return { ok: true, mode: 'root', path: groupDir, excludes: DEFAULT_SEARCH_EXCLUDES };
+  }
+  return { ok: true, mode: 'root', path: verdict.path, excludes: DEFAULT_SEARCH_EXCLUDES };
+}
 
 /**
  * Chrome's user-data directory, which since M5-BE-26 holds one profile per bot.

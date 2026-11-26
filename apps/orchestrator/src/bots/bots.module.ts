@@ -30,6 +30,7 @@ import { BoardStoreService } from '../agent/board-store.service.js';
 import { memoryTools } from '../agent/memory-tools.js';
 import { identityTools } from '../agent/identity-tools.js';
 import { computerTools } from '../agent/computer-tools.js';
+import { codingTools } from '../agent/coding-tools.js';
 import { machineTools } from '../agent/machine-tools.js';
 import { botTools } from '../agent/bot-tools.js';
 import { AttachmentsModule } from '../attachments/attachments.module.js';
@@ -96,6 +97,7 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
         for (const entry of visualTools()) registry.register(entry);
         for (const entry of browserTools()) registry.register(entry);
         for (const entry of computerTools({ machines: browsers })) registry.register(entry);
+        for (const entry of codingTools()) registry.register(entry);
         for (const entry of machineTools({ machines: browsers, attachments }))
           registry.register(entry);
         for (const entry of botTools({ bots })) registry.register(entry);

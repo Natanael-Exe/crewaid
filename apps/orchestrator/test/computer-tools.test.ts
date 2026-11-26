@@ -339,9 +339,96 @@ describe('fs_read', () => {
     expect(await run('fs_read', ctx, { path: 'renamed.txt' })).toContain('fs_read refused');
   });
 
-  it('reads inside the bot’s own area', async () => {
+  it('reads inside the bot’s own area with 1-based tab line numbers', async () => {
     const { context: ctx } = context({ readTextFile: () => 'the notes' });
-    expect(await run('fs_read', ctx, { path: 'notes.md' })).toBe('the notes');
+    expect(await run('fs_read', ctx, { path: 'notes.md' })).toBe('1\tthe notes');
+  });
+
+  it('keeps a 300-line file under 16k characters whole without a truncation footer', async () => {
+    const body = Array.from({ length: 300 }, (_, i) => `row ${i + 1}`).join('\n');
+    const { context: ctx } = context({ readTextFile: () => body });
+    const result = (await run('fs_read', ctx, { path: 'report.txt' })) as string;
+    expect(result).toContain('1\trow 1');
+    expect(result).toContain('300\trow 300');
+    expect(result).not.toContain('pass startLine/endLine');
+  });
+
+  it('slices requested line ranges and reports out-of-range bounds clearly', async () => {
+    const body = 'alpha\nbeta\ngamma\ndelta\n';
+    const { context: ctx } = context({ readTextFile: () => body });
+
+    const slice = (await run('fs_read', ctx, {
+      path: 'lines.txt',
+      startLine: 2,
+      endLine: 3,
+    })) as string;
+    expect(slice).toBe('2\tbeta\n3\tgamma\n[lines 2–3 of 4 — pass startLine/endLine to read more]');
+
+    const pastEof = (await run('fs_read', ctx, { path: 'lines.txt', startLine: 10 })) as string;
+    expect(pastEof).toContain('has 4 line(s)');
+    expect(pastEof).toContain('past end of file');
+
+    const inverted = (await run('fs_read', ctx, {
+      path: 'lines.txt',
+      startLine: 5,
+      endLine: 2,
+    })) as string;
+    expect(inverted).toContain('fs_read refused');
+  });
+
+  it('numbers a blank line in range instead of returning nothing', async () => {
+    const { context: ctx } = context({ readTextFile: () => 'alpha\n\ngamma\n' });
+
+    const blank = (await run('fs_read', ctx, {
+      path: 'gap.txt',
+      startLine: 2,
+      endLine: 2,
+    })) as string;
+
+    expect(blank).toBe('2\t\n[lines 2–2 of 3 — pass startLine/endLine to read more]');
+  });
+
+  it('truncates multi-line files over 16k characters cleanly with a range footer', async () => {
+    const body = Array.from({ length: 500 }, (_, i) => `line ${i + 1}: ${'a'.repeat(50)}`).join(
+      '\n',
+    );
+    const { context: ctx } = context({ readTextFile: () => body });
+    const result = (await run('fs_read', ctx, { path: 'long.ts' })) as string;
+    expect(result.length).toBeLessThan(16_500);
+    expect(result).toMatch(/\[lines 1–\d+ of 500 — pass startLine\/endLine to read more\]$/);
+  });
+
+  it('prefers readTextFileRange when the sandbox session provides it', async () => {
+    let fullReads = 0;
+    const base = context({
+      readTextFile: () => {
+        fullReads += 1;
+        return 'should not be called';
+      },
+    });
+    const ctx = {
+      ...base.context,
+      session: async () => ({
+        ...(await base.context.session()),
+        readTextFileRange: async () => ({
+          text: 'hundred\nhundred-one',
+          totalLines: 500_000,
+          totalBytes: 200_000_000,
+          startLine: 100,
+          byteTruncated: false,
+          binary: false,
+        }),
+      }),
+    } as unknown as ToolContext;
+
+    const result = (await run('fs_read', ctx, {
+      path: 'huge.log',
+      startLine: 100,
+      endLine: 101,
+    })) as string;
+    expect(fullReads).toBe(0);
+    expect(result).toContain('100\thundred\n101\thundred-one');
+    expect(result).toContain('of 500,000');
   });
 
   it('refuses a path outside the home before it touches the sandbox', async () => {

@@ -91,6 +91,29 @@ export function describeToolAsk(toolName: string, args: unknown): ToolAsk {
       const path = argOf(args, 'path');
       return plain(t('tools.ask.readFile'), path === undefined ? null : basename(path));
     }
+    case 'fs_edit': {
+      const path = argOf(args, 'path');
+      return plain(
+        path === undefined ? t('tools.ask.editFile') : t('tools.ask.editThisFile'),
+        path === undefined ? null : basename(path),
+      );
+    }
+    case 'fs_grep': {
+      const pattern = argOf(args, 'pattern');
+      return {
+        question: t('tools.ask.searchFiles'),
+        detail: pattern ?? null,
+        detailIsCode: pattern !== undefined,
+      };
+    }
+    case 'fs_glob': {
+      const pattern = argOf(args, 'pattern');
+      return {
+        question: t('tools.ask.findFiles'),
+        detail: pattern ?? null,
+        detailIsCode: pattern !== undefined,
+      };
+    }
     case 'attach_file': {
       const path = argOf(args, 'path');
       return plain(t('tools.ask.attachFile'), path === undefined ? null : basename(path));

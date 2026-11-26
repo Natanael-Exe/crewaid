@@ -504,4 +504,27 @@ describe('recoverable tool cards', () => {
     expect(attached).not.toContain('data-tool-card=');
     expect(attached).toContain('data-internal-path-hint="true"');
   });
+
+  it('renders fs_edit as a quiet line with diff preview and never labels a failed edit as edited', () => {
+    const internalPath = '/home/bot/agents/cmww0x3xr0007zq3bw7scat2i/app.ts';
+    const part = {
+      type: 'tool-call',
+      toolCallId: 'edit-1',
+      toolName: 'fs_edit',
+      status: 'ok',
+      input: { path: internalPath, oldText: 'const x = 1;', newText: 'const x = 2;' },
+      output: `edited ${internalPath} (1 replacement, lines 1–1, +1/-1)`,
+    };
+    const html = render(part);
+    expect(html).toContain('data-tool-line');
+    expect(html).toContain('Edit a file');
+    expect(html).toContain('app.ts');
+    expect(html).toContain('File edited');
+    expect(html).toContain('- const x = 1;');
+    expect(html).toContain('+ const x = 2;');
+
+    const failed = render({ ...part, output: 'fs_edit failed: oldText was not found' });
+    expect(failed).toContain('Failed');
+    expect(failed).not.toContain('File edited');
+  });
 });

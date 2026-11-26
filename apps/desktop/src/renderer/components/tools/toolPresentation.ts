@@ -16,7 +16,7 @@ const COMPUTER = new Set([
   'record_screen_start',
   'record_screen_stop',
 ]);
-const FILE = new Set(['fs_read', 'fs_write', 'attach_file']);
+const FILE = new Set(['fs_read', 'fs_write', 'fs_edit', 'fs_grep', 'fs_glob', 'attach_file']);
 const TITLES: Readonly<Record<string, PlainKey>> = {
   shell: 'tools.title.shell',
   capture_screen: 'tools.title.captureScreen',
@@ -29,6 +29,9 @@ const TITLES: Readonly<Record<string, PlainKey>> = {
   record_screen_stop: 'tools.title.recordStop',
   fs_read: 'tools.title.fsRead',
   fs_write: 'tools.title.fsWrite',
+  fs_edit: 'tools.title.fsEdit',
+  fs_grep: 'tools.title.fsGrep',
+  fs_glob: 'tools.title.fsGlob',
   attach_file: 'tools.title.attachFile',
   present_visual: 'tools.title.presentVisual',
 };
@@ -230,6 +233,16 @@ export function resultPreview(output: unknown): string {
 
 export function filePreview(row: FoldedToolPart): string | undefined {
   const input = record(row.input);
+  if (row.toolName === 'fs_edit') {
+    const oldText = typeof input?.['oldText'] === 'string' ? input['oldText'] : undefined;
+    const newText = typeof input?.['newText'] === 'string' ? input['newText'] : undefined;
+    if (oldText === undefined && newText === undefined) return undefined;
+    const diff = [
+      ...(oldText === undefined ? [] : oldText.split('\n').map((line) => `- ${line}`)),
+      ...(newText === undefined ? [] : newText.split('\n').map((line) => `+ ${line}`)),
+    ].join('\n');
+    return truncateForDisplay(diff, 1200);
+  }
   const value =
     row.toolName === 'fs_write'
       ? input?.['content']

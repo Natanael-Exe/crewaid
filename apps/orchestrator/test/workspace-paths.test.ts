@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { MACHINE_HOME, resolveWorkspacePath } from '../src/agent/workspace-paths.js';
+import {
+  MACHINE_HOME,
+  MACHINE_OWNED,
+  resolveWorkspacePath,
+  resolveWorkspaceSearchPlan,
+} from '../src/agent/workspace-paths.js';
 
 /**
  * M5-BE-05 / M5-QA-01 — where a bot may read and write on a machine it shares.
@@ -165,5 +170,50 @@ describe('D-131 group folders', () => {
     // Listing `groups/` tells a bot nothing it cannot learn from its prompt,
     // and refusing it would be stricter than the rule needs.
     expect(resolveWorkspacePath(BOT, `${MACHINE_HOME}/groups`, GROUP).ok).toBe(true);
+  });
+});
+
+describe('resolveWorkspaceSearchPlan', () => {
+  const GROUP = 'clx4m5n6o7p8q9r0s1t2u3v4';
+
+  it('defaults omitted path to the bot’s own area', () => {
+    expect(resolveWorkspaceSearchPlan(BOT, undefined, null)).toEqual({
+      ok: true,
+      mode: 'root',
+      path: OWN,
+      excludes: ['.git', 'node_modules'],
+    });
+  });
+
+  it('returns machine-home mode skipping MACHINE_OWNED, agents, and groups when searching /home/bot', () => {
+    const plan = resolveWorkspaceSearchPlan(BOT, MACHINE_HOME, GROUP);
+    expect(plan).toMatchObject({
+      ok: true,
+      mode: 'machine-home',
+      ownDir: OWN,
+      groupDir: `${MACHINE_HOME}/groups/${GROUP}`,
+    });
+    if (plan.ok && plan.mode === 'machine-home') {
+      for (const dir of MACHINE_OWNED) expect(plan.skipTopLevel).toContain(dir);
+      expect(plan.skipTopLevel).toContain('agents');
+      expect(plan.skipTopLevel).toContain('groups');
+    }
+  });
+
+  it('narrows /home/bot/agents and /home/bot/groups so sibling folders are never scanned', () => {
+    expect(resolveWorkspaceSearchPlan(BOT, `${MACHINE_HOME}/agents`, null)).toMatchObject({
+      ok: true,
+      mode: 'root',
+      path: OWN,
+    });
+    expect(resolveWorkspaceSearchPlan(BOT, `${MACHINE_HOME}/groups`, null)).toEqual({
+      ok: true,
+      mode: 'empty',
+    });
+    expect(resolveWorkspaceSearchPlan(BOT, `${MACHINE_HOME}/groups`, GROUP)).toMatchObject({
+      ok: true,
+      mode: 'root',
+      path: `${MACHINE_HOME}/groups/${GROUP}`,
+    });
   });
 });

@@ -276,10 +276,68 @@ export const NativeToolInputs = {
   }),
   fs_read: z.object({
     path: z.string().describe('An absolute path, or one relative to your own area'),
+    startLine: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('1-based starting line number (inclusive). Omit to read from line 1.'),
+    endLine: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('1-based ending line number (inclusive). Omit to read up to the 16k-character cap.'),
   }),
   fs_write: z.object({
     path: z.string().describe('An absolute path, or one relative to your own area'),
     content: z.string().describe('The whole file contents; this replaces what was there'),
+  }),
+  fs_edit: z.object({
+    path: z.string().describe('An absolute path, or one relative to your own area'),
+    oldText: z
+      .string()
+      .min(1)
+      .describe('Exact existing text to replace, without line-number prefixes'),
+    newText: z.string().describe('Replacement text; empty string deletes oldText'),
+    replaceAll: z
+      .boolean()
+      .optional()
+      .describe('Replace every occurrence instead of requiring a single unique match'),
+  }),
+  fs_grep: z.object({
+    pattern: z.string().min(1).describe('Text or regex pattern to search for'),
+    path: z
+      .string()
+      .optional()
+      .describe('File or directory to search (defaults to your own area)'),
+    glob: z.string().optional().describe('Optional filename glob filter, e.g. "*.ts"'),
+    fixedStrings: z
+      .boolean()
+      .optional()
+      .describe('Treat pattern as a literal string rather than a regular expression'),
+    caseSensitive: z
+      .boolean()
+      .optional()
+      .describe('Force case-sensitive matching (defaults to smart-case)'),
+    maxMatches: z
+      .number()
+      .int()
+      .min(1)
+      .max(500)
+      .optional()
+      .describe('Maximum total matching lines to return (default 100)'),
+  }),
+  fs_glob: z.object({
+    pattern: z.string().min(1).describe('Filename glob pattern, e.g. "**/*.ts" or "*config*"'),
+    path: z.string().optional().describe('Directory to search (defaults to your own area)'),
+    maxResults: z
+      .number()
+      .int()
+      .min(1)
+      .max(1000)
+      .optional()
+      .describe('Maximum matching file paths to return (default 200)'),
   }),
   browser_navigate: z.object({
     url: z.string().describe('An absolute http(s) URL, e.g. https://example.com/pricing'),
