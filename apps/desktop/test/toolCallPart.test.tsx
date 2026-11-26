@@ -522,12 +522,76 @@ describe('recoverable tool cards', () => {
     expect(html).toContain('Edit a file');
     expect(html).toContain('app.ts');
     expect(html).toContain('File edited');
-    expect(html).toContain('- const x = 1;');
-    expect(html).toContain('+ const x = 2;');
+    // The replacement is a diff in the file's language: one removed row, one added.
+    expect(html).toContain('data-code-view="diff"');
+    expect(html).toContain('data-language="typescript"');
+    expect(html).toMatch(
+      /data-diff="deletion" data-marker="-"><span class="hljs-keyword">const<\/span> x = <span class="hljs-number">1<\/span>;/,
+    );
+    expect(html).toMatch(
+      /data-diff="addition" data-marker="\+"><span class="hljs-keyword">const<\/span> x = <span class="hljs-number">2<\/span>;/,
+    );
 
     const failed = render({ ...part, output: 'fs_edit failed: oldText was not found' });
     expect(failed).toContain('Failed');
     expect(failed).not.toContain('File edited');
+  });
+
+  it('shows an edit result as its summary, then the edited lines with their numbers', () => {
+    const html = render({
+      type: 'tool-call',
+      toolCallId: 'edit-2',
+      toolName: 'fs_edit',
+      status: 'ok',
+      input: { path: 'main.go', oldText: 'return 1', newText: 'return 2' },
+      output:
+        'edited main.go (1 replacement, lines 4–4, +1/-1)\n3\tfunc one() int {\n4\t\treturn 2\n5\t}',
+    });
+    const result = html.slice(html.indexOf('>Result<'));
+    expect(result).toContain('edited main.go (1 replacement, lines 4–4, +1/-1)</p>');
+    expect(result).toContain('data-code-view="numbered"');
+    expect(result).toContain('data-language="go"');
+    expect(result).toContain('data-line="3"');
+    expect(result).toContain('<span class="hljs-keyword">func</span>');
+    expect(result).not.toContain('4\t');
+  });
+
+  it('renders an fs_read as highlighted code with a line-number gutter, shown once', () => {
+    const part = {
+      type: 'tool-call',
+      toolCallId: 'read-1',
+      toolName: 'fs_read',
+      status: 'ok',
+      input: { path: '/home/bot/agents/cmww0x3xr0007zq3bw7scat2i/src/lib.rs', startLine: 9 },
+      output: '9\tpub fn total() -> u32 {\n10\t    42 // answer\n11\t}\n[lines 9–11 of 80]',
+    };
+    const html = render(part);
+    expect(html).toContain('data-tool-line');
+    expect(html).toContain('lib.rs');
+    expect(html).toContain('File contents');
+    expect(html).toContain('data-code-view="numbered"');
+    expect(html).toContain('data-language="rust"');
+    expect(html).toContain('data-line="9"');
+    expect(html).toContain('data-line="11"');
+    expect(html).toContain('<span class="hljs-keyword">pub</span>');
+    expect(html).toContain('<span class="hljs-comment">// answer</span>');
+    // The numbers are gutter attributes, never text a copy would pick up.
+    expect(html).not.toContain('9\t');
+    expect(html).not.toContain('>10<');
+    expect(html).toContain('[lines 9–11 of 80]</p>');
+    // The contents are the result: the read does not repeat as a raw Result block.
+    expect(html).not.toContain('>Result<');
+
+    // A file the highlighter does not know keeps its gutter but stays plain text.
+    const plain = render({ ...part, input: { path: 'notes.txt' }, output: '1\tfn x() {}' });
+    expect(plain).toContain('data-line="1"');
+    expect(plain).not.toContain('data-language=');
+    expect(plain).not.toContain('class="hljs-');
+
+    // A read that came back as a message, not numbered lines, stays as it was.
+    const missing = render({ ...part, output: 'fs_read: src/lib.rs does not exist' });
+    expect(missing).not.toContain('data-code-view');
+    expect(missing).toContain('fs_read: src/lib.rs does not exist');
   });
 
   it('renders process_start as a quiet computer line and marks cancelled runs incomplete', () => {

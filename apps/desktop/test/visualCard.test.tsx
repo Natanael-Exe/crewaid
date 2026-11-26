@@ -133,6 +133,53 @@ describe('VisualCard & present_visual rendering', () => {
     expect(combinedHtml).toContain('Q1 Executive Brief');
   });
 
+  it('renders a diff block as the changed file, its counts and its highlighted diff', () => {
+    const html = renderFolded([
+      {
+        type: 'tool-call',
+        toolCallId: 'tc-diff',
+        toolName: 'present_visual',
+        input: {
+          title: 'What changed',
+          blocks: [
+            {
+              kind: 'diff',
+              path: '/home/bot/agents/cmww0x3xr0007zq3bw7scat2i/src/total.ts',
+              diff: [
+                '--- a/src/total.ts',
+                '+++ b/src/total.ts',
+                '@@ -1,3 +1,3 @@',
+                ' export function total(items: number[]) {',
+                '-  return items.length;',
+                '+  return items.reduce((sum, item) => sum + item, 0);',
+                ' }',
+              ].join('\n'),
+            },
+            { kind: 'diff', path: 'Cargo.toml', language: 'toml', diff: '+[dependencies]\n' },
+          ],
+        },
+      },
+      { type: 'tool-result', toolCallId: 'tc-diff', output: VISUAL_INLINE_ACK },
+    ]);
+
+    expect(html).toContain('data-visual-card="ready"');
+    expect(html.match(/data-visual-block="diff"/g)).toHaveLength(2);
+    // The internal sandbox path never reaches the face.
+    expect(html).not.toContain('/home/bot');
+    expect(html).toContain('total.ts</h4>');
+    expect(html).toContain('Lines added: 1, lines removed: 1');
+    expect(html).toContain('data-language="typescript"');
+    expect(html).toContain('data-diff="hunk"');
+    expect(html).toMatch(
+      /data-diff="deletion" data-marker="-">  <span class="hljs-keyword">return<\/span>/,
+    );
+    expect(html).toContain('<span class="hljs-title">reduce</span>');
+    // An explicit language wins over the extension.
+    expect(html).toMatch(
+      /data-language="toml".*<span class="hljs-section">\[dependencies\]<\/span>/s,
+    );
+  });
+
   it('renders a loading skeleton while running and a clean error card on refusal', () => {
     const loadingHtml = renderFolded([
       {

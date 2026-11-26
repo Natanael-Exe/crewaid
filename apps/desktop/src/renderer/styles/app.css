@@ -117,6 +117,99 @@ body:has(
   color: var(--warning);
 }
 
+.hljs-section,
+.hljs-attr {
+  color: var(--accent-soft-foreground);
+}
+
+.hljs-section {
+  font-weight: 600;
+}
+
+.hljs-meta {
+  color: var(--crewaid-muted-foreground);
+  font-weight: 600;
+}
+
+/* A diff reads by the status colours: what was added and what was removed. */
+.hljs-addition {
+  color: var(--success);
+}
+
+.hljs-deletion {
+  color: var(--danger);
+}
+
+/* Code outside a Markdown fence: a file a bot read, with its line numbers, or
+   an edit as a diff. The line number and the +/- marker are generated content
+   from data attributes, never text, so a selection copies the code alone. */
+.crewaid-code-view {
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  padding-block: 4px;
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--text-caption);
+  line-height: 18px;
+  white-space: pre;
+  tab-size: 4;
+}
+
+.crewaid-code-view > code {
+  display: block;
+  /* Rows as wide as the longest line, so a tint still spans it when scrolled. */
+  min-width: fit-content;
+}
+
+.crewaid-code-line {
+  display: block;
+  padding-inline: 10px;
+}
+
+.crewaid-code-view[data-gutter] .crewaid-code-line::before {
+  content: attr(data-line);
+  display: inline-block;
+  width: var(--crewaid-code-gutter);
+  margin-inline-end: 14px;
+  text-align: end;
+  color: var(--foreground-faint);
+  user-select: none;
+}
+
+.crewaid-code-line[data-diff]::before {
+  content: attr(data-marker);
+  display: inline-block;
+  width: 1ch;
+  margin-inline-end: 10px;
+  user-select: none;
+}
+
+.crewaid-code-line[data-diff='addition'] {
+  background: color-mix(in oklab, var(--success) 12%, transparent);
+}
+
+.crewaid-code-line[data-diff='addition']::before {
+  color: var(--success);
+}
+
+.crewaid-code-line[data-diff='deletion'] {
+  background: color-mix(in oklab, var(--danger) 12%, transparent);
+}
+
+.crewaid-code-line[data-diff='deletion']::before {
+  color: var(--danger);
+}
+
+.crewaid-code-line:is([data-diff='hunk'], [data-diff='header']) {
+  color: var(--crewaid-muted-foreground);
+}
+
+.crewaid-code-line[data-diff='hunk'] {
+  background: color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+
 /* Streamdown fills inline code, table heads and code chrome with `bg-muted`,
    a shadcn surface tint. HeroUI's muted is a text colour, which as a fill reads
    as a dark slab behind dark text, so inside Markdown it is the tint. */
