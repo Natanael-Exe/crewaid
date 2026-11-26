@@ -116,7 +116,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # a process table that test can only kill the whole container, which is a
     # different assertion. The bridge's /health reads /proc directly and does
     # not depend on this.
-      procps socat git build-essential \
+      procps socat git build-essential ripgrep fd-find \
+    && ln -s /usr/bin/fdfind /usr/local/bin/fd \
     && curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
        | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
     # §5 hardcodes `arch=amd64` here. Google now publishes google-chrome-stable

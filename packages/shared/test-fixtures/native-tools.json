@@ -103,10 +103,22 @@
   "attach_file": { "valid": { "path": "/home/bot/report.pdf", "taskId": "task-1" }, "invalid": {} },
   "screenshot": { "valid": {}, "invalid": null },
   "shell": { "valid": { "command": "ls -la" }, "invalid": { "command": 1 } },
-  "fs_read": { "valid": { "path": "notes.md" }, "invalid": {} },
+  "fs_read": { "valid": { "path": "notes.md", "startLine": 1, "endLine": 50 }, "invalid": {} },
   "fs_write": {
     "valid": { "path": "notes.md", "content": "Report" },
     "invalid": { "path": "notes.md" }
+  },
+  "fs_edit": {
+    "valid": { "path": "notes.md", "oldText": "draft", "newText": "final" },
+    "invalid": { "path": "notes.md", "oldText": "", "newText": "final" }
+  },
+  "fs_grep": {
+    "valid": { "pattern": "TODO", "path": "src", "glob": "*.ts", "maxMatches": 50 },
+    "invalid": { "pattern": "" }
+  },
+  "fs_glob": {
+    "valid": { "pattern": "**/*.ts", "path": "src", "maxResults": 100 },
+    "invalid": { "pattern": "" }
   },
   "browser_navigate": { "valid": { "url": "https://example.com" }, "invalid": { "url": 1 } },
   "browser_read": { "valid": {}, "invalid": null },

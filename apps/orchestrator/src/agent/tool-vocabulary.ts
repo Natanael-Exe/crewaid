@@ -120,12 +120,27 @@ const VOCABULARY: Readonly<Record<string, ToolVocabularyEntry>> = {
   fs_read: {
     alias: 'read-file',
     label: 'Read a file',
-    summary: 'Reads a text file from the bot’s computer.',
+    summary: 'Reads a text file (or a line range) from the bot’s computer.',
   },
   fs_write: {
     alias: 'save-file',
     label: 'Write a file',
     summary: 'Writes or replaces a text file on the bot’s computer.',
+  },
+  fs_edit: {
+    alias: 'edit-file',
+    label: 'Edit a file',
+    summary: 'Replaces an exact block of text inside an existing file.',
+  },
+  fs_grep: {
+    alias: 'search-files',
+    label: 'Search in files',
+    summary: 'Searches text or regex patterns across files on the bot’s computer.',
+  },
+  fs_glob: {
+    alias: 'find-files',
+    label: 'Find files',
+    summary: 'Finds files matching a glob pattern on the bot’s computer.',
   },
 
   // The team

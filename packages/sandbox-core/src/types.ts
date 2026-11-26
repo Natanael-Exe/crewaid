@@ -165,6 +165,28 @@ export const SANDBOX_INFRA_SURFACE = [
   'restricted',
 ] as const;
 
+/** A text read that slices large files inside the container (`readTextFileRange`). */
+export interface SandboxReadTextRangeOptions {
+  readonly path: string;
+  readonly startLine?: number | undefined;
+  readonly endLine?: number | undefined;
+  /** Maximum slice bytes transferred across the bridge when the file is large (default 64 KiB). */
+  readonly maxBytes?: number | undefined;
+}
+
+export interface SandboxReadTextRangeResult {
+  readonly text: string;
+  readonly totalLines: number;
+  readonly totalBytes: number;
+  readonly startLine: number;
+  readonly byteTruncated: boolean;
+  readonly binary: boolean;
+}
+
+export type SandboxReadTextRange = (
+  options: SandboxReadTextRangeOptions,
+) => Promise<SandboxReadTextRangeResult | null>;
+
 /**
  * The session a tool's `execute` receives.
  *
@@ -192,6 +214,7 @@ export const SANDBOX_INFRA_SURFACE = [
  */
 export type ToolSandboxSession = HarnessV1RestrictedSandboxSession & {
   readonly git?: GitProcessRunner;
+  readonly readTextFileRange?: SandboxReadTextRange;
 } & {
   readonly [Member in (typeof SANDBOX_INFRA_SURFACE)[number]]?: never;
 };

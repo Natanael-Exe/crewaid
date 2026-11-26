@@ -3,6 +3,7 @@ import type { ToolDefinition as Tool } from '../src/agent/tool-contract.js';
 import { z } from 'zod';
 import { browserTools } from '../src/agent/browser-tools.js';
 import { computerTools } from '../src/agent/computer-tools.js';
+import { codingTools } from '../src/agent/coding-tools.js';
 import { identityTools } from '../src/agent/identity-tools.js';
 import { boardTools } from '../src/agent/board-tools.js';
 import { memoryTools } from '../src/agent/memory-tools.js';
@@ -55,6 +56,7 @@ function allTools(): RegisteredTool[] {
     // The dependency is a PORT, not a live machine: nothing in these two
     // sweeps executes a tool (see the comment on `session` above).
     ...computerTools({ machines: { ensureSeatFor: () => Promise.reject(new Error('unused')) } }),
+    ...codingTools(),
     ...identityTools(),
     ...boardTools(),
     ...memoryTools(NO_MEMORY_SERVICE),
@@ -190,11 +192,22 @@ describe('M5-QA-01 the computer tools', () => {
     expect(accepts('shell', { command: 42 })).toBe(false);
 
     expect(accepts('fs_read', { path: `${MACHINE_HOME}/agents/${BOT}/notes.md` })).toBe(true);
+    expect(accepts('fs_read', { path: 'notes.md', startLine: 1, endLine: 20 })).toBe(true);
+    expect(accepts('fs_read', { path: 'notes.md', startLine: 0 })).toBe(false);
     expect(accepts('fs_read', {})).toBe(false);
 
     expect(accepts('fs_write', { path: 'notes.md', content: 'hello' })).toBe(true);
     expect(accepts('fs_write', { path: 'notes.md' })).toBe(false);
     expect(accepts('fs_write', { content: 'hello' })).toBe(false);
+
+    expect(accepts('fs_edit', { path: 'notes.md', oldText: 'a', newText: 'b' })).toBe(true);
+    expect(accepts('fs_edit', { path: 'notes.md', oldText: '', newText: 'b' })).toBe(false);
+
+    expect(accepts('fs_grep', { pattern: 'TODO', path: 'src', maxMatches: 50 })).toBe(true);
+    expect(accepts('fs_grep', { pattern: '' })).toBe(false);
+
+    expect(accepts('fs_glob', { pattern: '**/*.ts', maxResults: 100 })).toBe(true);
+    expect(accepts('fs_glob', { pattern: '' })).toBe(false);
   });
 
   it('leaves WHERE a path may point to the resolver, not the schema', () => {

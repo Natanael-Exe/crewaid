@@ -195,6 +195,80 @@ describe('reading files', () => {
       sessionOver(container).readTextFile({ path: '/f', encoding: 'latin1' }),
     ).resolves.toBe('été');
   });
+
+  it('slices small files via readTextFileRange without leaking paths into the shell', async () => {
+    const hostile = '/home/bot/x"; touch /tmp/pwned; echo "';
+    const container = new FakeContainer(() => ({
+      ...FOUND,
+      stdout: 'FULL 18\none\ntwo\nthree\nfour\n',
+    }));
+    const result = await sessionOver(container).readTextFileRange({
+      path: hostile,
+      startLine: 2,
+      endLine: 3,
+    });
+    expect(result).toEqual({
+      text: 'two\nthree',
+      totalLines: 4,
+      totalBytes: 18,
+      startLine: 2,
+      byteTruncated: false,
+      binary: false,
+    });
+    const [exec] = container.execs;
+    expect(exec?.spec.command.join(' ')).toContain('sed -n');
+    expect(exec?.spec.command.join(' ')).not.toContain('pwned');
+    expect(exec?.spec.env?.['CREWAID_PATH']).toBe(hostile);
+    expect(exec?.spec.env?.['CREWAID_START']).toBe('2');
+    expect(exec?.spec.env?.['CREWAID_END']).toBe('3');
+  });
+
+  it('handles large-file slices and byte caps in readTextFileRange', async () => {
+    const container = new FakeContainer(() => ({
+      ...FOUND,
+      stdout: 'LARGE 209715200 500000\nline100\nline101\n',
+    }));
+    const slice = await sessionOver(container).readTextFileRange({
+      path: '/home/bot/big.log',
+      startLine: 100,
+      endLine: 101,
+      maxBytes: 1024,
+    });
+    expect(slice).toEqual({
+      text: 'line100\nline101',
+      totalLines: 500_000,
+      totalBytes: 209_715_200,
+      startLine: 100,
+      byteTruncated: false,
+      binary: false,
+    });
+
+    const cappedContainer = new FakeContainer(() => ({
+      ...FOUND,
+      stdout: 'LARGE 209715200 500000\n1234567890X',
+    }));
+    const capped = await sessionOver(cappedContainer).readTextFileRange({
+      path: '/home/bot/big.log',
+      maxBytes: 10,
+    });
+    expect(capped?.text).toBe('1234567890');
+    expect(capped?.byteTruncated).toBe(true);
+  });
+
+  it('reports null for missing files and binary flag for NUL bytes in readTextFileRange', async () => {
+    const missing = new FakeContainer(() => NOT_FOUND);
+    await expect(
+      sessionOver(missing).readTextFileRange({ path: '/home/bot/missing.txt' }),
+    ).resolves.toBeNull();
+
+    const binary = new FakeContainer(() => ({
+      ...FOUND,
+      stdout: Buffer.concat([Buffer.from('FULL 4\n'), Buffer.from([0x89, 0x50, 0x00, 0x47])]),
+    }));
+    await expect(
+      sessionOver(binary).readTextFileRange({ path: '/home/bot/img.png' }),
+    ).resolves.toMatchObject({ binary: true });
+  });
 });
 
 describe('writing files', () => {

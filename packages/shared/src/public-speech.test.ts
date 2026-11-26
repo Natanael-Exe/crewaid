@@ -95,6 +95,10 @@ describe('projectPublicSpeech', () => {
     expect(detectCorruptPublicOutput(leakedSend)).toMatchObject({ kind: 'leaked-tool-markup' });
     expect(projectPublicSpeech(leakedSend)).toBe('Sending update');
 
+    const leakedEdit = 'Applying fix <fs_edit path="app.ts" oldText="a" newText="b" />';
+    expect(detectCorruptPublicOutput(leakedEdit)).toMatchObject({ kind: 'leaked-tool-markup' });
+    expect(projectPublicSpeech(leakedEdit)).toBe('Applying fix');
+
     expect(
       detectCorruptPublicOutput('Models write <tool_call> when they mean a call.'),
     ).toBeNull();

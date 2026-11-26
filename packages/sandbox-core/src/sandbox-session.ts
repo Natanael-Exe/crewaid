@@ -29,6 +29,7 @@ import {
   type SandboxProcessOptions,
   type SandboxReadFileOptions,
   type SandboxReadTextFileOptions,
+  type SandboxReadTextRange,
   type SandboxRunResult,
   type SandboxWriteBinaryOptions,
   type SandboxWriteStreamOptions,
@@ -106,6 +107,10 @@ export const SANDBOX_WORKING_DIRECTORY = '/home/bot';
  * full disk. Those must throw; only a missing file resolves to null.
  */
 const EXIT_NOT_FOUND = 42;
+/** Files larger than this are sliced inside the container instead of streamed whole over the bridge. */
+const LARGE_RANGE_READ_BYTES = 512 * 1024;
+/** Default ceiling on bytes transferred for a large-file slice. */
+const DEFAULT_RANGE_MAX_BYTES = 64 * 1024;
 
 export interface SandboxSessionOptions {
   /** The id the orchestrator will persist and resume by. */
@@ -326,6 +331,159 @@ export class ContainerSandboxSession implements HarnessV1NetworkSandboxSession {
     return lines.slice(from, to).join('\n');
   };
 
+  /**
+   * Read a 1-based inclusive text line slice without transferring huge files whole.
+   *
+   * Small files (<= 512 KiB) are transferred once so binary NUL checks and exact line
+   * counts run over the entire file; larger files are counted and sliced inside the
+   * container with `sed -n` / `head -c` so reading 200 lines of a 200 MB log moves
+   * at most `maxBytes` across the bridge.
+   */
+  readTextFileRange: SandboxReadTextRange = async (options) => {
+    const startLine =
+      options.startLine === undefined ? undefined : Math.max(1, Math.trunc(options.startLine));
+    const endLine =
+      options.endLine === undefined ? undefined : Math.max(1, Math.trunc(options.endLine));
+    const maxBytes = Math.max(1, Math.trunc(options.maxBytes ?? DEFAULT_RANGE_MAX_BYTES));
+
+    const env: Record<string, string> = {
+      CREWAID_PATH: options.path,
+      CREWAID_LARGE_BYTES: String(LARGE_RANGE_READ_BYTES),
+      CREWAID_MAX_BYTES: String(maxBytes + 1),
+      ...(startLine !== undefined ? { CREWAID_START: String(startLine) } : {}),
+      ...(endLine !== undefined ? { CREWAID_END: String(endLine) } : {}),
+    };
+
+    const script = [
+      `[ -e "$CREWAID_PATH" ] || exit ${EXIT_NOT_FOUND}`,
+      '[ ! -d "$CREWAID_PATH" ] || { echo "Is a directory" >&2; exit 1; }',
+      'SIZE=$(stat -Lc %s "$CREWAID_PATH") || exit 1',
+      'if [ "$SIZE" -le "$CREWAID_LARGE_BYTES" ]; then',
+      "  printf 'FULL %s\\n' \"$SIZE\"",
+      '  exec cat "$CREWAID_PATH"',
+      'fi',
+      'NL=$(wc -l < "$CREWAID_PATH" | tr -d " ") || exit 1',
+      'LAST=$(tail -c 1 "$CREWAID_PATH" | wc -l | tr -d " ") || LAST=0',
+      'LINES=$((NL + (SIZE > 0 && LAST == 0 ? 1 : 0)))',
+      "printf 'LARGE %s %s\\n' \"$SIZE\" \"$LINES\"",
+      'if [ -n "${CREWAID_START:-}" ] && [ -n "${CREWAID_END:-}" ]; then',
+      '  sed -n "${CREWAID_START},${CREWAID_END}p;${CREWAID_END}q" "$CREWAID_PATH" | head -c "$CREWAID_MAX_BYTES"',
+      'elif [ -n "${CREWAID_START:-}" ]; then',
+      '  sed -n "${CREWAID_START},\\$p" "$CREWAID_PATH" | head -c "$CREWAID_MAX_BYTES"',
+      'elif [ -n "${CREWAID_END:-}" ]; then',
+      '  sed -n "1,${CREWAID_END}p;${CREWAID_END}q" "$CREWAID_PATH" | head -c "$CREWAID_MAX_BYTES"',
+      'else',
+      '  head -c "$CREWAID_MAX_BYTES" "$CREWAID_PATH"',
+      'fi',
+    ].join('\n');
+
+    const process = await this.#container.spawn({
+      command: ['sh', '-c', script],
+      env,
+    });
+
+    const [stdout, stderr, { exitCode }] = await Promise.all([
+      collectBytes(process.stdout),
+      collectText(process.stderr),
+      process.wait(),
+    ]);
+
+    if (exitCode === EXIT_NOT_FOUND) return null;
+    if (exitCode !== 0) {
+      throw new HarnessError({
+        message: `sandbox ${this.id}: reading ${options.path} failed (exit ${exitCode}): ${stderr.trim()}`,
+      });
+    }
+
+    const headerEnd = stdout.indexOf(0x0a);
+    if (headerEnd === -1) {
+      throw new HarnessError({
+        message: `sandbox ${this.id}: reading ${options.path} returned a malformed header`,
+      });
+    }
+    const header = new TextDecoder('utf-8').decode(stdout.subarray(0, headerEnd)).trim();
+    const body = stdout.subarray(headerEnd + 1);
+    const parts = header.split(' ');
+    const mode = parts[0];
+    const requestedStart = startLine ?? 1;
+
+    if (mode === 'FULL') {
+      const totalBytes = Number.parseInt(parts[1] ?? '', 10);
+      const byteLength = Number.isFinite(totalBytes) ? totalBytes : body.byteLength;
+      if (body.includes(0)) {
+        return {
+          text: '',
+          totalLines: 0,
+          totalBytes: byteLength,
+          startLine: requestedStart,
+          byteTruncated: false,
+          binary: true,
+        };
+      }
+      const fullText = new TextDecoder('utf-8').decode(body);
+      if (fullText === '') {
+        return {
+          text: '',
+          totalLines: 0,
+          totalBytes: byteLength,
+          startLine: requestedStart,
+          byteTruncated: false,
+          binary: false,
+        };
+      }
+      const normalized = fullText.endsWith('\n') ? fullText.slice(0, -1) : fullText;
+      const lines = normalized.split('\n');
+      const from = requestedStart - 1;
+      const to = endLine === undefined ? lines.length : Math.min(lines.length, endLine);
+      const sliced = from >= lines.length ? '' : lines.slice(from, to).join('\n');
+      return {
+        text: sliced,
+        totalLines: lines.length,
+        totalBytes: byteLength,
+        startLine: requestedStart,
+        byteTruncated: false,
+        binary: false,
+      };
+    }
+
+    if (mode === 'LARGE') {
+      const totalBytes = Number.parseInt(parts[1] ?? '', 10);
+      const totalLines = Number.parseInt(parts[2] ?? '', 10);
+      if (!Number.isFinite(totalBytes) || !Number.isFinite(totalLines)) {
+        throw new HarnessError({
+          message: `sandbox ${this.id}: reading ${options.path} returned invalid size metadata`,
+        });
+      }
+      if (body.includes(0)) {
+        return {
+          text: '',
+          totalLines,
+          totalBytes,
+          startLine: requestedStart,
+          byteTruncated: false,
+          binary: true,
+        };
+      }
+      const byteTruncated = body.byteLength > maxBytes;
+      const sliceBytes = byteTruncated ? body.subarray(0, maxBytes) : body;
+      let text = new TextDecoder('utf-8').decode(sliceBytes);
+      if (byteTruncated && text.endsWith('\uFFFD')) text = text.slice(0, -1);
+      if (!byteTruncated && text.endsWith('\n')) text = text.slice(0, -1);
+      return {
+        text,
+        totalLines,
+        totalBytes,
+        startLine: requestedStart,
+        byteTruncated,
+        binary: false,
+      };
+    }
+
+    throw new HarnessError({
+      message: `sandbox ${this.id}: reading ${options.path} returned unexpected mode "${header}"`,
+    });
+  };
+
   // writes
 
   writeFile = async (options: SandboxWriteStreamOptions): Promise<void> => {
@@ -399,6 +557,7 @@ export class ContainerSandboxSession implements HarnessV1NetworkSandboxSession {
 
   restricted = (): ToolSandboxSession => ({
     git: this.git,
+    readTextFileRange: this.readTextFileRange,
     description: this.description,
     readFile: this.readFile,
     readBinaryFile: this.readBinaryFile,
