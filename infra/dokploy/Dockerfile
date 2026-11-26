@@ -11,6 +11,7 @@ COPY apps/desktop/package.json apps/desktop/package.json
 COPY apps/orchestrator/package.json apps/orchestrator/package.json
 COPY packages/acp-core/package.json packages/acp-core/package.json
 COPY packages/brand/package.json packages/brand/package.json
+COPY packages/connector-cli/package.json packages/connector-cli/package.json
 COPY packages/shared/package.json packages/shared/package.json
 COPY packages/sandbox-cloudflare/package.json packages/sandbox-cloudflare/package.json
 COPY packages/sandbox-core/package.json packages/sandbox-core/package.json

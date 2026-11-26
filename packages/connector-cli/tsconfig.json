@@ -8,5 +8,12 @@
     "incremental": false
   },
   "include": ["src/**/*.ts", "vitest.config.mts"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist"],
+  // CI lints before it builds, so workspace imports resolve through these
+  // references to source; without them they become the `error` type and set
+  // off every no-unsafe-* rule (see apps/orchestrator/tsconfig.json).
+  "references": [
+    { "path": "../shared/tsconfig.build.json" },
+    { "path": "../acp-core/tsconfig.build.json" }
+  ]
 }
