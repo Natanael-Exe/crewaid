@@ -88,6 +88,7 @@ export interface AppModalsProps {
     readonly onCredentialsSaved: () => void;
     readonly account: SettingsAccount;
     readonly onSignOut: () => void;
+    readonly connectorsVersion?: number | undefined;
   };
   readonly plugins: {
     readonly isOpen: boolean;
@@ -227,6 +228,7 @@ export function AppModals({
         onCredentialsSaved={settings.onCredentialsSaved}
         account={settings.account}
         onSignOut={settings.onSignOut}
+        connectorsVersion={settings.connectorsVersion}
       />
       <PluginsModal
         isOpen={plugins.isOpen}

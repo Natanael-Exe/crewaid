@@ -10,7 +10,14 @@
 import type { Edition } from '@crewaid/shared';
 import { t } from '../i18n/i18n';
 
-export type SettingsPaneId = 'general' | 'connections' | 'channels' | 'plan' | 'computer' | 'about';
+export type SettingsPaneId =
+  | 'general'
+  | 'connections'
+  | 'channels'
+  | 'plan'
+  | 'computer'
+  | 'localHarnesses'
+  | 'about';
 
 export type SettingsPane = {
   readonly id: SettingsPaneId;
@@ -88,6 +95,16 @@ export const SETTINGS_PANES: readonly SettingsPane[] = [
     status: 'ready',
     get summary() {
       return t('settings.pane.computer.summary');
+    },
+  },
+  {
+    id: 'localHarnesses',
+    get label() {
+      return t('settings.pane.localHarnesses');
+    },
+    status: 'ready',
+    get summary() {
+      return t('settings.pane.localHarnesses.summary');
     },
   },
   {

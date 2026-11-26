@@ -16,6 +16,8 @@ export type DisplayStatus = FoldedToolPart['status'] | 'incomplete';
 const COMPUTER = new Set([
   'shell',
   'code_task',
+  'local_code_task',
+  'list_local_connectors',
   'process_start',
   'process_output',
   'process_stop',
@@ -32,6 +34,8 @@ const FILE = new Set(['fs_read', 'fs_write', 'fs_edit', 'fs_grep', 'fs_glob', 'a
 const TITLES: Readonly<Record<string, PlainKey>> = {
   shell: 'tools.title.shell',
   code_task: 'tools.title.codeTask',
+  local_code_task: 'tools.title.localCodeTask',
+  list_local_connectors: 'tools.title.listLocalConnectors',
   process_start: 'tools.title.processStart',
   process_output: 'tools.title.processOutput',
   process_stop: 'tools.title.processStop',
@@ -153,6 +157,25 @@ export function displayStatus(row: FoldedToolPart, context?: PartRenderContext):
     (row.toolName.includes('__') && object?.['successful'] === false)
   )
     return 'error';
+  if (row.toolName === 'local_code_task' && object !== undefined) {
+    const outcome = record(object['outcome']);
+    const inner = record(object['output']);
+    const innerText = typeof inner?.['text'] === 'string' ? inner['text'] : undefined;
+    if (outcome?.['status'] === 'refused') return 'error';
+    if (
+      innerText !== undefined &&
+      (innerText.startsWith('local_code_task · cancelled') ||
+        innerText.startsWith('local_code_task · interrupted'))
+    )
+      return 'incomplete';
+    if (
+      innerText !== undefined &&
+      (innerText.startsWith('local_code_task · failed') ||
+        innerText.startsWith('local_code_task refused'))
+    )
+      return 'error';
+    if (outcome?.['status'] === 'uncertain') return 'incomplete';
+  }
   if (typeof value !== 'string') return row.status;
   if (
     (row.toolName === 'shell' && value.startsWith('shell: the turn was cancelled')) ||
@@ -260,6 +283,13 @@ export function resultPreview(output: unknown): string {
   const value = resultValue(output);
   if (typeof value === 'string') return truncateForDisplay(value, 800);
   const object = record(value);
+  const wrapped = record(object?.['output']);
+  if (typeof wrapped?.['text'] === 'string') {
+    return truncateForDisplay(wrapped['text'], 800);
+  }
+  if (typeof object?.['text'] === 'string') {
+    return truncateForDisplay(object['text'], 800);
+  }
   // MCP text content is inert text here. Images, links and HTML never load resources.
   if (Array.isArray(object?.['content'])) {
     return truncateForDisplay(

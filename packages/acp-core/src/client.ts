@@ -119,6 +119,12 @@ export function createNodeStreamTransport(streams: {
 export function createChildProcessTransport(
   child: ChildProcess & { readonly stdin: Writable; readonly stdout: Readable },
 ): AcpByteTransport {
+  // Never leave a piped stderr unread: a chatty harness can fill the OS pipe
+  // buffer (64 KB) and deadlock while waiting to write diagnostics. Callers
+  // that want stderr bytes attach a listener before calling this helper.
+  if (child.stderr !== null && child.stderr.listenerCount('data') === 0) {
+    child.stderr.resume();
+  }
   return createNodeStreamTransport({
     input: child.stdout,
     output: child.stdin,

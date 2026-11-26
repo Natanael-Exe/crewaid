@@ -11,7 +11,7 @@ import { Readable, Writable } from 'node:stream';
 import path from 'node:path';
 import { agent, methods, ndJsonStream, PROTOCOL_VERSION } from '@agentclientprotocol/sdk';
 
-const scenario = process.env['MOCK_ACP_SCENARIO'] ?? 'happy';
+const scenario = process.argv[2] ?? process.env['MOCK_ACP_SCENARIO'] ?? 'happy';
 let sessionCwd = process.cwd();
 let cancelResolver = null;
 
@@ -35,6 +35,31 @@ const app = agent({ name: 'mock-acp-agent' })
 
     if (scenario === 'crash') {
       process.exit(1);
+    }
+
+    if (scenario === 'chatty-stderr') {
+      // Exceed macOS/Linux default 64 KB pipe buffer and honor backpressure so
+      // the harness genuinely blocks if the parent leaves stderr unread and
+      // flushes every byte into the pipe before ending the turn.
+      const chunk = `${'stderr-diagnostic-line-'.repeat(40)}\n`;
+      for (let i = 0; i < 350; i += 1) {
+        if (i === 349) {
+          await new Promise((resolve, reject) =>
+            process.stderr.write(chunk, (err) => (err ? reject(err) : resolve())),
+          );
+        } else if (!process.stderr.write(chunk)) {
+          await new Promise((resolve) => process.stderr.once('drain', resolve));
+        }
+      }
+      await client.notify(methods.client.session.update, {
+        sessionId,
+        update: {
+          sessionUpdate: 'agent_message_chunk',
+          messageId: 'msg_chatty',
+          content: { type: 'text', text: 'Completed after chatty stderr output.' },
+        },
+      });
+      return { stopReason: 'end_turn' };
     }
 
     if (scenario === 'cancel' || scenario === 'hang-on-cancel') {

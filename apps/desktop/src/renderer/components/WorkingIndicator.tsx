@@ -108,6 +108,10 @@ export function statusLabelForTool(toolName: string, tools?: readonly ToolInfo[]
       return t('working.runningCommand');
     case 'code_task':
       return t('working.coding');
+    case 'local_code_task':
+      return t('working.localCoding');
+    case 'list_local_connectors':
+      return t('working.checkingLocalConnectors');
     case 'send_message':
       return t('working.messagingTeam');
     case 'present_visual':
@@ -153,15 +157,25 @@ export function liveWorkPhase(
     }
     const running = [...calls].reverse().find((call) => call.status === 'running');
     if (running !== undefined) {
-      if (running.toolName === 'code_task') {
+      if (running.toolName === 'code_task' || running.toolName === 'local_code_task') {
         const progress = codingProgress?.get(running.toolCallId);
+        if (progress?.kind === 'waiting_local_permission') {
+          return progress.connectorName !== undefined && progress.connectorName !== ''
+            ? t('working.waitingLocalPermission', { connector: progress.connectorName })
+            : t('working.waitingLocalPermissionGeneric');
+        }
         const action = progress?.kind === 'step' ? codingStepAction(progress) : undefined;
         if (progress !== undefined && action !== undefined) {
-          return t('working.codingStep', {
-            step: progress.step,
-            max: progress.maxSteps,
-            action,
-          });
+          return progress.maxSteps > 0
+            ? t('working.codingStep', {
+                step: progress.step,
+                max: progress.maxSteps,
+                action,
+              })
+            : t('working.localCodingStep', {
+                step: progress.step,
+                action,
+              });
         }
       }
       return statusLabelForTool(running.toolName, tools);
