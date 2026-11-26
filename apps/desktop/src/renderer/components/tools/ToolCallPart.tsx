@@ -159,7 +159,11 @@ function DetailsDisclosure({ row, status }: { row: FoldedToolPart; status: Displ
           {outputBody === '' ? null : (
             <DetailBlock
               label={t('tools.detail.result')}
-              code={row.toolName === 'shell' || typeof row.output !== 'string'}
+              code={
+                row.toolName === 'shell' ||
+                row.toolName.startsWith('process_') ||
+                typeof row.output !== 'string'
+              }
               body={truncateForDisplay(outputBody, DETAIL_CHARS)}
             />
           )}
@@ -285,7 +289,11 @@ function ToolCallLine({
               {outputBody === '' ? null : (
                 <DetailBlock
                   label={t('tools.detail.result')}
-                  code={row.toolName === 'shell' || typeof row.output !== 'string'}
+                  code={
+                row.toolName === 'shell' ||
+                row.toolName.startsWith('process_') ||
+                typeof row.output !== 'string'
+              }
                   body={truncateForDisplay(outputBody, DETAIL_CHARS)}
                 />
               )}

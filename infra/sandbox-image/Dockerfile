@@ -249,6 +249,7 @@ COPY infra/sandbox-image/agent-bridge/seats.py /opt/agent-bridge/seats.py
 COPY infra/sandbox-image/agent-bridge/exec_stream.py /opt/agent-bridge/exec_stream.py
 COPY infra/sandbox-image/agent-bridge/git_helper.py /opt/agent-bridge/git_helper.py
 COPY infra/sandbox-image/agent-bridge/profiles.py /opt/agent-bridge/profiles.py
+COPY infra/sandbox-image/agent-bridge/processes.py /opt/agent-bridge/processes.py
 COPY infra/sandbox-image/agent-bridge/screen_key.py /opt/agent-bridge/screen_key.py
 COPY infra/sandbox-image/close-browser.py /opt/crewaid/close-browser.py
 COPY infra/sandbox-image/open-seat-browser /opt/crewaid/open-seat-browser

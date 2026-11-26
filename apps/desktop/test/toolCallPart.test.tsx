@@ -527,4 +527,25 @@ describe('recoverable tool cards', () => {
     expect(failed).toContain('Failed');
     expect(failed).not.toContain('File edited');
   });
+
+  it('renders process_start as a quiet computer line and marks cancelled runs incomplete', () => {
+    const part = {
+      type: 'tool-call',
+      toolCallId: 'proc-1',
+      toolName: 'process_start',
+      status: 'ok',
+      input: { command: 'pnpm dev', maxDurationSec: 900 },
+      output: 'Started background process proc-123 (running)\ntime limit: 15m',
+    };
+    const html = render(part);
+    expect(html).toContain('data-tool-line');
+    expect(html).toContain('Start background process');
+    expect(html).toContain('time limit: 15m');
+
+    const cancelled = render({
+      ...part,
+      output: 'process_start: the turn was cancelled before the process started.',
+    });
+    expect(cancelled).toContain('data-tool-status="incomplete"');
+  });
 });

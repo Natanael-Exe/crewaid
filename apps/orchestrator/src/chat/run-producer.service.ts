@@ -12,6 +12,7 @@ import { AgentSessionService } from '../agent/agent-session.service.js';
 import { SandboxReadinessService } from '../sandbox/sandbox-readiness.service.js';
 import { IdentityService } from '../sandbox/identity.service.js';
 import { SeatService } from '../sandbox/seat.service.js';
+import { MachineProcessService } from '../sandbox/machine-process.service.js';
 import { SeatControlService } from '../screen/seat-control.service.js';
 import { ToolApprovalHub } from '../agent/policy/approval-hub.js';
 import { ToolPolicyStateService } from '../agent/policy/state.service.js';
@@ -69,6 +70,7 @@ export class RunProducerService {
     @Inject(ToolApprovalHub) private readonly approvalHub: ToolApprovalHub,
     @Inject(AI_TELEMETRY) private readonly telemetry: AiTelemetrySink,
     @Optional() @Inject(SeatControlService) private readonly seatControl?: SeatControlService,
+    @Optional() @Inject(MachineProcessService) private readonly processes?: MachineProcessService,
   ) {
     this.leases = new RunLeaseService(prisma);
   }
@@ -208,6 +210,11 @@ export class RunProducerService {
           this.approvalHub.forgetRun(lease.userId, lease.runId);
         else await this.approvalHub.finishRun(lease.userId, lease.runId);
       } finally {
+        // Stop background processes launched during a cancelled run; processes
+        // started in completed turns continue until process_stop or their TTL.
+        if (outcome?.status === 'aborted' || controller.signal.aborted) {
+          await this.processes?.stopRun(bot.id, lease.runId).catch(() => undefined);
+        }
         await assembled.dispose();
       }
     }

@@ -14,6 +14,7 @@ import { SandboxLeaseService } from './sandbox-lease.service.js';
 import { SandboxReadinessService } from './sandbox-readiness.service.js';
 import { SandboxProviderModule } from './sandbox-provider.module.js';
 import { SandboxRetentionService } from './sandbox-retention.service.js';
+import { MachineProcessService } from './machine-process.service.js';
 
 /**
  * Sandbox lifecycle.
@@ -61,6 +62,7 @@ import { SandboxRetentionService } from './sandbox-retention.service.js';
     SandboxActivityService,
     SandboxReconciliationService,
     SandboxRetentionService,
+    MachineProcessService,
     // One saved copy of each computer, where the provider can make one.
     ComputerSnapshotService,
   ],
@@ -82,6 +84,7 @@ import { SandboxRetentionService } from './sandbox-retention.service.js';
     SandboxReconciliationService,
     SandboxProviderModule,
     SandboxRetentionService,
+    MachineProcessService,
   ],
 })
 export class SandboxModule {}

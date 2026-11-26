@@ -120,6 +120,18 @@
     "valid": { "pattern": "**/*.ts", "path": "src", "maxResults": 100 },
     "invalid": { "pattern": "" }
   },
+  "process_start": {
+    "valid": { "command": "pnpm dev", "cwd": "app", "maxDurationSec": 900 },
+    "invalid": { "command": "" }
+  },
+  "process_output": {
+    "valid": { "processId": "proc-123456789abc", "offset": 0, "waitMs": 5000 },
+    "invalid": { "waitMs": 999999 }
+  },
+  "process_stop": {
+    "valid": { "processId": "proc-123456789abc" },
+    "invalid": {}
+  },
   "browser_navigate": { "valid": { "url": "https://example.com" }, "invalid": { "url": 1 } },
   "browser_read": { "valid": {}, "invalid": null },
   "browser_click": { "valid": { "reference": "r1_e2" }, "invalid": { "selector": "#send" } },

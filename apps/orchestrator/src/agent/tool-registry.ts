@@ -163,6 +163,8 @@ export type ToolContext = {
   readonly userId: string;
   /** The bot acting. Which skills are reachable and whose computer is used. */
   readonly botId: string;
+  /** The active run id, when executing inside a turn (tags background processes for cancel cleanup). */
+  readonly runId?: string;
   /** Optional display name of the acting bot (for per-owner board entries). */
   readonly botName?: string;
   /** Optional shared machine id of the acting bot (scopes durable shared board). */

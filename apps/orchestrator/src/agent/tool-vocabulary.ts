@@ -142,6 +142,21 @@ const VOCABULARY: Readonly<Record<string, ToolVocabularyEntry>> = {
     label: 'Find files',
     summary: 'Finds files matching a glob pattern on the bot’s computer.',
   },
+  process_start: {
+    alias: 'start-process',
+    label: 'Start a background process',
+    summary: 'Starts a managed background command (such as a dev server or long test run) — always asks first.',
+  },
+  process_output: {
+    alias: 'process-output',
+    label: 'Check process output',
+    summary: 'Reads incremental logs from a running background process, or lists active processes.',
+  },
+  process_stop: {
+    alias: 'stop-process',
+    label: 'Stop a background process',
+    summary: 'Stops a managed background process and its child processes.',
+  },
 
   // The team
   create_bot: {
