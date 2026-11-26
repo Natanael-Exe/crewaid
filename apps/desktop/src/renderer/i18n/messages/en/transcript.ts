@@ -42,6 +42,7 @@ export const transcript = {
   'topbar.plugins': 'Plugins',
   'markdown.image': '[image]',
   'markdown.imageNamed': '[image: {alt}]',
+  'code.moreLines': { one: '… and {count} more line', other: '… and {count} more lines' },
   'delete.clear.title': 'Clear your chat with {bot}?',
   'delete.message.title': 'Delete this message?',
   'delete.clear.body':

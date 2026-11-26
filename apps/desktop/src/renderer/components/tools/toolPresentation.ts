@@ -1,4 +1,11 @@
 import type { PartRenderContext } from '../PartRenderer';
+import { languageForPath } from '../markdown/highlight';
+import {
+  parseNumberedCode,
+  replacementDiff,
+  type CodeRow,
+  type NumberedCode,
+} from '../code/codeRows';
 import { safeJson, truncateForDisplay, type FoldedToolPart } from './toolParts';
 import { type MessageKey, type PlainKey, t } from '../../i18n/i18n';
 
@@ -243,18 +250,9 @@ export function resultPreview(output: unknown): string {
   return value === undefined ? '' : truncateForDisplay(safeJson(value, 2), 800);
 }
 
+/** Written content, or a read that did not come back as numbered lines, as plain text. */
 export function filePreview(row: FoldedToolPart): string | undefined {
   const input = record(row.input);
-  if (row.toolName === 'fs_edit') {
-    const oldText = typeof input?.['oldText'] === 'string' ? input['oldText'] : undefined;
-    const newText = typeof input?.['newText'] === 'string' ? input['newText'] : undefined;
-    if (oldText === undefined && newText === undefined) return undefined;
-    const diff = [
-      ...(oldText === undefined ? [] : oldText.split('\n').map((line) => `- ${line}`)),
-      ...(newText === undefined ? [] : newText.split('\n').map((line) => `+ ${line}`)),
-    ].join('\n');
-    return truncateForDisplay(diff, 1200);
-  }
   const value =
     row.toolName === 'fs_write'
       ? input?.['content']
@@ -262,6 +260,44 @@ export function filePreview(row: FoldedToolPart): string | undefined {
         ? resultValue(row.output)
         : undefined;
   return typeof value === 'string' ? truncateForDisplay(value, 1200) : undefined;
+}
+
+/**
+ * The code a file action shows, in the language its path names (`null` for a
+ * file the highlighter does not know, which stays plain text): the lines an
+ * `fs_read` returned with their numbers, or an `fs_edit` as a diff.
+ */
+export type FileCode =
+  | { readonly kind: 'read'; readonly code: NumberedCode; readonly language: string | null }
+  | { readonly kind: 'edit'; readonly rows: readonly CodeRow[]; readonly language: string | null };
+
+function fileLanguage(row: FoldedToolPart): string | null {
+  const path = toolFilePath(row.input);
+  return path === undefined ? null : languageForPath(path);
+}
+
+export function fileCode(row: FoldedToolPart): FileCode | undefined {
+  if (row.toolName === 'fs_edit') {
+    const input = record(row.input);
+    const oldText = typeof input?.['oldText'] === 'string' ? input['oldText'] : undefined;
+    const newText = typeof input?.['newText'] === 'string' ? input['newText'] : undefined;
+    const rows = replacementDiff(oldText, newText);
+    return rows.length === 0 ? undefined : { kind: 'edit', rows, language: fileLanguage(row) };
+  }
+  if (row.toolName !== 'fs_read' || row.status !== 'ok') return undefined;
+  const value = resultValue(row.output);
+  const code = typeof value === 'string' ? parseNumberedCode(value) : null;
+  return code === null ? undefined : { kind: 'read', code, language: fileLanguage(row) };
+}
+
+/** A successful `fs_edit` result: its summary line, then the edited lines with their numbers. */
+export function editResultCode(
+  row: FoldedToolPart,
+): { readonly code: NumberedCode; readonly language: string | null } | undefined {
+  if (row.toolName !== 'fs_edit' || row.status !== 'ok') return undefined;
+  const value = resultValue(row.output);
+  const code = typeof value === 'string' ? parseNumberedCode(value) : null;
+  return code === null ? undefined : { code, language: fileLanguage(row) };
 }
 
 /**

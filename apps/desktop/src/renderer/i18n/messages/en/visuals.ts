@@ -51,4 +51,5 @@ export const visuals = {
   'visuals.checks.status.failed': 'Failed',
   'visuals.checks.status.pending': 'Pending',
   'visuals.checks.status.skipped': 'Skipped',
+  'visuals.diff.changes': 'Lines added: {added}, lines removed: {removed}',
 } as const;

@@ -3349,6 +3349,16 @@ const pairs: Record<string, Pair> = {
     },
     invalid: { kind: 'checks', items: [] },
   },
+  VisualDiffBlockSchema: {
+    schema: shared.VisualDiffBlockSchema,
+    valid: {
+      kind: 'diff',
+      path: 'src/total.ts',
+      language: 'ts',
+      diff: '@@ -1,2 +1,2 @@\n export function total(items: number[]) {\n-  return items.length;\n+  return items.reduce((sum, item) => sum + item, 0);\n',
+    },
+    invalid: { kind: 'diff', path: 'src/total.ts', diff: '' },
+  },
   DeliverableReviewStateSchema: {
     schema: shared.DeliverableReviewStateSchema,
     valid: 'READY',

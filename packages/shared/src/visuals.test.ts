@@ -121,6 +121,33 @@ describe('visuals shared contract', () => {
     expect(summary).toContain('⚠ Packing list → 1 address missing');
   });
 
+  it('validates diff blocks and summarizes them as the patch, bounded for Telegram', () => {
+    const diff = [
+      '@@ -1,3 +1,3 @@',
+      ' export function total(items: number[]) {',
+      '-  return items.length;',
+      '+  return items.reduce((sum, item) => sum + item, 0);',
+      ' }',
+      ...Array.from({ length: 30 }, (_, index) => `+// line ${index}`),
+    ].join('\n');
+    const input = { blocks: [{ kind: 'diff' as const, path: 'src/total.ts', diff }] };
+
+    expect(PresentVisualInputSchema.safeParse(input).success).toBe(true);
+    const resolved = resolveVisualForRender(input, VISUAL_INLINE_ACK);
+    expect(resolved?.blocks[0]?.kind).toBe('diff');
+
+    const summary = formatVisualSummary(resolved!);
+    expect(summary.split('\n')[0]).toBe('src/total.ts');
+    expect(summary).toContain('-  return items.length;');
+    expect(summary).toContain('… (+15 more lines in Crewaid)');
+
+    expect(
+      PresentVisualInputSchema.safeParse({
+        blocks: [{ kind: 'diff', path: 'src/total.ts', diff: 'x'.repeat(12_001) }],
+      }).success,
+    ).toBe(false);
+  });
+
   it('rejects mismatched series lengths, row widths, and incomplete chart sources', () => {
     expect(
       PresentVisualInputSchema.safeParse({

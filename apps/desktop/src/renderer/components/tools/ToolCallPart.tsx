@@ -6,11 +6,15 @@ import { toolMark, fileMark } from '../attachments/artifactMarks';
 import { systemBrowser } from '../../bridge';
 import { TemplateResultCard } from '../../experience/TemplateResultCard';
 import { VisualCard } from '../visuals/VisualCard';
+import { CodeView } from '../code/CodeView';
+import type { CodeRow } from '../code/codeRows';
 import { ResourcePreview } from './ResourcePreview';
 import { resourcePreview, type ResourcePreview as Resource } from './resourcePresentation';
 import { InternalPathHint, ToolCard, ToolFields, ToolMark, ToolStatusTag } from './ToolCard';
 import {
   displayStatus,
+  editResultCode,
+  fileCode,
   filePreview,
   isInternalWorkspacePath,
   isUserOutput,
@@ -51,6 +55,128 @@ function DetailBlock({
       <div className="text-micro text-muted">{label}</div>
       <pre className={`crewaid-tool-preview mt-1 ${code ? 'crewaid-code' : ''}`}>{body}</pre>
     </div>
+  );
+}
+
+function NoteLines({ lines }: { lines: readonly string[] }): ReactNode {
+  return lines.map((line, index) => (
+    <p key={index} className="m-0 mt-1 text-micro text-muted [overflow-wrap:anywhere]">
+      {line}
+    </p>
+  ));
+}
+
+/** File code under its label, with the tool's own notes (a summary, a range footer) around it. */
+function CodeDetailBlock({
+  label,
+  rows,
+  language,
+  before = [],
+  after = [],
+}: {
+  label: string;
+  rows: readonly CodeRow[];
+  language: string | null;
+  before?: readonly string[];
+  after?: readonly string[];
+}): ReactNode {
+  return (
+    <div className="mt-2" data-tool-code>
+      <div className="text-micro text-muted">{label}</div>
+      <NoteLines lines={before} />
+      <CodeView rows={rows} language={language} className="mt-1" />
+      <NoteLines lines={after} />
+    </div>
+  );
+}
+
+function outputText(row: FoldedToolPart): string {
+  if (row.output === undefined) return '';
+  return typeof row.output === 'string' ? row.output : safeJson(row.output, 2);
+}
+
+/** Whether a row has anything at all to show behind its disclosure. */
+function hasDetails(row: FoldedToolPart): boolean {
+  return (
+    row.input !== undefined ||
+    outputText(row) !== '' ||
+    fileCode(row) !== undefined ||
+    filePreview(row) !== undefined
+  );
+}
+
+/**
+ * What a row's disclosure opens to: the arguments, the file the action
+ * touched, the result and the tool's own name. A file a bot read or edited is
+ * code, in the language its path names; everything else is bounded text.
+ */
+function ToolDetailBlocks({
+  row,
+  status,
+}: {
+  row: FoldedToolPart;
+  status: DisplayStatus;
+}): ReactNode {
+  const t = useT();
+  const inputBody = row.input === undefined ? '' : safeJson(row.input, 2);
+  const outputBody = outputText(row);
+  const code = fileCode(row);
+  const preview = code === undefined ? filePreview(row) : undefined;
+  const editResult = editResultCode(row);
+  const fileLabel =
+    row.toolName === 'fs_write'
+      ? status === 'ok'
+        ? t('tools.detail.fileWritten')
+        : t('tools.detail.filePreview')
+      : row.toolName === 'fs_edit'
+        ? status === 'ok'
+          ? t('tools.detail.fileEdited')
+          : t('tools.detail.filePreview')
+        : t('tools.detail.fileContents');
+  return (
+    <>
+      {inputBody === '' ? null : (
+        <DetailBlock
+          label={t('tools.detail.arguments')}
+          code
+          body={truncateForDisplay(inputBody, DETAIL_CHARS)}
+        />
+      )}
+      {code?.kind === 'read' ? (
+        <CodeDetailBlock
+          label={fileLabel}
+          rows={code.code.rows}
+          language={code.language}
+          before={code.code.before}
+          after={code.code.after}
+        />
+      ) : code?.kind === 'edit' ? (
+        <CodeDetailBlock label={fileLabel} rows={code.rows} language={code.language} />
+      ) : preview === undefined ? null : (
+        <DetailBlock label={fileLabel} body={preview} />
+      )}
+      {/* A read's result IS the file contents above; repeating it only doubles the scroll. */}
+      {outputBody === '' || code?.kind === 'read' ? null : editResult !== undefined ? (
+        <CodeDetailBlock
+          label={t('tools.detail.result')}
+          rows={editResult.code.rows}
+          language={editResult.language}
+          before={editResult.code.before}
+          after={editResult.code.after}
+        />
+      ) : (
+        <DetailBlock
+          label={t('tools.detail.result')}
+          code={
+            row.toolName === 'shell' ||
+            row.toolName.startsWith('process_') ||
+            typeof row.output !== 'string'
+          }
+          body={truncateForDisplay(outputBody, DETAIL_CHARS)}
+        />
+      )}
+      <DetailBlock label={t('tools.detail.tool')} body={row.toolName} code />
+    </>
   );
 }
 
@@ -114,15 +240,7 @@ function failureText(row: FoldedToolPart, status: 'error' | 'denied' | 'incomple
  */
 function DetailsDisclosure({ row, status }: { row: FoldedToolPart; status: DisplayStatus }) {
   const t = useT();
-  const inputBody = row.input === undefined ? '' : safeJson(row.input, 2);
-  const outputBody =
-    row.output === undefined
-      ? ''
-      : typeof row.output === 'string'
-        ? row.output
-        : safeJson(row.output, 2);
-  const preview = filePreview(row);
-  if (inputBody === '' && outputBody === '' && preview === undefined) return null;
+  if (!hasDetails(row)) return null;
   return (
     <Disclosure defaultExpanded={false} className="crewaid-tool-details min-w-0 flex-1">
       <Disclosure.Heading>
@@ -133,41 +251,7 @@ function DetailsDisclosure({ row, status }: { row: FoldedToolPart; status: Displ
       </Disclosure.Heading>
       <Disclosure.Content>
         <Disclosure.Body>
-          {inputBody === '' ? null : (
-            <DetailBlock
-              label={t('tools.detail.arguments')}
-              code
-              body={truncateForDisplay(inputBody, DETAIL_CHARS)}
-            />
-          )}
-          {preview === undefined ? null : (
-            <DetailBlock
-              label={
-                row.toolName === 'fs_write'
-                  ? status === 'ok'
-                    ? t('tools.detail.fileWritten')
-                    : t('tools.detail.filePreview')
-                  : row.toolName === 'fs_edit'
-                    ? status === 'ok'
-                      ? t('tools.detail.fileEdited')
-                      : t('tools.detail.filePreview')
-                    : t('tools.detail.fileContents')
-              }
-              body={preview}
-            />
-          )}
-          {outputBody === '' ? null : (
-            <DetailBlock
-              label={t('tools.detail.result')}
-              code={
-                row.toolName === 'shell' ||
-                row.toolName.startsWith('process_') ||
-                typeof row.output !== 'string'
-              }
-              body={truncateForDisplay(outputBody, DETAIL_CHARS)}
-            />
-          )}
-          <DetailBlock label={t('tools.detail.tool')} body={row.toolName} code />
+          <ToolDetailBlocks row={row} status={status} />
         </Disclosure.Body>
       </Disclosure.Content>
     </Disclosure>
@@ -200,14 +284,6 @@ function ToolCallLine({
   const internalPath =
     filePath !== undefined && isInternalWorkspacePath(filePath) ? filePath : undefined;
   const filename = filePath !== undefined ? pathBasename(filePath) : undefined;
-  const inputBody = row.input === undefined ? '' : safeJson(row.input, 2);
-  const outputBody =
-    row.output === undefined
-      ? ''
-      : typeof row.output === 'string'
-        ? row.output
-        : safeJson(row.output, 2);
-  const preview = filePreview(row);
   const failure =
     status === 'error' || status === 'denied' || status === 'incomplete'
       ? failureText(row, status)
@@ -263,41 +339,7 @@ function ToolCallLine({
         <Disclosure.Content>
           <Disclosure.Body>
             <div className="mt-1.5 border-s-2 border-separator ps-3 pb-1">
-              {inputBody === '' ? null : (
-                <DetailBlock
-                  label={t('tools.detail.arguments')}
-                  code
-                  body={truncateForDisplay(inputBody, DETAIL_CHARS)}
-                />
-              )}
-              {preview === undefined ? null : (
-                <DetailBlock
-                  label={
-                    row.toolName === 'fs_write'
-                      ? status === 'ok'
-                        ? t('tools.detail.fileWritten')
-                        : t('tools.detail.filePreview')
-                      : row.toolName === 'fs_edit'
-                        ? status === 'ok'
-                          ? t('tools.detail.fileEdited')
-                          : t('tools.detail.filePreview')
-                        : t('tools.detail.fileContents')
-                  }
-                  body={preview}
-                />
-              )}
-              {outputBody === '' ? null : (
-                <DetailBlock
-                  label={t('tools.detail.result')}
-                  code={
-                row.toolName === 'shell' ||
-                row.toolName.startsWith('process_') ||
-                typeof row.output !== 'string'
-              }
-                  body={truncateForDisplay(outputBody, DETAIL_CHARS)}
-                />
-              )}
-              <DetailBlock label={t('tools.detail.tool')} body={row.toolName} code />
+              <ToolDetailBlocks row={row} status={status} />
             </div>
           </Disclosure.Body>
         </Disclosure.Content>
@@ -338,13 +380,7 @@ export function ToolCallPart({
     return <TemplateResultCard input={row.input} output={row.output} />;
   // Declarative visuals always render via their dedicated card, keyed strictly on toolName.
   if (row.toolName === 'present_visual') {
-    return (
-      <VisualCard
-        row={row}
-        status={status}
-        handoffActions={context?.handoffActions}
-      />
-    );
+    return <VisualCard row={row} status={status} handoffActions={context?.handoffActions} />;
   }
   // Cards are for what the user keeps. Everything else is routine work,
   // which renders as a quiet line — or, with "Show thinking and actions" off,
