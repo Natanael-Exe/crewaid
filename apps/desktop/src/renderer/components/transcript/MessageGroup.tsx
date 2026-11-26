@@ -1,12 +1,19 @@
-import { Button, Separator } from '@heroui/react';
-import { memo } from 'react';
+import { Button, Disclosure, Separator } from '@heroui/react';
+import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
+import { memo, useEffect, useState } from 'react';
 import { useT } from '../../i18n/i18n';
-import { isRowVisible, textOfPart, toTranscriptRows } from '../../state/transcriptRows';
+import {
+  isRowVisible,
+  textOfPart,
+  toTranscriptRows,
+  type DeliveryReceiptEntry,
+} from '../../state/transcriptRows';
 import { incompleteReason, type TranscriptMessage } from '../../state/viewTypes';
 import { TaskBriefCard } from '../../work/TaskBriefCard';
 import { AttachmentCardRow } from '../attachments/AttachmentCard';
 import { VoiceNoteBubble } from '../attachments/VoiceNoteBubble';
-import { renderPart, type PartRenderContext } from '../PartRenderer';
+import { formatPreviewInternalPaths } from '../markdown/internalPaths';
+import { partField, renderPart, type PartRenderContext } from '../PartRenderer';
 // Part renderers self-register at import time; load them beside the sole caller.
 import '../ReasoningPart';
 import '../tools/ToolCallPart';
@@ -43,6 +50,68 @@ export function DateSeparator({ label }: { label: string }) {
 
 export function SystemEvent({ text }: { text: string }) {
   return <div className="py-1.5 text-center text-micro text-muted">{text}</div>;
+}
+
+const PEER_COLLAPSE_CHARS = 220;
+const PEER_COLLAPSE_LINES = 3;
+
+function isLongPeerMessage(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length > PEER_COLLAPSE_CHARS) return true;
+  return trimmed.split('\n').filter((line) => line.trim() !== '').length > PEER_COLLAPSE_LINES;
+}
+
+function plainPeerPreview(text: string, pathFallback: string): string {
+  const masked = formatPreviewInternalPaths(text, pathFallback);
+  return masked
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function DeliveryReceiptsRow({ receipts }: { receipts: readonly DeliveryReceiptEntry[] }) {
+  const t = useT();
+  const first = receipts[0];
+  if (first === undefined) return null;
+  const summary =
+    receipts.length === 1
+      ? t('transcript.receipts.one', { name: first.recipient })
+      : t('transcript.receipts.many', { count: receipts.length });
+  return (
+    <div data-delivery-receipts={receipts.length} className="flex justify-start px-1 py-0.5">
+      <Disclosure defaultExpanded={false} className="min-w-0">
+        <Disclosure.Heading>
+          <Disclosure.Trigger className="crewaid-tool-disclosure inline-flex items-center gap-1 rounded-md py-0.5 text-micro text-muted outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus">
+            <span>{summary}</span>
+            {receipts.length === 1 && first.timeLabel !== '' ? (
+              <span className="tabular-nums opacity-75">· {first.timeLabel}</span>
+            ) : null}
+            <Disclosure.Indicator className="size-3 shrink-0 text-muted" />
+          </Disclosure.Trigger>
+        </Disclosure.Heading>
+        <Disclosure.Content>
+          <Disclosure.Body>
+            <ul
+              aria-label={t('transcript.receipts.label')}
+              className="mt-1 flex flex-col gap-0.5 border-s-2 border-separator ps-2.5 text-micro text-muted"
+            >
+              {receipts.map((entry) => (
+                <li key={entry.id} className="flex items-center gap-1.5">
+                  <span>{t('transcript.receipts.one', { name: entry.recipient })}</span>
+                  {entry.timeLabel === '' ? null : (
+                    <span className="tabular-nums opacity-75">· {entry.timeLabel}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Disclosure.Body>
+        </Disclosure.Content>
+      </Disclosure>
+    </div>
+  );
 }
 
 /** Visual boundary marking where a `/new` topic resets the bot's context window. */
@@ -86,6 +155,8 @@ export function MessageGroup({
   settled = true,
   showWork = true,
   autoplayVoice = false,
+  focused = false,
+  onOpenPeerExchange,
 }: {
   msg: TranscriptMessage;
   peers?: readonly PeerSummary[] | undefined;
@@ -97,7 +168,17 @@ export function MessageGroup({
   showWork?: boolean;
   /** Plays a newly arrived spoken reply once. */
   autoplayVoice?: boolean;
+  /** True when the operator explicitly jumped to this message. */
+  focused?: boolean;
+  /** Opens the originating peer's thread at this exact exchange. */
+  onOpenPeerExchange?: ((peerBotId: string, msg: TranscriptMessage) => void) | undefined;
 }) {
+  const t = useT();
+  const [peerExpanded, setPeerExpanded] = useState(focused);
+  useEffect(() => {
+    if (focused) setPeerExpanded(true);
+  }, [focused]);
+
   if (msg.author === 'SYSTEM' && msg.startsTopic === true) {
     const onRemoveTopic = work?.onRemoveTopic;
     return (
@@ -107,6 +188,12 @@ export function MessageGroup({
     );
   }
   if (msg.author === 'SYSTEM') {
+    const receiptPart = msg.parts.find((p) => p.type === 'delivery-receipts');
+    const receipts =
+      receiptPart === undefined ? undefined : partField(receiptPart, 'receipts');
+    if (Array.isArray(receipts) && receipts.length > 0) {
+      return <DeliveryReceiptsRow receipts={receipts as readonly DeliveryReceiptEntry[]} />;
+    }
     return <SystemEvent text={msg.parts.map((p) => ('text' in p ? p.text : '')).join(' ')} />;
   }
   if (msg.author === 'USER' && msg.taskId !== undefined) {
@@ -152,6 +239,12 @@ export function MessageGroup({
       ? (action: MessageAction) =>
           onMessageAction(action, { id: msg.id, content: msg.parts.map(textOfPart).join('\n') })
       : undefined;
+  const collapsiblePeer =
+    peer !== undefined && settled && voiceNotes.length === 0 && isLongPeerMessage(transcript);
+  const openPeer =
+    onOpenPeerExchange !== undefined
+      ? (peerId: string) => onOpenPeerExchange(peerId, msg)
+      : renderContext?.onBotMention;
 
   return (
     <div
@@ -161,25 +254,84 @@ export function MessageGroup({
       {/* Rendered once per message so multi-bubble replies read as one delivery. */}
       {peer === undefined ? null : (
         <div className="flex justify-start ps-2 pe-1">
-          <InterBotAttribution peer={peer} onOpenPeer={renderContext?.onBotMention} />
+          <InterBotAttribution
+            peer={peer}
+            timeLabel={collapsiblePeer ? msg.timeLabel : undefined}
+            onOpenPeer={openPeer}
+          />
         </div>
       )}
-      {visibleRows.map((row) =>
-        row.kind === 'bubble' ? (
+      {collapsiblePeer ? (
+        <>
           <Bubble
-            key={row.key}
             author={author}
             title={hoverTime}
             timeLabel={msg.timeLabel}
-            text={textOfPart(row.part)}
+            text={transcript}
             onAction={onAction}
-            {...(peer === undefined ? {} : { peer })}
+            peer={peer}
           >
-            {renderPart(row.part, partContext)}
+            {peerExpanded ? (
+              <div className="flex flex-col gap-2">
+                {visibleRows
+                  .filter((row) => row.kind === 'bubble')
+                  .map((row) => (
+                    <div key={row.key}>{renderPart(row.part, partContext)}</div>
+                  ))}
+              </div>
+            ) : (
+              <p
+                data-peer-preview
+                className="m-0 line-clamp-2 text-callout leading-[21px] text-foreground/85"
+              >
+                {plainPeerPreview(transcript, t('tools.path'))}
+              </p>
+            )}
+            <div className="mt-2 flex items-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                data-peer-toggle={peerExpanded ? 'collapse' : 'expand'}
+                onPress={() => setPeerExpanded((open) => !open)}
+                className="-ms-1.5 h-6 min-h-0 gap-1 rounded-full px-2 text-caption font-medium text-muted hover:text-foreground"
+              >
+                <span>
+                  {peerExpanded
+                    ? t('transcript.peer.hideFull')
+                    : t('transcript.peer.showFull')}
+                </span>
+                {peerExpanded ? (
+                  <IconChevronUp aria-hidden className="size-3.5" stroke={1.8} />
+                ) : (
+                  <IconChevronDown aria-hidden className="size-3.5" stroke={1.8} />
+                )}
+              </Button>
+            </div>
           </Bubble>
-        ) : (
-          <Aside key={row.key}>{renderPart(row.part, partContext)}</Aside>
-        ),
+          {visibleRows
+            .filter((row) => row.kind !== 'bubble')
+            .map((row) => (
+              <Aside key={row.key}>{renderPart(row.part, partContext)}</Aside>
+            ))}
+        </>
+      ) : (
+        visibleRows.map((row) =>
+          row.kind === 'bubble' ? (
+            <Bubble
+              key={row.key}
+              author={author}
+              title={hoverTime}
+              timeLabel={msg.timeLabel}
+              text={textOfPart(row.part)}
+              onAction={onAction}
+              {...(peer === undefined ? {} : { peer })}
+            >
+              {renderPart(row.part, partContext)}
+            </Bubble>
+          ) : (
+            <Aside key={row.key}>{renderPart(row.part, partContext)}</Aside>
+          ),
+        )
       )}
       {voiceNotes.length > 0 ? (
         <div
@@ -249,6 +401,8 @@ export const TranscriptRow = memo(function TranscriptRow({
   settled,
   showWork,
   autoplayVoice,
+  focused = false,
+  onOpenPeerExchange,
 }: {
   msg: TranscriptMessage;
   dayLabel: string | null;
@@ -260,6 +414,8 @@ export const TranscriptRow = memo(function TranscriptRow({
   settled: boolean;
   showWork: boolean;
   autoplayVoice: boolean;
+  focused?: boolean;
+  onOpenPeerExchange?: ((peerBotId: string, msg: TranscriptMessage) => void) | undefined;
 }) {
   return (
     <div
@@ -278,6 +434,8 @@ export const TranscriptRow = memo(function TranscriptRow({
           settled={settled}
           showWork={showWork}
           autoplayVoice={autoplayVoice}
+          focused={focused}
+          onOpenPeerExchange={onOpenPeerExchange}
         />
       </div>
     </div>

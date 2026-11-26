@@ -18,6 +18,8 @@ export interface SidebarSection {
   readonly unread: number;
   /** Whether any of its bots is waiting on the operator to approve something. */
   readonly needsApproval: boolean;
+  /** The bots in this section currently waiting on an approval, in sidebar order. */
+  readonly approvalBots: readonly BotRowView[];
 }
 
 export const UNASSIGNED_SECTION_ID = 'section:unassigned';
@@ -55,13 +57,17 @@ export function sidebarSections(
   }
   if (byGroup.size === 0) return null;
 
-  const section = (id: string, group: BotGroup | null, members: readonly BotRowView[]) => ({
-    id,
-    group,
-    rows: members,
-    unread: members.reduce((sum, row) => sum + (unreadByBot[row.bot.id] ?? 0), 0),
-    needsApproval: members.some((row) => row.bot.status === 'AWAITING_APPROVAL'),
-  });
+  const section = (id: string, group: BotGroup | null, members: readonly BotRowView[]) => {
+    const approvalBots = members.filter((row) => row.bot.status === 'AWAITING_APPROVAL');
+    return {
+      id,
+      group,
+      rows: members,
+      unread: members.reduce((sum, row) => sum + (unreadByBot[row.bot.id] ?? 0), 0),
+      needsApproval: approvalBots.length > 0,
+      approvalBots,
+    };
+  };
 
   const sections: SidebarSection[] = [];
   for (const group of groups) {

@@ -46,6 +46,7 @@ export function MessageWorkDialogs({
   onOpenDeliverable: (deliverable: DeliverableView) => void;
 }) {
   const [goals, setGoals] = useState<readonly GoalWithProgress[]>([]);
+  // Already the message's shown text (`textOfPart`): a bot's projected, a person's verbatim.
   const content = request?.message.content ?? '';
   const defaults = useMemo(
     () => ({ projectId: null, ...taskDraftFromMessage(content) }),

@@ -64,3 +64,19 @@ export function botSwitched(state: ComposerState, newBotIsGenerating: boolean): 
   if (!newBotIsGenerating && state.mode === 'active') return { ...state, mode: 'idle' };
   return state;
 }
+
+/**
+ * Apply seeded composer text (e.g., a welcome starter or a `Review then send`
+ * handoff decision option). `mode: 'append'` preserves any unsent draft text
+ * separated by a blank line and never sends automatically.
+ */
+export function applyComposerSeed(
+  state: ComposerState,
+  seed: { readonly text: string; readonly mode?: 'replace' | 'append' | undefined },
+): ComposerState {
+  if (seed.text === '') return state;
+  if (seed.mode === 'append' && state.draft.trim() !== '') {
+    return draftChanged(state, `${state.draft.trimEnd()}\n\n${seed.text}`);
+  }
+  return draftChanged(state, seed.text);
+}

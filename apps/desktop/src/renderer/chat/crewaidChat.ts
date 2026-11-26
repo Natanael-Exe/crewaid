@@ -15,7 +15,7 @@ import {
 } from '@crewaid/shared';
 import type { ChatError } from '../state/chatReducer';
 import type { ChatEndpoint } from './chatEndpoint';
-import { admissionFailure, runFailure } from './chatFailure';
+import { admissionFailure, conflictActiveRunId, runFailure } from './chatFailure';
 import { t } from '../i18n/i18n';
 
 export type RunAnnouncements = {
@@ -33,8 +33,22 @@ class AdmissionError extends Error {}
 class StreamDisconnected extends Error {}
 /** A send or an answer the server refused, with the sentence the person reads. */
 class RefusedAdmission extends AdmissionError {
-  constructor(readonly failure: ChatError) {
+  constructor(
+    readonly failure: ChatError,
+    readonly activeRunId: string | null = null,
+  ) {
     super(failure.message);
+  }
+}
+
+/** Raised when "Stop and send" targets a run that already changed. */
+export class TargetRunChangedError extends Error {
+  constructor(
+    message: string,
+    readonly activeRunId: string | null,
+  ) {
+    super(message);
+    this.name = 'TargetRunChangedError';
   }
 }
 
@@ -92,13 +106,21 @@ const NON_RETRYABLE_ERRORS: ReadonlySet<string> = new Set([
   'THREAD_AWAITING_APPROVAL',
   'RUN_BUSY',
   'INTERRUPT_NOT_PENDING',
+  'TARGET_RUN_CHANGED',
 ]);
+
+export type SendMessageOptions = {
+  readonly body: { readonly attachmentIds: string[]; readonly interruptRunId?: string };
+  readonly attachments?: readonly TranscriptAttachment[];
+  /** Client-supplied stable id so reconnects and retries are idempotent. */
+  readonly messageId?: string;
+  /** Suppress the global transcript error banner on TARGET_RUN_CHANGED conflicts. */
+  readonly quietConflict?: boolean;
+};
 
 type FailedSend = {
   readonly text: string;
-  readonly data?:
-    | { body: { attachmentIds: string[] }; attachments?: readonly TranscriptAttachment[] }
-    | undefined;
+  readonly data?: SendMessageOptions | undefined;
 };
 
 type FailedResume = {
@@ -110,6 +132,8 @@ export type ChatSnapshot = {
   readonly messages: Message[];
   readonly interrupts: ChatInterrupt[];
   readonly sessionGenerating: boolean;
+  /** Currently streaming or queued run id on this thread, or null when idle. */
+  readonly activeRunId: string | null;
   readonly startedAt: number | undefined;
   readonly isLoading: boolean;
   readonly resuming: boolean;
@@ -220,6 +244,7 @@ export class CrewaidChat {
         };
       }),
       sessionGenerating: this.reading || this.waiting.length > 0,
+      activeRunId: this.readingRunId ?? this.waiting[0]?.runId ?? null,
       startedAt:
         this.readingRunId === undefined ? undefined : this.runStarts.get(this.readingRunId),
       isLoading: this.admitting > 0,
@@ -364,11 +389,15 @@ export class CrewaidChat {
   };
   readonly sendMessage = async (
     text: string,
-    data?: { body: { attachmentIds: string[] }; attachments?: readonly TranscriptAttachment[] },
+    data?: SendMessageOptions,
   ): Promise<string> => {
     await this.hydration;
     if (this.lifetime.signal.aborted) throw new AdmissionError('The conversation was closed.');
-    const message: Message = { id: crypto.randomUUID(), role: 'user', content: text };
+    const message: Message = {
+      id: data?.messageId ?? crypto.randomUUID(),
+      role: 'user',
+      content: text,
+    };
     // Uploads already exist before Send. Keep their display metadata locally
     // so a fresh voice note is a player immediately, without a history reload.
     const displayed: Message = data?.attachments?.length
@@ -396,23 +425,41 @@ export class CrewaidChat {
     // (202). Set into the SDK's list now, it would vanish with the run's next
     // event, so it is layered on top until the read ends.
     if (this.readingRunId !== undefined) {
-      this.sentWhileReading.push(displayed);
+      if (!this.sentWhileReading.some((row) => row.id === displayed.id)) {
+        this.sentWhileReading.push(displayed);
+      }
       this.changed(true);
-    } else this.setMessages([...this.agent.messages, displayed]);
+    } else if (!this.agent.messages.some((row) => row.id === displayed.id)) {
+      this.setMessages([...this.agent.messages, displayed]);
+    }
     try {
-      await this.admit([message], data?.body ?? {});
+      await this.admit(
+        [message],
+        data?.body ?? {},
+        undefined,
+        undefined,
+        data?.quietConflict === true,
+      );
       this.lastFailedSend = null;
     } catch (error) {
       const at = this.sentWhileReading.findIndex((row) => row.id === message.id);
       if (at !== -1) this.sentWhileReading.splice(at, 1);
       this.setMessages(this.agent.messages.filter((row) => row.id !== message.id));
       const refusal = error instanceof RefusedAdmission ? error.failure.code : undefined;
+      if (
+        error instanceof RefusedAdmission &&
+        error.failure.code === 'TARGET_RUN_CHANGED'
+      ) {
+        this.lastFailedSend = null;
+        this.changed(true);
+        throw new TargetRunChangedError(error.failure.message, error.activeRunId);
+      }
       this.lastFailedSend =
         refusal !== undefined && NON_RETRYABLE_ERRORS.has(refusal)
           ? null
           : data === undefined
-            ? { text }
-            : { text, data };
+            ? { text, data: { body: { attachmentIds: [] }, messageId: message.id } }
+            : { text, data: { ...data, messageId: message.id } };
       this.changed(true);
       throw error;
     }
@@ -503,13 +550,14 @@ export class CrewaidChat {
     forwardedProps: unknown,
     resume?: ResumeEntry[],
     parentRunId?: string,
+    quietConflict = false,
   ): Promise<void> {
     const runId = crypto.randomUUID();
     const controller = new AbortController();
     const sending = resume === undefined ? 'message' : 'answer';
     this.opened.add(runId); // Reserve before HTTP: the announcement may beat the response.
     this.admitting++;
-    this.error = undefined;
+    if (!quietConflict) this.error = undefined;
     this.changed(true);
     try {
       const response = await this.fetch(this.options.endpoint.url, {
@@ -528,9 +576,12 @@ export class CrewaidChat {
         }),
       });
       if (!response.ok) {
-        // The body names the two refusals a person can act on.
+        // The body names the refusals a person can act on.
         const body = await response.text().catch(() => undefined);
-        throw new RefusedAdmission(admissionFailure(response.status, body, sending));
+        throw new RefusedAdmission(
+          admissionFailure(response.status, body, sending),
+          conflictActiveRunId(body),
+        );
       }
       if (response.status === 202) {
         void response.body?.cancel();
@@ -546,11 +597,17 @@ export class CrewaidChat {
     } catch (error) {
       controller.abort();
       this.opened.delete(runId);
-      // Anything but a refusal is the request never arriving.
-      this.error =
-        error instanceof RefusedAdmission
-          ? error.failure
-          : admissionFailure(undefined, undefined, sending);
+      const isQuietTargetChanged =
+        quietConflict &&
+        error instanceof RefusedAdmission &&
+        error.failure.code === 'TARGET_RUN_CHANGED';
+      if (!isQuietTargetChanged) {
+        // Anything but a refusal is the request never arriving.
+        this.error =
+          error instanceof RefusedAdmission
+            ? error.failure
+            : admissionFailure(undefined, undefined, sending);
+      }
       throw error;
     } finally {
       this.admitting--;

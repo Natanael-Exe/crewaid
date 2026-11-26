@@ -24,6 +24,8 @@ export interface TanStackTurnSource {
   startStored(userId: string, botId: string, trigger: StoredTrigger): Promise<void>;
   /** The Stop. True when a run this worker produces was aborted in-process. */
   cancel(userId: string, botId: string): boolean;
+  /** Cancels only one specific runId on a bot without disturbing unrelated runs. */
+  cancelRun?(userId: string, botId: string, runId: string): boolean;
 }
 
 /**
@@ -61,6 +63,13 @@ export class TanStackTurns {
   }
 
   cancel(userId: string, botId: string): boolean {
+    return this.source?.cancel(userId, botId) ?? false;
+  }
+
+  cancelRun(userId: string, botId: string, runId: string): boolean {
+    if (this.source?.cancelRun !== undefined) {
+      return this.source.cancelRun(userId, botId, runId);
+    }
     return this.source?.cancel(userId, botId) ?? false;
   }
 }

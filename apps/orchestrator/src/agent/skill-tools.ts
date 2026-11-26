@@ -54,7 +54,14 @@ export interface AttachmentPort {
     bytes: Buffer;
     /** Files it as a deliverable. */
     filing?: DeliverableFiling;
-  }): Promise<{ id: string; filename: string; sizeBytes: number }>;
+  }): Promise<{
+    id: string;
+    filename: string;
+    sizeBytes: number;
+    deliverableId?: string | null;
+    version?: number;
+    supersededDeliverableId?: string | null;
+  }>;
 }
 
 function failure(action: string, error: unknown): string {
@@ -193,7 +200,20 @@ export function skillTools(deps: {
                   ...(input.goalId !== undefined && { goalId: input.goalId }),
                 },
               });
-              return `attached ${stored.filename} (${stored.sizeBytes} bytes)${
+              const metaParts = [
+                `attachmentId=${stored.id}`,
+                ...(stored.deliverableId !== null && stored.deliverableId !== undefined
+                  ? [`deliverableId=${stored.deliverableId}`]
+                  : []),
+                ...(stored.version !== undefined && stored.version > 1
+                  ? [`v${stored.version}`]
+                  : []),
+                ...(stored.supersededDeliverableId !== null &&
+                stored.supersededDeliverableId !== undefined
+                  ? [`supersedes=${stored.supersededDeliverableId}`]
+                  : []),
+              ];
+              return `attached ${stored.filename} (${stored.sizeBytes} bytes, ${metaParts.join(', ')})${
                 note === undefined ? '' : ` — ${note}`
               }`;
             } catch (error) {

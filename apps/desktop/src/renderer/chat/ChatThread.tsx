@@ -4,6 +4,7 @@ import type { MutableRefObject, ReactNode } from 'react';
 import { useAguiChat } from './useAguiChat';
 import type { Message } from '@ag-ui/core';
 import type { ChatInterrupt } from './crewaidChat';
+import { TargetRunChangedError } from './crewaidChat';
 import {
   ApprovalBindingSchema,
   ToolApprovalRequestSchema,
@@ -15,6 +16,8 @@ import {
 } from '@crewaid/shared';
 
 import type { ChatError, PendingApproval } from '../state/chatReducer';
+import { findExchangeMessageId } from '../state/transcriptRows';
+import type { ExchangeFocus } from '../state/useShellNavigation';
 import type { TranscriptMessage } from '../state/viewTypes';
 import { createTranscriptProjection, crewaidMetadataIn } from './uiMessage';
 import type { ThreadPreviewCache } from './threadPreviewCache';
@@ -38,8 +41,16 @@ import { t } from '../i18n/i18n';
  * does not become a second place that knows what a transcript needs.
  */
 
+export type QueuedSendResult =
+  | { readonly kind: 'sent'; readonly messageId: string }
+  | { readonly kind: 'target-changed'; readonly activeRunId: string | null }
+  | { readonly kind: 'failed' };
+
 export type ChatThreadView = {
   readonly startedAt: number | undefined;
+  readonly activeRunId: string | null;
+  /** Resolved focus message id from either direct focus or a peer exchange jump. */
+  readonly resolvedFocusMessageId: string | null;
   readonly messages: TranscriptMessage[];
   /** The first hydrate has landed, so an empty transcript means empty. */
   readonly historyLoaded: boolean;
@@ -60,6 +71,13 @@ export type ChatThreadView = {
     attachmentIds: readonly string[],
     attachments?: readonly TranscriptAttachment[],
   ) => Promise<string | null>;
+  /** Idempotent send for queued messages, optionally targeting a run to stop and preempt. */
+  readonly sendQueued: (input: {
+    readonly text: string;
+    readonly attachmentIds: readonly string[];
+    readonly messageId?: string | undefined;
+    readonly interruptRunId?: string | undefined;
+  }) => Promise<QueuedSendResult>;
   readonly stop: () => void;
   /** Put the `/new` boundary this window just created in the transcript. */
   readonly appendStoredRow: (row: MessageWithAttachments) => void;
@@ -87,6 +105,7 @@ export type ChatThreadProps = {
    * deleted part of the history must not page the whole transcript in.
    */
   readonly focusMessageId?: string | null;
+  readonly focusExchange?: ExchangeFocus | null;
   readonly onFocusUnreachable?: () => void;
   /**
    * Filled with this thread's send, for the shell's queue drain.
@@ -97,10 +116,13 @@ export type ChatThreadProps = {
    * queue is drained when its bot is being looked at.
    */
   readonly sendRef?: MutableRefObject<ChatThreadView['send'] | null>;
+  readonly sendQueuedRef?: MutableRefObject<ChatThreadView['sendQueued'] | null>;
   /** Called once the thread can send — how the shell delivers a message it queued for this bot. */
   readonly onSendReady?: (send: ChatThreadView['send']) => void;
   /** Told when the thread starts and stops producing, for that same drain. */
   readonly onGeneratingChange?: (generating: boolean) => void;
+  /** Told whenever the thread's active run id changes, for target-run-scoped interrupts. */
+  readonly onActiveRunChange?: (runId: string | null) => void;
   /**
    * This window's client can no longer follow the thread, and must be
    * mounted again to read it from the server. The shell re-keys it.
@@ -181,7 +203,16 @@ function isToolApproval(interrupt: { readonly kind: string }): interrupt is Tool
 export function ChatThread(props: ChatThreadProps): ReactNode {
   const locale = useLocale();
   const { botId, thread, endpoint, previewCache, onFrames, onCancel, children } = props;
-  const { focusMessageId, onFocusUnreachable, sendRef, onGeneratingChange, onStale } = props;
+  const {
+    focusMessageId,
+    focusExchange,
+    onFocusUnreachable,
+    sendRef,
+    sendQueuedRef,
+    onGeneratingChange,
+    onActiveRunChange,
+    onStale,
+  } = props;
   const onRetryClaimedAttachments = props.onRetryClaimedAttachments;
   // Latest callback, read when the thread becomes ready rather than on every render.
   const onSendReady = useRef(props.onSendReady);
@@ -398,6 +429,28 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
     [sendMessage],
   );
 
+  const sendQueued = useCallback<ChatThreadView['sendQueued']>(
+    async ({ text, attachmentIds, messageId, interruptRunId }) => {
+      try {
+        const id = await sendMessage(text, {
+          body: {
+            attachmentIds: [...attachmentIds],
+            ...(interruptRunId === undefined ? {} : { interruptRunId }),
+          },
+          ...(messageId === undefined ? {} : { messageId }),
+          ...(interruptRunId === undefined ? {} : { quietConflict: true }),
+        });
+        return { kind: 'sent', messageId: id };
+      } catch (error) {
+        if (error instanceof TargetRunChangedError) {
+          return { kind: 'target-changed', activeRunId: error.activeRunId };
+        }
+        return { kind: 'failed' };
+      }
+    },
+    [sendMessage],
+  );
+
   const stop = useCallback(() => {
     // The frame is the authority: closing a stream is a disconnect, not
     // a cancel. `stop` then ends this window's read of a run that is ending.
@@ -479,6 +532,42 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
     olderHistoryError,
   ]);
 
+  const resolvedExchangeId = useMemo(
+    () => (focusExchange == null ? null : findExchangeMessageId(messages, focusExchange)),
+    [focusExchange, messages],
+  );
+  const resolvedFocusMessageId = focusMessageId ?? resolvedExchangeId;
+
+  const pagedForExchange = useRef<{ key: string; pages: number } | null>(null);
+  useEffect(() => {
+    if (focusExchange == null || focusMessageId != null) {
+      pagedForExchange.current = null;
+      return;
+    }
+    if (!hydrated || loadingOlder || olderHistoryError !== null) return;
+    if (resolvedExchangeId !== null) return;
+    const key = `${focusExchange.botId}:${focusExchange.timestamp}:${focusExchange.excerpt.slice(0, 24)}`;
+    const paged =
+      pagedForExchange.current?.key === key ? pagedForExchange.current : { key, pages: 0 };
+    if (!chat.hasOlderMessages || paged.pages >= MAX_FOCUS_PAGES) {
+      pagedForExchange.current = null;
+      onFocusUnreachable?.();
+      return;
+    }
+    pagedForExchange.current = { key, pages: paged.pages + 1 };
+    loadOlder();
+  }, [
+    focusExchange,
+    focusMessageId,
+    hydrated,
+    loadingOlder,
+    olderHistoryError,
+    resolvedExchangeId,
+    chat.hasOlderMessages,
+    onFocusUnreachable,
+    loadOlder,
+  ]);
+
   // The shell's queue drain reaches this thread's send through the ref it
   // owns. Cleared on unmount, so a drain can never reach a dead client.
   useEffect(() => {
@@ -491,6 +580,13 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
       sendRef.current = null;
     };
   }, [sendRef, send]);
+  useEffect(() => {
+    if (sendQueuedRef === undefined) return;
+    sendQueuedRef.current = sendQueued;
+    return () => {
+      sendQueuedRef.current = null;
+    };
+  }, [sendQueuedRef, sendQueued]);
 
   const generating = chat.sessionGenerating || chat.isLoading;
   useEffect(() => {
@@ -499,6 +595,10 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
     // "it is working" for a client that no longer exists.
     return () => onGeneratingChange?.(false);
   }, [generating, onGeneratingChange]);
+  useEffect(() => {
+    onActiveRunChange?.(chat.activeRunId);
+    return () => onActiveRunChange?.(null);
+  }, [chat.activeRunId, onActiveRunChange]);
 
   // The client's error is already the person's sentence — the server's
   // for a run, `chatFailure.ts`'s for this window's own round trips. Replacing
@@ -513,6 +613,8 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
 
   return children({
     startedAt: chat.startedAt,
+    activeRunId: chat.activeRunId,
+    resolvedFocusMessageId,
     messages: hydrated || chat.messages.length > 0 ? messages : (preview ?? messages),
     historyLoaded: hydrated || preview !== null,
     // A preview may paint before hydration's callback enables paging. Do not
@@ -528,6 +630,7 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
     approvals,
     respondToApproval,
     send,
+    sendQueued,
     stop,
     appendStoredRow,
     spokenReplyId,

@@ -185,7 +185,9 @@ describe('audit: production execution events through independent AG-UI 1.0 verif
     const agent = new CapturedAgent(p.events, h.f.threadId);
     await agent.runAgent({ runId: h.request.runId });
     expect(agent.pendingInterrupts).toHaveLength(1);
-    expect(agent.messages.some((message) => message.role === 'reasoning')).toBe(true);
+    // Provider reasoning stays available to the engine internally and is
+    // excluded from public SSE events and client transcripts.
+    expect(agent.messages.some((message) => message.role === 'reasoning')).toBe(false);
     expect(
       agent.messages
         .filter((message) => message.role === 'assistant')

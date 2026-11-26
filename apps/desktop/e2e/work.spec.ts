@@ -279,7 +279,11 @@ test('a task is created, assigned, started, moved by the bot’s side, and its d
     await expect(
       preview.getByRole('region', { name: 'Preview' }).getByText('Acme PRD'),
     ).toBeVisible();
-    await expect(preview.getByText('/home/bot/shared/PRD.md')).toBeVisible();
+    // Where the file came from, named the way a person reads it: the
+    // machine's `/home/bot/...` prefix is masked to the file's own name.
+    const source = preview.locator('[data-deliverable-source]');
+    await expect(source).toHaveText('PRD.md');
+    await expect(source).not.toContainText('/home/bot');
   } finally {
     await app?.close().catch(() => undefined);
     await stopServer(server);

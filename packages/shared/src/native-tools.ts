@@ -106,6 +106,12 @@ export const NativeToolInputs = {
           'and plainly; your caveats about how it might fail are noise to it.',
       ),
     taskId: z.string().nullable().optional().describe('Omit: keep your task; null: none.'),
+    expectReply: z
+      .boolean()
+      .optional()
+      .describe(
+        'Set false for FYI notices that belong in context without starting a turn or expecting a reply. Defaults to true.',
+      ),
   }),
   schedule_routine: z.object({
     name: z.string().min(1).max(80).describe('A short name the user will recognise.'),
@@ -131,7 +137,16 @@ export const NativeToolInputs = {
   cancel_routine: z.object({
     routine: z.string().min(1).describe('The routine id, or its exact name.'),
   }),
-  board_read: z.object({}).describe('No arguments.'),
+  board_read: z
+    .object({
+      restore: z
+        .boolean()
+        .optional()
+        .describe(
+          'Set true to explicitly restore /home/bot/shared/BOARD.md from durable managed history.',
+        ),
+    })
+    .describe('Optional restore flag; pass {} for a normal read.'),
   board_add: z.object({
     entry: z.string().describe('The entry to append, e.g. `- [ ] Draft the pricing page copy`'),
   }),

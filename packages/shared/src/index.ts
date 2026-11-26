@@ -29,6 +29,7 @@ export * from './github-git.js';
 // A reply rewritten to be heard, shared by the spoken reply and a call.
 export * from './speakable.js';
 export * from './model-control-tags.js';
+export * from './public-speech.js';
 export * from './telegram.js';
 
 export * from './templates.js';

@@ -23,16 +23,24 @@ export interface QueuedMessage {
   readonly text: string;
   /** Uploads claimed at enqueue time, sent with it. */
   readonly attachmentIds: readonly string[];
+  /** Stable idempotency id sent as `Message.id` so reconnects/retries never duplicate sends. */
+  readonly messageId?: string;
+  /** Active run id observed when this message was queued, for target-scoped "Stop and send". */
+  readonly targetRunId?: string | null;
+  /** Inline feedback when an interruption target changed or could not complete. */
+  readonly notice?: string;
 }
 
 export type MessageQueues = Readonly<Record<string, readonly QueuedMessage[]>>;
 
-let counter = 0;
-
-/** Ids are per-session and never leave the client, so a counter is enough. */
+/**
+ * Ids never leave the client, but they do outlive the page: queues are kept in
+ * sessionStorage across reloads. A counter restarts at zero on every load and
+ * would hand out `q1` again beside a restored `q1`, so that removing one —
+ * which matches by id — removes both.
+ */
 export function nextLocalId(): string {
-  counter += 1;
-  return `q${counter}`;
+  return `q-${crypto.randomUUID()}`;
 }
 
 export function queueOf(queues: MessageQueues, botId: string): readonly QueuedMessage[] {
@@ -67,10 +75,95 @@ export function editQueued(
   if (text.trim() === '') return removeQueued(queues, botId, localId);
   return {
     ...queues,
-    [botId]: queueOf(queues, botId).map((item) =>
-      item.localId === localId ? { ...item, text } : item,
-    ),
+    [botId]: queueOf(queues, botId).map((item) => {
+      if (item.localId !== localId) return item;
+      const { notice: _cleared, ...rest } = item;
+      return { ...rest, text };
+    }),
   };
+}
+
+/** Updates a queued item's inline notice and optionally refreshes its targeted run id. */
+export function setQueuedNotice(
+  queues: MessageQueues,
+  botId: string,
+  localId: string,
+  notice: string | undefined,
+  nextTargetRunId?: string | null,
+): MessageQueues {
+  return {
+    ...queues,
+    [botId]: queueOf(queues, botId).map((item) => {
+      if (item.localId !== localId) return item;
+      const { notice: _prev, ...rest } = item;
+      return {
+        ...rest,
+        ...(nextTargetRunId === undefined ? {} : { targetRunId: nextTargetRunId }),
+        ...(notice === undefined ? {} : { notice }),
+      };
+    }),
+  };
+}
+
+type StorageLike = Pick<Storage, 'getItem' | 'setItem'>;
+
+/** Reads persisted queued drafts and their target runs across window reloads/reconnects. */
+export function readPersistedQueues(storage: StorageLike | null, key: string): MessageQueues {
+  if (storage === null) return {};
+  try {
+    const raw = storage.getItem(key);
+    if (raw === null) return {};
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+    const out: Record<string, readonly QueuedMessage[]> = {};
+    for (const [botId, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (!Array.isArray(value)) continue;
+      const items: QueuedMessage[] = [];
+      const seen = new Set<string>();
+      for (const entry of value) {
+        if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) continue;
+        const row = entry as Record<string, unknown>;
+        if (typeof row['localId'] !== 'string' || typeof row['text'] !== 'string') continue;
+        const attachmentIds = Array.isArray(row['attachmentIds'])
+          ? row['attachmentIds'].filter((id): id is string => typeof id === 'string')
+          : [];
+        // A store written before ids were unique can hold the same id twice.
+        const localId = seen.has(row['localId']) ? nextLocalId() : row['localId'];
+        seen.add(localId);
+        items.push({
+          localId,
+          text: row['text'],
+          attachmentIds,
+          ...(typeof row['messageId'] === 'string' ? { messageId: row['messageId'] } : {}),
+          ...(typeof row['targetRunId'] === 'string' || row['targetRunId'] === null
+            ? { targetRunId: row['targetRunId'] }
+            : {}),
+        });
+      }
+      if (items.length > 0) out[botId] = items;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+export function writePersistedQueues(
+  storage: StorageLike | null,
+  key: string,
+  queues: MessageQueues,
+): void {
+  if (storage === null) return;
+  try {
+    const clean: Record<string, readonly QueuedMessage[]> = {};
+    for (const [botId, items] of Object.entries(queues)) {
+      if (items.length === 0) continue;
+      clean[botId] = items.map(({ notice: _notice, ...item }) => item);
+    }
+    storage.setItem(key, JSON.stringify(clean));
+  } catch {
+    // Hardened profiles may refuse storage; the in-memory queue still works.
+  }
 }
 
 /**

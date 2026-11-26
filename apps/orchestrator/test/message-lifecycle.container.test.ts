@@ -310,25 +310,23 @@ describe.skipIf(!runtime.available)('M1-QA-03 full message lifecycle (own Postgr
   });
 
   it('streams one run over the chat response, and its status over the socket', () => {
-    // The order a client renders from: the run opens, thinks, answers, ends.
+    // The order a client renders from: the run opens, answers, ends.
+    // Provider reasoning stays internal to the execution engine and is excluded
+    // from public SSE events.
     const shape = events
       .map((event) => event.type)
       .filter((type, index, all) => type !== all[index - 1]);
     expect(shape[0]).toBe(EventType.RUN_STARTED);
     expect(shape.at(-1)).toBe(EventType.RUN_FINISHED);
-    expect(shape.indexOf(EventType.REASONING_MESSAGE_CONTENT)).toBeLessThan(
-      shape.indexOf(EventType.TEXT_MESSAGE_CONTENT),
-    );
+    expect(shape).not.toContain(EventType.REASONING_MESSAGE_CONTENT);
 
-    // The text deltas are the reply, in order and without gaps; thinking
-    // streams too, and separately (D-091).
     const joined = (type: string) =>
       events
         .filter((event) => event.type === type)
         .map((event) => event.delta ?? '')
         .join('');
     expect(joined(EventType.TEXT_MESSAGE_CONTENT)).toBe(REPLY);
-    expect(joined(EventType.REASONING_MESSAGE_CONTENT)).toBe(REASONING);
+    expect(joined(EventType.REASONING_MESSAGE_CONTENT)).toBe('');
 
     // CC-25: a turn opens THINKING and ends IDLE on the §4.2 socket.
     const statuses = frames

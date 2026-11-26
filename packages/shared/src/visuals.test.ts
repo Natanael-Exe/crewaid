@@ -92,6 +92,35 @@ describe('visuals shared contract', () => {
     expect(resolved?.blocks).toHaveLength(6);
   });
 
+  it('validates checks blocks and formats crisp check summaries', () => {
+    const input = {
+      blocks: [
+        {
+          kind: 'checks' as const,
+          items: [
+            { label: 'Orders', result: '27 pulled' },
+            { label: 'Payments', result: '27 matched', status: 'done' as const },
+            { label: 'Packing list', result: '1 address missing', status: 'warning' as const },
+          ],
+        },
+      ],
+    };
+
+    const parsed = PresentVisualInputSchema.safeParse(input);
+    expect(parsed.success).toBe(true);
+    const resolved = resolveVisualForRender(input, VISUAL_INLINE_ACK);
+    expect(resolved).not.toBeNull();
+    expect(resolved?.blocks[0]?.kind).toBe('checks');
+    if (resolved?.blocks[0]?.kind === 'checks') {
+      expect(resolved.blocks[0].items[0]?.status).toBe('done');
+    }
+
+    const summary = formatVisualSummary(resolved!);
+    expect(summary).toContain('✓ Orders → 27 pulled');
+    expect(summary).toContain('✓ Payments → 27 matched');
+    expect(summary).toContain('⚠ Packing list → 1 address missing');
+  });
+
   it('rejects mismatched series lengths, row widths, and incomplete chart sources', () => {
     expect(
       PresentVisualInputSchema.safeParse({

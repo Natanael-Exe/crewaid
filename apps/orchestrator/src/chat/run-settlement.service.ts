@@ -1,5 +1,5 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import type { ModelErrorCode, RunSettledOutcome } from '@crewaid/shared';
+import { projectPublicSpeech, type ModelErrorCode, type RunSettledOutcome } from '@crewaid/shared';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { StructuredLogger } from '../logging/structured-logger.js';
 import { TurnEventBus } from '../agent/turn-event.bus.js';
@@ -57,6 +57,7 @@ export class RunSettlementService {
     outcome: SettlementOutcome,
     logger: StructuredLogger,
     runStored: StoredTriggerStarter,
+    priorityTriggerId?: string,
   ): Promise<void> {
     try {
       if (outcome.status === 'completed') {
@@ -74,7 +75,14 @@ export class RunSettlementService {
         const carriesOn = outcome.stoppedBy !== undefined && outcome.stall === undefined;
         if (!carriesOn) await this.announceSettled(lease, trigger, 'completed', logger);
         if (
-          await this.answerWaitingTrigger(lease, bot, trigger.triggerMessageId, logger, runStored)
+          await this.answerWaitingTrigger(
+            lease,
+            bot,
+            trigger.triggerMessageId,
+            logger,
+            runStored,
+            priorityTriggerId,
+          )
         ) {
           // The waiting message took over, so this run's work stops here.
           if (carriesOn) await this.announceSettled(lease, trigger, 'completed', logger);
@@ -113,6 +121,7 @@ export class RunSettlementService {
             trigger.triggerMessageId,
             logger,
             runStored,
+            priorityTriggerId,
           )) &&
           (await this.continueAfterRetryableFailure(
             lease,
@@ -133,6 +142,18 @@ export class RunSettlementService {
         outcome.status === 'aborted' ? 'stopped' : 'failed',
         logger,
       );
+      // When this run was explicitly cancelled by "Stop and send", give the
+      // user's message immediate priority once the aborted run releases its lease.
+      if (outcome.status === 'aborted' && priorityTriggerId !== undefined) {
+        await this.answerWaitingTrigger(
+          lease,
+          bot,
+          trigger.triggerMessageId,
+          logger,
+          runStored,
+          priorityTriggerId,
+        );
+      }
     } catch (error) {
       // A failed handoff must not look like a failed run; the reply is already stored.
       logger.warn('turn.settle.failed', {
@@ -156,30 +177,102 @@ export class RunSettlementService {
     triggerMessageId: string,
     logger: StructuredLogger,
     runStored: StoredTriggerStarter,
+    priorityTriggerId?: string,
   ): Promise<boolean> {
-    const newest = await this.prisma.message.findFirst({
+    // Priority order: explicit "Stop and send" user message -> newest unanswered
+    // USER message -> newest unanswered peer BOT message.
+    //
+    // Only rows stored AFTER this run's trigger are waiting on it. Every
+    // user-bodied row keeps `runId: null` forever, so without this bound an
+    // older, already-answered message (or one an earlier run folded in)
+    // would outrank — and so starve — a peer message that arrived mid-run.
+    const anchor = await this.prisma.message.findFirst({
+      where: {
+        id: triggerMessageId,
+        conversationId: lease.threadId,
+        conversation: { bot: { id: bot.id, userId: lease.userId } },
+      },
+      select: { sequence: true },
+    });
+    const found = await this.prisma.message.findMany({
       where: {
         conversationId: lease.threadId,
         conversation: { bot: { id: bot.id, userId: lease.userId } },
         runId: null,
+        ...(anchor === null ? {} : { sequence: { gt: anchor.sequence } }),
         OR: [
+          ...(priorityTriggerId === undefined
+            ? []
+            : [{ id: priorityTriggerId, author: 'USER' as const }]),
           { author: 'USER' },
           // Explicit null + negation avoids SQL three-valued NULL pitfalls on this bot's own replies.
+          // Durable FYI messages (`expectReply: false`) never wake a deferred turn.
           {
-            AND: [{ author: 'BOT' }, { fromBotId: { not: null } }, { NOT: { fromBotId: bot.id } }],
+            AND: [
+              { author: 'BOT' },
+              { expectReply: true },
+              { fromBotId: { not: null } },
+              { NOT: { fromBotId: bot.id } },
+            ],
           },
         ],
       },
       orderBy: { sequence: 'desc' },
-      select: { id: true, content: true, chainId: true, hopCount: true },
+      take: 10,
+      select: { id: true, author: true, content: true, chainId: true, hopCount: true },
     });
-    if (newest === null || newest.id === triggerMessageId) return false;
-    const claimed = await this.prisma.agentTurn.findFirst({
-      where: { triggerMessageId: newest.id, botId: bot.id, bot: { userId: lease.userId } },
-      select: { id: true },
+    // A trigger deleted mid-run leaves no bound to compare against; fall back
+    // to the newest row alone, which is all the old single-row lookup saw.
+    const candidates = anchor === null ? found.slice(0, 1) : found;
+    const candidateChainIds = [
+      ...new Set(
+        candidates
+          .filter((row) => row.author === 'BOT' && row.chainId !== null)
+          .map((row) => row.chainId as string),
+      ),
+    ];
+    let haltedChains = new Set<string>();
+    if (candidateChainIds.length > 0) {
+      const stopped = await this.prisma.workflowChainState.findMany({
+        where: {
+          userId: lease.userId,
+          chainId: { in: candidateChainIds },
+          status: { in: ['STOPPED', 'CLOSED'] },
+        },
+        select: { chainId: true },
+      });
+      haltedChains = new Set(stopped.map((row) => row.chainId));
+    }
+    const unhalted = candidates.filter(
+      (row) =>
+        row.id !== triggerMessageId &&
+        (row.author !== 'BOT' || row.chainId === null || !haltedChains.has(row.chainId)),
+    );
+    if (unhalted.length === 0) return false;
+    // A row another run already started is not waiting; skip it rather than
+    // letting it hide the unclaimed rows behind it.
+    const claims = await this.prisma.agentTurn.findMany({
+      where: {
+        triggerMessageId: { in: unhalted.map((row) => row.id) },
+        botId: bot.id,
+        bot: { userId: lease.userId },
+      },
+      select: { triggerMessageId: true },
     });
-    if (claimed !== null) return false;
-    logger.info('turn.deferred.answering', { triggerMessageId: newest.id });
+    const taken = new Set(claims.map((row) => row.triggerMessageId));
+    const eligible = unhalted.filter((row) => !taken.has(row.id));
+    const newest =
+      (priorityTriggerId === undefined
+        ? undefined
+        : eligible.find((row) => row.id === priorityTriggerId)) ??
+      eligible.find((row) => row.author === 'USER') ??
+      eligible[0] ??
+      null;
+    if (newest === null) return false;
+    logger.info('turn.deferred.answering', {
+      triggerMessageId: newest.id,
+      ...(priorityTriggerId === newest.id ? { priority: true } : {}),
+    });
     // Not awaited because the settling run is the one calling this.
     const started = await runStored(lease.userId, bot, lease.threadId, {
       id: newest.id,
@@ -239,13 +332,15 @@ export class RunSettlementService {
         orderBy: { sequence: 'desc' },
         select: { content: true },
       });
+      const projectedReply =
+        reply?.content === undefined ? null : projectPublicSpeech(reply.content) || null;
       this.events.emitRunSettled({
         botId,
         threadId,
         runId: lease.runId,
         messageIds: [trigger.triggerMessageId, ...folded],
         outcome,
-        reply: reply?.content ?? null,
+        reply: projectedReply,
       });
     } catch (error) {
       logger.warn('turn.settled.announce.failed', {
@@ -268,6 +363,10 @@ export class RunSettlementService {
   ): Promise<boolean> {
     if (this.maxContinuations === 0) {
       await this.announceLimit(bot.id, stop, logger);
+      return false;
+    }
+    if (await this.isChainHalted(lease.userId, trigger.chainId)) {
+      logger.info('turn.continuation.skipped_chain_halted', { chainId: trigger.chainId });
       return false;
     }
     const runs = await this.runsForTrigger(lease, bot, trigger.triggerMessageId);
@@ -319,6 +418,10 @@ export class RunSettlementService {
     logger: StructuredLogger,
     runStored: StoredTriggerStarter,
   ): Promise<boolean> {
+    if (await this.isChainHalted(lease.userId, trigger.chainId)) {
+      logger.info('turn.retry.skipped_chain_halted', { chainId: trigger.chainId });
+      return false;
+    }
     const runs = await this.runsForTrigger(lease, bot, trigger.triggerMessageId);
     const used = Math.max(0, runs - 1);
     const remaining = this.maxContinuations - used;
@@ -341,6 +444,15 @@ export class RunSettlementService {
       of: this.maxContinuations,
     });
     return true;
+  }
+
+  private async isChainHalted(userId: string, chainId: string | null): Promise<boolean> {
+    if (chainId === null) return false;
+    const state = await this.prisma.workflowChainState.findFirst({
+      where: { chainId, userId, status: { in: ['STOPPED', 'CLOSED'] } },
+      select: { chainId: true },
+    });
+    return state !== null;
   }
 
   private async announceLimit(

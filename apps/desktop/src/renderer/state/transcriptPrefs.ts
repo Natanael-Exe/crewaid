@@ -65,6 +65,7 @@ export function useShowBotWork(): boolean {
 const WORK_PART_TYPES: ReadonlySet<string> = new Set([
   'reasoning',
   'reasoning-block',
+  'work-note',
   'tool-call',
   'tool-result',
   'tool-error',

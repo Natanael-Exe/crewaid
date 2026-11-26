@@ -1,4 +1,4 @@
-import { stripModelControlTags, type BotWithSandbox } from '@crewaid/shared';
+import { projectPublicSpeech, type BotWithSandbox } from '@crewaid/shared';
 import type { MessageAttachment } from '../components/attachments/AttachmentCard';
 import { formatPreviewInternalPaths } from '../components/markdown/internalPaths';
 import type { AnyPart } from '../components/PartRenderer';
@@ -79,6 +79,8 @@ export interface TranscriptMessage {
    * worse than one that has to look it up.
    */
   fromBotId?: string;
+  /** Chain id carried by inter-bot messages for exact exchange navigation. */
+  chainId?: string;
   /**
    * The task this message is about. A USER message with one is a
    * Start brief, and renders as the task's card rather than a bubble.
@@ -190,7 +192,7 @@ export function toBotRowView(bot: BotWithSandbox): BotRowView {
   const cleanedPreview =
     preview === null
       ? ''
-      : formatPreviewInternalPaths(stripModelControlTags(preview.text), t('tools.path')).trim();
+      : formatPreviewInternalPaths(projectPublicSpeech(preview.text), t('tools.path')).trim();
   return {
     id: bot.id,
     bot,

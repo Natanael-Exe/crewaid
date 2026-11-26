@@ -73,6 +73,13 @@
 .crewaid-sheet-button.button[data-hovered='true'] {
   background: var(--surface);
 }
+/* HeroUI's .dropdown__trigger sets display:inline-block after .button in the
+   stylesheet, overriding .button's inline-flex centering on icon triggers. */
+.dropdown__trigger.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 .crewaid-sheet-backdrop.modal__backdrop[data-entering='true'] {
   animation: crewaid-fade-in var(--motion-enter) var(--motion-ease);
 }

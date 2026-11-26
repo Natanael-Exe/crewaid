@@ -9,7 +9,7 @@ const INTERNAL_PATH_SCAN_RE =
   /(^|[\s([{"'`:,;=])(\/home\/bot(?:\/[^\s"'<>`()[\]{}]+)?)/g;
 const STANDALONE_INTERNAL_PATH_RE = /^\/home\/bot(?:\/[^\s"'<>`()[\]{}]+)?$/;
 const TRAILING_PUNCT_RE = /[.,;:!?]+$/;
-const BARE_INTERNAL_DIR_RE = /^\/home\/bot(?:\/(?:shared|agents|groups)(?:\/[^/]+)?)?$/;
+const BARE_INTERNAL_DIR_RE = /^\/home\/bot(?:\/(?:shared|(?:agents|groups)(?:\/[^/]+)?))?$/;
 const CUID_LIKE_SEGMENT_RE = /^c[a-z0-9]{18,}$/i;
 
 export type InternalPathSegment =

@@ -50,6 +50,7 @@ Orchestrator integration suites require `DATABASE_URL` (and `ARTIFACT_DIR` for a
 
 ## Conventions
 
+- Follow [DESIGN.md](./DESIGN.md) for all visual and interaction decisions in `apps/desktop`. It describes Crewaid's own theme, not HeroUI's default; update it alongside any change to the theme CSS.
 - Branch from `main`; keep commits focused.
 - Comments explain *why* the code has this shape (invariants, races, upstream quirks) — never who asked for it or internal ticket IDs.
 - New secrets go through environment variables and `infra/compose/.env.example` — never into a sandbox container.

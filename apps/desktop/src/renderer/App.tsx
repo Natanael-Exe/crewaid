@@ -1,9 +1,19 @@
 import { Button } from '@heroui/react';
 import { IconLayoutGrid } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Skill, ToolInfo } from '@crewaid/shared';
+import type { Skill, ToolInfo, WorkflowChainSummary } from '@crewaid/shared';
 import { welcomeCopy } from '@crewaid/shared';
-import { listDeliverables, listTools, transcribe, useApiClient, voiceStatus } from './api';
+import {
+  getDeliverable,
+  listDeliverables,
+  listTools,
+  listWorkflows,
+  stopWorkflow,
+  transcribe,
+  useApiClient,
+  voiceStatus,
+  wrapUpWorkflow,
+} from './api';
 import { writeFailureMessage } from './bots/botProfileForm';
 import { FirstBotWelcome } from './bots/FirstBotWelcome';
 import { ChatThread, type ChatThreadView } from './chat/ChatThread';
@@ -21,6 +31,11 @@ import { useShellShortcuts } from './components/layout/shortcuts';
 import { usePaneLayout } from './components/layout/usePaneLayout';
 import { RightRail } from './components/RightRail';
 import { ConversationLoading, Transcript, type TranscriptWork } from './components/Transcript';
+import type {
+  HandoffActions,
+  HandoffArtifactTarget,
+  LatestHandoffSummary,
+} from './components/visuals/HandoffBlock';
 import { IconButtonTooltip } from './components/ui';
 import { ExperienceGate, useExperience } from './experience/ExperienceGate';
 import {
@@ -38,6 +53,7 @@ import { accountLabel } from './launch/launchState';
 import { useSyncAccountSettings } from './settings/accountSettings';
 import type { LoadStatus } from './state/chatReducer';
 import { sectionOrder, sidebarSections } from './state/sidebarSections';
+import { textOfPart } from './state/transcriptRows';
 import { useShowBotWork } from './state/transcriptPrefs';
 import { useAppEdition } from './state/useAppEdition';
 import { useBotActions } from './state/useBotActions';
@@ -97,11 +113,18 @@ function AppShell({ session }: { session: LaunchSession }) {
   const chatController = useChat(nav.selectedId);
   const { state: chat, connection, rows, onBotFrames } = chatController;
 
-  const [composerSeed, setComposerSeed] = useState<{ text: string; nonce: number } | null>(null);
+  const [composerSeed, setComposerSeed] = useState<{
+    text: string;
+    nonce: number;
+    mode?: 'replace' | 'append';
+  } | null>(null);
+  const [latestHandoff, setLatestHandoff] = useState<LatestHandoffSummary | null>(null);
   const [tools, setTools] = useState<readonly ToolInfo[]>([]);
   const [credentialRevision, setCredentialRevision] = useState(0);
   const [threadEpoch, setThreadEpoch] = useState(0);
   const [voiceConfigured, setVoiceConfigured] = useState(false);
+  const [workflows, setWorkflows] = useState<readonly WorkflowChainSummary[]>([]);
+  const [workflowBusyChainId, setWorkflowBusyChainId] = useState<string | null>(null);
   const [filedByAttachment, setFiledByAttachment] = useState<
     ReadonlyMap<string, { taskId: string; title: string }>
   >(new Map());
@@ -311,6 +334,114 @@ function AppShell({ session }: { session: LaunchSession }) {
           );
     return () => stops.forEach((stop) => stop());
   }, [previewBotIds, onBotFrames, previewCache]);
+
+  const botStatusSignature = chat.bots.map((b) => `${b.id}:${b.status}`).join('|');
+  const refreshWorkflows = useCallback(
+    (botId: string, signal?: AbortSignal) => {
+      listWorkflows(client, botId, signal)
+        .then((res) => setWorkflows(res.chains))
+        .catch(() => undefined);
+    },
+    [client],
+  );
+  useEffect(() => {
+    if (nav.selectedId === null) {
+      setWorkflows([]);
+      return;
+    }
+    const controller = new AbortController();
+    refreshWorkflows(nav.selectedId, controller.signal);
+    return () => controller.abort();
+  }, [nav.selectedId, botStatusSignature, refreshWorkflows]);
+
+  const handleStopWorkflow = useCallback(
+    (chainId: string) => {
+      if (nav.selectedId === null) return;
+      const botId = nav.selectedId;
+      setWorkflowBusyChainId(chainId);
+      void stopWorkflow(client, botId, chainId)
+        .catch(() => undefined)
+        .finally(() => {
+          setWorkflowBusyChainId(null);
+          refreshWorkflows(botId);
+        });
+    },
+    [client, nav.selectedId, refreshWorkflows],
+  );
+
+  const handleWrapUpWorkflow = useCallback(
+    (chainId: string) => {
+      if (nav.selectedId === null) return;
+      const botId = nav.selectedId;
+      setWorkflowBusyChainId(chainId);
+      void wrapUpWorkflow(client, botId, chainId)
+        .catch(() => undefined)
+        .finally(() => {
+          setWorkflowBusyChainId(null);
+          refreshWorkflows(botId);
+        });
+    },
+    [client, nav.selectedId, refreshWorkflows],
+  );
+
+  const handleOpenDeliverableById = useCallback(
+    (deliverableId: string, label?: string) => {
+      void getDeliverable(client, deliverableId)
+        .then((deliverable) => {
+          nav.openDeliverable(deliverable, nav.workView === 'deliverables');
+        })
+        .catch(() => {
+          setBotActionFailure(
+            t('visuals.handoff.unavailableArtifact', { label: label ?? deliverableId }),
+          );
+        });
+    },
+    [client, nav, setBotActionFailure, t],
+  );
+
+  const handleOpenHandoffArtifact = useCallback(
+    (target: HandoffArtifactTarget) => {
+      if (target.deliverableId !== undefined) {
+        handleOpenDeliverableById(target.deliverableId, target.label);
+        return;
+      }
+      if (target.attachmentId !== undefined) {
+        // A crew handoff lists teammates' files too, so look the attachment up
+        // directly rather than among this bot's own recent deliverables.
+        void listDeliverables(client, { attachmentId: target.attachmentId, kind: 'FILE', limit: 1 })
+          .then((page) => {
+            const match = page.items.find((item) => item.attachmentId === target.attachmentId);
+            if (match !== undefined) {
+              nav.openDeliverable(match, false);
+            } else {
+              setBotActionFailure(t('visuals.handoff.unavailableArtifact', { label: target.label }));
+            }
+          })
+          .catch(() => {
+            setBotActionFailure(t('visuals.handoff.unavailableArtifact', { label: target.label }));
+          });
+        return;
+      }
+      setBotActionFailure(t('visuals.handoff.unavailableArtifact', { label: target.label }));
+    },
+    [client, handleOpenDeliverableById, nav, setBotActionFailure, t],
+  );
+
+  const handleReviewDecision = useCallback((replyText: string) => {
+    setComposerSeed({ text: replyText, nonce: Date.now(), mode: 'append' });
+  }, []);
+
+  const handoffActions = useMemo<HandoffActions>(
+    () => ({
+      onOpenDeliverable: handleOpenHandoffArtifact,
+      onReviewDecision: handleReviewDecision,
+    }),
+    [handleOpenHandoffArtifact, handleReviewDecision],
+  );
+
+  useEffect(() => {
+    setLatestHandoff(null);
+  }, [nav.selectedId]);
 
   const shellError = nav.selectedId === null ? null : (chat.errorByBot[nav.selectedId] ?? null);
   const queue = useMessageQueue({ client, selectedId: nav.selectedId });
@@ -542,10 +673,17 @@ function AppShell({ session }: { session: LaunchSession }) {
               focusMessageId={
                 nav.focus !== null && nav.focus.botId === selected.id ? nav.focus.messageId : null
               }
+              focusExchange={
+                nav.exchangeFocus !== null && nav.exchangeFocus.botId === selected.id
+                  ? nav.exchangeFocus
+                  : null
+              }
               onFocusUnreachable={nav.clearFocus}
               sendRef={queue.threadSend}
+              sendQueuedRef={queue.threadSendQueued}
               onSendReady={(send) => deliverStarter(selected.id, send)}
               onGeneratingChange={queue.noteGenerating}
+              onActiveRunChange={queue.noteActiveRun}
               onStale={remountThread}
               onRetryClaimedAttachments={queue.claimPending}
             >
@@ -574,6 +712,8 @@ function AppShell({ session }: { session: LaunchSession }) {
                       ) : undefined
                     }
                     composerSeed={composerSeed}
+                    handoffActions={handoffActions}
+                    onLatestHandoffChange={setLatestHandoff}
                     composerPlaceholder={
                       main && welcoming
                         ? t('app.shell.tellCrewaidWhatYouD')
@@ -583,6 +723,33 @@ function AppShell({ session }: { session: LaunchSession }) {
                     }
                     peers={chat.bots}
                     onBotMention={nav.selectBot}
+                    onOpenPeerExchange={(peerBotId, msg) =>
+                      nav.openPeerExchange(
+                        {
+                          botId: peerBotId,
+                          chainId: msg.chainId ?? null,
+                          timestamp: msg.createdAt,
+                          excerpt: msg.parts.map(textOfPart).join(' ').slice(0, 120),
+                        },
+                        {
+                          botId: selected.id,
+                          botName: selected.name,
+                          messageId: msg.id,
+                        },
+                      )
+                    }
+                    returnTo={
+                      nav.returnBack !== null && nav.returnBack.botId !== selected.id
+                        ? {
+                            botName: nav.returnBack.botName,
+                            onReturn: nav.returnToPrevious,
+                          }
+                        : null
+                    }
+                    workflows={workflows}
+                    workflowBusyChainId={workflowBusyChainId}
+                    onWrapUpWorkflow={handleWrapUpWorkflow}
+                    onStopWorkflow={handleStopWorkflow}
                     historyLoaded={view.historyLoaded}
                     hasOlderMessages={view.hasOlderMessages}
                     loadingOlder={view.loadingOlder}
@@ -621,6 +788,7 @@ function AppShell({ session }: { session: LaunchSession }) {
                             : { startedAt: queue.threadStartedAt }))
                     }
                     queued={queue.queuedFor(selected.id)}
+                    interruptingQueuedId={queue.interruptingId}
                     onQueue={(text, attachmentIds) =>
                       queue.queueMessage(selected.id, text, attachmentIds)
                     }
@@ -641,11 +809,7 @@ function AppShell({ session }: { session: LaunchSession }) {
                     approvals={view.approvals}
                     onApprovalRespond={view.respondToApproval}
                     onReachTop={view.loadOlder}
-                    focusMessageId={
-                      nav.focus !== null && nav.focus.botId === selected.id
-                        ? nav.focus.messageId
-                        : null
-                    }
+                    focusMessageId={view.resolvedFocusMessageId}
                     work={transcriptWork}
                     showBotWork={showBotWork}
                     onFocused={nav.clearFocus}
@@ -721,7 +885,17 @@ function AppShell({ session }: { session: LaunchSession }) {
               onCloseGoal: () => nav.setSelectedGoalId(null),
               onOpenConversation: nav.openConversation,
               onSeeAllBotTasks: nav.seeAllBotTasks,
+              onOpenDeliverableById: handleOpenDeliverableById,
             }}
+            handoff={
+              selected === null
+                ? undefined
+                : {
+                    latest: latestHandoff,
+                    onJumpToHandoff: (messageId) => nav.openConversation(selected.id, messageId),
+                    actions: handoffActions,
+                  }
+            }
           />
         )}
       </div>

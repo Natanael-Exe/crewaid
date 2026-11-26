@@ -214,6 +214,8 @@ const EXPECTED_FIELDS: Record<string, readonly string[]> = {
     'runId',
     'chainId',
     'hopCount',
+    'expectReply',
+    'deliveryKey',
     // D-133: the task a Start brief or a delegated message is about.
     'taskId',
     // D-136: the routine that posted it, for filing its outputs under a goal.
@@ -696,6 +698,8 @@ const EXPECTED_FIELDS: Record<string, readonly string[]> = {
     'goalId',
     'projectId',
     'searchText',
+    'reviewState',
+    'supersededById',
     'createdAt',
   ],
 
@@ -792,6 +796,43 @@ const EXPECTED_FIELDS: Record<string, readonly string[]> = {
     'createdAt',
     'updatedAt',
   ],
+  WorkflowChainState: [
+    'chainId',
+    'userId',
+    'rootBotId',
+    'groupId',
+    'status',
+    'expectedOwners',
+    'respondedOwners',
+    'closeoutPublished',
+    'deadlineAt',
+    'stoppedAt',
+    'closedAt',
+    'createdAt',
+    'updatedAt',
+  ],
+  BoardEntry: [
+    'id',
+    'userId',
+    'scopeKey',
+    'ownerBotId',
+    'ownerName',
+    'content',
+    'version',
+    'deleted',
+    'createdAt',
+    'updatedAt',
+  ],
+  BoardRevision: [
+    'id',
+    'userId',
+    'scopeKey',
+    'entryId',
+    'ownerBotId',
+    'kind',
+    'snapshot',
+    'createdAt',
+  ],
 };
 
 /** PRD §3 enums, name → exact members in declaration order. */
@@ -872,6 +913,9 @@ const EXPECTED_ENUMS: Record<string, readonly string[]> = {
     'DELIVERABLE_LINKED',
   ],
   DeliverableKind: ['FILE', 'LINK', 'MESSAGE'],
+  DeliverableReviewState: ['READY', 'REVIEWED', 'ARCHIVED'],
+  WorkflowChainStatus: ['ACTIVE', 'WRAPPING_UP', 'STOPPED', 'CLOSED'],
+  BoardRevisionKind: ['INIT_SNAPSHOT', 'ADD', 'UPDATE', 'DELETE', 'RESTORE', 'EXTERNAL_EDIT'],
 };
 
 /** Known model names, used to tell a relation field from a scalar one. */

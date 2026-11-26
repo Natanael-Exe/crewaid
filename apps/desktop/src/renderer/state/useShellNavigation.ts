@@ -10,6 +10,19 @@ export type MessageFocus = {
   readonly pages: number;
 };
 
+export type ExchangeFocus = {
+  readonly botId: string;
+  readonly chainId: string | null;
+  readonly timestamp: number;
+  readonly excerpt: string;
+};
+
+export type ReturnPosition = {
+  readonly botId: string;
+  readonly botName: string;
+  readonly messageId: string;
+};
+
 /**
  * Where the right rail starts when the user has not chosen for themselves.
  *
@@ -114,6 +127,8 @@ export function useShellNavigation({
   const [workActions, setWorkActions] = useState<ReactNode>(null);
   const [tasksBotFilter, setTasksBotFilter] = useState<string | null>(null);
   const [focus, setFocus] = useState<MessageFocus | null>(null);
+  const [exchangeFocus, setExchangeFocus] = useState<ExchangeFocus | null>(null);
+  const [returnBack, setReturnBack] = useState<ReturnPosition | null>(null);
 
   const viewComputer = useCallback(() => {
     setOpened(true);
@@ -136,6 +151,8 @@ export function useShellNavigation({
       setSelectedId(botId);
       setProfileBotId(null);
       setWorkView(null);
+      setExchangeFocus(null);
+      setReturnBack(null);
     },
     [setProfileBotId],
   );
@@ -175,7 +192,33 @@ export function useShellNavigation({
     [selectBot],
   );
 
-  const clearFocus = useCallback(() => setFocus(null), []);
+  const openPeerExchange = useCallback(
+    (target: ExchangeFocus, returnTo: ReturnPosition) => {
+      setSelectedId(target.botId);
+      setProfileBotId(null);
+      setWorkView(null);
+      setFocus(null);
+      setExchangeFocus(target);
+      setReturnBack(returnTo);
+    },
+    [setProfileBotId],
+  );
+
+  const returnToPrevious = useCallback(() => {
+    if (returnBack === null) return;
+    const dest = returnBack;
+    setReturnBack(null);
+    setExchangeFocus(null);
+    setSelectedId(dest.botId);
+    setProfileBotId(null);
+    setWorkView(null);
+    setFocus({ botId: dest.botId, messageId: dest.messageId, pages: 0 });
+  }, [returnBack, setProfileBotId]);
+
+  const clearFocus = useCallback(() => {
+    setFocus(null);
+    setExchangeFocus(null);
+  }, []);
 
   const closeWorkDetail = useCallback(() => {
     setSelectedTaskId(null);
@@ -242,9 +285,10 @@ export function useShellNavigation({
   );
 
   // In a Work view the rail only appears while a Work record is open.
+  // In chat view, an opened deliverable also closes on Escape.
   const workDetailOpen =
     selectedTaskId !== null ||
-    (workView === 'deliverables' && selectedDeliverable !== null) ||
+    selectedDeliverable !== null ||
     (workView === 'goals' && selectedGoalId !== null);
 
   useEffect(() => {
@@ -284,12 +328,16 @@ export function useShellNavigation({
     setWorkActions,
     tasksBotFilter,
     focus,
+    exchangeFocus,
+    returnBack,
     clearFocus,
     selectBot,
     openTask,
     openGoal,
     openDeliverable,
     openConversation,
+    openPeerExchange,
+    returnToPrevious,
     closeWorkDetail,
     openWorkView,
     seeAllBotTasks,

@@ -1,7 +1,8 @@
 import type { ComponentType, ReactNode } from 'react';
-import { stripModelControlTags, type ToolInfo } from '@crewaid/shared';
+import { projectPublicSpeech, stripModelControlTags, type ToolInfo } from '@crewaid/shared';
 import { StreamingMarkdown } from './markdown/StreamingMarkdown';
 import type { MentionBot } from './composer/botMention';
+import type { HandoffActions } from './visuals/HandoffBlock';
 
 /**
  * Part-renderer registry.
@@ -15,6 +16,18 @@ import type { MentionBot } from './composer/botMention';
 export interface TextPart {
   type: 'text';
   text: string;
+  /**
+   * Written by a person, not a model. The public-speech projection exists to
+   * hide what a MODEL leaks (reasoning tags, tool markup, runaway loops); run
+   * over a person's own words it would blank a pasted log or cut an XML
+   * snippet, so their text only loses harness control tags.
+   */
+  verbatim?: true;
+}
+
+/** The text a part shows and copies: a person's words as written, a bot's through the speech projection. */
+export function speechOf(part: { readonly text: string; readonly verbatim?: unknown }): string {
+  return part.verbatim === true ? stripModelControlTags(part.text) : projectPublicSpeech(part.text);
 }
 
 /** Verbatim-unfriendly parts still arrive; the fallback renders them safely. */
@@ -37,7 +50,7 @@ function TextPartRenderer({
   context?: PartRenderContext | undefined;
 }): ReactNode {
   if (typeof part.text !== 'string') return null;
-  const cleaned = stripModelControlTags(part.text);
+  const cleaned = speechOf({ text: part.text, verbatim: part['verbatim'] });
   if (cleaned === '') return null;
   return (
     <StreamingMarkdown
@@ -108,6 +121,7 @@ export interface PartRenderContext {
   readonly pendingToolCalls?: ReadonlySet<string>;
   readonly mentionBots?: readonly MentionBot[];
   readonly onBotMention?: (botId: string) => void;
+  readonly handoffActions?: HandoffActions | undefined;
   /**
    * The part belongs to the reply still being written. Only then is half-typed
    * Markdown repaired: in settled text an unclosed `[link](` is what was
@@ -146,5 +160,36 @@ export function renderPart(part: AnyPart, context?: PartRenderContext): ReactNod
   return <Renderer part={part} context={context} />;
 }
 
+/**
+ * Pre-tool working prose emitted on intermediate tool-calling steps. Hidden
+ * when "Show thinking and actions" is off; when enabled, shown quietly inside
+ * the work log rather than as a permanent speech bubble.
+ */
+function WorkNotePartRenderer({
+  part,
+  context,
+}: {
+  part: AnyPart;
+  context?: PartRenderContext | undefined;
+}): ReactNode {
+  if (typeof part.text !== 'string') return null;
+  const cleaned = projectPublicSpeech(part.text);
+  if (cleaned === '') return null;
+  return (
+    <div
+      data-work-note
+      className="my-0.5 max-w-[72%] border-s-2 border-separator ps-2.5 text-caption leading-[19px] text-muted"
+    >
+      <StreamingMarkdown
+        source={cleaned}
+        streaming={context?.streaming === true}
+        {...(context?.mentionBots === undefined ? {} : { mentionBots: context.mentionBots })}
+        {...(context?.onBotMention === undefined ? {} : { onBotMention: context.onBotMention })}
+      />
+    </div>
+  );
+}
+
 registerPartRenderer('text', TextPartRenderer);
+registerPartRenderer('work-note', WorkNotePartRenderer);
 registerPartRenderer('system-event', SystemEventPartRenderer);

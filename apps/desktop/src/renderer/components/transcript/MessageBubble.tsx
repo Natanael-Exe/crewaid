@@ -65,9 +65,11 @@ export function peerLabel(fromBotId: string, peers: readonly PeerSummary[] | und
 
 export function InterBotAttribution({
   peer,
+  timeLabel,
   onOpenPeer,
 }: {
   peer: PeerLabel;
+  timeLabel?: string | undefined;
   onOpenPeer?: ((botId: string) => void) | undefined;
 }) {
   const t = useT();
@@ -98,25 +100,33 @@ export function InterBotAttribution({
       </span>
     </>
   );
+  const timeBadge =
+    timeLabel === undefined || timeLabel === '' ? null : (
+      <span className="text-micro font-normal tabular-nums text-room-muted">{timeLabel}</span>
+    );
 
   if (peer.id !== undefined && onOpenPeer !== undefined) {
     const peerId = peer.id;
     return (
-      <button
-        type="button"
-        data-interbot-attribution={peerId}
-        title={t('mention.open', { name: peer.name })}
-        onClick={() => onOpenPeer(peerId)}
-        className="-ms-1.5 inline-flex cursor-[var(--cursor-interactive,pointer)] items-center gap-1.5 rounded-full px-1.5 py-0.5 text-caption font-semibold leading-none outline-none transition-colors hover:bg-glass/75 focus-visible:ring-2 focus-visible:ring-focus/60"
-      >
-        {content}
-      </button>
+      <div className="inline-flex items-center gap-1.5">
+        <button
+          type="button"
+          data-interbot-attribution={peerId}
+          title={t('mention.open', { name: peer.name })}
+          onClick={() => onOpenPeer(peerId)}
+          className="-ms-1.5 inline-flex cursor-[var(--cursor-interactive,pointer)] items-center gap-1.5 rounded-full px-1.5 py-0.5 text-caption font-semibold leading-none outline-none transition-colors hover:bg-glass/75 focus-visible:ring-2 focus-visible:ring-focus/60"
+        >
+          {content}
+        </button>
+        {timeBadge}
+      </div>
     );
   }
 
   return (
     <div className="flex items-center gap-1.5 py-0.5 text-caption font-semibold leading-none">
       {content}
+      {timeBadge}
     </div>
   );
 }

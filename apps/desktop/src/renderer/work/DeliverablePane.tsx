@@ -3,6 +3,7 @@ import { IconDownload, IconExternalLink, IconMessage, IconTrash } from '@tabler/
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type {
   BotWithSandbox,
+  DeliverableReviewState,
   DeliverableView,
   GoalWithProgress,
   ProjectWithCounts,
@@ -17,6 +18,7 @@ import { PdfPreviewLoading } from '../components/attachments/PdfPreviewLoading';
 import { saveBlobAs } from '../components/attachments/saveBlob';
 import { BotAvatar } from '../components/BotAvatar';
 import { ExternalLink, isOpenableLink } from '../components/ExternalLink';
+import { formatPreviewInternalPaths } from '../components/markdown/internalPaths';
 import { StreamingMarkdown } from '../components/markdown/StreamingMarkdown';
 import { documentTitle } from '../components/reader/documentText';
 import { DocumentReaderOverlay } from '../components/reader/DocumentReaderOverlay';
@@ -44,6 +46,7 @@ export function DeliverablePane({
   onClose,
   onOpenConversation,
   onOpenTask,
+  onOpenDeliverableById,
 }: {
   client: ApiClient;
   deliverable: DeliverableView;
@@ -52,6 +55,7 @@ export function DeliverablePane({
   onClose: () => void;
   onOpenConversation: (botId: string, messageId: string | null) => void;
   onOpenTask: (taskId: string) => void;
+  onOpenDeliverableById?: ((deliverableId: string) => void) | undefined;
 }) {
   const t = useT();
   const [item, setItem] = useState(deliverable);
@@ -70,6 +74,8 @@ export function DeliverablePane({
   }, [client]);
 
   const bot = item.botId === null ? undefined : bots.find((row) => row.id === item.botId);
+  const publisherName = bot?.name ?? item.publisherName ?? null;
+  const reviewState: DeliverableReviewState = item.reviewState ?? 'READY';
   const refile = async (body: UpdateDeliverableBody) => {
     setFailure(null);
     try {
@@ -89,20 +95,45 @@ export function DeliverablePane({
       <div>
         <h2 className="break-words text-body font-semibold leading-5">{item.title}</h2>
         <p className="mt-1 flex flex-wrap items-center gap-x-2 text-caption tabular-nums text-muted">
-          {bot === undefined ? null : (
-            <span className="flex items-center gap-1">
+          {bot !== undefined ? (
+            <span className="flex items-center gap-1" data-deliverable-publisher>
               <BotAvatar bot={bot} size="sm" />
               {bot.name}
             </span>
-          )}
-          <span>{item.createdAt.toLocaleString(currentLocale())}</span>
+          ) : publisherName !== null ? (
+            <span data-deliverable-publisher>
+              {t('work.deliverablePane.publishedBy', { name: publisherName })}
+            </span>
+          ) : null}
+          <span data-deliverable-published-at>{item.createdAt.toLocaleString(currentLocale())}</span>
           {item.attachment === null ? null : <span>{byteSize(item.attachment.sizeBytes)}</span>}
         </p>
+        {item.supersededById !== null && item.supersededById !== undefined ? (
+          <div
+            data-deliverable-superseded={item.supersededById}
+            className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-caption text-foreground"
+          >
+            <span>{t('work.deliverablePane.supersededNotice')}</span>
+            {onOpenDeliverableById === undefined ? null : (
+              <Button
+                size="sm"
+                variant="secondary"
+                data-open-latest-deliverable
+                onPress={() => onOpenDeliverableById(item.supersededById!)}
+                className="h-6 min-h-0 shrink-0 rounded-full px-2.5 text-micro font-medium"
+              >
+                {t('work.deliverablePane.openLatest')}
+              </Button>
+            )}
+          </div>
+        ) : null}
         {item.summary === null ? null : (
           <p className="mt-2 text-footnote text-foreground">{item.summary}</p>
         )}
         {item.sourcePath === null ? null : (
-          <p className="mt-1 break-all font-mono text-micro text-muted">{item.sourcePath}</p>
+          <p data-deliverable-source className="mt-1 break-all font-mono text-micro text-muted">
+            {formatPreviewInternalPaths(item.sourcePath, t('tools.path'))}
+          </p>
         )}
       </div>
 
@@ -149,6 +180,23 @@ export function DeliverablePane({
           {t('work.deliverablePane.filedUnder')}
         </h3>
         <div className="grid grid-cols-[64px_1fr] items-center gap-x-3 gap-y-2 text-footnote">
+          <span className="text-muted">{t('work.deliverablePane.reviewState')}</span>
+          <Picker
+            appearance="inline"
+            label={t('work.deliverablePane.reviewState')}
+            value={reviewState}
+            noneLabel={t('work.deliverablePane.reviewReady')}
+            options={[
+              { id: 'READY', label: t('work.deliverablePane.reviewReady') },
+              { id: 'REVIEWED', label: t('work.deliverablePane.reviewReviewed') },
+              { id: 'ARCHIVED', label: t('work.deliverablePane.reviewArchived') },
+            ]}
+            onChange={(next) => {
+              if (next === 'READY' || next === 'REVIEWED' || next === 'ARCHIVED') {
+                void refile({ reviewState: next });
+              }
+            }}
+          />
           <span className="text-muted">{t('work.deliverablePane.task')}</span>
           <Picker
             appearance="inline"

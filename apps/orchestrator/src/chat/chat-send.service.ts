@@ -74,6 +74,12 @@ export class ChatSendService implements OnModuleInit, OnModuleDestroy {
       settled: Promise<void>;
     }
   >();
+  /**
+   * Maps a specifically cancelled `targetRunId` (from "Stop and send") to the
+   * persisted user message that should get immediate priority once that run
+   * releases its lease.
+   */
+  private readonly priorityTriggerByRun = new Map<string, string>();
 
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
@@ -147,7 +153,44 @@ export class ChatSendService implements OnModuleInit, OnModuleDestroy {
     if (fresh.some((message) => message.role !== 'user'))
       throw new BadRequestException({ code: 'ONLY_USER_MESSAGES_ACCEPTED' });
     if (fresh.length > 1) throw new BadRequestException({ code: 'ONE_TRIGGER_PER_RUN' });
-    const trigger = fresh[0];
+    let trigger = fresh[0];
+    let alreadyStored = false;
+    // Idempotent retry: if the client re-sent the exact same user message id
+    // (after a reconnect or a TARGET_RUN_CHANGED retry), reuse that row rather
+    // than rejecting with NOTHING_TO_RUN or duplicating the message.
+    if (trigger === undefined && resume === undefined) {
+      const candidate = [...incoming]
+        .reverse()
+        .find((message) => typeof message.id === 'string' && storedIds.has(message.id));
+      if (candidate !== undefined && candidate.role === 'user' && typeof candidate.id === 'string') {
+        const storedRow = await this.prisma.message.findFirst({
+          where: {
+            id: candidate.id,
+            conversationId: threadId,
+            author: 'USER',
+            conversation: { bot: { id: botId, userId } },
+          },
+          select: { id: true, content: true },
+        });
+        if (storedRow !== null) {
+          const existingRun = await this.prisma.agentTurn.findFirst({
+            where: {
+              conversationId: threadId,
+              triggerMessageId: storedRow.id,
+              botId,
+              bot: { userId },
+            },
+            orderBy: { sequence: 'desc' },
+            select: { id: true },
+          });
+          if (existingRun !== null) {
+            return { kind: 'joined', runId: existingRun.id };
+          }
+          trigger = candidate;
+          alreadyStored = true;
+        }
+      }
+    }
     if (trigger === undefined && resume === undefined)
       throw new BadRequestException({ code: 'NOTHING_TO_RUN' });
     if (trigger !== undefined && resume !== undefined)
@@ -165,12 +208,33 @@ export class ChatSendService implements OnModuleInit, OnModuleDestroy {
     if (content.trim() === '' && attachmentIds.length === 0)
       throw new BadRequestException({ code: 'EMPTY_MESSAGE' });
 
+    const interruptRunId = forwarded.data.interruptRunId;
     const live = await this.liveState(userId, botId, threadId);
     if (live.pendingInterrupts > 0)
       throw new ConflictException({ code: 'THREAD_AWAITING_APPROVAL' });
+    // Target-run guard for "Stop and send": never cancel a different run if the
+    // bot already moved on. Preserve the message on the client and ask to retry.
+    if (
+      interruptRunId !== undefined &&
+      live.runningRunId !== null &&
+      live.runningRunId !== interruptRunId
+    ) {
+      throw new ConflictException({
+        code: 'TARGET_RUN_CHANGED',
+        activeRunId: live.runningRunId,
+      });
+    }
     // Store mid-run messages so the settling run answers them instead of refusing.
-    await this.storeTrigger({ userId, botId, threadId, id, content, attachmentIds });
-    if (live.runningRunId !== null) return { kind: 'deferred' };
+    if (!alreadyStored) {
+      await this.storeTrigger({ userId, botId, threadId, id, content, attachmentIds });
+    }
+    if (live.runningRunId !== null) {
+      if (interruptRunId !== undefined && live.runningRunId === interruptRunId) {
+        this.priorityTriggerByRun.set(interruptRunId, id);
+        this.cancelTargetRun(userId, botId, interruptRunId);
+      }
+      return { kind: 'deferred' };
+    }
 
     const claimed = await this.claim(userId, botId, threadId, params.runId, id);
     if (claimed.kind === 'joined') return { kind: 'joined', runId: params.runId };
@@ -188,6 +252,20 @@ export class ChatSendService implements OnModuleInit, OnModuleDestroy {
    * settles, or immediately if a live run/approval leaves the trigger deferred.
    */
   async startStored(userId: string, botId: string, trigger: StoredTrigger): Promise<void> {
+    if (trigger.chainId !== null) {
+      const chain = await this.prisma.workflowChainState.findFirst({
+        where: { chainId: trigger.chainId, userId },
+        select: { status: true },
+      });
+      if (chain?.status === 'STOPPED' || chain?.status === 'CLOSED') {
+        this.logger.info('turn.chain.stopped', {
+          botId,
+          chainId: trigger.chainId,
+          status: chain.status,
+        });
+        return;
+      }
+    }
     const bot = await this.prisma.bot.findFirst({
       where: { id: botId, userId },
       select: TURN_BOT_SELECT,
@@ -213,6 +291,31 @@ export class ChatSendService implements OnModuleInit, OnModuleDestroy {
       });
     });
     return stopped;
+  }
+
+  /**
+   * Cancels ONLY the specifically targeted run (used by "Stop and send" and
+   * chain-scoped "Stop workflow"). Never aborts or marks cancelRequested on
+   * any unrelated run.
+   */
+  cancelRun(userId: string, botId: string, targetRunId: string): boolean {
+    const live = this.producing.get(botId);
+    const matched = live !== undefined && live.userId === userId && live.runId === targetRunId;
+    if (matched) live.controller.abort();
+    void this.recordCancel(userId, botId, matched ? live : undefined, targetRunId).catch(
+      (error: unknown) => {
+        this.logger.warn('chat.cancel.target.failed', {
+          botId,
+          runId: targetRunId,
+          errorName: error instanceof Error ? error.name : typeof error,
+        });
+      },
+    );
+    return matched;
+  }
+
+  private cancelTargetRun(userId: string, botId: string, targetRunId: string): void {
+    this.cancelRun(userId, botId, targetRunId);
   }
 
   async startRecovery(): Promise<void> {
@@ -268,9 +371,15 @@ export class ChatSendService implements OnModuleInit, OnModuleDestroy {
     userId: string,
     botId: string,
     aborted: { readonly runId: string; readonly settled: Promise<void> } | undefined,
+    targetRunId?: string,
   ): Promise<void> {
     await this.prisma.agentTurn.updateMany({
-      where: { botId, status: 'running', bot: { userId } },
+      where: {
+        ...(targetRunId === undefined ? {} : { id: targetRunId }),
+        botId,
+        status: 'running',
+        bot: { userId },
+      },
       data: { cancelRequested: true },
     });
     if (aborted !== undefined) {
@@ -532,6 +641,8 @@ export class ChatSendService implements OnModuleInit, OnModuleDestroy {
     // Clear the producing entry before settlement so a handoff starts cleanly as a new run.
     const mine = this.producing.get(bot.id);
     if (mine?.runId === lease.runId) this.producing.delete(bot.id);
+    const priorityTriggerId = this.priorityTriggerByRun.get(lease.runId);
+    if (priorityTriggerId !== undefined) this.priorityTriggerByRun.delete(lease.runId);
     await this.settlement.settle(
       lease,
       bot,
@@ -540,6 +651,7 @@ export class ChatSendService implements OnModuleInit, OnModuleDestroy {
       logger,
       (userId, nextBot, threadId, nextTrigger) =>
         this.runStored(userId, nextBot, threadId, nextTrigger),
+      priorityTriggerId,
     );
   }
 

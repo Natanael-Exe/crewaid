@@ -72,6 +72,9 @@ export type TaskEventType = z.infer<typeof TaskEventTypeSchema>;
 export const DeliverableKindSchema = z.enum(['FILE', 'LINK', 'MESSAGE']);
 export type DeliverableKind = z.infer<typeof DeliverableKindSchema>;
 
+export const DeliverableReviewStateSchema = z.enum(['READY', 'REVIEWED', 'ARCHIVED']);
+export type DeliverableReviewState = z.infer<typeof DeliverableReviewStateSchema>;
+
 // Primitives
 
 /** A calendar date, the same shape as `Routine.endsOn`. */
@@ -345,6 +348,8 @@ export const DeliverableSchema = z.object({
   goalId: CuidSchema.nullable(),
   /** Denormalised from the task or goal. */
   projectId: CuidSchema.nullable(),
+  reviewState: DeliverableReviewStateSchema.default('READY'),
+  supersededById: CuidSchema.nullable().default(null),
   createdAt: DateTimeSchema,
 });
 export type Deliverable = z.infer<typeof DeliverableSchema>;
@@ -364,6 +369,8 @@ export const DeliverableViewSchema = DeliverableSchema.extend({
   attachment: AttachmentSchema.extend({ messageId: CuidSchema.nullable() }).nullable(),
   task: TitledRefSchema.nullable(),
   goal: TitledRefSchema.nullable(),
+  publisherName: z.string().nullable().optional(),
+  revisionNumber: z.number().int().positive().optional(),
 });
 export type DeliverableView = z.infer<typeof DeliverableViewSchema>;
 
@@ -699,6 +706,8 @@ export const ListDeliverablesQuerySchema = z.object({
   goalId: CuidSchema.optional(),
   taskId: CuidSchema.optional(),
   botId: CuidSchema.optional(),
+  /** The deliverable a file attachment was filed as — whichever bot published it. */
+  attachmentId: CuidSchema.optional(),
   kind: DeliverableKindSchema.optional(),
   /** Only deliverables filed under nothing. */
   unfiled: QueryBooleanSchema.optional(),
@@ -755,6 +764,7 @@ export const UpdateDeliverableBodySchema = z
     taskId: CuidSchema.nullable(),
     goalId: CuidSchema.nullable(),
     projectId: CuidSchema.nullable(),
+    reviewState: DeliverableReviewStateSchema,
   })
   .partial()
   .refine((body) => Object.keys(body).length > 0, 'at least one field must be provided');

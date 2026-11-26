@@ -186,6 +186,54 @@ export const MarkBotReadResponseSchema = z.object({
 });
 export type MarkBotReadResponse = z.infer<typeof MarkBotReadResponseSchema>;
 
+// Workflows (chain-scoped Stop workflow & Wrap up lifecycles)
+
+export const WorkflowChainStatusSchema = z.enum(['ACTIVE', 'WRAPPING_UP', 'STOPPED', 'CLOSED']);
+export type WorkflowChainStatus = z.infer<typeof WorkflowChainStatusSchema>;
+
+export const WorkflowChainSummarySchema = z.object({
+  chainId: z.string().min(1).max(128),
+  status: WorkflowChainStatusSchema,
+  rootBotId: CuidSchema,
+  groupId: CuidSchema.nullable(),
+  participantBotIds: z.array(CuidSchema),
+  activeBotIds: z.array(CuidSchema),
+  expectedOwners: z.array(CuidSchema),
+  respondedOwners: z.array(CuidSchema),
+  deadlineAt: z.string().nullable(),
+  startedAt: z.string(),
+});
+export type WorkflowChainSummary = z.infer<typeof WorkflowChainSummarySchema>;
+
+export const ListWorkflowsResponseSchema = z.object({
+  chains: z.array(WorkflowChainSummarySchema),
+});
+export type ListWorkflowsResponse = z.infer<typeof ListWorkflowsResponseSchema>;
+
+export const WorkflowControlBodySchema = z
+  .object({
+    chainId: z.string().min(1).max(128).optional(),
+  })
+  .strict();
+export type WorkflowControlBody = z.infer<typeof WorkflowControlBodySchema>;
+
+export const StopWorkflowResponseSchema = z.object({
+  chainId: z.string().min(1).max(128),
+  status: z.literal('STOPPED'),
+  stoppedBotIds: z.array(CuidSchema),
+  cancelledRuns: z.number().int().nonnegative(),
+});
+export type StopWorkflowResponse = z.infer<typeof StopWorkflowResponseSchema>;
+
+export const WrapUpWorkflowResponseSchema = z.object({
+  chainId: z.string().min(1).max(128),
+  status: z.enum(['WRAPPING_UP', 'CLOSED']),
+  expectedOwners: z.array(CuidSchema),
+  deadlineAt: z.string().nullable(),
+  acknowledgedMessageId: z.string().min(1),
+});
+export type WrapUpWorkflowResponse = z.infer<typeof WrapUpWorkflowResponseSchema>;
+
 // Bot groups
 
 /** `GET /groups` — the user's groups, in sidebar order. */
@@ -305,7 +353,15 @@ export type ChatHydration = z.infer<typeof ChatHydrationSchema>;
  * a client cannot reach a field a later version might honour.
  */
 export const ChatForwardedPropsSchema = z
-  .object({ attachmentIds: z.array(CuidSchema).optional() })
+  .object({
+    attachmentIds: z.array(CuidSchema).optional(),
+    /**
+     * Optional target run for an explicit "Stop and send" interruption: cancels
+     * only this run (failing with 409 `TARGET_RUN_CHANGED` if another run is now
+     * active) and gives this user message priority when it releases its lease.
+     */
+    interruptRunId: z.string().min(1).max(128).optional(),
+  })
   .strict();
 export type ChatForwardedProps = z.infer<typeof ChatForwardedPropsSchema>;
 
@@ -1504,6 +1560,9 @@ export const API_ROUTES = {
     plugins: 'GET /bots/:id/plugins',
     setPlugins: 'PUT /bots/:id/plugins',
     markRead: 'POST /bots/:id/read',
+    workflows: 'GET /bots/:id/workflows',
+    stopWorkflow: 'POST /bots/:id/workflows/stop',
+    wrapUpWorkflow: 'POST /bots/:id/workflows/wrap-up',
   },
   /** the caller's computer, addressed without an id (one per user). */
   computer: {
@@ -1575,6 +1634,7 @@ export const API_ROUTES = {
   },
   deliverables: {
     list: 'GET /deliverables',
+    get: 'GET /deliverables/:id',
     create: 'POST /deliverables',
     update: 'PATCH /deliverables/:id',
     remove: 'DELETE /deliverables/:id',

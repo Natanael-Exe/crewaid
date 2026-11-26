@@ -1,6 +1,12 @@
 import { EventType, type StreamChunk } from '@tanstack/ai';
 import type { ChatWithInterruptsPersistence } from '@tanstack/ai-persistence';
-import type { BotStatus, Locale, ProviderExplanation } from '@crewaid/shared';
+import type {
+  BotStatus,
+  CorruptOutputKind,
+  Locale,
+  ModelCapabilities,
+  ProviderExplanation,
+} from '@crewaid/shared';
 import type { ResolvedTextModel } from '../../models/model-resolution.service.js';
 import type { ModelErrorContext } from '../../models/normalize-error.js';
 import type { NormalizedUsage } from '../../models/tanstack/usage.js';
@@ -58,10 +64,14 @@ export class RunExecutionState {
   // Provider's own reason, carried on the terminal event separately from the run row's `{ code, message }`.
   explanation: ProviderExplanation | undefined;
   explainedBy: string | undefined;
+  modelLabel: string | undefined;
+  modelCapabilities: ModelCapabilities | undefined;
   terminal: StreamChunk | undefined;
   workingMs = 0;
   stoppedBy: ExecutionOutcome['stoppedBy'];
   stall: StallDetail | undefined;
+  /** Set when the streaming output circuit-breaker aborts a corrupt reply. */
+  corruptOutput: { readonly messageId: string; readonly reason: CorruptOutputKind } | undefined;
 
   runtime: TanStackExecutionPersistence | undefined;
   closedStatus: ClosingRunStatus | undefined;
@@ -101,12 +111,18 @@ export class RunExecutionState {
   ): void {
     this.usage = { ...persistence.budget.usage, modelId: resolved.modelId };
     this.explainedBy = resolved.included ? undefined : resolved.connectionName;
+    this.modelLabel = resolved.label;
+    this.modelCapabilities = resolved.capabilities;
   }
 
   errorContext(modelId: string): ModelErrorContext {
-    return this.explainedBy === undefined
-      ? { modelId, language: this.language }
-      : { modelId, source: this.explainedBy, language: this.language };
+    return {
+      modelId,
+      language: this.language,
+      ...(this.modelLabel === undefined ? {} : { modelLabel: this.modelLabel }),
+      ...(this.modelCapabilities === undefined ? {} : { capabilities: this.modelCapabilities }),
+      ...(this.explainedBy === undefined ? {} : { source: this.explainedBy }),
+    };
   }
 
   completedSteps(baseSteps: number): number {
@@ -149,6 +165,7 @@ export class RunExecutionState {
 
   reconcilePostStream(aborted: boolean): void {
     if (this.closedStatus === 'interrupted') this.status = 'interrupted';
+    else if (this.corruptOutput !== undefined) this.status = 'failed';
     else if (aborted && this.stoppedBy === undefined) this.status = 'aborted';
     else if (this.failure !== undefined) this.status = 'failed';
   }

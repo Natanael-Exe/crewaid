@@ -9,6 +9,7 @@ import { clipboardImageFiles, IconButtonTooltip } from '../ui';
 import { shouldSubmitOnEnter, useAutoGrow } from './autoGrow';
 import { useComposerLayout } from './composerLayout';
 import {
+  applyComposerSeed,
   botSwitched,
   type ComposerState,
   canSend,
@@ -82,6 +83,7 @@ export function Composer({
   botName,
   streaming,
   queued,
+  interruptingQueuedId,
   onQueue,
   onEditQueued,
   onRemoveQueued,
@@ -115,6 +117,7 @@ export function Composer({
    * pill; the composer itself only knows how to add to it.
    */
   queued?: readonly QueuedMessage[] | undefined;
+  interruptingQueuedId?: string | null | undefined;
   onQueue?: ((text: string, attachmentIds: string[]) => void) | undefined;
   onEditQueued?: ((localId: string, text: string) => void) | undefined;
   onRemoveQueued?: ((localId: string) => void) | undefined;
@@ -153,11 +156,14 @@ export function Composer({
    */
   voice?: ComposerVoice | undefined;
   /**
-   * Text placed in the box for the person to edit and send, such as a
-   * welcome example. Each new `nonce` replaces the draft and focuses it; it is
-   * never sent on its own.
+   * Text placed in the box for the person to edit and send, such as a welcome
+   * example or a `Review then send` decision chip. `mode: 'append'` preserves
+   * any existing draft text; it is never sent automatically.
    */
-  seed?: { readonly text: string; readonly nonce: number } | null | undefined;
+  seed?:
+    | { readonly text: string; readonly nonce: number; readonly mode?: 'replace' | 'append' }
+    | null
+    | undefined;
   /** Replaces "Message {bot}" where the moment calls for a warmer prompt. */
   placeholder?: string | undefined;
 }) {
@@ -173,7 +179,7 @@ export function Composer({
 
   useEffect(() => {
     if (!seed) return;
-    setState((current) => (seed.text === '' ? current : draftChanged(current, seed.text)));
+    setState((current) => applyComposerSeed(current, seed));
     taRef.current?.focus();
     // Keyed on the nonce alone: the same example chosen twice is two requests.
   }, [seed?.nonce]);
@@ -426,6 +432,8 @@ export function Composer({
     <div className="mx-auto w-full max-w-(--chat-column)">
       <QueuedMessageList
         items={queued ?? []}
+        streaming={streaming}
+        interruptingId={interruptingQueuedId ?? null}
         onEdit={(localId, text) => onEditQueued?.(localId, text)}
         onRemove={(localId) => onRemoveQueued?.(localId)}
         onSendNow={(localId) => onSendQueuedNow?.(localId)}

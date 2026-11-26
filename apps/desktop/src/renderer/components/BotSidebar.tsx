@@ -6,6 +6,7 @@ import {
   ListBox,
   ListBoxItem,
   ListLayout,
+  Popover,
   SearchField,
   Virtualizer,
 } from '@heroui/react';
@@ -441,6 +442,7 @@ export function BotSidebar({
                   collapsed={!searching && item.group?.collapsed === true}
                   searching={searching}
                   actions={onGroupAction}
+                  onSelectBot={onSelect}
                   onOpenMenu={(group, position) => setGroupMenu({ group, position })}
                 />
                 <Collection items={!searching && item.group?.collapsed === true ? [] : item.rows}>
@@ -568,17 +570,20 @@ function GroupHeader({
   collapsed,
   searching,
   actions,
+  onSelectBot,
   onOpenMenu,
 }: {
   section: SidebarSection;
   collapsed: boolean;
   searching: boolean;
   actions: GroupActions;
+  onSelectBot: (botId: string) => void;
   /** Opens the group's menu, which the sidebar renders outside the list. */
   onOpenMenu: (group: BotGroup, position: BotMenuPosition) => void;
 }) {
   const t = useT();
-  const { group } = section;
+  const [approvalsOpen, setApprovalsOpen] = useState(false);
+  const { group, approvalBots } = section;
   const Chevron = collapsed ? IconChevronRight : IconChevronDown;
   return (
     <Header
@@ -615,16 +620,73 @@ function GroupHeader({
         </button>
       )}
       {section.unread > 0 ? (
-        <Chip size="sm" variant="primary" color="accent" className="h-4 min-w-4 px-1">
-          <Chip.Label className="text-micro tabular-nums">
-            {section.unread > 99 ? '99+' : section.unread}
-          </Chip.Label>
-        </Chip>
+        <span
+          data-group-unread
+          aria-label={t('sidebar.unread', { count: section.unread })}
+          title={t('sidebar.unread', { count: section.unread })}
+        >
+          <Chip size="sm" variant="primary" color="accent" className="h-4 min-w-4 px-1">
+            <Chip.Label className="text-micro tabular-nums">
+              {section.unread > 99 ? '99+' : section.unread}
+            </Chip.Label>
+          </Chip>
+        </span>
       ) : null}
-      {section.needsApproval ? (
-        <Chip size="sm" variant="soft" color="warning" className="h-4 px-1.5">
-          <Chip.Label className="text-micro">{t('sidebar.needsYou')}</Chip.Label>
-        </Chip>
+      {approvalBots.length === 1 ? (
+        <button
+          type="button"
+          data-needs-you
+          data-needs-you-count={1}
+          aria-label={t('sidebar.needsYouLabel', { count: 1 })}
+          onClick={() => onSelectBot(approvalBots[0]!.bot.id)}
+          className="inline-flex h-5 shrink-0 cursor-pointer items-center whitespace-nowrap rounded-full bg-warning/15 px-2 text-micro font-medium text-warning outline-none hover:bg-warning/25 focus-visible:ring-2 focus-visible:ring-focus/40"
+        >
+          {t('sidebar.needsYou')}
+        </button>
+      ) : approvalBots.length > 1 ? (
+        <Popover isOpen={approvalsOpen} onOpenChange={setApprovalsOpen}>
+          <Popover.Trigger
+            data-needs-you
+            data-needs-you-count={approvalBots.length}
+            aria-label={t('sidebar.needsYouLabel', { count: approvalBots.length })}
+            className="inline-flex h-5 shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap rounded-full bg-warning/15 px-2 text-micro font-medium text-warning outline-none hover:bg-warning/25 focus-visible:ring-2 focus-visible:ring-focus/40"
+          >
+            <span>{t('sidebar.needsYou')}</span>
+            <span className="tabular-nums">{approvalBots.length}</span>
+          </Popover.Trigger>
+          <Popover.Content placement="bottom start" className="w-60 p-1.5">
+            <Popover.Dialog aria-label={t('sidebar.needsYouPopover')}>
+              <div className="mb-1 px-2 text-micro font-medium text-muted">
+                {t('sidebar.needsYouPopover')}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                {approvalBots.map((row) => (
+                  <Button
+                    key={row.bot.id}
+                    size="sm"
+                    variant="ghost"
+                    data-needs-you-bot={row.bot.id}
+                    onPress={() => {
+                      setApprovalsOpen(false);
+                      onSelectBot(row.bot.id);
+                    }}
+                    className="h-9 w-full justify-start gap-2 rounded-lg px-2 text-start"
+                  >
+                    <BotAvatar bot={row.bot} size="sm" />
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate text-caption font-medium text-foreground">
+                        {row.bot.name}
+                      </span>
+                      <span className="truncate text-micro text-warning">
+                        {t('sidebar.needsYouWaiting')}
+                      </span>
+                    </span>
+                  </Button>
+                ))}
+              </div>
+            </Popover.Dialog>
+          </Popover.Content>
+        </Popover>
       ) : null}
       {/* The count only while folded: open, the bots are right there to count. */}
       {collapsed ? (

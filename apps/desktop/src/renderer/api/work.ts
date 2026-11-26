@@ -225,6 +225,8 @@ export type DeliverableFilter = {
   readonly goalId?: string;
   readonly taskId?: string;
   readonly botId?: string;
+  /** The deliverable a file attachment was filed as, whichever bot published it. */
+  readonly attachmentId?: string;
   readonly kind?: DeliverableView['kind'];
   readonly unfiled?: boolean;
   /** Words in the title or summary. */
@@ -243,6 +245,7 @@ export function listDeliverables(
       goalId: filter.goalId,
       taskId: filter.taskId,
       botId: filter.botId,
+      attachmentId: filter.attachmentId,
       kind: filter.kind,
       unfiled: filter.unfiled === undefined ? undefined : String(filter.unfiled),
       q: filter.q,
@@ -250,6 +253,13 @@ export function listDeliverables(
       limit: filter.limit,
     },
     schema: ListDeliverablesResponseSchema,
+  });
+}
+
+export function getDeliverable(client: ApiClient, id: string): Promise<DeliverableView> {
+  return client.request(API_ROUTES.deliverables.get, {
+    params: { id },
+    schema: DeliverableViewSchema,
   });
 }
 

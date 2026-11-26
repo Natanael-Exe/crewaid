@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 
 import { TanStackTurns } from '../agent/tanstack-turns.js';
 import { MessagesService } from '../messages/messages.service.js';
@@ -7,6 +7,7 @@ import { StructuredLogger } from '../logging/structured-logger.js';
 import { TurnEventBus } from '../agent/turn-event.bus.js';
 import { ChainBudgetService } from './chain-budget.service.js';
 import { ChainNoticeService } from './chain-notice.service.js';
+import { WorkflowControlService } from './workflow-control.service.js';
 import {
   botGoneNotice,
   deliveryReceiptNotice,
@@ -32,10 +33,12 @@ import type { BotMessageJobData } from './bot-message.queue.js';
  * compile error at the point that decides what to say.
  */
 export type DeliveryOutcome =
-  | { readonly kind: 'delivered'; readonly messageId: string }
+  | { readonly kind: 'delivered'; readonly messageId: string; readonly deduplicated?: boolean }
   | { readonly kind: 'hop-limit'; readonly maxHops: number }
   | { readonly kind: 'token-budget'; readonly spent: number; readonly budget: number }
   | { readonly kind: 'repeat-cap'; readonly alreadySent: number; readonly cap: number }
+  | { readonly kind: 'chain-stopped' }
+  | { readonly kind: 'chain-wrapping-up' }
   | { readonly kind: 'bot-gone'; readonly missing: 'sender' | 'receiver' | 'both' };
 
 /**
@@ -69,6 +72,7 @@ export class BotMessageDeliveryService {
     @Inject(ChainBudgetService) private readonly budget: ChainBudgetService,
     @Inject(CHAIN_LIMITS) private readonly limits: ChainLimits,
     @Inject(StructuredLogger) private readonly logger: StructuredLogger,
+    @Optional() @Inject(WorkflowControlService) private readonly workflow?: WorkflowControlService,
   ) {}
 
   async deliver(job: BotMessageJobData): Promise<DeliveryOutcome> {
@@ -76,6 +80,35 @@ export class BotMessageDeliveryService {
       botId: job.toBotId,
       chainId: job.chainId,
     });
+
+    // Durable chain-lifecycle gate: enforce STOPPED / CLOSED / WRAPPING_UP
+    // before writing any row or starting any turn, including across BullMQ
+    // retries and worker restarts.
+    let wrapUpHop = false;
+    if (this.workflow !== undefined) {
+      const gate = await this.workflow.canDeliver(
+        job.userId,
+        job.chainId,
+        job.fromBotId,
+        job.toBotId,
+        job.wrapUpKind,
+      );
+      if (!gate.allowed) {
+        context.info('interbot.delivery.dropped', {
+          reason: gate.reason,
+          status: gate.status,
+        });
+        return gate.status === 'WRAPPING_UP'
+          ? { kind: 'chain-wrapping-up' }
+          : { kind: 'chain-stopped' };
+      }
+      // The closeout prompt and the owners' replies are bounded by the
+      // wrap-up itself. The hop, repeat, and token ceilings below exist to
+      // stop runaway delegation; applying them here would drop the very
+      // replies a wrap-up waits for, since a chain is often wrapped up
+      // because it ran into one of them.
+      wrapUpHop = gate.wrapUp === true;
+    }
 
     // One query for both bots, scoped to the principal the job names.
     // Two `findFirst`s would be two allowlist entries and one more round trip
@@ -112,7 +145,10 @@ export class BotMessageDeliveryService {
     }
 
     const { maxHops } = this.limits;
-    if (!isWithinHopLimit({ chainId: job.chainId, hopCount: job.hopCount }, maxHops)) {
+    if (
+      !wrapUpHop &&
+      !isWithinHopLimit({ chainId: job.chainId, hopCount: job.hopCount }, maxHops)
+    ) {
       // Checked again here, not only at send: the two are separated by a
       // queue, and a job enqueued while the chain was under the bound must
       // not be delivered after something else pushed it over.
@@ -137,7 +173,7 @@ export class BotMessageDeliveryService {
     // every ceiling is: a queue separates the two, and two messages enqueued
     // while the pair was one under the cap must not both land.
     const { maxRepeatSends } = this.limits;
-    if (maxRepeatSends > 0) {
+    if (!wrapUpHop && maxRepeatSends > 0) {
       const alreadySent = await this.budget.sendsBetween(
         job.userId,
         job.chainId,
@@ -162,7 +198,7 @@ export class BotMessageDeliveryService {
     // cheaper fact first, and before anything is written, because the point
     // is to not start the turn that would spend the next tokens.
     const budget = effectiveTokenBudget(this.limits.maxTokens, undefined);
-    if (budget > 0) {
+    if (!wrapUpHop && budget > 0) {
       const spent = await this.budget.spentTokens(job.userId, job.chainId);
       if (!isWithinTokenBudget(spent, budget)) {
         context.info('interbot.delivery.dropped', {
@@ -192,6 +228,8 @@ export class BotMessageDeliveryService {
         content: job.content,
         chainId: job.chainId,
         hopCount: job.hopCount,
+        expectReply: job.expectReply ?? true,
+        deliveryKey: job.deliveryKey ?? null,
         taskId: await this.taskStillOwned(job),
       });
     } catch (error) {
@@ -199,6 +237,17 @@ export class BotMessageDeliveryService {
         detail: error instanceof Error ? error.message : 'unknown',
       });
       throw error;
+    }
+
+    // Idempotent retry hit: the row already landed on an earlier attempt, so
+    // skip emitting duplicate frames, receipts, or starting a second turn.
+    if (row.deduplicated === true) {
+      context.info('interbot.delivery.deduplicated', {
+        fromBotId: sender.id,
+        messageId: row.id,
+        deliveryKey: job.deliveryKey,
+      });
+      return { kind: 'delivered', messageId: row.id, deduplicated: true };
     }
 
     // The transcript first, the turn second. A client watching the receiving
@@ -215,11 +264,31 @@ export class BotMessageDeliveryService {
     // way, which is what the receipt promises.
     await this.notice.post(sender.id, job.chainId, deliveryReceiptNotice(receiver.name));
 
-    context.info('interbot.delivery.delivered', {
+    const expectReply = job.expectReply ?? true;
+    context.info(expectReply ? 'interbot.delivery.delivered' : 'interbot.delivery.fyi', {
       fromBotId: sender.id,
       hopCount: job.hopCount,
       messageId: row.id,
+      expectReply,
     });
+
+    // If a wrap-up owner just reported back to the coordinator, record it so
+    // closeout publishes as soon as every expected owner has replied.
+    if (this.workflow !== undefined && job.wrapUpKind !== 'request') {
+      await this.workflow
+        .recordOwnerResponse(job.userId, job.chainId, sender.id)
+        .catch((error: unknown) => {
+          context.warn('workflow.wrapup.record_response_failed', {
+            detail: error instanceof Error ? error.message : String(error),
+          });
+        });
+    }
+
+    // Durable FYI notices (`expectReply: false`) belong in context without
+    // starting a turn or triggering deferred-message wakeup later.
+    if (!expectReply) {
+      return { kind: 'delivered', messageId: row.id };
+    }
 
     // "The receiving bot's turn triggers as if a user had messaged
     // it." Awaited: this IS the background, and a job that resolves before

@@ -43,9 +43,9 @@ export function visualTools(): RegisteredTool[] {
         tool({
           description:
             'Display an interactive visual card in chat (metrics, bar/hbar/line/area/donut charts, ' +
-            'sortable tables, side-by-side comparisons, timelines, or callouts). Bundle related ' +
-            'blocks into one call, use columnar arrays for inline data, or pass `source` to plot ' +
-            'a workspace CSV/TSV or JSON array directly.',
+            'sortable tables, side-by-side comparisons, timelines, callouts, completed-step checks, ' +
+            'or structured handoffs). Bundle related blocks into one call, use columnar arrays ' +
+            'for inline data, or pass `source` to plot a workspace CSV/TSV or JSON array directly.',
           inputSchema: NativeToolInputs.present_visual,
           execute: async (input: PresentVisualInput): Promise<string | VisualResolvedOutput> => {
             if (!hasVisualSource(input)) {

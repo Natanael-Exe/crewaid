@@ -69,7 +69,14 @@ export class AgentAttachmentService {
      * FILE deliverable. Absent only for a caller that predates Work.
      */
     filing?: DeliverableFiling;
-  }): Promise<{ id: string; filename: string; sizeBytes: number }> {
+  }): Promise<{
+    id: string;
+    filename: string;
+    sizeBytes: number;
+    deliverableId: string | null;
+    version: number;
+    supersededDeliverableId: string | null;
+  }> {
     const extension = extname(input.filename).toLowerCase();
     const mimetype = MIME_BY_EXTENSION.get(extension);
     if (mimetype === undefined) {
@@ -93,7 +100,12 @@ export class AgentAttachmentService {
     // Deliverables index; and a filing that is refused (a foreign task, a
     // task and goal that disagree) leaves no chip on the reply either — the
     // tool reports the failure and the sandbox file is still there to retry.
-    let recorded: { deliverableId: string; taskId: string | null } | null = null;
+    let recorded: {
+      deliverableId: string;
+      taskId: string | null;
+      version: number;
+      supersededDeliverableId: string | null;
+    } | null = null;
     if (input.filing === undefined) {
       await this.attachments.claimForMessage(input.userId, stored.id, input.messageId);
     } else {
@@ -175,6 +187,13 @@ export class AgentAttachmentService {
       }
     }
 
-    return { id: stored.id, filename: stored.filename, sizeBytes: stored.sizeBytes };
+    return {
+      id: stored.id,
+      filename: stored.filename,
+      sizeBytes: stored.sizeBytes,
+      deliverableId: recorded?.deliverableId ?? null,
+      version: recorded?.version ?? 1,
+      supersededDeliverableId: recorded?.supersededDeliverableId ?? null,
+    };
   }
 }

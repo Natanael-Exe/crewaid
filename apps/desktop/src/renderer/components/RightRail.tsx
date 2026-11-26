@@ -24,6 +24,8 @@ import { CallButton } from './call/CallControls';
 import { RIGHT_RAIL_BOUNDS } from './layout/paneLayout';
 import { ResizableSash } from './layout/ResizableSash';
 import { IconButtonTooltip } from './ui';
+import type { HandoffActions, LatestHandoffSummary } from './visuals/HandoffBlock';
+import { RightRailHandoffSection } from './visuals/RightRailHandoffSection';
 
 export interface RightRailScreenProps {
   readonly expanded: boolean;
@@ -74,6 +76,13 @@ export interface RightRailWorkProps {
   readonly onCloseGoal: () => void;
   readonly onOpenConversation: (botId: string, messageId: string | null) => void;
   readonly onSeeAllBotTasks: (botId: string) => void;
+  readonly onOpenDeliverableById?: ((deliverableId: string) => void) | undefined;
+}
+
+export interface RightRailHandoffProps {
+  readonly latest: LatestHandoffSummary | null;
+  readonly onJumpToHandoff: (messageId: string) => void;
+  readonly actions: HandoffActions;
 }
 
 export interface RightRailProps {
@@ -89,6 +98,7 @@ export interface RightRailProps {
   readonly call: RightRailCallProps;
   readonly profile: RightRailProfileProps;
   readonly work: RightRailWorkProps;
+  readonly handoff?: RightRailHandoffProps | undefined;
 }
 
 function computerLabel(state: SandboxState, t: ReturnType<typeof useT>): string {
@@ -117,6 +127,7 @@ export function RightRail({
   call,
   profile,
   work,
+  handoff,
 }: RightRailProps) {
   const t = useT();
   // Keep hook order stable across collapsed/expanded toggles.
@@ -212,7 +223,7 @@ export function RightRail({
             onOpenTask={work.onSelectTask}
             onOpenConversation={work.onOpenConversation}
           />
-        ) : work.workView === 'deliverables' && work.selectedDeliverable !== null ? (
+        ) : work.selectedDeliverable !== null ? (
           <DeliverablePane
             key={work.selectedDeliverable.id}
             client={client}
@@ -222,6 +233,7 @@ export function RightRail({
             onClose={work.onCloseDeliverable}
             onOpenConversation={work.onOpenConversation}
             onOpenTask={work.onOpenTask}
+            onOpenDeliverableById={work.onOpenDeliverableById}
           />
         ) : work.workView === 'goals' && work.selectedGoalId !== null ? (
           <GoalDetailsPane
@@ -295,6 +307,14 @@ export function RightRail({
                 onDiscardRecording={recording.onDiscard}
                 onReviewSkill={recording.onReviewSkill}
               />
+
+              {handoff?.latest == null ? null : (
+                <RightRailHandoffSection
+                  handoff={handoff.latest}
+                  onJumpToHandoff={handoff.onJumpToHandoff}
+                  actions={handoff.actions}
+                />
+              )}
 
               {bot === null ? null : (
                 <BotTasksSection

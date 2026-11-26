@@ -26,6 +26,7 @@ export * from './approvals';
 export * from './tools';
 export * from './plugins';
 export * from './work';
+export * from './workflows';
 export * from './voice';
 export * from './calls';
 export * from './telegram';
