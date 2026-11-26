@@ -115,8 +115,14 @@ export function processTools(deps: {
           ) => {
             if (command.trim() === '') return 'process_start failed: a command is required';
             const ownArea = `${MACHINE_HOME}/agents/${context.botId}`;
-            const targetCwd = cwd === undefined || cwd.trim() === '' ? ownArea : cwd;
-            const verdict = resolveWorkspacePath(context.botId, targetCwd, context.groupId ?? null);
+            const defaultCwd = context.workingDirectory ?? ownArea;
+            const targetCwd = cwd === undefined || cwd.trim() === '' ? defaultCwd : cwd;
+            const verdict = resolveWorkspacePath(
+              context.botId,
+              targetCwd,
+              context.groupId ?? null,
+              context.workingDirectory,
+            );
             if (!verdict.ok) return `process_start refused: ${verdict.reason}`;
             const isAborted = (): boolean => abortSignal?.aborted === true;
             if (isAborted()) {

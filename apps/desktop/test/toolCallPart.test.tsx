@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ToolActivityPart, ToolCallPart } from '../src/renderer/components/tools/ToolCallPart';
+import { describeToolAsk } from '../src/renderer/components/tools/toolPhrase';
+import { liveWorkPhase } from '../src/renderer/components/WorkingIndicator';
 import { renderPart, resolvePartRenderer } from '../src/renderer/components/PartRenderer';
 import { foldToolParts, groupToolActivity } from '../src/renderer/components/tools/toolParts';
 import type { AnyPart } from '../src/renderer/components/PartRenderer';
@@ -611,5 +613,106 @@ describe('recoverable tool cards', () => {
       output: 'process_start: the turn was cancelled before the process started.',
     });
     expect(cancelled).toContain('data-tool-status="incomplete"');
+  });
+
+  it('titles a code_task step from its tool name in the app language, not the server text', () => {
+    const progressMap = new Map([
+      [
+        'code-2',
+        {
+          toolCallId: 'code-2',
+          kind: 'step' as const,
+          step: 7,
+          maxSteps: 60,
+          toolName: 'fs_edit',
+          target: 'auth.ts',
+          action: 'Editing auth.ts',
+          filesChangedCount: 1,
+        },
+      ],
+    ]);
+    const part: AnyPart = {
+      type: 'tool-call',
+      toolCallId: 'code-2',
+      toolName: 'code_task',
+      status: 'running',
+      input: { goal: 'Fix auth refresh' },
+    };
+    const html = renderToStaticMarkup(
+      <ToolCallPart part={part} context={{ codingProgress: progressMap }} />,
+    );
+    expect(html).toContain('Step 7/60 · Edit a file · auth.ts');
+    expect(html).not.toContain('Editing auth.ts');
+  });
+
+  it('renders code_task live progress, final statuses, working phase, and approval copy', () => {
+    const progressMap = new Map([
+      [
+        'code-1',
+        {
+          toolCallId: 'code-1',
+          kind: 'step' as const,
+          step: 4,
+          maxSteps: 60,
+          action: 'Editing auth.ts',
+          file: 'auth.ts',
+          filesChangedCount: 1,
+        },
+      ],
+    ]);
+    const runningPart: AnyPart = {
+      type: 'tool-call',
+      toolCallId: 'code-1',
+      toolName: 'code_task',
+      status: 'running',
+      input: { goal: 'Fix auth refresh', cwd: '/home/bot/agents/bot-1/repo' },
+    };
+    const runningHtml = renderToStaticMarkup(
+      <ToolCallPart part={runningPart} context={{ codingProgress: progressMap }} />,
+    );
+    expect(runningHtml).toContain('Run a coding task');
+    expect(runningHtml).toContain('data-coding-progress');
+    expect(runningHtml).toContain('Step 4/60 · Editing auth.ts');
+
+    const phase = liveWorkPhase(
+      [
+        {
+          id: 'm1',
+          author: 'BOT',
+          live: true,
+          createdAt: new Date().toISOString(),
+          timeLabel: '12:00',
+          parts: [runningPart],
+        },
+      ],
+      'ACTING',
+      undefined,
+      progressMap,
+    );
+    expect(phase).toBe('Coding (4/60) · Editing auth.ts');
+
+    const failedHtml = render({
+      ...runningPart,
+      status: 'ok',
+      output: 'code_task · failed (2 steps, 3s)\ncwd: /home/bot/agents/bot-1/repo',
+    });
+    expect(failedHtml).toContain('data-tool-status="error"');
+
+    const cancelledHtml = render({
+      ...runningPart,
+      status: 'ok',
+      output: 'code_task · cancelled (2 steps, 3s)\ncwd: /home/bot/agents/bot-1/repo',
+    });
+    expect(cancelledHtml).toContain('data-tool-status="incomplete"');
+
+    const askWithCwd = describeToolAsk('code_task', {
+      goal: 'Add unit tests for auth refresh',
+      cwd: '/home/bot/agents/bot-1/my-app',
+    });
+    expect(askWithCwd.question).toBe('Can I run a coding task in my-app?');
+    expect(askWithCwd.detail).toBe('Add unit tests for auth refresh');
+
+    const askDefault = describeToolAsk('code_task', { goal: 'Refactor parser' });
+    expect(askDefault.question).toBe('Can I run a coding task on my computer?');
   });
 });

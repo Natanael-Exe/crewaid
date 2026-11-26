@@ -624,4 +624,45 @@ describe('what a person reads when the chat fails (D-228)', () => {
     await expect(chat.sendMessage('hello')).rejects.toThrow();
     expect(chat.getSnapshot().canRetry).toBe(false);
   });
+
+  it('tracks live crewaid.code_task.progress CUSTOM events in the chat snapshot', async () => {
+    const { chat, runs } = await client(
+      vi.fn(async (input) => {
+        const url = new URL(String(input));
+        if (!url.searchParams.has('runId')) return hydrate();
+        return sse([
+          { type: 'RUN_STARTED', runId: 'run-code', threadId: 'thread' },
+          {
+            type: 'CUSTOM',
+            name: 'crewaid.code_task.progress',
+            value: {
+              toolCallId: 'tc-code-9',
+              kind: 'step',
+              step: 3,
+              maxSteps: 60,
+              action: 'Editing src/app.ts',
+              file: 'app.ts',
+              filesChangedCount: 1,
+            },
+          },
+          { type: 'TEXT_MESSAGE_START', messageId: 'reply-code', role: 'assistant' },
+          { type: 'TEXT_MESSAGE_CONTENT', messageId: 'reply-code', delta: 'Done!' },
+          { type: 'TEXT_MESSAGE_END', messageId: 'reply-code' },
+          { type: 'RUN_FINISHED', runId: 'run-code', threadId: 'thread', outcome: { type: 'success' } },
+        ]);
+      }),
+    );
+
+    runs.announce('run-code');
+    await until(() => chat.getSnapshot().codingProgress.has('tc-code-9'));
+    expect(chat.getSnapshot().codingProgress.get('tc-code-9')).toEqual({
+      toolCallId: 'tc-code-9',
+      kind: 'step',
+      step: 3,
+      maxSteps: 60,
+      action: 'Editing src/app.ts',
+      file: 'app.ts',
+      filesChangedCount: 1,
+    });
+  });
 });

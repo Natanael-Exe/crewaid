@@ -196,6 +196,9 @@ model User {
   workflowChains WorkflowChainState[]
   boardEntries   BoardEntry[]
   boardRevisions BoardRevision[]
+
+  // D-241: delegated coding runs (built-in sub-loop and future ACP runners).
+  codingRuns CodingRun[]
 }
 
 /// D-233: a person's own Telegram bot, linked to the Telegram account that confirmed it.
@@ -453,6 +456,7 @@ model Bot {
   taskEvents     TaskEvent[]   @relation("TaskEventActor")
   deliverables   Deliverable[]
   voiceCalls     VoiceCall[] // D-222
+  codingRuns     CodingRun[] // D-241
 
   @@index([sandboxId])
   @@index([groupId])
@@ -2021,4 +2025,35 @@ model BoardRevision {
   createdAt  DateTime          @default(now())
 
   @@index([userId, scopeKey, createdAt])
+}
+
+/// D-241: durable record of one delegated `code_task` coding run (built-in or ACP).
+/// Carries its own recorded `modelId` billing key so `/usage` prices separate coding
+/// models accurately alongside `AgentTurn` rows.
+model CodingRun {
+  id                  String    @id @default(cuid())
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  botId               String
+  bot                 Bot       @relation(fields: [botId], references: [id], onDelete: Cascade)
+  parentRunId         String?
+  runnerKind          String    @default("builtin")
+  runnerId            String    @default("builtin")
+  modelId             String?
+  status              String    @default("running")
+  cwd                 String
+  steps               Int       @default(0)
+  workingMs           Int       @default(0)
+  inputTokens         Int       @default(0)
+  outputTokens        Int       @default(0)
+  cachedInputTokens   Int       @default(0)
+  cacheCreationTokens Int       @default(0)
+  filesChanged        Json      @default("[]")
+  errorCode           String?
+  startedAt           DateTime  @default(now())
+  endedAt             DateTime?
+
+  @@index([userId, startedAt])
+  @@index([botId, startedAt])
+  @@index([parentRunId])
 }

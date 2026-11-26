@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { BotStatus, ToolInfo } from '@crewaid/shared';
 import type { TranscriptMessage } from '../state/viewTypes';
+import type { CodingTaskProgress } from '../chat/codingProgress';
 import { BotAvatar, type AvatarBot } from './BotAvatar';
 import { partField } from './PartRenderer';
 import { isFoldedToolPart, type FoldedToolPart } from './tools/toolParts';
-import { readableName } from './tools/toolPresentation';
+import { codingStepAction, readableName } from './tools/toolPresentation';
 import { TextShimmer } from './ui';
 import { t, useT } from '../i18n/i18n';
 
@@ -86,10 +87,13 @@ export function statusLabelForTool(toolName: string, tools?: readonly ToolInfo[]
   }
   switch (toolName) {
     case 'fs_read':
+    case 'fs_grep':
+    case 'fs_glob':
     case 'memory_read':
     case 'memory_search':
       return t('working.reviewingFiles');
     case 'fs_write':
+    case 'fs_edit':
     case 'attach_file':
       return t('working.preparingFiles');
     case 'board_read':
@@ -98,7 +102,12 @@ export function statusLabelForTool(toolName: string, tools?: readonly ToolInfo[]
     case 'board_update':
       return t('working.updatingBoard');
     case 'shell':
+    case 'process_start':
+    case 'process_output':
+    case 'process_stop':
       return t('working.runningCommand');
+    case 'code_task':
+      return t('working.coding');
     case 'send_message':
       return t('working.messagingTeam');
     case 'present_visual':
@@ -129,6 +138,7 @@ export function liveWorkPhase(
   messages: readonly TranscriptMessage[],
   status: BotStatus | undefined,
   tools?: readonly ToolInfo[],
+  codingProgress?: ReadonlyMap<string, CodingTaskProgress>,
 ): string {
   const latest = messages.at(-1);
   if (latest?.live === true) {
@@ -142,7 +152,20 @@ export function liveWorkPhase(
       }
     }
     const running = [...calls].reverse().find((call) => call.status === 'running');
-    if (running !== undefined) return statusLabelForTool(running.toolName, tools);
+    if (running !== undefined) {
+      if (running.toolName === 'code_task') {
+        const progress = codingProgress?.get(running.toolCallId);
+        const action = progress?.kind === 'step' ? codingStepAction(progress) : undefined;
+        if (progress !== undefined && action !== undefined) {
+          return t('working.codingStep', {
+            step: progress.step,
+            max: progress.maxSteps,
+            action,
+          });
+        }
+      }
+      return statusLabelForTool(running.toolName, tools);
+    }
     if (status === 'ACTING' && calls.length > 0) {
       const lastCall = calls.at(-1);
       if (lastCall !== undefined) return statusLabelForTool(lastCall.toolName, tools);

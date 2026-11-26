@@ -289,3 +289,35 @@ export function readMaxTurnTokens(raw: string | undefined): number {
 export function readMaxTurnMs(raw: string | undefined): number {
   return readOptionalCeiling('AGENT_MAX_TURN_MS', raw, 'milliseconds');
 }
+
+/** Default step ceiling for a delegated `code_task` coding sub-loop. */
+export const DEFAULT_CODING_MAX_STEPS = 60;
+
+/** Default wall-clock ceiling for a delegated `code_task` run (15 minutes). */
+export const DEFAULT_CODING_MAX_MS = 15 * 60 * 1000;
+
+/** Default accumulated input-token ceiling for `code_task` (`0` disables, matching turns). */
+export const DEFAULT_CODING_MAX_TOKENS = 0;
+
+/** `AGENT_CODING_MAX_STEPS` — step ceiling for a single `code_task` coding run. */
+export function readCodingMaxSteps(raw: string | undefined): number {
+  if (raw === undefined || raw.trim() === '') return DEFAULT_CODING_MAX_STEPS;
+  const parsed = Number(raw);
+  if (!Number.isSafeInteger(parsed) || parsed < 1) {
+    throw new Error(
+      `AGENT_CODING_MAX_STEPS must be a whole number of steps >= 1, got ${JSON.stringify(raw)}.`,
+    );
+  }
+  return parsed;
+}
+
+/** `AGENT_CODING_MAX_MS` — wall-clock limit in milliseconds for `code_task` (`0` disables). */
+export function readCodingMaxMs(raw: string | undefined): number {
+  if (raw === undefined || raw.trim() === '') return DEFAULT_CODING_MAX_MS;
+  return readOptionalCeiling('AGENT_CODING_MAX_MS', raw, 'milliseconds');
+}
+
+/** `AGENT_CODING_MAX_TOKENS` — accumulated input-token ceiling for `code_task` (`0` disables). */
+export function readCodingMaxTokens(raw: string | undefined): number {
+  return readOptionalCeiling('AGENT_CODING_MAX_TOKENS', raw, 'input tokens');
+}

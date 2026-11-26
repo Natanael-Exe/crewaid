@@ -5,6 +5,7 @@ import { CONTAINED_BUILTIN, OBSERVING_BUILTIN } from './tool-registry.js';
 import type { RegisteredTool, ToolContext } from './tool-registry.js';
 import {
   MACHINE_HOME,
+  gitConfigWriteRefusal,
   resolveWorkspacePath,
   resolveWorkspaceSearchPlan,
   type WorkspaceSearchPlan,
@@ -287,8 +288,15 @@ export function codingTools(): RegisteredTool[] {
             newText: string;
             replaceAll?: boolean | undefined;
           }) => {
-            const verdict = resolveWorkspacePath(context.botId, path, context.groupId ?? null);
+            const verdict = resolveWorkspacePath(
+              context.botId,
+              path,
+              context.groupId ?? null,
+              context.workingDirectory,
+            );
             if (!verdict.ok) return `fs_edit refused: ${verdict.reason}`;
+            const gitRefusal = gitConfigWriteRefusal(verdict.path);
+            if (gitRefusal !== null) return `fs_edit refused: ${gitRefusal}`;
             try {
               const session = await context.session();
               const raw = await session.readTextFile({ path: verdict.path });
@@ -413,7 +421,12 @@ export function codingTools(): RegisteredTool[] {
             },
             { abortSignal }: { abortSignal?: AbortSignal },
           ) => {
-            const plan = resolveWorkspaceSearchPlan(context.botId, path, context.groupId ?? null);
+            const plan = resolveWorkspaceSearchPlan(
+              context.botId,
+              path,
+              context.groupId ?? null,
+              context.workingDirectory,
+            );
             if (!plan.ok) return `fs_grep refused: ${plan.reason}`;
             if (plan.mode === 'empty') return 'fs_grep: no matches found.';
 
@@ -517,7 +530,12 @@ export function codingTools(): RegisteredTool[] {
             },
             { abortSignal }: { abortSignal?: AbortSignal },
           ) => {
-            const plan = resolveWorkspaceSearchPlan(context.botId, path, context.groupId ?? null);
+            const plan = resolveWorkspaceSearchPlan(
+              context.botId,
+              path,
+              context.groupId ?? null,
+              context.workingDirectory,
+            );
             if (!plan.ok) return `fs_glob refused: ${plan.reason}`;
             if (plan.mode === 'empty') return 'fs_glob: no matching files found.';
 

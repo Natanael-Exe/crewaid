@@ -1,4 +1,4 @@
-import { summarizeInput } from './toolParts';
+import { summarizeInput, truncateForDisplay } from './toolParts';
 import { t } from '../../i18n/i18n';
 
 /**
@@ -79,6 +79,16 @@ export function describeToolAsk(toolName: string, args: unknown): ToolAsk {
         // detail; this is not.
         detailIsCode: true,
       };
+    }
+    case 'code_task': {
+      const goal = argOf(args, 'goal');
+      const cwd = argOf(args, 'cwd');
+      return plain(
+        cwd === undefined
+          ? t('tools.ask.codeTask')
+          : t('tools.ask.codeTaskIn', { dir: basename(cwd) }),
+        goal === undefined ? null : truncateForDisplay(goal, 240),
+      );
     }
     case 'process_start': {
       const command = argOf(args, 'command');

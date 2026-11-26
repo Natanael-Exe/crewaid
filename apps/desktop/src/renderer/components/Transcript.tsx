@@ -20,6 +20,7 @@ import { BotAvatar } from './BotAvatar';
 import { Composer } from './composer/Composer';
 import type { ComposerVoice } from './composer/useVoiceCapture';
 import type { PartRenderContext } from './PartRenderer';
+import type { CodingTaskProgress } from '../chat/codingProgress';
 import { ApprovalPromptList } from './tools/ApprovalPrompt';
 import { TranscriptRow, type TranscriptWork } from './transcript/MessageGroup';
 import {
@@ -104,6 +105,7 @@ export interface TranscriptProps {
   onRetryError?: (() => void) | undefined;
   retryingError?: boolean | undefined;
   approvals?: readonly PendingApproval[] | undefined;
+  codingProgress?: ReadonlyMap<string, CodingTaskProgress> | undefined;
   onApprovalRespond?:
     ((toolCallId: string, approved: boolean, editedArgs?: Json) => void) | undefined;
   onReachTop?: (() => void) | undefined;
@@ -142,6 +144,7 @@ export function Transcript({
   onRetryError,
   retryingError = false,
   approvals,
+  codingProgress,
   onApprovalRespond,
   onReachTop,
   focusMessageId,
@@ -200,6 +203,7 @@ export function Transcript({
       mentionBots === undefined &&
       onViewComputer === undefined &&
       approvals === undefined &&
+      (codingProgress === undefined || codingProgress.size === 0) &&
       handoffActions === undefined
     )
       return undefined;
@@ -210,13 +214,14 @@ export function Transcript({
           ?.filter((approval) => approval.answered === undefined)
           .map((approval) => approval.toolCallId),
       ),
+      ...(codingProgress === undefined || codingProgress.size === 0 ? {} : { codingProgress }),
       ...(tools === undefined ? {} : { tools: new Map(tools.map((tool) => [tool.name, tool])) }),
       ...(onViewComputer === undefined ? {} : { onViewComputer }),
       ...(mentionBots === undefined ? {} : { mentionBots }),
       ...(onBotMention === undefined ? {} : { onBotMention }),
       ...(handoffActions === undefined ? {} : { handoffActions }),
     };
-  }, [onBotMention, peers, tools, onViewComputer, approvals, handoffActions]);
+  }, [onBotMention, peers, tools, onViewComputer, approvals, codingProgress, handoffActions]);
 
   const latestHandoff = useMemo(() => extractLatestHandoff(messages), [messages]);
   useEffect(() => {
@@ -265,8 +270,8 @@ export function Transcript({
     () =>
       activity === undefined
         ? undefined
-        : liveWorkPhase(messages, activity.status ?? bot.status, tools),
-    [activity, messages, bot.status, tools],
+        : liveWorkPhase(messages, activity.status ?? bot.status, tools, codingProgress),
+    [activity, messages, bot.status, tools, codingProgress],
   );
 
   return (

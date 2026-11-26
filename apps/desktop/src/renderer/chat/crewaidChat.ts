@@ -16,6 +16,7 @@ import {
 import type { ChatError } from '../state/chatReducer';
 import type { ChatEndpoint } from './chatEndpoint';
 import { admissionFailure, conflictActiveRunId, runFailure } from './chatFailure';
+import { parseCodingProgress, type CodingTaskProgress } from './codingProgress';
 import { t } from '../i18n/i18n';
 
 export type RunAnnouncements = {
@@ -140,9 +141,12 @@ export type ChatSnapshot = {
   readonly retrying: boolean;
   readonly canRetry: boolean;
   readonly hasOlderMessages: boolean;
+  /** Latest live progress event per active `code_task` call id. */
+  readonly codingProgress: ReadonlyMap<string, CodingTaskProgress>;
   /** Already worded for the person; rendered as given. */
   readonly error: ChatError | undefined;
 };
+const EMPTY_CODING_PROGRESS: ReadonlyMap<string, CodingTaskProgress> = new Map();
 function object(value: unknown): Record<string, unknown> | undefined {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -170,6 +174,7 @@ export class CrewaidChat {
   // erase them from it; they join that list once the read ends.
   private readonly sentWhileReading: Message[] = [];
   private readonly runStarts = new Map<string, number>();
+  private readonly codingProgressByCall = new Map<string, CodingTaskProgress>();
   private hydrated = false;
   private hydration: Promise<void> | undefined;
   private admitting = 0;
@@ -256,6 +261,10 @@ export class CrewaidChat {
           this.lastFailedResume !== null ||
           !NON_RETRYABLE_ERRORS.has(this.error.code)),
       hasOlderMessages: this.cursor !== undefined,
+      codingProgress:
+        this.codingProgressByCall.size === 0
+          ? EMPTY_CODING_PROGRESS
+          : new Map(this.codingProgressByCall),
       error: this.error,
     };
   }
@@ -306,6 +315,7 @@ export class CrewaidChat {
     this.sentWhileReading.length = 0;
     this.opened.clear();
     this.runStarts.clear();
+    this.codingProgressByCall.clear();
   }
   readonly stop = (): void => {
     void this.agent.detachActiveRun();
@@ -689,6 +699,14 @@ export class CrewaidChat {
             tap<BaseEvent>((event) => {
               if (event.type === EventType.RUN_FINISHED || event.type === EventType.RUN_ERROR)
                 terminal = true;
+              if (event.type === EventType.CUSTOM) {
+                const custom = event as { readonly name?: unknown; readonly value?: unknown };
+                const progress = parseCodingProgress(custom.name, custom.value);
+                if (progress !== undefined) {
+                  this.codingProgressByCall.set(progress.toolCallId, progress);
+                  this.changed();
+                }
+              }
             }),
             concatWith(
               defer<Observable<BaseEvent>>(() =>

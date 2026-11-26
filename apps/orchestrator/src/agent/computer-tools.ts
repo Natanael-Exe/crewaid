@@ -9,7 +9,7 @@ import { CONTAINED_BUILTIN, OBSERVING_BUILTIN, SENSITIVE_BUILTIN } from './tool-
 import type { RegisteredTool, ToolContext } from './tool-registry.js';
 import type { MachineSeatPort } from './machine-tools.js';
 import { seatEnv } from './seat-env.js';
-import { MACHINE_HOME, resolveWorkspacePath } from './workspace-paths.js';
+import { MACHINE_HOME, gitConfigWriteRefusal, resolveWorkspacePath } from './workspace-paths.js';
 
 /**
  * The four computer built-ins: `screenshot`, `shell`,
@@ -306,6 +306,16 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
             // the command's output. The cd falls back to MACHINE_HOME, so
             // the tool keeps working even if the area is somehow gone.
             const ownArea = `${MACHINE_HOME}/agents/${context.botId}`;
+            const startDirVerdict =
+              context.workingDirectory === undefined
+                ? null
+                : resolveWorkspacePath(
+                    context.botId,
+                    context.workingDirectory,
+                    context.groupId ?? null,
+                  );
+            const startDir =
+              startDirVerdict !== null && startDirVerdict.ok ? startDirVerdict.path : ownArea;
 
             // M5-BE-31. The handler goes on BEFORE anything is awaited, and
             // that ordering is the whole fix. `addEventListener('abort')`
@@ -392,7 +402,7 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
                   `setsid timeout --kill-after=${SHELL_KILL_AFTER} ${SHELL_TIMEOUT_S}s ` +
                   `bash -lc ${shellQuote(
                     `mkdir -p ${shellQuote(ownArea)} && ` +
-                      `cd ${shellQuote(ownArea)} && ` +
+                      `cd ${shellQuote(startDir)} && ` +
                       taggedCommand(command, id),
                   )}`,
                 workingDirectory: MACHINE_HOME,
@@ -450,7 +460,12 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
             startLine?: number | undefined;
             endLine?: number | undefined;
           }) => {
-            const verdict = resolveWorkspacePath(context.botId, path, context.groupId ?? null);
+            const verdict = resolveWorkspacePath(
+              context.botId,
+              path,
+              context.groupId ?? null,
+              context.workingDirectory,
+            );
             if (!verdict.ok) return `fs_read refused: ${verdict.reason}`;
             if (startLine !== undefined && endLine !== undefined && endLine < startLine) {
               return `fs_read refused: endLine (${endLine}) must be greater than or equal to startLine (${startLine}).`;
@@ -506,7 +521,8 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
               const normalized = text.endsWith('\n') ? text.slice(0, -1) : text;
               const allLines = normalized.split('\n');
               const from = effectiveStart - 1;
-              const to = endLine === undefined ? allLines.length : Math.min(allLines.length, endLine);
+              const to =
+                endLine === undefined ? allLines.length : Math.min(allLines.length, endLine);
               const slice = from >= allLines.length ? '' : allLines.slice(from, to).join('\n');
               return formatReadOutput({
                 path: verdict.path,
@@ -534,8 +550,15 @@ export function computerTools(deps: { machines: MachineSeatPort }): RegisteredTo
             'anything you put there every other bot on this machine can read.',
           inputSchema: NativeToolInputs.fs_write,
           execute: async ({ path, content }: { path: string; content: string }) => {
-            const verdict = resolveWorkspacePath(context.botId, path, context.groupId ?? null);
+            const verdict = resolveWorkspacePath(
+              context.botId,
+              path,
+              context.groupId ?? null,
+              context.workingDirectory,
+            );
             if (!verdict.ok) return `fs_write refused: ${verdict.reason}`;
+            const gitRefusal = gitConfigWriteRefusal(verdict.path);
+            if (gitRefusal !== null) return `fs_write refused: ${gitRefusal}`;
             const bytes = Buffer.byteLength(content, 'utf8');
             if (bytes > MAX_WRITE_BYTES) {
               // A model that meant to write a file this large has usually

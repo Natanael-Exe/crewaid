@@ -12,6 +12,7 @@ import { ResourcePreview } from './ResourcePreview';
 import { resourcePreview, type ResourcePreview as Resource } from './resourcePresentation';
 import { InternalPathHint, ToolCard, ToolFields, ToolMark, ToolStatusTag } from './ToolCard';
 import {
+  codingStepAction,
   displayStatus,
   editResultCode,
   fileCode,
@@ -294,6 +295,29 @@ function ToolCallLine({
         ? t('tools.youDeclined')
         : t('tools.youApproved')
       : undefined;
+  const codingProgress =
+    row.toolName === 'code_task' && status === 'running'
+      ? context?.codingProgress?.get(row.toolCallId)
+      : undefined;
+  const codingAction =
+    codingProgress?.kind === 'step' ? codingStepAction(codingProgress) : undefined;
+  const codingProgressLabel =
+    codingProgress === undefined
+      ? undefined
+      : codingProgress.kind === 'step' && codingAction !== undefined
+        ? t('tools.coding.stepAction', {
+            step: codingProgress.step,
+            max: codingProgress.maxSteps,
+            action: codingAction,
+          })
+        : codingProgress.kind === 'step'
+          ? t('tools.coding.step', {
+              step: codingProgress.step,
+              max: codingProgress.maxSteps,
+            })
+          : codingProgress.kind === 'started' && codingProgress.modelLabel !== undefined
+            ? t('tools.coding.starting', { model: codingProgress.modelLabel })
+            : undefined;
   return (
     <div
       data-tool-call={row.toolName}
@@ -328,6 +352,14 @@ function ToolCallLine({
           ) : null}
           <ToolStatusTag status={status} count={count} />
         </div>
+        {codingProgressLabel === undefined ? null : (
+          <p
+            data-coding-progress
+            className="mt-0.5 truncate ps-[24px] text-micro leading-4 text-muted tabular-nums"
+          >
+            {codingProgressLabel}
+          </p>
+        )}
         {failure === undefined ? null : (
           <p className="crewaid-tool-line-note mt-0.5 ps-[24px] text-micro leading-4 text-muted">
             {failure}

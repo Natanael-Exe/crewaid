@@ -1,6 +1,8 @@
 export const tools = {
   'tools.ask.fallback': 'Can I use my {tool} tool?',
   'tools.ask.shell': 'Can I run this on my computer?',
+  'tools.ask.codeTask': 'Can I run a coding task on my computer?',
+  'tools.ask.codeTaskIn': 'Can I run a coding task in {dir}?',
   'tools.ask.processStart': 'Can I start this background process (auto-stops after {limit})?',
   'tools.ask.processOutput': 'Can I check output from my background processes?',
   'tools.ask.processStop': 'Can I stop this background process?',
@@ -39,6 +41,7 @@ export const tools = {
   'tools.ask.identity': 'Can I sign in as a shared identity?',
   'tools.ask.identityNamed': 'Can I sign in as {name}?',
   'tools.title.shell': 'Run a command',
+  'tools.title.codeTask': 'Run a coding task',
   'tools.title.processStart': 'Start background process',
   'tools.title.processOutput': 'Check process output',
   'tools.title.processStop': 'Stop background process',
@@ -128,4 +131,8 @@ export const tools = {
   'tools.approval.approve': 'Approve',
   'tools.approval.sent': 'Approval sent to {bot}.',
   'tools.approval.leftAlone': 'Left it alone.',
+  'tools.coding.starting': 'Starting coding task ({model})…',
+  'tools.coding.step': 'Step {step}/{max}',
+  'tools.coding.stepAction': 'Step {step}/{max} · {action}',
+  'tools.coding.wrappingUp': 'Wrapping up',
 } as const;

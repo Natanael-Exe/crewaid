@@ -88,11 +88,18 @@ export function resolveWorkspaceSearchPlan(
   botId: string,
   requested: string | undefined,
   groupId: string | null = null,
+  baseDir?: string,
 ): WorkspaceSearchPlan {
   const ownDir = `${MACHINE_HOME}/agents/${botId}`;
   const groupDir = groupId === null ? null : `${MACHINE_HOME}/groups/${groupId}`;
-  const target = requested === undefined || requested.trim() === '' ? ownDir : requested;
-  const verdict = resolveWorkspacePath(botId, target, groupId);
+  let defaultRoot = ownDir;
+  if (baseDir !== undefined && baseDir.trim() !== '') {
+    const baseVerdict = resolveWorkspacePath(botId, baseDir, groupId);
+    if (!baseVerdict.ok) return baseVerdict;
+    defaultRoot = baseVerdict.path;
+  }
+  const target = requested === undefined || requested.trim() === '' ? defaultRoot : requested;
+  const verdict = resolveWorkspacePath(botId, target, groupId, defaultRoot);
   if (!verdict.ok) return verdict;
 
   if (verdict.path === MACHINE_HOME) {
@@ -141,6 +148,7 @@ export function resolveWorkspacePath(
   botId: string,
   requested: string,
   groupId: string | null = null,
+  baseDir?: string,
 ): PathVerdict {
   if (typeof requested !== 'string' || requested.trim() === '') {
     return { ok: false, reason: 'a path is required' };
@@ -153,7 +161,13 @@ export function resolveWorkspacePath(
   }
 
   const own = `${MACHINE_HOME}/agents/${botId}`;
-  const absolute = requested.startsWith('/') ? requested : `${own}/${requested}`;
+  let anchor = own;
+  if (!requested.startsWith('/') && baseDir !== undefined && baseDir.trim() !== '') {
+    const baseVerdict = resolveWorkspacePath(botId, baseDir, groupId);
+    if (!baseVerdict.ok) return baseVerdict;
+    anchor = baseVerdict.path;
+  }
+  const absolute = requested.startsWith('/') ? requested : `${anchor}/${requested}`;
   const normalized = normalizePosix(absolute);
 
   if (normalized !== MACHINE_HOME && !normalized.startsWith(`${MACHINE_HOME}/`)) {
@@ -210,6 +224,32 @@ export function resolveWorkspacePath(
   }
 
   return { ok: true, path: normalized };
+}
+
+/**
+ * Why a file tool may not WRITE `path`, or null when it may.
+ *
+ * Git runs commands its own configuration names — hooks, `core.fsmonitor`,
+ * clean and smudge filters, `core.sshCommand` — and that configuration lives
+ * in a repository's `.git` (a directory, or a file pointing Git at one) and
+ * in `~/.gitconfig`. `fs_write` and `fs_edit` run without approval, so if they
+ * could write there, a prompt-injected model could plant a command that the
+ * next approved `git push` (D-208) or any other git call would run without
+ * anyone having approved it. `shell` can still change Git's configuration,
+ * and `shell` asks. Reading stays allowed.
+ *
+ * `path` is the absolute path `resolveWorkspacePath` returned. The check is
+ * on the path as written; a symlink planted in a checkout is not followed.
+ */
+export function gitConfigWriteRefusal(path: string): string | null {
+  if (path.split('/').includes('.git') || path === `${MACHINE_HOME}/.gitconfig`) {
+    return (
+      `${path} is Git's own configuration, and file tools cannot change it because Git ` +
+      'runs commands named there. If this change is really needed, use shell, which asks ' +
+      'for approval.'
+    );
+  }
+  return null;
 }
 
 /**

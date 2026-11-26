@@ -807,6 +807,7 @@ function AppShell({ session }: { session: LaunchSession }) {
                       });
                     }}
                     approvals={view.approvals}
+                    codingProgress={view.codingProgress}
                     onApprovalRespond={view.respondToApproval}
                     onReachTop={view.loadOlder}
                     focusMessageId={view.resolvedFocusMessageId}

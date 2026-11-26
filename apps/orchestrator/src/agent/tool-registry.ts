@@ -165,6 +165,12 @@ export type ToolContext = {
   readonly botId: string;
   /** The active run id, when executing inside a turn (tags background processes for cancel cleanup). */
   readonly runId?: string;
+  /** Optional workspace-scoped working directory for relative file paths and commands (used by `code_task`). */
+  readonly workingDirectory?: string;
+  /** Bot's configured primary model ref, for delegated runners that fall back to the bot's model. */
+  readonly botModelId?: string;
+  /** A coding-model override for `code_task`. No setting provides one yet; unset means the bot's model. */
+  readonly codingModelId?: string | null;
   /** Optional display name of the acting bot (for per-owner board entries). */
   readonly botName?: string;
   /** Optional shared machine id of the acting bot (scopes durable shared board). */
