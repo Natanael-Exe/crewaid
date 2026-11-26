@@ -107,9 +107,12 @@ pnpm --filter @crewaid/desktop dev     # or build an installer: pnpm package:sel
    the Electron binary — the page prints a code to paste into Settings instead.
 3. **Settings → Models**: add a provider and its API key. Keys are
    per-user and encrypted at rest; none is read from the environment.
-   If you have a Claude Max, Ultra, or Team subscription, link your plan in
-   Claude Settings → Billing to claim your monthly Claude Console API credits
-   and paste an API key from that Console organization here.
+   Claude Max, Ultra and Team plans include monthly Claude Console API credits.
+   On claude.ai, open **Settings → Billing** (Team owners: **Organization
+   settings → Billing**), choose **Link organization** under API credits, then
+   paste an API key from that Console organization here. The credits do not
+   roll over, and requests stop when they run out unless the organization has
+   purchased credits.
 4. **New bot** in the sidebar, then pick a model in the composer. Opening the
    bot's screen card wakes its computer.
 

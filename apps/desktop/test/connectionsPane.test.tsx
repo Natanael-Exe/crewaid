@@ -376,7 +376,7 @@ describe('D-241 Step 4 — Anthropic Console monthly API credits guidance', () =
       credentialSetAt: null,
     });
     expect(unkeyedAnthropic).toContain('data-anthropic-credits-hint');
-    expect(unkeyedAnthropic).toContain('Claude Console API credits');
+    expect(unkeyedAnthropic).toContain('link a Console organization under API credits');
 
     const keyedAnthropic = render({ kind: 'anthropic', hasCredential: true });
     expect(keyedAnthropic).not.toContain('data-anthropic-credits-hint');
