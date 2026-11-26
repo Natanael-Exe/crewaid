@@ -102,7 +102,7 @@ export interface CodingInvocation {
   readonly parentRunId: string | undefined;
   /** Bot's configured primary model ref (`Bot.modelId`), used when no coding model override is set. */
   readonly parentModelRef: string;
-  /** A coding-model override. No setting provides one yet, so this is null and the bot's model is used. */
+  /** The coding model: `Bot.codingModelId`, else `UserSettings.codingModelId`; null means `parentModelRef`. */
   readonly codingModelRef: string | null;
   readonly maxSteps: number;
   readonly maxDurationMs: number;

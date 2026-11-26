@@ -84,6 +84,7 @@ const NOW = new Date('2026-09-01T12:00:00.000Z');
 const userSettingsFixture = {
   userId: CUID_2,
   defaultModelId: CUID_3,
+  codingModelId: CUID_3,
   language: 'fr',
   timezone: 'Europe/Paris',
   systemLanguage: 'en',
@@ -1331,6 +1332,8 @@ const pairs: Record<string, Pair> = {
     valid: { defaultModelId: CUID_3 },
     validEach: [
       { defaultModelId: null },
+      { codingModelId: CUID_3 },
+      { codingModelId: null },
       { language: 'fr', timezone: 'Europe/Paris' },
       { language: null, timezone: null },
       { systemLanguage: 'zh-Hant', systemTimezone: 'UTC' },
@@ -1338,6 +1341,8 @@ const pairs: Record<string, Pair> = {
     invalid: {},
     invalidEach: [
       { defaultModelId: 42 },
+      { codingModelId: 42 },
+      { codingModelId: '' },
       { language: 'fr-FR' },
       // Shaped like a zone, but not one the runtime can schedule in.
       { timezone: 'Mars/Olympus_Mons' },

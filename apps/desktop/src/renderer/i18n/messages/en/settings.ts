@@ -21,6 +21,14 @@ export const settings = {
   'settings.timezone.autoDetect': 'Auto-detect ({zone})',
   'settings.timezone.search': 'Search timezone',
   'settings.timezone.empty': 'No matching timezone',
+  'settings.codingModel.label': 'Coding model',
+  'settings.codingModel.description':
+    'Optional model used for delegated coding tasks across your bots. Leave on default to use each bot’s own model.',
+  'settings.codingModel.sameAsBot': 'Same as bot’s model',
+  'settings.codingModel.search': 'Search coding model',
+  'settings.codingModel.empty': 'No tool-capable models available',
+  'settings.codingModel.unavailable': 'Unavailable',
+  'settings.codingModel.current': 'Current model',
 
   'settings.saveFailed': 'That setting didn’t save. Try again.',
   'settings.general.orchestrator.title': 'Orchestrator',

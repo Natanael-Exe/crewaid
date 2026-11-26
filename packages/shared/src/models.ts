@@ -102,6 +102,12 @@ export const BotSchema = z.object({
    * splitting it on ':' is now reading a cuid.
    */
   modelId: ModelRefSchema,
+  /**
+   * Optional per-bot coding model override (`ProviderModel.id`) used by
+   * `code_task`. Null/omitted inherits `UserSettings.codingModelId`, then
+   * falls back to this bot's `modelId`.
+   */
+  codingModelId: CuidSchema.nullable().optional(),
   status: BotStatusSchema,
   sortOrder: z.number().int(),
   pinned: z.boolean(),

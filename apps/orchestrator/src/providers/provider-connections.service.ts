@@ -276,6 +276,7 @@ export class ProviderConnectionsService {
       ? {
           userId,
           defaultModelId: null,
+          codingModelId: null,
           language: null,
           timezone: null,
           systemLanguage: null,
@@ -292,11 +293,25 @@ export class ProviderConnectionsService {
       // exists but belongs to somebody else without saying which it was.
       await this.findOwnedModel(userId, input.defaultModelId);
     }
+    if (input.codingModelId !== undefined && input.codingModelId !== null) {
+      const codingModel = await this.findOwnedModel(userId, input.codingModelId);
+      if (!codingModel.supportsTools) {
+        throw new BadRequestException('coding model must support tool calling');
+      }
+    }
     // Every field follows the same rule: absent leaves it alone, null clears
     // it. Spread per field so a body naming one setting cannot reset another.
-    const { defaultModelId, language, timezone, systemLanguage, systemTimezone } = input;
+    const {
+      defaultModelId,
+      codingModelId,
+      language,
+      timezone,
+      systemLanguage,
+      systemTimezone,
+    } = input;
     const changes = {
       ...(defaultModelId !== undefined && { defaultModelId }),
+      ...(codingModelId !== undefined && { codingModelId }),
       ...(language !== undefined && { language }),
       ...(timezone !== undefined && { timezone }),
       ...(systemLanguage !== undefined && { systemLanguage }),
@@ -378,8 +393,12 @@ export class ProviderConnectionsService {
    * gets a sentence rather than a constraint name.
    */
   private async assertUnreferenced(userId: string, modelIds: readonly string[]): Promise<void> {
+    const ids = [...modelIds];
     const bots = await this.prisma.bot.findMany({
-      where: { userId, modelId: { in: [...modelIds] } },
+      where: {
+        userId,
+        OR: [{ modelId: { in: ids } }, { codingModelId: { in: ids } }],
+      },
       select: { name: true },
       take: 5,
     });
@@ -392,12 +411,24 @@ export class ProviderConnectionsService {
     }
 
     const settings = await this.prisma.userSettings.findFirst({
-      where: { userId, defaultModelId: { in: [...modelIds] } },
-      select: { userId: true },
+      where: {
+        userId,
+        OR: [{ defaultModelId: { in: ids } }, { codingModelId: { in: ids } }],
+      },
+      select: { defaultModelId: true, codingModelId: true },
     });
     if (settings !== null) {
+      const idSet = new Set(ids);
+      const isDefault = settings.defaultModelId !== null && idSet.has(settings.defaultModelId);
+      const isCoding = settings.codingModelId !== null && idSet.has(settings.codingModelId);
+      const role =
+        isDefault && isCoding
+          ? 'default and coding model'
+          : isCoding
+            ? 'coding model'
+            : 'default model';
       throw new ConflictException(
-        'still your default model — choose a different default first. ' +
+        `still your ${role} — choose a different ${role} first. ` +
           'Removing the API key instead takes effect immediately.',
       );
     }

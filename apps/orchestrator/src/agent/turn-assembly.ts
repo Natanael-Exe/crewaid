@@ -39,15 +39,20 @@ export const TURN_BOT_SELECT = {
   name: true,
   role: true,
   modelId: true,
+  codingModelId: true,
   systemPrompt: true,
   autoReviewRules: true,
   approvalMode: true,
   sandboxId: true,
   group: { select: { id: true, name: true, instructions: true } },
   conversation: { select: { id: true } },
-  // The person's language and zone ride on the bot's own read, so the
-  // prompt learns them without a query of its own.
-  user: { select: { settings: { select: USER_PREFERENCES_SELECT } } },
+  // The person's language, zone, and optional account coding model ride on
+  // the bot's own read, so the turn learns them without a query of its own.
+  user: {
+    select: {
+      settings: { select: { ...USER_PREFERENCES_SELECT, codingModelId: true } },
+    },
+  },
 } as const;
 
 export type TurnBot = Pick<
@@ -55,9 +60,12 @@ export type TurnBot = Pick<
   'id' | 'name' | 'role' | 'modelId' | 'systemPrompt' | 'autoReviewRules' | 'approvalMode'
 > & {
   readonly kind?: string;
+  readonly codingModelId?: string | null;
   readonly sandboxId: string | null;
   readonly group: { id: string; name: string; instructions: string } | null;
-  readonly user?: { readonly settings: UserPreferencesRow | null };
+  readonly user?: {
+    readonly settings: (UserPreferencesRow & { readonly codingModelId?: string | null }) | null;
+  };
 };
 
 export type TurnAssemblyServices = {
@@ -208,6 +216,7 @@ export async function assembleTurn(
       botId: bot.id,
       runId: input.runId,
       botModelId: bot.modelId,
+      codingModelId: bot.codingModelId ?? bot.user?.settings?.codingModelId ?? null,
       botName: bot.name,
       sandboxId: bot.sandboxId,
       groupId: botGroup?.id ?? null,

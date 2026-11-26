@@ -88,12 +88,14 @@ export function settingsToWire(
   row: UserPreferencesRow & {
     readonly userId: string;
     readonly defaultModelId: string | null;
+    readonly codingModelId: string | null;
     readonly updatedAt: Date;
   },
 ): WireUserSettings {
   return {
     userId: row.userId,
     defaultModelId: row.defaultModelId,
+    codingModelId: row.codingModelId,
     language: locale(row.language),
     timezone: zone(row.timezone),
     systemLanguage: locale(row.systemLanguage),

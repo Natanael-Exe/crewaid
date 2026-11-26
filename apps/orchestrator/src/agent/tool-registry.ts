@@ -169,7 +169,7 @@ export type ToolContext = {
   readonly workingDirectory?: string;
   /** Bot's configured primary model ref, for delegated runners that fall back to the bot's model. */
   readonly botModelId?: string;
-  /** A coding-model override for `code_task`. No setting provides one yet; unset means the bot's model. */
+  /** The coding model for `code_task`: the bot's `codingModelId`, else the account's; unset means the bot's model. */
   readonly codingModelId?: string | null;
   /** Optional display name of the acting bot (for per-owner board entries). */
   readonly botName?: string;

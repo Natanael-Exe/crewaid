@@ -38,6 +38,22 @@ export const bots = {
     'No conversational voices are available on this account.',
   'bots.botVoiceField.naturalVoicesForConversationPreview':
     'Natural voices for conversation. Preview a voice before choosing it.',
+  'bots.botCodingModelField.label': 'Coding model',
+  'bots.botCodingModelField.ariaLabel': 'Coding model: {name}',
+  'bots.botCodingModelField.chooseTitle': 'Choose coding model',
+  'bots.botCodingModelField.heading': 'Tool-capable models',
+  'bots.botCodingModelField.loading': 'Loading models…',
+  'bots.botCodingModelField.default': 'Default',
+  'bots.botCodingModelField.accountDefault': 'Account default · {name}',
+  'bots.botCodingModelField.sameAsBot': 'Uses this bot’s model',
+  'bots.botCodingModelField.current': 'Current model',
+  'bots.botCodingModelField.chooseDefault': 'Use default coding model',
+  'bots.botCodingModelField.choose': 'Choose {name}',
+  'bots.botCodingModelField.unavailable': 'Unavailable',
+  'bots.botCodingModelField.empty':
+    'No tool-capable models configured. Add one in Settings → Models.',
+  'bots.botCodingModelField.hint':
+    'Optional model used when this bot runs delegated coding tasks.',
   'bots.createBotDialog.newBot': 'New Bot',
   'bots.createBotDialog.creating': 'Creating…',
   'bots.createBotDialog.create': 'Create',

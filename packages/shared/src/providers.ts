@@ -274,6 +274,8 @@ export type ListModelOptionsResponse = z.infer<typeof ListModelOptionsResponseSc
 export const UserSettingsSchema = z.object({
   userId: CuidSchema,
   defaultModelId: CuidSchema.nullable(),
+  /** Optional account-wide coding model for `code_task`; null means each bot uses its own model. */
+  codingModelId: CuidSchema.nullable().default(null),
   language: LocaleSchema.nullable(),
   timezone: TimezoneSchema.nullable(),
   systemLanguage: LocaleSchema.nullable(),

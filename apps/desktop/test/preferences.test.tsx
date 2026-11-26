@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ApiClient } from '../src/renderer/api/apiClient';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { I18nProvider } from '@heroui/react';
-import type { StartCallResponse, UserSettings } from '@crewaid/shared';
+import type { ModelOption, StartCallResponse, UserSettings } from '@crewaid/shared';
 import { formatMessage, placeholdersOf } from '../src/renderer/i18n/format';
 import { activateLocale, AVAILABLE_LOCALES, currentLocale, t } from '../src/renderer/i18n/i18n';
 import { deviceLocale, readLanguageChoice } from '../src/renderer/i18n/localePreference';
@@ -32,6 +32,11 @@ import {
   timezoneItems,
 } from '../src/renderer/settings/preferenceChoices';
 import { GeneralPane } from '../src/renderer/settings/GeneralPane';
+import {
+  codingModelItems,
+  INHERIT_CODING_MODEL,
+} from '../src/renderer/settings/codingModelChoices';
+import { BotCodingModelField } from '../src/renderer/bots/BotCodingModelField';
 
 describe('D-234 — formatting a message', () => {
   it('fills placeholders, writing numbers the language’s way', () => {
@@ -138,6 +143,7 @@ describe('D-234 — the account’s settings in this window', () => {
   const base: UserSettings = {
     userId: 'clx9z8y7x6w5v4u3t2s1r0q9',
     defaultModelId: null,
+    codingModelId: null,
     language: null,
     timezone: null,
     systemLanguage: 'en',
@@ -350,11 +356,77 @@ describe('D-234 — the settings rows', () => {
     expect(markup).toContain('System default');
     expect(markup).toContain('Bots');
     expect(markup).toContain('Timezone');
+    expect(markup).toContain('Coding model');
+    expect(markup).toContain('Same as bot’s model');
     expect(markup).toContain(
       `Auto-detect (${Intl.DateTimeFormat().resolvedOptions().timeZone.replaceAll('_', ' ')})`,
     );
     // In the order the screenshot gives them.
     expect(markup.indexOf('Language')).toBeLessThan(markup.indexOf('Microphone'));
     expect(markup.indexOf('Microphone')).toBeLessThan(markup.indexOf('Timezone'));
+    expect(markup.indexOf('Timezone')).toBeLessThan(markup.indexOf('Coding model'));
+  });
+
+  it('filters coding model choices to tool-capable models while retaining an unavailable saved selection', () => {
+    const models: ModelOption[] = [
+      {
+        id: 'clx1111111111111111111111',
+        connectionId: 'clxaaaaaaaaaaaaaaaaaaaaaa',
+        connectionName: 'OpenAI',
+        kind: 'openai',
+        upstreamModelId: 'gpt-5.2',
+        label: 'GPT-5.2',
+        contextWindow: 200_000,
+        capabilities: { tools: true, vision: true, reasoning: true },
+        available: true,
+        connectionState: 'ACTIVE',
+      },
+      {
+        id: 'clx2222222222222222222222',
+        connectionId: 'clxaaaaaaaaaaaaaaaaaaaaaa',
+        connectionName: 'OpenAI',
+        kind: 'openai',
+        upstreamModelId: 'o1-text-only',
+        label: 'Text Only',
+        contextWindow: 128_000,
+        capabilities: { tools: false, vision: false, reasoning: false },
+        available: true,
+        connectionState: 'ACTIVE',
+      },
+      {
+        id: 'clx3333333333333333333333',
+        connectionId: 'clxbbbbbbbbbbbbbbbbbbbbbb',
+        connectionName: 'Anthropic',
+        kind: 'anthropic',
+        upstreamModelId: 'claude-sonnet-4-6',
+        label: 'Claude Sonnet 4.6',
+        contextWindow: 200_000,
+        capabilities: { tools: true, vision: true, reasoning: true },
+        available: false,
+        connectionState: 'NEEDS_KEY',
+      },
+    ];
+
+    const items = codingModelItems(models, {
+      inheritLabel: 'Same as bot’s model',
+      currentId: 'clx3333333333333333333333',
+      currentFallbackLabel: 'Current model',
+      unavailableLabel: 'Unavailable',
+    });
+
+    expect(items.map((item) => item.id)).toEqual([
+      INHERIT_CODING_MODEL,
+      'clx1111111111111111111111',
+      'clx3333333333333333333333',
+    ]);
+    expect(items[2]?.detail).toBe('Anthropic · Unavailable');
+
+    const fieldHtml = renderToStaticMarkup(
+      <I18nProvider>
+        <BotCodingModelField value={null} onChange={() => undefined} />
+      </I18nProvider>,
+    );
+    expect(fieldHtml).toContain('data-bot-coding-model-field');
+    expect(fieldHtml).toContain('Coding model');
   });
 });
