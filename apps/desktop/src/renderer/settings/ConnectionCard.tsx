@@ -486,28 +486,46 @@ export function ConnectionCard({
                 </Button>
               </div>
               <p className="mt-1.5 text-caption leading-[17px] text-muted">{keyIsWriteOnly()}</p>
+              {connection.kind === 'anthropic' ? (
+                <p
+                  data-anthropic-credits-hint
+                  className="mt-1.5 text-caption leading-[17px] text-muted"
+                >
+                  {t('settings.connection.anthropicCreditsHint')}
+                </p>
+              ) : null}
               {keyProblem === null ? null : <CardAlert>{keyProblem}</CardAlert>}
             </div>
           ) : (
-            <div className="flex items-center gap-2 border-t border-separator px-4 py-2.5">
-              <span className="text-caption text-muted">{credentialSummary(connection)}</span>
-              {/* The guarantee stays on screen rather than only inside the form:
-              it is what stops someone hunting for a reveal control, and the
-              full sentence is the title so the short chip loses nothing. */}
-              <Chip size="sm" variant="soft" color="default" title={keyIsWriteOnly()}>
-                <Chip.Label>{t('settings.connection.writeOnly')}</Chip.Label>
-              </Chip>
-              <Button
-                variant="tertiary"
-                size="sm"
-                isDisabled={busy}
-                onPress={() => setKeyOpen(true)}
-                className="ms-auto h-8 shrink-0 rounded-[10px] px-3 text-caption font-medium"
-              >
-                {connection.hasCredential
-                  ? t('settings.connection.replaceKey')
-                  : t('settings.connection.setKey')}
-              </Button>
+            <div className="border-t border-separator px-4 py-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-caption text-muted">{credentialSummary(connection)}</span>
+                {/* The guarantee stays on screen rather than only inside the form:
+                it is what stops someone hunting for a reveal control, and the
+                full sentence is the title so the short chip loses nothing. */}
+                <Chip size="sm" variant="soft" color="default" title={keyIsWriteOnly()}>
+                  <Chip.Label>{t('settings.connection.writeOnly')}</Chip.Label>
+                </Chip>
+                <Button
+                  variant="tertiary"
+                  size="sm"
+                  isDisabled={busy}
+                  onPress={() => setKeyOpen(true)}
+                  className="ms-auto h-8 shrink-0 rounded-[10px] px-3 text-caption font-medium"
+                >
+                  {connection.hasCredential
+                    ? t('settings.connection.replaceKey')
+                    : t('settings.connection.setKey')}
+                </Button>
+              </div>
+              {connection.kind === 'anthropic' && !connection.hasCredential ? (
+                <p
+                  data-anthropic-credits-hint
+                  className="mt-2 text-caption leading-[17px] text-muted"
+                >
+                  {t('settings.connection.anthropicCreditsHint')}
+                </p>
+              ) : null}
             </div>
           )}
 

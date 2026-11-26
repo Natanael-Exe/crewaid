@@ -34,6 +34,12 @@ import { ModelSetupError } from './model-setup-error.js';
  */
 function classifyMessage(message: string): ModelErrorCode | undefined {
   const m = message.toLowerCase();
+  if (
+    m.includes('subscription_sharing_usage_limit_exceeded') ||
+    m.includes('insufficient_quota')
+  ) {
+    return 'QUOTA_EXCEEDED';
+  }
   if (m.includes('rate limit') || m.includes('too many requests') || m.includes('429')) {
     return 'RATE_LIMITED';
   }
@@ -275,7 +281,16 @@ export function httpStatusOf(error: unknown): number | undefined {
 
 /** An HTTP status, read with the provider's text where the status alone is ambiguous. */
 function codeForStatus(status: number, messageText: string): ModelErrorCode {
-  if (status === 429) return 'RATE_LIMITED';
+  if (status === 429) {
+    const m = messageText.toLowerCase();
+    if (
+      m.includes('subscription_sharing_usage_limit_exceeded') ||
+      m.includes('insufficient_quota')
+    ) {
+      return 'QUOTA_EXCEEDED';
+    }
+    return 'RATE_LIMITED';
+  }
   if (status === 401 || status === 403) return 'AUTH_FAILED';
   if (status === 402) return 'QUOTA_EXCEEDED';
   if (status === 408 || status === 504) return 'TIMEOUT';
@@ -302,6 +317,7 @@ const PROVIDER_CODES: Readonly<Record<string, ModelErrorCode>> = {
   permission_error: 'AUTH_FAILED',
   invalid_api_key: 'AUTH_FAILED',
   insufficient_quota: 'QUOTA_EXCEEDED',
+  subscription_sharing_usage_limit_exceeded: 'QUOTA_EXCEEDED',
   billing_error: 'QUOTA_EXCEEDED',
   context_length_exceeded: 'CONTEXT_OVERFLOW',
   request_too_large: 'CONTEXT_OVERFLOW',

@@ -241,6 +241,8 @@ export const settings = {
   'settings.connection.writeOnly': 'Write-only',
   'settings.connection.speechKey':
     'Used for dictation, voice messages and spoken replies. It has no models.',
+  'settings.connection.anthropicCreditsHint':
+    'Claude Max, Ultra and Team plans include monthly API credits. On claude.ai, link a Console organization under API credits in your billing settings, then paste an API key from that organization here.',
   'settings.connection.models': 'Models',
   'settings.connection.modelsCount': 'Models · {count}',
   'settings.connection.addModel': 'Add model',

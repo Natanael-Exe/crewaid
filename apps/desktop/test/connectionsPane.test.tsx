@@ -366,3 +366,27 @@ describe('V1-20 — the live wiring, not a fake of it', () => {
     });
   });
 });
+
+describe('D-241 Step 4 — Anthropic Console monthly API credits guidance', () => {
+  it('shows the Claude Console credits hint on an unkeyed Anthropic card and hides it once keyed or on other providers', () => {
+    const unkeyedAnthropic = render({
+      kind: 'anthropic',
+      state: 'NEEDS_CREDENTIAL',
+      hasCredential: false,
+      credentialSetAt: null,
+    });
+    expect(unkeyedAnthropic).toContain('data-anthropic-credits-hint');
+    expect(unkeyedAnthropic).toContain('link a Console organization under API credits');
+
+    const keyedAnthropic = render({ kind: 'anthropic', hasCredential: true });
+    expect(keyedAnthropic).not.toContain('data-anthropic-credits-hint');
+
+    const unkeyedOpenAi = render({
+      kind: 'openai',
+      state: 'NEEDS_CREDENTIAL',
+      hasCredential: false,
+      credentialSetAt: null,
+    });
+    expect(unkeyedOpenAi).not.toContain('data-anthropic-credits-hint');
+  });
+});

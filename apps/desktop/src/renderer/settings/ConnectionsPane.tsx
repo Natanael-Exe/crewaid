@@ -400,7 +400,18 @@ export function ConnectionsPane({ load, act, onChanged }: ConnectionsPaneProps) 
               // that a connection cannot exist without one, which would make
               // "define it now, key it later" look unsupported when it is
               // the normal shape on a shared install.
-              description={t('settings.connections.apiKey.description')}
+              description={
+                draft.kind === 'anthropic' ? (
+                  <>
+                    <span>{t('settings.connections.apiKey.description')}</span>
+                    <span data-anthropic-credits-hint className="mt-1 block">
+                      {t('settings.connection.anthropicCreditsHint')}
+                    </span>
+                  </>
+                ) : (
+                  t('settings.connections.apiKey.description')
+                )
+              }
               stacked
               control={
                 <Input
