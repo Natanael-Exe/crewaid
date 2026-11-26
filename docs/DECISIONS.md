@@ -10047,3 +10047,112 @@ it awake while idle.
   stop, and Pro's margins still need real hours to be set.
 - **The sales copy is unchanged for now.** The desktop's Pro offer and the README still say the
   computer stays on 24/7; they will be reworded separately.
+
+## D-241 — Coding harnesses: built-in sub-loop first, shared ACP core for local and sandbox runners (2026-11-26)
+
+**Status:** accepted by the product owner · **Amends:** none (preserves PRD §2.2 R1, R5; PRD §2.5; D-199; D-208)
+
+**Why.** Crewaid bots can already clone private GitHub repositories and open draft PRs (D-208), but
+coding inside a bot's existing turn is cramped: `fs_read` returns whole files truncated at 16k
+characters without line ranges (even though `sandbox-core` already supports 1-based line ranges),
+`fs_write` replaces whole files with no targeted edit tool, `rg`/`fd` are not in the sandbox image,
+`shell` times out at 120s with no managed background processes, turns cap at 25 steps, and once
+history passes its token budget (100k by default) compaction clears every tool output but the 6
+most recent, whatever they were. At the same time, many developers already pay for flat-rate
+coding subscriptions (Claude Code, Codex, Antigravity) and want Crewaid bots to coordinate those
+harnesses rather than pay per-token API rates for every refactor.
+
+Evaluating a built-in Pi-style harness, an ACP bridge to local harnesses, and pre-installed sandbox
+harnesses showed that none of the three alone covers both zero-setup 24/7 sandbox work (especially
+on Crewaid Cloud) and power-user subscription workflows without violating R1, R5, or vendor terms.
+
+**Decision.** Build a staged coding architecture behind one orchestrator-side `CodingRunner` port,
+in six steps:
+
+1. **Fix the shell-cancel tag mismatch immediately.** `computer-tools.ts` tagged commands with
+   `crewaid-shell:<id>` while `killByTag` searched for `[g]rog-shell:<id>`, leaving cancelled shell
+   commands running until the 120s timeout. Fix and cover with a regression test independently of
+   the harness work.
+2. **Add coding-grade tools and compaction to the existing loop.** Every bot benefits, not only
+   coding bots:
+   - `fs_read` with 1-based line ranges and line numbers.
+   - `fs_edit` for surgical search-and-replace edits (`CONTAINED_BUILTIN`).
+   - `fs_grep` and `fs_glob` (`OBSERVING_BUILTIN`), adding `ripgrep` (`rg`) and `fd` to the sandbox
+     image. All file tools continue routing through `resolveWorkspacePath`.
+   - Managed background processes (start, read incremental output, stop) for dev servers and >120s
+     test suites, held alive by an exit-watched `'background-process'` keep-running lease with a
+     user-visible time limit (default 30m). Cancelling a turn stops processes started during that
+     cancelled run (keyed by `runId`), while processes from turns that finished normally keep
+     running until `process_stop`, their time limit, or container stop.
+   - Coding-aware compaction that, once over budget, retains working file context instead of
+     clearing every tool result but the last 6.
+3. **Add a delegated `code_task` tool behind a `CodingRunner` port.** Coding stays a delegated tool
+   rather than replacing a bot's main execution backend, so the bot keeps its Crewaid tools (Chrome
+   seat, screen capture/recording, memory, Work board, inter-bot messaging, server-authenticated
+   GitHub push/PR). The default runner is a lean Pi-inspired coding sub-loop running **in the
+   orchestrator** on `TanStackExecutionBackend` with a larger step budget and an optional separate
+   coding model. Zero credentials enter the sandbox, and it works identically across Docker,
+   Runtime, Instabox, Self-Hosted, and Crewaid Cloud—including 24/7 unattended routines.
+4. **Unlock subscription savings through the orchestrator.**
+   - Point Anthropic Max/Ultra/Team subscribers to their linked Claude Console monthly API credits
+     through existing Anthropic BYOK settings. Do not integrate Claude consumer OAuth in Crewaid
+     while third-party subscription rules remain unsettled.
+   - Apply for OpenAI's "Sign in with ChatGPT" ("Use your ChatGPT plan") partner access for Crewaid
+     Cloud after verifying `@tanstack/ai-openai` compatibility with its Responses API constraints
+     (`store: false`, streaming-only, and unsupported parameters).
+5. **Build a shared ACP core + opt-in standalone local connector (`crewaid connect <dir>`).**
+   Presented explicitly as a separate opt-in mode ("manage my local harnesses") where the code stays
+   on the user's machine and closing the laptop marks the connector offline:
+   - **Shared core:** One ACP client (`@agentclientprotocol/sdk`), coding-session record, and
+     progress UI serve both Step 5 and Step 6; only the transport differs (outbound WebSocket vs
+     `bridgeExec` stdio).
+   - **Outside Electron (R1):** The connector is a separate CLI process that opens one outbound
+     WebSocket to the orchestrator (like a GitHub Actions self-hosted runner) using a revocable
+     connector-scoped token—no inbound ports, and no host process spawning inside Electron (the
+     desktop app displays status and a copyable launch command unless a later decision explicitly
+     amends R1).
+   - **Prompt-injection and privacy guardrails:** Because bots read untrusted web pages and
+     Telegram messages, bots **propose** tasks by default and a human approves the exact bound
+     payload (bot, connector, folder, verbatim prompt hash) before dispatch. ACP
+     `session/request_permission` prompts are always answered locally on the user's machine (never
+     by a bot), with `WAITING_LOCAL_PERMISSION` surfaced in Crewaid plus a local notification.
+     Reporting defaults to summary-only, with an explicit user opt-in for full transcripts/diffs so
+     private source code is not silently uploaded to Crewaid Cloud. UI and docs state plainly that
+     `cwd` scopes the workspace while the harness's own local sandbox/permission mode enforces host
+     OS boundaries.
+   - **Crew handoff:** The local harness pushes a feature branch using the user's own laptop Git
+     credentials; a Crewaid bot clones that branch in its sandbox (D-208) to test in Chrome, record
+     a video, and comment on the PR.
+6. **Add opt-in sandbox ACP harnesses through the same core.**
+   - Spoken over existing `bridgeExec` stdin/stdout streams—no new sandbox ports, working identically
+     across Docker, Runtime, and Instabox.
+   - Installed on demand into `/home/bot/.local` at Crewaid-tested versions rather than bloating the
+     base sandbox image.
+   - **No Settings storage or injection of third-party harness tokens.** Consistent with R5 and
+     Chrome profiles, users sign into unmodified official CLIs directly on their bot's desktop.
+     Order: Codex first (device-code login and sanctioned third-party plan use), then OpenCode and
+     Antigravity (`agy acp`, gated on verifying login persistence in the sandbox image, which ships
+     `dbus-x11` without `gnome-keyring`), and Claude Code with user-managed API keys only until
+     third-party subscription policy settles.
+   - Add each CLI's auth directory (`.codex`, `.claude`, etc.) to `MACHINE_OWNED` in
+     `workspace-paths.ts` as a guardrail against confused file tools.
+   - **Honest black-box boundary:** Because Docker sandboxes run with `CapDrop: ['ALL']` and
+     `no-new-privileges`, Codex's nested `bwrap` sandbox cannot run inside them, so sandbox external
+     harnesses run with full access to the bot's computer and bypass `PrivacyVault`, fine-grained
+     approvals, metering, and per-step checkpoints. The real boundary is the container plus D-208's
+     server-gated push/PR approval, and the UI states this plainly.
+   - Active sandbox ACP sessions hold and renew the computer's `keepRunningUntil` lease (WORKSPACE
+     §17) and settle cleanly on orchestrator restart (marking `INTERRUPTED` or resuming via a
+     persisted ACP session ID).
+
+**Rejected.**
+
+- **Running an LLM-calling harness (such as Pi) inside the sandbox container.** Putting user or
+  Crewaid Cloud model keys inside the container breaches R5, and self-hosted Docker egress blocks
+  the host and RFC1918 addresses so a local model proxy is unreachable without extra infrastructure.
+- **Adopting `@ai-sdk/harness`'s `HarnessAgent`.** `@ai-sdk/harness` stays pinned strictly behind
+  `sandbox-core`'s sandbox contract as a design reference only: its ACP adapter requires an exposed
+  sandbox loopback port and egress credential proxy that Crewaid does not have, and D-199 removed
+  the parallel AI SDK runtime in favor of TanStack AI.
+- **Storing/injecting external CLI OAuth tokens from Crewaid Settings.** Violates Anthropic's terms
+  and weakens the boundary separating orchestrator secrets from container-local user sessions.
