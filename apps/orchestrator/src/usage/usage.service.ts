@@ -221,24 +221,41 @@ export class UsageService {
   async daily(userId: string, query: UsageQuery): Promise<UsageResponse> {
     const { start, endExclusive } = utcWindowFor(query);
 
-    const turns = await this.prisma.agentTurn.findMany({
-      where: {
-        bot: { userId },
-        startedAt: { gte: start, lt: endExclusive },
-      },
-      select: {
-        botId: true,
-        startedAt: true,
-        inputTokens: true,
-        outputTokens: true,
-        cachedInputTokens: true,
-        cacheCreationTokens: true,
-        modelId: true,
-      },
-    });
+    const [turns, codingRuns] = await Promise.all([
+      this.prisma.agentTurn.findMany({
+        where: {
+          bot: { userId },
+          startedAt: { gte: start, lt: endExclusive },
+        },
+        select: {
+          botId: true,
+          startedAt: true,
+          inputTokens: true,
+          outputTokens: true,
+          cachedInputTokens: true,
+          cacheCreationTokens: true,
+          modelId: true,
+        },
+      }),
+      this.prisma.codingRun.findMany({
+        where: {
+          userId,
+          startedAt: { gte: start, lt: endExclusive },
+        },
+        select: {
+          botId: true,
+          startedAt: true,
+          inputTokens: true,
+          outputTokens: true,
+          cachedInputTokens: true,
+          cacheCreationTokens: true,
+          modelId: true,
+        },
+      }),
+    ]);
 
     return {
-      rows: bucketTurnsByUtcDay(turns).map(
+      rows: bucketTurnsByUtcDay([...turns, ...codingRuns]).map(
         ({ botId, day, inputTokens, outputTokens, estimatedCostUsd }) => ({
           botId,
           day,

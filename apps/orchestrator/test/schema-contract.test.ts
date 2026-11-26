@@ -833,6 +833,27 @@ const EXPECTED_FIELDS: Record<string, readonly string[]> = {
     'snapshot',
     'createdAt',
   ],
+  CodingRun: [
+    'id',
+    'userId',
+    'botId',
+    'parentRunId',
+    'runnerKind',
+    'runnerId',
+    'modelId',
+    'status',
+    'cwd',
+    'steps',
+    'workingMs',
+    'inputTokens',
+    'outputTokens',
+    'cachedInputTokens',
+    'cacheCreationTokens',
+    'filesChanged',
+    'errorCode',
+    'startedAt',
+    'endedAt',
+  ],
 };
 
 /** PRD §3 enums, name → exact members in declaration order. */

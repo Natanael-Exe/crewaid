@@ -16,10 +16,20 @@ export function tanstackTools(definitions: ToolSet) {
       if (!context?.toolCallId) throw new Error('TOOL_UNAVAILABLE: missing server call id.');
       if (context.abortSignal?.aborted)
         throw new Error('TOOL_CANCELLED: no action was dispatched.');
+      const emit = context.emitCustomEvent;
       const output = await execute(input, {
         toolCallId: context.toolCallId,
         messages: [],
         ...(context.abortSignal !== undefined && { abortSignal: context.abortSignal }),
+        ...(typeof emit === 'function' && {
+          emit: (eventName, value) => {
+            try {
+              emit(eventName, value);
+            } catch {
+              // Progress events are observational and must never fail tool execution.
+            }
+          },
+        }),
       });
       return JsonSchema.parse(output ?? null);
     });

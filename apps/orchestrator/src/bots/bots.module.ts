@@ -31,6 +31,13 @@ import { memoryTools } from '../agent/memory-tools.js';
 import { identityTools } from '../agent/identity-tools.js';
 import { computerTools } from '../agent/computer-tools.js';
 import { codingTools } from '../agent/coding-tools.js';
+import { codeTaskTool } from '../agent/code-task-tool.js';
+import { CODING_RUNNER, type CodingRunner } from '../agent/coding/coding-runner.port.js';
+import { CodingRunStoreService } from '../agent/coding/coding-run-store.service.js';
+import { BuiltInCodingRunner } from '../agent/execution/builtin-coding-runner.js';
+import { ToolPolicyStateService } from '../agent/policy/state.service.js';
+import { ModelResolutionService } from '../models/model-resolution.service.js';
+import { StructuredLogger } from '../logging/structured-logger.js';
 import { processTools } from '../agent/process-tools.js';
 import { machineTools } from '../agent/machine-tools.js';
 import { MachineProcessService } from '../sandbox/machine-process.service.js';
@@ -85,6 +92,34 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
     TurnControlService,
     TurnHistoryService,
     BoardStoreService,
+    CodingRunStoreService,
+    {
+      provide: CODING_RUNNER,
+      useFactory: (
+        models: ModelResolutionService,
+        browsers: AgentBrowserService,
+        processes: MachineProcessService,
+        policyState: ToolPolicyStateService,
+        logger: StructuredLogger,
+        telemetry: AiTelemetryService,
+      ): CodingRunner =>
+        new BuiltInCodingRunner({
+          resolveModel: (userId, modelRef) => models.resolveText(userId, modelRef),
+          machines: browsers,
+          processes,
+          policyState,
+          logger,
+          telemetry,
+        }),
+      inject: [
+        ModelResolutionService,
+        AgentBrowserService,
+        MachineProcessService,
+        ToolPolicyStateService,
+        StructuredLogger,
+        AiTelemetryService,
+      ],
+    },
     {
       provide: ToolRegistry,
       useFactory: (
@@ -94,6 +129,8 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
         bots: BotsService,
         boardStore: BoardStoreService,
         processes: MachineProcessService,
+        codingRunner: CodingRunner,
+        codingRuns: CodingRunStoreService,
       ): ToolRegistry => {
         const registry = new ToolRegistry();
         for (const entry of previewTools()) registry.register(entry);
@@ -103,6 +140,7 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
         for (const entry of codingTools()) registry.register(entry);
         for (const entry of processTools({ machines: browsers, processes }))
           registry.register(entry);
+        registry.register(codeTaskTool({ runner: codingRunner, runs: codingRuns }));
         for (const entry of machineTools({ machines: browsers, attachments }))
           registry.register(entry);
         for (const entry of botTools({ bots })) registry.register(entry);
@@ -118,6 +156,8 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
         BotsService,
         BoardStoreService,
         MachineProcessService,
+        CODING_RUNNER,
+        CodingRunStoreService,
       ],
     },
     // The holder a turn asks for a bot's plugin tools. Empty until
@@ -149,6 +189,8 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
     AgentSessionService,
     // The TanStack backend records its model calls into the same sink.
     AI_TELEMETRY,
+    CODING_RUNNER,
+    CodingRunStoreService,
   ],
 })
 export class BotsModule {}

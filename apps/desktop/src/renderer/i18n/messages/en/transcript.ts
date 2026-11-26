@@ -25,6 +25,8 @@ export const transcript = {
   'working.checkingBoard': 'Checking shared status',
   'working.updatingBoard': 'Updating shared status',
   'working.runningCommand': 'Running a command',
+  'working.coding': 'Working on code',
+  'working.codingStep': 'Coding ({step}/{max}) · {action}',
   'working.checkingPage': 'Checking the page',
   'working.messagingTeam': 'Messaging teammates',
   'working.preparingSummary': 'Preparing a summary',

@@ -157,6 +157,11 @@ const VOCABULARY: Readonly<Record<string, ToolVocabularyEntry>> = {
     label: 'Stop a background process',
     summary: 'Stops a managed background process and its child processes.',
   },
+  code_task: {
+    alias: 'code-task',
+    label: 'Run a coding task',
+    summary: 'Delegates a multi-file coding task to a focused coding worker on the bot’s computer.',
+  },
 
   // The team
   create_bot: {

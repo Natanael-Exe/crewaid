@@ -1,8 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { UsageRowSchema } from '@crewaid/shared';
+import type { PrismaService } from '../src/prisma/prisma.service.js';
 import {
   bucketTurnsByUtcDay,
+  UsageService,
   utcDayKey,
   utcWindowFor,
   type TurnUsageRow,
@@ -174,5 +176,52 @@ describe('CC-04 — wire projection', () => {
     };
     expect(UsageRowSchema.safeParse(row).success).toBe(true);
     expect(row.day).toBe('2026-09-01');
+  });
+
+  it('merges AgentTurn and CodingRun rows in UsageService.daily, pricing each by its own modelId', async () => {
+    const turnFindMany = vi.fn().mockResolvedValue([
+      {
+        botId: 'clx1a2b3c4d5e6f7g8h9i0j1',
+        startedAt: new Date('2026-09-01T10:00:00.000Z'),
+        inputTokens: 500_000,
+        outputTokens: 0,
+        cachedInputTokens: 0,
+        cacheCreationTokens: 0,
+        modelId: 'mock-provider:mock-model',
+      },
+    ]);
+    const codingRunFindMany = vi.fn().mockResolvedValue([
+      {
+        botId: 'clx1a2b3c4d5e6f7g8h9i0j1',
+        startedAt: new Date('2026-09-01T10:05:00.000Z'),
+        inputTokens: 0,
+        outputTokens: 500_000,
+        cachedInputTokens: 0,
+        cacheCreationTokens: 0,
+        modelId: 'mock-provider:mock-model',
+      },
+    ]);
+
+    const service = new UsageService({
+      agentTurn: { findMany: turnFindMany },
+      codingRun: { findMany: codingRunFindMany },
+    } as unknown as PrismaService);
+
+    const response = await service.daily('user-1', { from: '2026-09-01', to: '2026-09-01' });
+    // mock-provider:mock-model is $2/M input + $6/M output -> 0.5M * 2 + 0.5M * 6 = $4.
+    expect(response.rows).toEqual([
+      {
+        botId: 'clx1a2b3c4d5e6f7g8h9i0j1',
+        day: '2026-09-01',
+        inputTokens: 500_000,
+        outputTokens: 500_000,
+        estimatedCostUsd: 4,
+      },
+    ]);
+    expect(codingRunFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: 'user-1' }),
+      }),
+    );
   });
 });

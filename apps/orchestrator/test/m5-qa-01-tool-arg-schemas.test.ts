@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { browserTools } from '../src/agent/browser-tools.js';
 import { computerTools } from '../src/agent/computer-tools.js';
 import { codingTools } from '../src/agent/coding-tools.js';
+import { codeTaskTool } from '../src/agent/code-task-tool.js';
 import { processTools } from '../src/agent/process-tools.js';
 import { identityTools } from '../src/agent/identity-tools.js';
 import { boardTools } from '../src/agent/board-tools.js';
@@ -58,6 +59,13 @@ function allTools(): RegisteredTool[] {
     // sweeps executes a tool (see the comment on `session` above).
     ...computerTools({ machines: { ensureSeatFor: () => Promise.reject(new Error('unused')) } }),
     ...codingTools(),
+    codeTaskTool({
+      runner: {
+        id: 'builtin',
+        kind: 'builtin',
+        run: () => Promise.reject(new Error('unused')),
+      },
+    }),
     ...processTools({
       machines: { ensureSeatFor: () => Promise.reject(new Error('unused')) },
       processes: {
@@ -226,6 +234,18 @@ describe('M5-QA-01 the computer tools', () => {
     expect(accepts('process_output', { waitMs: 999_999 })).toBe(false);
     expect(accepts('process_stop', { processId: 'proc-1' })).toBe(true);
     expect(accepts('process_stop', {})).toBe(false);
+
+    expect(accepts('code_task', { goal: 'Fix failing auth tests' })).toBe(true);
+    expect(
+      accepts('code_task', {
+        goal: 'Fix failing auth tests',
+        cwd: 'repo',
+        context: 'See auth.spec.ts',
+        verifyCommand: 'pnpm test',
+      }),
+    ).toBe(true);
+    expect(accepts('code_task', {})).toBe(false);
+    expect(accepts('code_task', { goal: '' })).toBe(false);
   });
 
   it('leaves WHERE a path may point to the resolver, not the schema', () => {

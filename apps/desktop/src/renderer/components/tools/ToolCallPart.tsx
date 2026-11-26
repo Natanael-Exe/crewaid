@@ -10,6 +10,7 @@ import { ResourcePreview } from './ResourcePreview';
 import { resourcePreview, type ResourcePreview as Resource } from './resourcePresentation';
 import { InternalPathHint, ToolCard, ToolFields, ToolMark, ToolStatusTag } from './ToolCard';
 import {
+  codingStepAction,
   displayStatus,
   filePreview,
   isInternalWorkspacePath,
@@ -218,6 +219,29 @@ function ToolCallLine({
         ? t('tools.youDeclined')
         : t('tools.youApproved')
       : undefined;
+  const codingProgress =
+    row.toolName === 'code_task' && status === 'running'
+      ? context?.codingProgress?.get(row.toolCallId)
+      : undefined;
+  const codingAction =
+    codingProgress?.kind === 'step' ? codingStepAction(codingProgress) : undefined;
+  const codingProgressLabel =
+    codingProgress === undefined
+      ? undefined
+      : codingProgress.kind === 'step' && codingAction !== undefined
+        ? t('tools.coding.stepAction', {
+            step: codingProgress.step,
+            max: codingProgress.maxSteps,
+            action: codingAction,
+          })
+        : codingProgress.kind === 'step'
+          ? t('tools.coding.step', {
+              step: codingProgress.step,
+              max: codingProgress.maxSteps,
+            })
+          : codingProgress.kind === 'started' && codingProgress.modelLabel !== undefined
+            ? t('tools.coding.starting', { model: codingProgress.modelLabel })
+            : undefined;
   return (
     <div
       data-tool-call={row.toolName}
@@ -252,6 +276,14 @@ function ToolCallLine({
           ) : null}
           <ToolStatusTag status={status} count={count} />
         </div>
+        {codingProgressLabel === undefined ? null : (
+          <p
+            data-coding-progress
+            className="mt-0.5 truncate ps-[24px] text-micro leading-4 text-muted tabular-nums"
+          >
+            {codingProgressLabel}
+          </p>
+        )}
         {failure === undefined ? null : (
           <p className="crewaid-tool-line-note mt-0.5 ps-[24px] text-micro leading-4 text-muted">
             {failure}
@@ -290,10 +322,10 @@ function ToolCallLine({
                 <DetailBlock
                   label={t('tools.detail.result')}
                   code={
-                row.toolName === 'shell' ||
-                row.toolName.startsWith('process_') ||
-                typeof row.output !== 'string'
-              }
+                    row.toolName === 'shell' ||
+                    row.toolName.startsWith('process_') ||
+                    typeof row.output !== 'string'
+                  }
                   body={truncateForDisplay(outputBody, DETAIL_CHARS)}
                 />
               )}
@@ -338,13 +370,7 @@ export function ToolCallPart({
     return <TemplateResultCard input={row.input} output={row.output} />;
   // Declarative visuals always render via their dedicated card, keyed strictly on toolName.
   if (row.toolName === 'present_visual') {
-    return (
-      <VisualCard
-        row={row}
-        status={status}
-        handoffActions={context?.handoffActions}
-      />
-    );
+    return <VisualCard row={row} status={status} handoffActions={context?.handoffActions} />;
   }
   // Cards are for what the user keeps. Everything else is routine work,
   // which renders as a quiet line — or, with "Show thinking and actions" off,

@@ -216,4 +216,28 @@ describe('resolveWorkspaceSearchPlan', () => {
       path: `${MACHINE_HOME}/groups/${GROUP}`,
     });
   });
+
+  it('anchors relative paths and search roots against an explicit baseDir when valid', () => {
+    const repo = `${OWN}/my-repo`;
+    expect(resolveWorkspacePath(BOT, 'src/index.ts', null, repo)).toEqual({
+      ok: true,
+      path: `${repo}/src/index.ts`,
+    });
+    expect(resolveWorkspacePath(BOT, '.', null, repo)).toEqual({
+      ok: true,
+      path: repo,
+    });
+    expect(resolveWorkspaceSearchPlan(BOT, undefined, null, repo)).toEqual({
+      ok: true,
+      mode: 'root',
+      path: repo,
+      excludes: ['.git', 'node_modules'],
+    });
+    // Still refuses escapes out of /home/bot or into another bot's area.
+    expect(resolveWorkspacePath(BOT, '../../../../etc/passwd', null, repo).ok).toBe(false);
+    expect(resolveWorkspacePath(BOT, 'src/index.ts', null, '/etc').ok).toBe(false);
+    expect(
+      resolveWorkspacePath(BOT, 'src/index.ts', null, `${MACHINE_HOME}/agents/someone-else`).ok,
+    ).toBe(false);
+  });
 });

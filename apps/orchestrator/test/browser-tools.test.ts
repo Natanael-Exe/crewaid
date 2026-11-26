@@ -136,6 +136,7 @@ describe('M5-BE-04 the four tools reach a real turn', () => {
       'process_start',
       'process_output',
       'process_stop',
+      'code_task',
       'capture_screen',
       'record_screen_start',
       'record_screen_stop',

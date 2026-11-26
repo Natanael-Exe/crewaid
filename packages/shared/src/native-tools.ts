@@ -381,6 +381,33 @@ export const NativeToolInputs = {
   process_stop: z.object({
     processId: z.string().min(1).describe('Managed process ID to terminate'),
   }),
+  code_task: z.object({
+    goal: z
+      .string()
+      .min(1)
+      .max(8_000)
+      .describe(
+        'Concrete coding objective, acceptance criteria, and constraints for the coding worker',
+      ),
+    cwd: z
+      .string()
+      .min(1)
+      .max(512)
+      .optional()
+      .describe('Target repo or folder inside the workspace (defaults to your own area)'),
+    context: z
+      .string()
+      .min(1)
+      .max(4_000)
+      .optional()
+      .describe('Optional extra context such as key file paths, conventions, or prior findings'),
+    verifyCommand: z
+      .string()
+      .min(1)
+      .max(512)
+      .optional()
+      .describe('Optional command to verify changes before reporting back, e.g. "pnpm test"'),
+  }),
   browser_navigate: z.object({
     url: z.string().describe('An absolute http(s) URL, e.g. https://example.com/pricing'),
   }),

@@ -6,6 +6,8 @@ export type ToolCallOptions = {
   readonly toolCallId: string;
   readonly messages: readonly unknown[];
   readonly abortSignal?: AbortSignal;
+  /** Best-effort custom event emitter wired to the run's live stream (for progress updates). */
+  readonly emit?: (eventName: string, value: Record<string, Json>) => void;
 };
 export type ModelToolOutput =
   | { type: 'text' | 'error-text'; value: string }

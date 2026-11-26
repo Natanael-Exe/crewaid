@@ -287,7 +287,12 @@ export function codingTools(): RegisteredTool[] {
             newText: string;
             replaceAll?: boolean | undefined;
           }) => {
-            const verdict = resolveWorkspacePath(context.botId, path, context.groupId ?? null);
+            const verdict = resolveWorkspacePath(
+              context.botId,
+              path,
+              context.groupId ?? null,
+              context.workingDirectory,
+            );
             if (!verdict.ok) return `fs_edit refused: ${verdict.reason}`;
             try {
               const session = await context.session();
@@ -413,7 +418,12 @@ export function codingTools(): RegisteredTool[] {
             },
             { abortSignal }: { abortSignal?: AbortSignal },
           ) => {
-            const plan = resolveWorkspaceSearchPlan(context.botId, path, context.groupId ?? null);
+            const plan = resolveWorkspaceSearchPlan(
+              context.botId,
+              path,
+              context.groupId ?? null,
+              context.workingDirectory,
+            );
             if (!plan.ok) return `fs_grep refused: ${plan.reason}`;
             if (plan.mode === 'empty') return 'fs_grep: no matches found.';
 
@@ -517,7 +527,12 @@ export function codingTools(): RegisteredTool[] {
             },
             { abortSignal }: { abortSignal?: AbortSignal },
           ) => {
-            const plan = resolveWorkspaceSearchPlan(context.botId, path, context.groupId ?? null);
+            const plan = resolveWorkspaceSearchPlan(
+              context.botId,
+              path,
+              context.groupId ?? null,
+              context.workingDirectory,
+            );
             if (!plan.ok) return `fs_glob refused: ${plan.reason}`;
             if (plan.mode === 'empty') return 'fs_glob: no matching files found.';
 

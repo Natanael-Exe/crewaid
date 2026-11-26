@@ -5,6 +5,7 @@ import { useAguiChat } from './useAguiChat';
 import type { Message } from '@ag-ui/core';
 import type { ChatInterrupt } from './crewaidChat';
 import { TargetRunChangedError } from './crewaidChat';
+import type { CodingTaskProgress } from './codingProgress';
 import {
   ApprovalBindingSchema,
   ToolApprovalRequestSchema,
@@ -64,6 +65,7 @@ export type ChatThreadView = {
   readonly retrying: boolean;
   readonly retry?: (() => void) | undefined;
   readonly approvals: readonly PendingApproval[];
+  readonly codingProgress: ReadonlyMap<string, CodingTaskProgress>;
   readonly respondToApproval: (toolCallId: string, approved: boolean, editedArgs?: Json) => void;
   /** The stored message's id once it is admitted; null when it was refused. */
   readonly send: (
@@ -628,6 +630,7 @@ export function ChatThread(props: ChatThreadProps): ReactNode {
     retrying: chat.retrying,
     ...(chat.canRetry ? { retry } : {}),
     approvals,
+    codingProgress: chat.codingProgress,
     respondToApproval,
     send,
     sendQueued,

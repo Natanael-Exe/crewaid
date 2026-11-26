@@ -207,6 +207,7 @@ export async function assembleTurn(
       seat: services.seatControl?.portFor(bot.id),
       botId: bot.id,
       runId: input.runId,
+      botModelId: bot.modelId,
       botName: bot.name,
       sandboxId: bot.sandboxId,
       groupId: botGroup?.id ?? null,

@@ -2,6 +2,7 @@ import type { ComponentType, ReactNode } from 'react';
 import { projectPublicSpeech, stripModelControlTags, type ToolInfo } from '@crewaid/shared';
 import { StreamingMarkdown } from './markdown/StreamingMarkdown';
 import type { MentionBot } from './composer/botMention';
+import type { CodingTaskProgress } from '../chat/codingProgress';
 import type { HandoffActions } from './visuals/HandoffBlock';
 
 /**
@@ -119,6 +120,7 @@ export interface PartRenderContext {
   readonly tools?: ReadonlyMap<string, ToolInfo>;
   readonly onViewComputer?: (() => void) | undefined;
   readonly pendingToolCalls?: ReadonlySet<string>;
+  readonly codingProgress?: ReadonlyMap<string, CodingTaskProgress> | undefined;
   readonly mentionBots?: readonly MentionBot[];
   readonly onBotMention?: (botId: string) => void;
   readonly handoffActions?: HandoffActions | undefined;

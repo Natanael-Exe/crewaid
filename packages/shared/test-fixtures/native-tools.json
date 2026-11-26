@@ -132,6 +132,15 @@
     "valid": { "processId": "proc-123456789abc" },
     "invalid": {}
   },
+  "code_task": {
+    "valid": {
+      "goal": "Fix the failing auth middleware tests and add regression coverage",
+      "cwd": "app",
+      "context": "Start in src/auth.ts and test/auth.test.ts",
+      "verifyCommand": "pnpm test"
+    },
+    "invalid": { "goal": "" }
+  },
   "browser_navigate": { "valid": { "url": "https://example.com" }, "invalid": { "url": 1 } },
   "browser_read": { "valid": {}, "invalid": null },
   "browser_click": { "valid": { "reference": "r1_e2" }, "invalid": { "selector": "#send" } },

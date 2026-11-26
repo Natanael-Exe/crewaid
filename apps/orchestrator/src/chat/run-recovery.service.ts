@@ -1,8 +1,9 @@
-import { Inject, Injectable, type OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, Optional, type OnModuleDestroy } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { StructuredLogger } from '../logging/structured-logger.js';
 import { TurnEventBus } from '../agent/turn-event.bus.js';
 import { ToolApprovalHub } from '../agent/policy/approval-hub.js';
+import { CodingRunStoreService } from '../agent/coding/coding-run-store.service.js';
 import { TURN_BOT_SELECT } from '../agent/turn-assembly.js';
 import {
   cancelPendingToolResults,
@@ -40,6 +41,7 @@ export class RunRecoveryService implements OnModuleDestroy {
     @Inject(TurnEventBus) private readonly events: TurnEventBus,
     @Inject(RunEventWakeupsService) private readonly wakeups: RunEventWakeupsService,
     @Inject(ToolApprovalHub) private readonly approvalHub: ToolApprovalHub,
+    @Optional() @Inject(CodingRunStoreService) private readonly codingRuns?: CodingRunStoreService,
   ) {
     this.leases = new RunLeaseService(prisma);
   }
@@ -85,6 +87,9 @@ export class RunRecoveryService implements OnModuleDestroy {
     const result = await recoverExpiredRuns({
       leases: this.leases,
       resume: async (lease) => {
+        await this.codingRuns
+          ?.reconcileAbandonedForRun(lease.userId, lease.botId, lease.runId)
+          .catch(() => undefined);
         const run = await this.prisma.agentTurn.findFirstOrThrow({
           where: {
             id: lease.runId,

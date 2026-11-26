@@ -1,12 +1,14 @@
 import type { PartRenderContext } from '../PartRenderer';
 import { safeJson, truncateForDisplay, type FoldedToolPart } from './toolParts';
 import { type MessageKey, type PlainKey, t } from '../../i18n/i18n';
+import type { CodingTaskProgress } from '../../chat/codingProgress';
 
 export type ToolCardKind = 'computer' | 'connection' | 'file' | 'work' | 'generic';
 export type DisplayStatus = FoldedToolPart['status'] | 'incomplete';
 
 const COMPUTER = new Set([
   'shell',
+  'code_task',
   'process_start',
   'process_output',
   'process_stop',
@@ -22,6 +24,7 @@ const COMPUTER = new Set([
 const FILE = new Set(['fs_read', 'fs_write', 'fs_edit', 'fs_grep', 'fs_glob', 'attach_file']);
 const TITLES: Readonly<Record<string, PlainKey>> = {
   shell: 'tools.title.shell',
+  code_task: 'tools.title.codeTask',
   process_start: 'tools.title.processStart',
   process_output: 'tools.title.processOutput',
   process_stop: 'tools.title.processStop',
@@ -49,6 +52,24 @@ const SOURCES = {
   work: 'tools.source.work',
   generic: 'tools.source.generic',
 } as const satisfies Record<ToolCardKind, MessageKey>;
+
+/**
+ * The label for one step of a running `code_task`: the inner tool's own
+ * translated title, then what it acts on. The server's English `action` is
+ * used only by a server that sends no `toolName`.
+ */
+export function codingStepAction(progress: CodingTaskProgress): string | undefined {
+  const { toolName, target } = progress;
+  if (toolName === undefined) return progress.action;
+  const key = TITLES[toolName];
+  const title =
+    toolName === 'finish_task'
+      ? t('tools.coding.wrappingUp')
+      : key === undefined
+        ? readableName(toolName)
+        : t(key);
+  return target === undefined ? title : `${title} · ${target}`;
+}
 
 export function readableName(name: string): string {
   const words = name.replace(/[_-]+/g, ' ').trim().toLowerCase();
@@ -128,12 +149,18 @@ export function displayStatus(row: FoldedToolPart, context?: PartRenderContext):
   if (typeof value !== 'string') return row.status;
   if (
     (row.toolName === 'shell' && value.startsWith('shell: the turn was cancelled')) ||
+    (row.toolName === 'code_task' && value.startsWith('code_task · cancelled')) ||
     (row.toolName === 'process_start' &&
       value.startsWith('process_start: the turn was cancelled')) ||
     (row.toolName === 'process_output' &&
       value.startsWith('process_output: stopped waiting because the turn was cancelled'))
   )
     return 'incomplete';
+  if (
+    row.toolName === 'code_task' &&
+    (value.startsWith('code_task · failed') || value.startsWith('code_task · stalled'))
+  )
+    return 'error';
   if (row.toolName.startsWith('browser_') && value.startsWith(`${row.toolName.slice(8)} failed:`))
     return 'error';
   if (row.toolName.includes('__') && value.startsWith('The tool reported an error.\n'))
