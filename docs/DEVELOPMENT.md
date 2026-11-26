@@ -105,8 +105,11 @@ pnpm --filter @crewaid/desktop dev     # or build an installer: pnpm package:sel
    CREWAID_ORCHESTRATOR_URL=http://localhost:3000` to match. If the OS did not
    register the sign-in scheme — an unpackaged build on macOS registers it to
    the Electron binary — the page prints a code to paste into Settings instead.
-3. **Settings → Connections**: add a provider and its API key. Keys are
+3. **Settings → Models**: add a provider and its API key. Keys are
    per-user and encrypted at rest; none is read from the environment.
+   If you have a Claude Max, Ultra, or Team subscription, link your plan in
+   Claude Settings → Billing to claim your monthly Claude Console API credits
+   and paste an API key from that Console organization here.
 4. **New bot** in the sidebar, then pick a model in the composer. Opening the
    bot's screen card wakes its computer.
 

@@ -1,9 +1,10 @@
-import type { AnyTextAdapter } from '@tanstack/ai';
+import type { AnyTextAdapter, TextOptions } from '@tanstack/ai';
 import { AnthropicTextAdapter } from '@tanstack/ai-anthropic';
 import {
   OpenAIChatCompletionsTextAdapter,
   OpenAITextAdapter,
   type OpenAIChatModel,
+  type OpenAITextProviderOptions,
 } from '@tanstack/ai-openai';
 import { OpenRouterTextAdapter } from '@tanstack/ai-openrouter';
 import { z } from 'zod';
@@ -47,6 +48,13 @@ export type TextAdapterDeps = {
   readonly baseURL?: string | undefined;
   /** The fetch under the guard for `custom`; tests route it to a stub. */
   readonly fetch?: typeof fetch | undefined;
+  /**
+   * OpenAI Responses API persistence mode (D-241 Step 4). Leave unset for
+   * standard API keys; pass `false` for stateless requests (such as OpenAI
+   * "Sign in with ChatGPT" plan tokens) to enforce `store: false` and strip
+   * stateful fields (`metadata`, `previous_response_id`).
+   */
+  readonly store?: boolean | undefined;
 };
 
 export type BuiltTextAdapter = {
@@ -67,12 +75,17 @@ export function buildTextAdapter(
   const baseURL = deps.baseURL === undefined ? {} : { baseURL: deps.baseURL };
 
   switch (binding.kind) {
-    case 'openai':
+    case 'openai': {
       // Uses the Responses API so o-series reasoning tokens are returned.
+      const config = { apiKey: binding.apiKey, ...baseURL };
       return {
         kind: 'openai',
-        adapter: new OpenAITextAdapter({ apiKey: binding.apiKey, ...baseURL }, catalogModel(model)),
+        adapter:
+          deps.store === false
+            ? new StatelessOpenAITextAdapter(config, catalogModel(model))
+            : new OpenAITextAdapter(config, catalogModel(model)),
       };
+    }
     case 'anthropic':
       return {
         kind: 'anthropic',
@@ -123,6 +136,28 @@ export function buildTextAdapter(
       throw new ProviderConfigError(
         'an ElevenLabs connection is a voice key, not a model provider',
       );
+  }
+}
+
+/**
+ * Stateless OpenAI Responses adapter (D-241 Step 4).
+ *
+ * Enforces `store: false` and drops stateful fields (`metadata`,
+ * `previous_response_id`) so OpenAI "Sign in with ChatGPT" plan-token
+ * requests satisfy OpenAI's stateless Responses API contract.
+ */
+class StatelessOpenAITextAdapter extends OpenAITextAdapter<
+  OpenAIChatModel,
+  OpenAITextProviderOptions
+> {
+  protected override mapOptionsToRequest(options: TextOptions<OpenAITextProviderOptions>) {
+    const request = {
+      ...super.mapOptionsToRequest(options),
+      store: false,
+    };
+    delete request.metadata;
+    delete request.previous_response_id;
+    return request;
   }
 }
 
