@@ -141,6 +141,7 @@ export const CreateBotBodySchema = z.object({
   avatarShape: AvatarShapeSchema.optional(),
   systemPrompt: z.string(),
   modelId: ModelRefSchema.optional(),
+  codingModelId: CuidSchema.nullable().optional(),
   autoReviewRules: AutoReviewRulesSchema.optional(),
   approvalMode: ApprovalModeSchema.optional(),
 });
@@ -155,6 +156,8 @@ export const UpdateBotBodySchema = z
     avatarShape: AvatarShapeSchema,
     systemPrompt: z.string(),
     modelId: ModelRefSchema,
+    /** Optional coding model override (`ProviderModel.id`), or null to inherit. */
+    codingModelId: CuidSchema.nullable(),
     sortOrder: z.number().int(),
     pinned: z.boolean(),
     hiddenFromSidebar: z.boolean(),
@@ -1091,6 +1094,7 @@ const KnownTimezoneSchema = TimezoneSchema.refine(isKnownTimezone, 'unknown time
 export const UpdateUserSettingsBodySchema = z
   .object({
     defaultModelId: CuidSchema.nullable(),
+    codingModelId: CuidSchema.nullable(),
     language: LocaleSchema.nullable(),
     timezone: KnownTimezoneSchema.nullable(),
     systemLanguage: LocaleSchema.nullable(),

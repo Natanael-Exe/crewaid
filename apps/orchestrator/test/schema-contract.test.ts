@@ -161,6 +161,8 @@ const EXPECTED_FIELDS: Record<string, readonly string[]> = {
     'avatarUrl',
     'systemPrompt',
     'modelId',
+    // D-241: optional per-bot coding model override for `code_task`.
+    'codingModelId',
     'status',
     'sortOrder',
     'pinned',
@@ -750,6 +752,8 @@ const EXPECTED_FIELDS: Record<string, readonly string[]> = {
   UserSettings: [
     'userId',
     'defaultModelId',
+    // D-241: optional account-wide coding model for `code_task`.
+    'codingModelId',
     'language',
     'timezone',
     'systemLanguage',

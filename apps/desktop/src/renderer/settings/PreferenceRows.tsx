@@ -1,8 +1,8 @@
 import { ListBox, ListBoxItem, Select } from '@heroui/react';
 import { IconCheck } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LocaleSchema, type UpdateUserSettingsBody } from '@crewaid/shared';
-import { useApiClient } from '../api';
+import { LocaleSchema, type ModelOption, type UpdateUserSettingsBody } from '@crewaid/shared';
+import { fetchModelCatalog, useApiClient } from '../api';
 import { AVAILABLE_LOCALES, useLocale, useT } from '../i18n/i18n';
 import { setLanguageChoice, useLanguageChoice } from '../i18n/localePreference';
 import { localTimezone } from '../routines/routinesState';
@@ -13,6 +13,7 @@ import {
   type Microphone,
 } from '../voice/microphonePreference';
 import { saveAccountSettings, useAccountSettings, useAccountSettingsBusy } from './accountSettings';
+import { codingModelItems, INHERIT_CODING_MODEL } from './codingModelChoices';
 import { AUTO_DETECT, FOLLOW_SYSTEM, languageItems, timezoneItems } from './preferenceChoices';
 import { SearchSelect } from './SearchSelect';
 import { SettingsRow, SettingsSection } from './SettingsLayout';
@@ -186,7 +187,74 @@ export function BotsSection() {
   return (
     <SettingsSection title={t('settings.bots.title')}>
       <TimezoneRow />
+      <CodingModelRow />
     </SettingsSection>
+  );
+}
+
+function CodingModelRow() {
+  const t = useT();
+  const client = useApiClient();
+  const settings = useAccountSettings();
+  const [problem, save] = useSaveProblem();
+  const isDisabled = useAccountSettingsBusy();
+  const [models, setModels] = useState<readonly ModelOption[]>([]);
+
+  const reloadModels = useCallback(() => {
+    let active = true;
+    void fetchModelCatalog(client).then(
+      (response) => {
+        if (active) setModels(response.models);
+      },
+      () => undefined,
+    );
+    return () => {
+      active = false;
+    };
+  }, [client]);
+
+  useEffect(() => reloadModels(), [reloadModels]);
+
+  const chosen = settings?.codingModelId ?? null;
+  const items = useMemo(
+    () =>
+      codingModelItems(models, {
+        inheritLabel: t('settings.codingModel.sameAsBot'),
+        currentId: chosen,
+        currentFallbackLabel: t('settings.codingModel.current'),
+        unavailableLabel: t('settings.codingModel.unavailable'),
+      }),
+    [models, chosen, t],
+  );
+
+  return (
+    <SettingsRow
+      label={t('settings.codingModel.label')}
+      description={
+        <>
+          {t('settings.codingModel.description')} <Problem text={problem} />
+        </>
+      }
+      control={
+        <SearchSelect
+          isDisabled={isDisabled}
+          label={t('settings.codingModel.label')}
+          value={chosen ?? INHERIT_CODING_MODEL}
+          items={items}
+          searchPlaceholder={t('settings.codingModel.search')}
+          emptyText={t('settings.codingModel.empty')}
+          onOpen={() => {
+            void fetchModelCatalog(client).then(
+              (response) => setModels(response.models),
+              () => undefined,
+            );
+          }}
+          onChange={(id) =>
+            void save({ codingModelId: id === INHERIT_CODING_MODEL ? null : id })
+          }
+        />
+      }
+    />
   );
 }
 

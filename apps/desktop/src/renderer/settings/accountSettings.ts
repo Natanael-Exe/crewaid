@@ -140,6 +140,7 @@ function merged(settings: UserSettings, body: UpdateUserSettingsBody): UserSetti
   return {
     ...settings,
     ...(body.defaultModelId !== undefined && { defaultModelId: body.defaultModelId }),
+    ...(body.codingModelId !== undefined && { codingModelId: body.codingModelId }),
     ...(body.language !== undefined && { language: body.language }),
     ...(body.timezone !== undefined && { timezone: body.timezone }),
     ...(body.systemLanguage !== undefined && { systemLanguage: body.systemLanguage }),

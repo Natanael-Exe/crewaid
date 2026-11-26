@@ -404,6 +404,9 @@ model Bot {
   avatarUrl           String?
   systemPrompt        String           @db.Text
   modelId             String           @default("default") // key into the AI SDK provider registry
+  // D-241: optional per-bot coding model override (`ProviderModel.id`) used by `code_task`.
+  // Null inherits `UserSettings.codingModelId`, then falls back to `modelId`.
+  codingModelId       String?
   status              BotStatus        @default(IDLE)
   sortOrder           Int              @default(0)
   pinned              Boolean          @default(false)
@@ -1390,7 +1393,9 @@ model ProviderModel {
   createdAt DateTime @default(now())
 
   /// D-086: the users whose `default` alias resolves here.
-  defaultFor UserSettings[]
+  defaultFor UserSettings[] @relation("UserDefaultModel")
+  /// D-241: the users whose account-wide coding model resolves here.
+  codingFor  UserSettings[] @relation("UserCodingModel")
 
   /// One row per upstream id per connection. Two rows for `gpt-5.1` on one
   /// connection are two ids for one model, and a bot pointed at the deleted
@@ -1422,7 +1427,12 @@ model UserSettings {
   /// belongs to, and the resolution path would then have two answers and no
   /// rule for which wins.
   defaultModelId String?
-  defaultModel   ProviderModel? @relation(fields: [defaultModelId], references: [id], onDelete: Restrict)
+  defaultModel   ProviderModel? @relation("UserDefaultModel", fields: [defaultModelId], references: [id], onDelete: Restrict)
+
+  /// D-241: optional account-wide coding model for delegated `code_task` runs.
+  /// Null means each bot uses its own `modelId` (unless overridden per bot).
+  codingModelId String?
+  codingModel   ProviderModel? @relation("UserCodingModel", fields: [codingModelId], references: [id], onDelete: Restrict)
 
   /// D-234: the language and timezone the person chose, null for "Follow
   /// System"/"Auto-detect", beside what a signed-in desktop last reported for
@@ -1438,6 +1448,7 @@ model UserSettings {
   updatedAt DateTime @updatedAt
 
   @@index([defaultModelId])
+  @@index([codingModelId])
 }
 
 /// What a connection talks to. CUSTOM is any public HTTPS endpoint speaking

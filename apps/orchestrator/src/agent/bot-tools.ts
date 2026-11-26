@@ -127,7 +127,7 @@ export function botTools(deps: {
         tool({
           description:
             "Edit one of the user's existing bots: rename it, change its role, rewrite its " +
-            'character brief, point it at another model, or hide or pin it in their sidebar. ' +
+            'character brief, point it at another model or coding model, or hide or pin it in their sidebar. ' +
             'This always needs the user’s approval, so say in your reply what you are changing ' +
             'and why.',
           inputSchema: NativeToolInputs.edit_bot,
@@ -137,6 +137,7 @@ export function botTools(deps: {
             role?: string | undefined;
             systemPrompt?: string | undefined;
             modelId?: string | undefined;
+            codingModelId?: string | null | undefined;
             avatarColor?: string | undefined;
             pinned?: boolean | undefined;
             hiddenFromSidebar?: boolean | undefined;

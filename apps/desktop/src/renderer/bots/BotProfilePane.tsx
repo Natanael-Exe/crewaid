@@ -5,6 +5,7 @@ import type { Bot } from '@crewaid/shared';
 import { IconButtonTooltip } from '../components/ui';
 import { MemoryView } from '../experience/MemoryView';
 import { BotFields } from './BotFields';
+import { BotCodingModelField } from './BotCodingModelField';
 import { BotVoiceField } from './BotVoiceField';
 import type { BotMutation } from '../state/useChat';
 import {
@@ -47,8 +48,10 @@ export function BotProfilePane({
   useEffect(() => setMemoryOpen(false), [bot.id]);
   const stored = draftFromBot(bot);
   const [draft, setDraft] = useState<BotDraft>(stored);
-  // The voice is not part of the create form, so it is kept beside the
-  // shared draft rather than in it, and saved by the same button.
+  // Voice and coding model override are not part of the create form, so they
+  // live beside the shared draft and save through the same button.
+  const storedCodingModelId = bot.codingModelId ?? null;
+  const [codingModelId, setCodingModelId] = useState<string | null>(storedCodingModelId);
   const [voiceId, setVoiceId] = useState<string | null>(bot.voiceId);
   const [saving, setSaving] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
@@ -57,18 +60,20 @@ export function BotProfilePane({
   // changes this one. Keyed on the id AND the stored values so an external
   // patch is not silently masked by a stale draft.
   const seededFor = useRef<string>('');
-  const signature = `${bot.id}|${stored.name}|${stored.role}|${stored.systemPrompt}|${stored.avatarColor}|${stored.avatarShape ?? ''}|${bot.voiceId ?? ''}`;
+  const signature = `${bot.id}|${stored.name}|${stored.role}|${stored.systemPrompt}|${stored.avatarColor}|${stored.avatarShape ?? ''}|${storedCodingModelId ?? ''}|${bot.voiceId ?? ''}`;
   useEffect(() => {
     if (seededFor.current === signature) return;
     seededFor.current = signature;
     setDraft(stored);
+    setCodingModelId(storedCodingModelId);
     setVoiceId(bot.voiceId);
     setFailure(null);
-  }, [signature, stored, bot.voiceId]);
+  }, [signature, stored, storedCodingModelId, bot.voiceId]);
 
   const issue = draftIssue(draft);
+  const codingModelChanged = codingModelId !== storedCodingModelId;
   const voiceChanged = voiceId !== bot.voiceId;
-  const dirty = draftChanged(draft, stored) || voiceChanged;
+  const dirty = draftChanged(draft, stored) || codingModelChanged || voiceChanged;
   const canSave = dirty && issue === null && !saving;
 
   async function save(): Promise<void> {
@@ -77,6 +82,7 @@ export function BotProfilePane({
     setFailure(null);
     const result = await onSave(bot.id, {
       ...toUpdateBody(draft, stored),
+      ...(codingModelChanged && { codingModelId }),
       ...(voiceChanged && { voiceId }),
     });
     setSaving(false);
@@ -130,6 +136,8 @@ export function BotProfilePane({
             />
           </div>
 
+          <BotCodingModelField value={codingModelId} onChange={setCodingModelId} />
+
           <BotVoiceField value={voiceId} onChange={setVoiceId} />
 
           {issue === null ? null : (
@@ -172,6 +180,7 @@ export function BotProfilePane({
               isDisabled={saving}
               onPress={() => {
                 setDraft(stored);
+                setCodingModelId(storedCodingModelId);
                 setVoiceId(bot.voiceId);
                 setFailure(null);
               }}

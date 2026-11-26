@@ -226,6 +226,12 @@ export class BotsService {
     // model, and a bot born pointing at somebody else's row fails at its
     // first turn rather than here.
     if (input.modelId !== undefined) await this.assertModelIsOwned(userId, input.modelId);
+    if (input.codingModelId !== undefined && input.codingModelId !== null) {
+      await this.assertModelIsOwned(userId, input.codingModelId, {
+        allowDefault: false,
+        requireTools: true,
+      });
+    }
     const created = await this.prisma.$transaction(
       async (tx) => {
         const bot = await tx.bot.create({
@@ -239,6 +245,7 @@ export class BotsService {
             avatarShape: input.avatarShape ?? null,
             systemPrompt: input.systemPrompt,
             modelId: input.modelId ?? 'default',
+            ...(input.codingModelId !== undefined && { codingModelId: input.codingModelId }),
             autoReviewRules: input.autoReviewRules ?? DEFAULT_AUTO_REVIEW_RULES,
             ...(input.approvalMode !== undefined && { approvalMode: input.approvalMode }),
           },
@@ -275,14 +282,21 @@ export class BotsService {
    * yours": one message for both, or the endpoint answers whether a given id
    * exists on somebody else's account.
    */
-  private async assertModelIsOwned(userId: string, modelRef: string): Promise<void> {
-    if (modelRef === MODEL_REF_DEFAULT) return;
+  private async assertModelIsOwned(
+    userId: string,
+    modelRef: string,
+    options: { readonly allowDefault?: boolean; readonly requireTools?: boolean } = {},
+  ): Promise<void> {
+    if (options.allowDefault !== false && modelRef === MODEL_REF_DEFAULT) return;
     const owned = await this.prisma.providerModel.findFirst({
       where: { id: modelRef, connection: { userId } },
-      select: { id: true },
+      select: { id: true, supportsTools: true },
     });
     if (owned === null) {
       throw new BadRequestException('no such model on your connections');
+    }
+    if (options.requireTools === true && !owned.supportsTools) {
+      throw new BadRequestException('coding model must support tool calling');
     }
   }
 
@@ -302,6 +316,12 @@ export class BotsService {
       );
     }
     if (input.modelId !== undefined) await this.assertModelIsOwned(userId, input.modelId);
+    if (input.codingModelId !== undefined && input.codingModelId !== null) {
+      await this.assertModelIsOwned(userId, input.codingModelId, {
+        allowDefault: false,
+        requireTools: true,
+      });
+    }
     if (input.groupId !== undefined && input.groupId !== null) {
       await this.assertGroupIsOwned(userId, input.groupId);
     }
@@ -314,6 +334,7 @@ export class BotsService {
         ...(input.avatarShape !== undefined && { avatarShape: input.avatarShape }),
         ...(input.systemPrompt !== undefined && { systemPrompt: input.systemPrompt }),
         ...(input.modelId !== undefined && { modelId: input.modelId }),
+        ...(input.codingModelId !== undefined && { codingModelId: input.codingModelId }),
         ...(input.sortOrder !== undefined && { sortOrder: input.sortOrder }),
         ...(input.pinned !== undefined && { pinned: input.pinned }),
         ...(input.hiddenFromSidebar !== undefined && {
@@ -374,6 +395,7 @@ export class BotsService {
             avatarUrl: source.avatarUrl,
             systemPrompt: source.systemPrompt,
             modelId: source.modelId,
+            codingModelId: source.codingModelId,
             // A second worker on the same material belongs where the first is.
             groupId: source.groupId,
             // Json column default "[]" means this is never null in storage, but

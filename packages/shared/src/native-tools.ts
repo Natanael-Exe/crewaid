@@ -212,6 +212,13 @@ export const NativeToolInputs = {
     role: z.string().min(1).max(128).optional(),
     systemPrompt: z.string().optional(),
     modelId: z.string().optional(),
+    codingModelId: z
+      .string()
+      .nullable()
+      .optional()
+      .describe(
+        'Optional ProviderModel id for delegated code_task runs; pass null to inherit the account coding model or bot model.',
+      ),
     avatarColor: z
       .string()
       .regex(/^#[0-9a-fA-F]{6}$/)
