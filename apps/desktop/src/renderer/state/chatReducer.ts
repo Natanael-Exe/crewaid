@@ -1263,6 +1263,7 @@ function applyFrame(state: ChatState, frame: ServerFrame): ChatState {
     // ignored — the discriminated union makes an omission a compile error.
     case 'turn.step':
     case 'mcp.status':
+    case 'connector.status':
       return state;
     // D-159 §3.8. The run's events arrive on its own delivery log, which the
     // TanStack chat client joins; this reducer holds no run state. What it

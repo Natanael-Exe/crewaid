@@ -34,6 +34,8 @@ export const OWNED_RESOURCE_KINDS = [
   'deliverable',
   // D-222. A call is owned directly by its `userId`.
   'voiceCall',
+  // D-241 Step 5. A local harness connector is owned directly by its `userId`.
+  'localConnector',
 ] as const;
 
 export type OwnedResourceKind = (typeof OWNED_RESOURCE_KINDS)[number];

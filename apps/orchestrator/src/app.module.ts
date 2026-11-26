@@ -29,6 +29,7 @@ import { WsPrincipals } from './ws/ws-principals.js';
 import { UsageModule } from './usage/usage.module.js';
 import { ProvidersModule } from './providers/providers.module.js';
 import { InterbotModule } from './interbot/interbot.module.js';
+import { ConnectorsModule } from './connectors/connectors.module.js';
 import { McpModule } from './mcp/mcp.module.js';
 import { RoutinesModule } from './routines/routines.module.js';
 import { VoiceModule } from './voice/voice.module.js';
@@ -108,6 +109,8 @@ if (!AUTH_BASE_PATH.startsWith(`${API_PREFIX}/`)) {
     //. M6-BE-03 … M6-BE-10 grow inside this module rather than
     // beside it: they are all facets of one server row.
     McpModule,
+    // Opt-in local coding connectors (`crewaid-connect`, D-241 Step 5).
+    ConnectorsModule,
     // Routines: the schedule in Redis, and what a firing runs.
     RoutinesModule,
     // Dictation, voice messages and spoken replies, in both editions.

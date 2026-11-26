@@ -133,7 +133,7 @@ const KEY_ASSIGNMENT_TEXT =
 // A BotFather token is `<bot id>:<secret>`; Telegram's API URLs carry it right after `bot`,
 // so it is matched by its digits rather than a word boundary.
 const VENDOR_KEY_TEXT =
-  /\b(?:sk[-_]|rk_(?:live|test)_|whsec_|gh[pousr]_|github_pat_|xox[abprs]-)[A-Za-z0-9_-]{12,}|\bAIza[0-9A-Za-z_-]{30,}|(?<!\d)\d{5,20}:[A-Za-z0-9_-]{30,}/g;
+  /\b(?:sk[-_]|rk_(?:live|test)_|whsec_|gh[pousr]_|github_pat_|xox[abprs]-|crw_conn_)[A-Za-z0-9_-]{12,}|\bAIza[0-9A-Za-z_-]{30,}|(?<!\d)\d{5,20}:[A-Za-z0-9_-]{30,}/g;
 const CONNECTION_URL_TEXT =
   /\b(?:jdbc:)?(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|rediss|amqp|mssql):\/\/[^\s,;)}\]"'`]+/gi;
 const CREDENTIAL_URL_TEXT = /\b[a-z][a-z\d+.-]*:\/\/[^/\s:@]+:[^@\s]+@[^\s,;)}\]"'`]+/gi;

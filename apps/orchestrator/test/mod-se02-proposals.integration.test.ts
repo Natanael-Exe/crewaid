@@ -147,7 +147,8 @@ describe.skipIf(!process.env['DATABASE_URL'])(
         },
       });
       expect(await createPolicyProposalStore(prisma, { ...s, runId: next.id }).memory()).toEqual([
-        { binding: p.binding, mode: 'AUTO', authority: false },
+        // Not yet dispatched: the only state in which an `alwaysAsk` approval may cover its call.
+        { binding: p.binding, mode: 'AUTO', authority: false, dispatched: false },
       ]);
       expect(await createPolicyProposalStore(prisma, await scope()).memory()).toEqual([]);
       const other = await scope();
@@ -168,7 +169,9 @@ describe.skipIf(!process.env['DATABASE_URL'])(
       const args = { command: 'pwd' };
       const binding = { ...p.binding, argsHash: policyHash(args) };
       await store.resolve(id, { approved: true, args, binding });
-      expect(await store.memory()).toEqual([{ binding, mode: 'AUTO', authority: false }]);
+      expect(await store.memory()).toEqual([
+        { binding, mode: 'AUTO', authority: false, dispatched: false },
+      ]);
     });
 
     it('persists commit receipts and does not turn a FULL policy resolution into operator memory', async () => {

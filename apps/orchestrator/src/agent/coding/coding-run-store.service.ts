@@ -10,6 +10,9 @@ export interface StartCodingRunInput {
   readonly runnerKind: CodingRunnerKind;
   readonly runnerId: string;
   readonly cwd: string;
+  readonly connectorId?: string | null;
+  readonly payloadHash?: string | null;
+  readonly reportMode?: string | null;
 }
 
 export interface SettleCodingRunInput {
@@ -26,6 +29,7 @@ export interface SettleCodingRunInput {
   readonly cacheCreationTokens: number;
   readonly filesChanged: readonly string[];
   readonly errorCode: string | null;
+  readonly acpSessionId?: string | null;
 }
 
 export interface CodingRunStore {
@@ -56,6 +60,9 @@ export class CodingRunStoreService implements CodingRunStore {
         runnerKind: input.runnerKind,
         runnerId: input.runnerId,
         cwd: input.cwd,
+        ...(input.connectorId === undefined ? {} : { connectorId: input.connectorId }),
+        ...(input.payloadHash === undefined ? {} : { payloadHash: input.payloadHash }),
+        ...(input.reportMode === undefined ? {} : { reportMode: input.reportMode }),
         status: 'running',
       },
     });
@@ -80,6 +87,7 @@ export class CodingRunStoreService implements CodingRunStore {
         cacheCreationTokens: Math.max(0, Math.round(input.cacheCreationTokens)),
         filesChanged: [...input.filesChanged],
         errorCode: input.errorCode,
+        ...(input.acpSessionId === undefined ? {} : { acpSessionId: input.acpSessionId }),
         endedAt: new Date(),
       },
     });

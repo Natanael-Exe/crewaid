@@ -162,6 +162,16 @@ const VOCABULARY: Readonly<Record<string, ToolVocabularyEntry>> = {
     label: 'Run a coding task',
     summary: 'Delegates a multi-file coding task to a focused coding worker on the bot’s computer.',
   },
+  list_local_connectors: {
+    alias: 'local-connectors',
+    label: 'List local connectors',
+    summary: 'Lists paired local repositories connected from your machine and their available coding harnesses.',
+  },
+  local_code_task: {
+    alias: 'local-code-task',
+    label: 'Run a local coding task',
+    summary: 'Delegates a coding task to a local harness on your machine via a paired connector — always asks first.',
+  },
 
   // The team
   create_bot: {

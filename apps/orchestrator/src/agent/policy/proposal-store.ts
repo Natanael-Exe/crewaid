@@ -349,6 +349,7 @@ export function createPolicyProposalStore(
             binding: resolution.data.binding,
             mode: proposal.data.mode,
             authority: proposal.data.authority,
+            dispatched: resolution.data.dispatchedAt !== undefined,
           });
         }
       }

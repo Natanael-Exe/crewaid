@@ -63,6 +63,8 @@ export class OwnershipService {
     taskSeries: (userId, id) => this.prisma.taskSeries.findFirst({ where: { id, userId } }),
     deliverable: (userId, id) => this.prisma.deliverable.findFirst({ where: { id, userId } }),
     voiceCall: (userId, id) => this.prisma.voiceCall.findFirst({ where: { id, userId } }),
+    localConnector: (userId, id) =>
+      this.prisma.localConnector.findFirst({ where: { id, userId } }),
   } satisfies Record<OwnedResourceKind, OwnershipFinder>;
 
   /**

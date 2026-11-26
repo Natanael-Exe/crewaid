@@ -141,6 +141,17 @@
     },
     "invalid": { "goal": "" }
   },
+  "list_local_connectors": { "valid": {}, "invalid": null },
+  "local_code_task": {
+    "valid": {
+      "connectorId": "conn_abc123",
+      "goal": "Add pagination to the orders list and push a feature branch",
+      "relativeCwd": "apps/web",
+      "harness": "claude-code",
+      "verifyCommand": "pnpm test"
+    },
+    "invalid": { "connectorId": "", "goal": "" }
+  },
   "browser_navigate": { "valid": { "url": "https://example.com" }, "invalid": { "url": 1 } },
   "browser_read": { "valid": {}, "invalid": null },
   "browser_click": { "valid": { "reference": "r1_e2" }, "invalid": { "selector": "#send" } },

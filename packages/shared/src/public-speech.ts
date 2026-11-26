@@ -64,7 +64,7 @@ const START_TOOL_OPENERS = [
 
 /** Native Crewaid tool names that must never appear as raw XML invocations in prose. */
 const NATIVE_XML_TOOL_PATTERN =
-  'fs_write|fs_read|fs_edit|fs_grep|fs_glob|process_[a-z_]+|code_task|send_message|attach_file|shell|board_read|board_add|board_update|present_visual|use_plugin_tool|find_plugin_tools|browser_[a-z_]+|task_[a-z_]+|goal_[a-z_]+|deliverable_[a-z_]+|memory_[a-z_]+';
+  'fs_write|fs_read|fs_edit|fs_grep|fs_glob|process_[a-z_]+|code_task|local_code_task|list_local_connectors|send_message|attach_file|shell|board_read|board_add|board_update|present_visual|use_plugin_tool|find_plugin_tools|browser_[a-z_]+|task_[a-z_]+|goal_[a-z_]+|deliverable_[a-z_]+|memory_[a-z_]+';
 
 /**
  * Structured leaked tool-call markup occurring anywhere outside fenced/inline code.

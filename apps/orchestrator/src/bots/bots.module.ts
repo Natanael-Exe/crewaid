@@ -13,6 +13,7 @@ import { TurnControlService } from '../agent/turn-control.service.js';
 import { TurnEventsModule } from '../agent/turn-events.module.js';
 import { SandboxModule } from '../sandbox/sandbox.module.js';
 import { ToolRegistry } from '../agent/tool-registry.js';
+import { TurnConnectors } from '../agent/turn-connectors.js';
 import { TurnPlugins } from '../agent/turn-plugins.js';
 import { TanStackTurns } from '../agent/tanstack-turns.js';
 import {
@@ -164,6 +165,9 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
     // `McpModule` registers itself into it, the same way the tool groups
     // register into `ToolRegistry` from wherever their dependencies live.
     TurnPlugins,
+    // The holder a turn asks for opt-in local connector tools. Empty until
+    // `ConnectorsModule` registers itself into it on init.
+    TurnConnectors,
     // The holder `ChatSendService` registers itself into, so background
     // triggers reach the producer without importing the module that imports
     // this one.
@@ -181,6 +185,7 @@ import { AI_TELEMETRY, AiTelemetryService } from '../telemetry/ai-telemetry.js';
     TurnControlService,
     ToolRegistry,
     TurnPlugins,
+    TurnConnectors,
     TanStackTurns,
     // The TanStack send route assembles a turn from the same services
     // this module already owns, rather than constructing its own browser or

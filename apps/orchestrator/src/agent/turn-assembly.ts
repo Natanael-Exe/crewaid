@@ -22,6 +22,11 @@ import { SEAT_BUILTIN, type ResolvedTools, type ToolRegistry } from './tool-regi
 import { SEAT_TOOL_KINDS } from './seat-admission.js';
 import { createTurnComputer, type TurnComputer } from './turn-computer.js';
 import { createTurnBrowser, type TurnBrowser } from './turn-browser.js';
+import {
+  NO_CONNECTOR_TOOLS,
+  type TurnConnectors,
+  type TurnConnectorTools,
+} from './turn-connectors.js';
 import { NO_PLUGIN_TOOLS, type BotPluginTools, type TurnPlugins } from './turn-plugins.js';
 import { MACHINE_HOME } from './workspace-paths.js';
 import type { AgentInstructionsInput } from './agent-instructions.js';
@@ -72,6 +77,7 @@ export type TurnAssemblyServices = {
   readonly prisma: PrismaService;
   readonly tools: ToolRegistry;
   readonly plugins: TurnPlugins;
+  readonly connectors?: TurnConnectors | undefined;
   readonly computers: SandboxReadinessService;
   readonly browsers: AgentBrowserService;
   readonly sessions: AgentSessionService;
@@ -187,6 +193,20 @@ export async function assembleTurn(
     });
   }
 
+  let connectorTools: TurnConnectorTools = NO_CONNECTOR_TOOLS;
+  if (services.connectors !== undefined) {
+    try {
+      connectorTools = {
+        ...NO_CONNECTOR_TOOLS,
+        ...(await services.connectors.toolsForTurn(userId, bot.id, bot.name)),
+      };
+    } catch (error) {
+      logger.warn('turn.connectors.unavailable', {
+        detail: error instanceof Error ? error.message : 'unknown',
+      });
+    }
+  }
+
   // Created here and disposed by `dispose`, so completion,
   // cancellation, a refusal and a failure all release the same way.
   const computer = createTurnComputer({
@@ -252,7 +272,10 @@ export async function assembleTurn(
         return granted;
       },
     },
-    input.pluginSurface === 'deferred' ? pluginTools.deferred : pluginTools.tools,
+    [
+      ...(input.pluginSurface === 'deferred' ? pluginTools.deferred : pluginTools.tools),
+      ...connectorTools.tools,
+    ],
   );
   const policy = createPolicyRuntime({
     project: (name, args) => resolvedTools.projectCall(name, args),
@@ -313,6 +336,7 @@ export async function assembleTurn(
         plugins: pluginTools.servers,
         pluginSurface: input.pluginSurface ?? 'bridge',
       }),
+      ...(connectorTools.hasConnectors && { hasLocalConnectors: true }),
       workspace: { home: `${MACHINE_HOME}/agents/${bot.id}` },
       person: {
         ...(preferences.language !== null && { languageName: languageName(preferences.language) }),
