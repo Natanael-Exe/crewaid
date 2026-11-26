@@ -175,6 +175,11 @@
       "file": "tools/guard-probes/ee-core-import.probe.ts",
       "rule": "no-restricted-imports",
       "guard": "D-238 \u2014 the AGPL core never imports from an ee/ directory"
+    },
+    {
+      "file": "tools/guard-probes/d241-acp-outside-seam.probe.ts",
+      "rule": "no-restricted-imports",
+      "guard": "D-241 \u2014 @agentclientprotocol/sdk enters the workspace only through packages/acp-core"
     }
   ]
 }

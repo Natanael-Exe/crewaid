@@ -103,6 +103,9 @@ const LOAD_BEARING = {
   // (rehype-raw, rehype-sanitize, rehype-harden) is configuration a minor
   // release can change, and that is a security boundary.
   streamdown: '2.7.0',
+  // D-241: the Agent Client Protocol SDK shared by local and sandbox coding
+  // runners behind packages/acp-core. Its v1/v2 surface evolves across minors.
+  '@agentclientprotocol/sdk': '2.12.0',
 };
 
 /**
