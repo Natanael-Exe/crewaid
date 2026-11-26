@@ -1,12 +1,15 @@
 import {
   app,
   BrowserWindow,
+  dialog,
   ipcMain,
   Menu,
   nativeTheme,
+  Notification,
   safeStorage,
   session,
   shell,
+  utilityProcess,
   type WebContents,
 } from 'electron';
 import { readFileSync } from 'node:fs';
@@ -45,6 +48,19 @@ import { registerMediaPermissions } from './mediaPermission.js';
 import { openableUrl, registerOpenExternalIpc } from './openExternal.js';
 import { isRendererUrl, rendererEntryUrl } from './rendererLocation.js';
 import { createTokenStore, isTrustedRendererSender, registerTokenIpc } from './tokenStore.js';
+import { createLocalConnectorStore } from './localConnectorStore.js';
+import {
+  createLocalConnectorManager,
+  registerLocalConnectorIpc,
+  type LocalConnectorManager,
+} from './localConnectorManager.js';
+import {
+  LOCAL_CONNECTOR_PROMPT_CHANNEL,
+  LOCAL_CONNECTOR_STATE_CHANNEL,
+  type LocalConnectorPromptEvent,
+  type ManagedConnectorView,
+  type PickFolderResult,
+} from './localConnectorTypes.js';
 
 /**
  * `@crewaid/desktop` — Electron main process.
@@ -123,6 +139,7 @@ const rendererWindows = new Set<BrowserWindow>();
 
 let signInController: SignInController | undefined;
 let updateController: UpdateController | undefined;
+let localConnectorManager: LocalConnectorManager | undefined;
 
 function registerIpc(): void {
   const fileStore = createTokenStore({
@@ -190,6 +207,97 @@ function registerIpc(): void {
   });
   registerUpdateIpc({ ipcMain, isTrustedSender, controller: updateController });
   if (app.isPackaged) updateController.start();
+
+  const localConnectorStore = createLocalConnectorStore({
+    safeStorage,
+    userDataPath: app.getPath('userData'),
+  });
+  localConnectorManager = createLocalConnectorManager({
+    store: localConnectorStore,
+    workerPath: path.join(__dirname, 'localConnectorWorker.cjs'),
+    appVersion: app.getVersion(),
+    forkWorker: (workerPath, env) => {
+      const child = utilityProcess.fork(workerPath, [], {
+        env,
+        serviceName: 'Crewaid Local Connector',
+      });
+      return {
+        postMessage: (message) => child.postMessage(message),
+        onMessage: (listener) => {
+          child.on('message', listener);
+        },
+        onExit: (listener) => {
+          child.on('exit', listener);
+        },
+        kill: () => child.kill(),
+      };
+    },
+    onStateChanged: broadcastLocalConnectorState,
+    onPromptChanged: broadcastLocalConnectorPrompt,
+    onNotifyPrompt: notifyLocalConnectorPrompt,
+  });
+  registerLocalConnectorIpc({
+    ipcMain,
+    isTrustedSender,
+    manager: localConnectorManager,
+    pickFolder: pickLocalFolder,
+  });
+  const storedAuth = store.get();
+  if (storedAuth.status === 'configured' && storedAuth.credentials.orchestratorToken !== undefined) {
+    localConnectorManager.startAutoConnect();
+  }
+}
+
+function broadcastLocalConnectorState(connectors: readonly ManagedConnectorView[]): void {
+  for (const window of rendererWindows) {
+    if (!window.isDestroyed()) window.webContents.send(LOCAL_CONNECTOR_STATE_CHANNEL, connectors);
+  }
+}
+
+function broadcastLocalConnectorPrompt(prompt: LocalConnectorPromptEvent | null): void {
+  for (const window of rendererWindows) {
+    if (!window.isDestroyed()) window.webContents.send(LOCAL_CONNECTOR_PROMPT_CHANNEL, prompt);
+  }
+}
+
+function notifyLocalConnectorPrompt(title: string, body: string): void {
+  const focused = BrowserWindow.getFocusedWindow();
+  if (focused !== null && rendererWindows.has(focused)) return;
+  if (!Notification.isSupported()) return;
+  try {
+    const note = new Notification({ title, body });
+    note.on('click', () => focusRendererWindow());
+    note.show();
+  } catch {
+    // Best-effort OS notification only.
+  }
+}
+
+async function pickLocalFolder(): Promise<PickFolderResult> {
+  const focused = BrowserWindow.getFocusedWindow();
+  const parent =
+    focused !== null && rendererWindows.has(focused) && !focused.isDestroyed()
+      ? focused
+      : [...rendererWindows].find((win) => !win.isDestroyed());
+  const dialogOptions: Electron.OpenDialogOptions = {
+    properties: ['openDirectory', 'createDirectory'],
+  };
+  const result =
+    parent !== undefined
+      ? await dialog.showOpenDialog(parent, dialogOptions)
+      : await dialog.showOpenDialog(dialogOptions);
+  if (result.canceled || result.filePaths.length === 0) {
+    return { status: 'cancelled' };
+  }
+  const chosen = result.filePaths[0];
+  if (chosen === undefined || chosen.trim() === '') {
+    return { status: 'cancelled' };
+  }
+  return {
+    status: 'selected',
+    directory: chosen,
+    name: path.basename(chosen) || chosen,
+  };
 }
 
 /** Every window, like the auth status: an update is a fact about the machine. */
@@ -210,6 +318,11 @@ function broadcastUpdateState(state: UpdateState): void {
  * someone reloaded it.
  */
 function broadcastAuthStatus(status: AuthStatus): void {
+  if (status.status === 'signed-in') {
+    localConnectorManager?.startAutoConnect();
+  } else if (status.status === 'signed-out') {
+    localConnectorManager?.stopAll();
+  }
   for (const window of rendererWindows) {
     if (!window.isDestroyed()) window.webContents.send(AUTH_CHANGED_CHANNEL, status);
   }
@@ -473,6 +586,10 @@ if (app.requestSingleInstanceLock()) {
 } else {
   app.quit();
 }
+
+app.on('before-quit', () => {
+  localConnectorManager?.stopAll();
+});
 
 app.on('window-all-closed', () => {
   // Non-macOS convention: quit when all windows are closed.

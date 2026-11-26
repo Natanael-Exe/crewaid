@@ -45,6 +45,12 @@ export function harnessEnvironment(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return copy;
 }
 
+export interface ConnectorClientRuntimeState {
+  readonly state: 'connecting' | 'online' | 'busy' | 'reconnecting' | 'error' | 'stopped';
+  readonly error?: string;
+  readonly permanent?: boolean;
+}
+
 export interface ConnectorClientOptions {
   readonly wsUrl: string;
   readonly token: string;
@@ -61,7 +67,10 @@ export interface ConnectorClientOptions {
   readonly verbose?: boolean;
   readonly reconnectBaseMs?: number;
   readonly reconnectMaxMs?: number;
+  /** Optional base environment passed to spawned harnesses (defaults to process.env). */
+  readonly baseEnv?: NodeJS.ProcessEnv;
   readonly log?: (line: string) => void;
+  readonly onStateChange?: (state: ConnectorClientRuntimeState) => void;
   readonly confirmTask: (req: LocalTaskConfirmRequest, signal: AbortSignal) => Promise<boolean>;
   readonly requestPermission: (
     req: AcpPermissionRequest,
@@ -211,8 +220,13 @@ export class ConnectorClient {
     });
   }
 
+  private emitState(next: ConnectorClientRuntimeState): void {
+    this.options.onStateChange?.(next);
+  }
+
   start(): void {
     if (this.stopped) return;
+    this.emitState({ state: 'connecting' });
     this.connect();
   }
 
@@ -232,6 +246,9 @@ export class ConnectorClient {
       } catch {
         // Ignore close errors during shutdown.
       }
+    }
+    if (exitCode === 0) {
+      this.emitState({ state: 'stopped' });
     }
     this.resolveDone?.(exitCode);
   }
@@ -273,9 +290,10 @@ export class ConnectorClient {
       if (this.socket !== ws) return;
       const status = res.statusCode ?? 0;
       if (status === 401 || status === 403) {
-        this.log(
-          `Authentication failed (HTTP ${String(status)}). Check your connector token or rotate it in Crewaid Settings → Local harnesses.`,
-        );
+        const msg =
+          `Authentication failed (HTTP ${String(status)}). Check your connector token or rotate it in Crewaid Settings → Local harnesses.`;
+        this.log(msg);
+        this.emitState({ state: 'error', error: msg, permanent: true });
         this.stop(1);
       } else {
         this.log(`Server rejected WebSocket upgrade (HTTP ${String(status)}); retrying…`);
@@ -298,14 +316,15 @@ export class ConnectorClient {
           code === 4003
             ? 'Please update crewaid-connect to the latest version (npx crewaid-connect@latest).'
             : 'Token was rotated or connector was revoked in Crewaid Settings.';
-        this.log(
-          `Disconnected permanently (${String(code)}${reason ? `: ${reason}` : ''}). ${guidance}`,
-        );
+        const msg = `Disconnected permanently (${String(code)}${reason ? `: ${reason}` : ''}). ${guidance}`;
+        this.log(msg);
+        this.emitState({ state: 'error', error: msg, permanent: true });
         this.stop(1);
         return;
       }
 
       this.log(`Disconnected (${String(code)}${reason ? `: ${reason}` : ''}). Reconnecting…`);
+      this.emitState({ state: 'reconnecting' });
       this.armDisconnectGraceIfBusy();
       this.scheduleReconnect();
     });
@@ -390,11 +409,13 @@ export class ConnectorClient {
             task.abortController.abort();
           }
         }
+        this.emitState({ state: this.activeTask !== null ? 'busy' : 'online' });
         return;
       }
       case 'connector.error': {
         this.log(`Server error (${frame.code}): ${frame.message}`);
         if (frame.code === 'CLI_OUTDATED' || frame.code === 'UNAUTHORIZED') {
+          this.emitState({ state: 'error', error: frame.message, permanent: true });
           this.stop(1);
         }
         return;
@@ -480,6 +501,7 @@ export class ConnectorClient {
       pendingResult: undefined,
     };
     this.activeTask = task;
+    this.emitState({ state: 'busy' });
 
     try {
       // Integrity check catching serialization/routing bugs between server and CLI.
@@ -580,7 +602,7 @@ export class ConnectorClient {
 
       const child = spawn(resolvedCmd.command, [...resolvedCmd.args], {
         cwd: confined.absoluteCwd,
-        env: harnessEnvironment(process.env),
+        env: harnessEnvironment(this.options.baseEnv ?? process.env),
         stdio: ['pipe', 'pipe', 'pipe'],
         shell: false,
       });
@@ -685,6 +707,9 @@ export class ConnectorClient {
       if (this.activeTask === task && task.pendingResult === undefined) {
         clearTimeout(task.graceTimer);
         this.activeTask = null;
+      }
+      if (!this.stopped && this.activeTask === null && this.socket?.readyState === WS_OPEN) {
+        this.emitState({ state: 'online' });
       }
     }
   }

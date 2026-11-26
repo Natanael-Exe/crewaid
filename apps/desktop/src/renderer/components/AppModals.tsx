@@ -22,6 +22,7 @@ import { MessageWorkDialogs, type MessageWorkRequest } from '../work/MessageWork
 import { ManageProjectsDialog, NewProjectDialog } from '../work/ProjectDialogs';
 import { SearchPalette, type SearchTarget } from '../work/SearchPalette';
 import { DeleteMessagesDialog, type DeleteMessagesRequest } from './DeleteMessagesDialog';
+import { LocalConnectorPromptHost } from './LocalConnectorPromptModal';
 
 const TemplatesModal = lazy(() =>
   import('../experience/TemplatesModal').then((module) => ({ default: module.TemplatesModal })),
@@ -244,6 +245,7 @@ export function AppModals({
         }}
         onSkillSaved={skillReview.onSkillSaved}
       />
+      <LocalConnectorPromptHost />
     </>
   );
 }
