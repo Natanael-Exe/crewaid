@@ -239,8 +239,8 @@ export const EMPTY_MODEL_DRAFT: ModelDraft = {
   label: '',
   contextWindow: '',
   tools: true,
-  vision: false,
-  reasoning: false,
+  vision: true,
+  reasoning: true,
 };
 
 /**

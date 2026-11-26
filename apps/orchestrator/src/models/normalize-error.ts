@@ -1,6 +1,16 @@
-import type { Locale, ModelErrorCode, NormalizedModelError } from '@crewaid/shared';
+import type {
+  Locale,
+  ModelCapabilities,
+  ModelErrorCode,
+  NormalizedModelError,
+} from '@crewaid/shared';
 import { ModelErrorCodeSchema } from '@crewaid/shared';
-import { failureCopy, setupSentence } from './failure-copy.js';
+import {
+  failureCopy,
+  setupSentence,
+  unsupportedCapabilitySentence,
+  type ModelCapabilityName,
+} from './failure-copy.js';
 import { ModelAllowanceExhaustedError } from './included-models.port.js';
 import { ModelSetupError } from './model-setup-error.js';
 
@@ -114,10 +124,68 @@ export function isRetryableModelCode(code: ModelErrorCode): boolean {
  */
 export type ModelErrorContext = {
   modelId?: string;
+  /** Human label for the selected model, used in capability mismatch banners. */
+  modelLabel?: string;
+  /** Capabilities currently configured on the model row. */
+  capabilities?: ModelCapabilities;
   source?: string;
   /** The account's language, which the sentence a person reads is in. */
   language?: Locale | null;
 };
+
+const VISION_UNSUPPORTED_PATTERNS: readonly RegExp[] = [
+  /\b(?:does not|doesn't|do not|don't|cannot|can't)\s+support\s+(?:image|images|vision|multimodal)\b/i,
+  /\bno\s+endpoints?\s+found\s+that\s+support\s+(?:image|vision|multimodal)\b/i,
+  /\b(?:image|images|image\s+input|image_url|vision|multimodal)\s+(?:is|are)?\s*(?:not\s+supported|unsupported)\b/i,
+  /\bunsupported\s+(?:content\s+type|input|modality|parameter)[^.]{0,40}\b(?:image|image_url|vision)\b/i,
+  /\b(?:cannot|can't|unable\s+to)\s+(?:read|process|accept|handle)\s+images?\b/i,
+  /\bnot\s+a\s+(?:vision|multimodal)\s+model\b/i,
+  /\bonly\s+supports?\s+text(?:\s+input)?\b/i,
+];
+
+const TOOLS_UNSUPPORTED_PATTERNS: readonly RegExp[] = [
+  /\b(?:does not|doesn't|do not|don't|cannot|can't)\s+support\s+(?:tool|tools|tool\s+use|tool\s+calling|function|functions|function\s+calling)\b/i,
+  /\bno\s+endpoints?\s+found\s+that\s+support\s+(?:tool|tools|tool\s+use|function)\b/i,
+  /\b(?:tool|tools|tool\s+use|tool\s+calling|tool_choice|function|functions|function\s+calling)\s+(?:is|are)?\s*(?:not\s+supported|unsupported)\b/i,
+  /\bunsupported\s+(?:parameter|field|feature)[^.]{0,40}\b(?:tool|tools|tool_choice|function|functions)\b/i,
+];
+
+const REASONING_UNSUPPORTED_PATTERNS: readonly RegExp[] = [
+  /\b(?:does not|doesn't|do not|don't|cannot|can't)\s+support\s+(?:reasoning|thinking|extended\s+thinking)\b/i,
+  /\bno\s+endpoints?\s+found\s+that\s+support\s+(?:reasoning|thinking)\b/i,
+  /\b(?:reasoning|reasoning_effort|thinking|extended\s+thinking|thinking_budget|budget_tokens)\s+(?:is|are)?\s*(?:not\s+supported|unsupported)\b/i,
+  /\bunsupported\s+(?:parameter|field|feature)[^.]{0,40}\b(?:reasoning|reasoning_effort|thinking|budget_tokens)\b/i,
+];
+
+function detectUnsupportedCapability(
+  texts: readonly string[],
+  capabilities: ModelCapabilities | undefined,
+): ModelCapabilityName | undefined {
+  const combined = texts
+    .filter((entry) => entry.trim() !== '')
+    .map((entry) => entry.slice(0, EXPLANATION_MAX * 4))
+    .join('\n');
+  if (combined === '') return undefined;
+  if (
+    capabilities?.vision !== false &&
+    VISION_UNSUPPORTED_PATTERNS.some((pattern) => pattern.test(combined))
+  ) {
+    return 'vision';
+  }
+  if (
+    capabilities?.tools !== false &&
+    TOOLS_UNSUPPORTED_PATTERNS.some((pattern) => pattern.test(combined))
+  ) {
+    return 'tools';
+  }
+  if (
+    capabilities?.reasoning !== false &&
+    REASONING_UNSUPPORTED_PATTERNS.some((pattern) => pattern.test(combined))
+  ) {
+    return 'reasoning';
+  }
+  return undefined;
+}
 
 /**
  * The single place the normalized shape is assembled. Every branch below
@@ -134,13 +202,21 @@ function normalized(
   context?: ModelErrorContext,
   said: readonly string[] = [],
 ): NormalizedModelError {
+  const unsupported =
+    code === 'INVALID_REQUEST' || code === 'UNKNOWN'
+      ? detectUnsupportedCapability([...said, detail], context?.capabilities)
+      : undefined;
+  const effectiveCode: ModelErrorCode = unsupported === undefined ? code : 'INVALID_REQUEST';
   const source = context?.source?.trim().slice(0, 80);
   const text = source ? firstReadable(said) : undefined;
   return {
-    code,
-    message: failureCopy(context?.language).model[code],
+    code: effectiveCode,
+    message:
+      unsupported === undefined
+        ? failureCopy(context?.language).model[effectiveCode]
+        : unsupportedCapabilitySentence(unsupported, context?.modelLabel),
     ...(context?.modelId !== undefined && { modelId: context.modelId }),
-    retryable: RETRYABLE.has(code),
+    retryable: RETRYABLE.has(effectiveCode),
     ...(source && text !== undefined && { explanation: { source, text } }),
     detail,
   };

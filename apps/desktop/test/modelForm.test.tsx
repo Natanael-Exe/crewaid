@@ -64,18 +64,18 @@ describe('V1-20 — the capability toggles can be pressed', () => {
     expect(found.map((entry) => entry.label)).toEqual(['Tools', 'Vision', 'Reasoning']);
   });
 
-  it('shows the draft it was given, not the defaults', () => {
-    // The bug hid here too: with no control, the markup looked right whatever
-    // the draft said.
+  it('defaults all capabilities to enabled and honours an existing row draft on edit', () => {
     const fresh = switches(render());
     expect(fresh.find((entry) => entry.label === 'Tools')?.on).toBe(true);
-    expect(fresh.find((entry) => entry.label === 'Vision')?.on).toBe(false);
+    expect(fresh.find((entry) => entry.label === 'Vision')?.on).toBe(true);
+    expect(fresh.find((entry) => entry.label === 'Reasoning')?.on).toBe(true);
 
     // An edit form opens on the row's own capabilities (V1-20), so a model
-    // that already has vision must not show up as if it did not.
-    const edited = switches(render({ ...EMPTY_MODEL_DRAFT, vision: true, reasoning: true }));
-    expect(edited.find((entry) => entry.label === 'Vision')?.on).toBe(true);
-    expect(edited.find((entry) => entry.label === 'Reasoning')?.on).toBe(true);
+    // with capabilities turned off must not show up as if they were on.
+    const edited = switches(render({ ...EMPTY_MODEL_DRAFT, vision: false, reasoning: false }));
+    expect(edited.find((entry) => entry.label === 'Tools')?.on).toBe(true);
+    expect(edited.find((entry) => entry.label === 'Vision')?.on).toBe(false);
+    expect(edited.find((entry) => entry.label === 'Reasoning')?.on).toBe(false);
   });
 
   it('says what the vision flag does, which is not "gates a turn"', () => {

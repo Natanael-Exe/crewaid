@@ -22,9 +22,9 @@ import { useT } from '../i18n/i18n';
  *
  * The capability toggles are new here
  *
- * `ModelDraft` has carried `tools`, `vision` and `reasoning` for a while and
- * the add form never rendered them, so every model created through this app
- * took the defaults: tools on, vision and reasoning off.
+ * `ModelDraft` carries `tools`, `vision` and `reasoning`, all enabled by
+ * default for new models; if a selected model does not support one of them,
+ * the chat error banner tells the operator which capability to turn off here.
  *
  * And they were unclickable
  *

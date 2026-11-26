@@ -177,3 +177,66 @@ describe('a setup problem is said in its own words (D-228)', () => {
     expect(NormalizedModelErrorSchema.safeParse(failure).success).toBe(true);
   });
 });
+
+describe('unsupported model capability banner errors', () => {
+  const enabledAll = { tools: true, vision: true, reasoning: true };
+
+  it('tells the user to turn off Vision when a provider rejects image input', () => {
+    const failure = normalizeRunError(
+      {
+        message: 'Provider returned error',
+        code: '404',
+        rawEvent: {
+          code: 404,
+          message: 'No endpoints found that support image input',
+        },
+      },
+      { ...context, modelLabel: 'DeepSeek V3', capabilities: enabledAll },
+    );
+    expect(failure.code).toBe('INVALID_REQUEST');
+    expect(failure.message).toContain('DeepSeek V3 does not support Vision (image input)');
+    expect(failure.message).toContain('Turn off Vision for this model in Settings → Models');
+    expect(NormalizedModelErrorSchema.safeParse(failure).success).toBe(true);
+  });
+
+  it('tells the user to turn off Tools when a provider rejects tool/function calling', () => {
+    const failure = normalizeRunError(
+      {
+        message: '404 No endpoints found that support tool use.',
+        code: '404',
+      },
+      { ...context, modelLabel: 'Llama 3.1 Base', capabilities: enabledAll },
+    );
+    expect(failure.code).toBe('INVALID_REQUEST');
+    expect(failure.message).toContain('Llama 3.1 Base does not support Tools (function calling)');
+    expect(failure.message).toContain('Turn off Tools for this model in Settings → Models');
+  });
+
+  it('tells the user to turn off Reasoning when a provider rejects thinking/reasoning parameters', () => {
+    const failure = normalizeRunError(
+      {
+        message: '400 This model does not support extended thinking.',
+        code: '400',
+      },
+      { ...context, modelLabel: 'Haiku', capabilities: enabledAll },
+    );
+    expect(failure.code).toBe('INVALID_REQUEST');
+    expect(failure.message).toContain('Haiku does not support Reasoning.');
+    expect(failure.message).toContain('Turn off Reasoning for this model in Settings → Models');
+  });
+
+  it('does not blame a capability that is already disabled on the model', () => {
+    const failure = normalizeRunError(
+      {
+        message: '400 This model does not support image input.',
+        code: '400',
+      },
+      {
+        ...context,
+        modelLabel: 'Text Only',
+        capabilities: { tools: true, vision: false, reasoning: true },
+      },
+    );
+    expect(failure.message).not.toContain('Turn off Vision');
+  });
+});

@@ -1,6 +1,12 @@
 import { EventType, type StreamChunk } from '@tanstack/ai';
 import type { ChatWithInterruptsPersistence } from '@tanstack/ai-persistence';
-import type { BotStatus, CorruptOutputKind, Locale, ProviderExplanation } from '@crewaid/shared';
+import type {
+  BotStatus,
+  CorruptOutputKind,
+  Locale,
+  ModelCapabilities,
+  ProviderExplanation,
+} from '@crewaid/shared';
 import type { ResolvedTextModel } from '../../models/model-resolution.service.js';
 import type { ModelErrorContext } from '../../models/normalize-error.js';
 import type { NormalizedUsage } from '../../models/tanstack/usage.js';
@@ -58,6 +64,8 @@ export class RunExecutionState {
   // Provider's own reason, carried on the terminal event separately from the run row's `{ code, message }`.
   explanation: ProviderExplanation | undefined;
   explainedBy: string | undefined;
+  modelLabel: string | undefined;
+  modelCapabilities: ModelCapabilities | undefined;
   terminal: StreamChunk | undefined;
   workingMs = 0;
   stoppedBy: ExecutionOutcome['stoppedBy'];
@@ -103,12 +111,18 @@ export class RunExecutionState {
   ): void {
     this.usage = { ...persistence.budget.usage, modelId: resolved.modelId };
     this.explainedBy = resolved.included ? undefined : resolved.connectionName;
+    this.modelLabel = resolved.label;
+    this.modelCapabilities = resolved.capabilities;
   }
 
   errorContext(modelId: string): ModelErrorContext {
-    return this.explainedBy === undefined
-      ? { modelId, language: this.language }
-      : { modelId, source: this.explainedBy, language: this.language };
+    return {
+      modelId,
+      language: this.language,
+      ...(this.modelLabel === undefined ? {} : { modelLabel: this.modelLabel }),
+      ...(this.modelCapabilities === undefined ? {} : { capabilities: this.modelCapabilities }),
+      ...(this.explainedBy === undefined ? {} : { source: this.explainedBy }),
+    };
   }
 
   completedSteps(baseSteps: number): number {

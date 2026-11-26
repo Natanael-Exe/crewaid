@@ -242,7 +242,7 @@ export class TanStackExecutionBackend implements ExecutionBackend {
           outcome: { type: 'success' },
         };
       } else {
-        const runTools = tanstackTools(request.tools);
+        const runTools = resolved.capabilities.tools ? tanstackTools(request.tools) : [];
         const streamRehydrators = createStreamRehydratorRegistry(vault);
         for await (const chunk of chat({
           adapter: resolved.adapter,
@@ -290,7 +290,7 @@ export class TanStackExecutionBackend implements ExecutionBackend {
                 }),
             }),
             // Runs last so it inspects the history loaded by the middleware above.
-            ...(request.deferredTools === undefined
+            ...(!resolved.capabilities.tools || request.deferredTools === undefined
               ? []
               : [
                   deferredTools({

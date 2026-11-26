@@ -145,3 +145,29 @@ export function setupSentence(
     ? text
     : text.replaceAll('{connection}', () => sentence.connection ?? '');
 }
+
+export type ModelCapabilityName = 'tools' | 'vision' | 'reasoning';
+
+const CAPABILITY_LABELS_EN: Readonly<Record<ModelCapabilityName, { name: string; detail: string }>> =
+  {
+    tools: { name: 'Tools', detail: 'Tools (function calling)' },
+    vision: { name: 'Vision', detail: 'Vision (image input)' },
+    reasoning: { name: 'Reasoning', detail: 'Reasoning' },
+  };
+
+/**
+ * Operator-facing banner message when a provider refuses a turn because a
+ * capability left enabled on the model is not actually supported upstream.
+ */
+export function unsupportedCapabilitySentence(
+  capability: ModelCapabilityName,
+  modelLabel: string | undefined,
+): string {
+  const target =
+    modelLabel !== undefined && modelLabel.trim() !== '' ? modelLabel.trim() : 'The selected model';
+  const copy = CAPABILITY_LABELS_EN[capability];
+  return (
+    `${target} does not support ${copy.detail}. ` +
+    `Turn off ${copy.name} for this model in Settings → Models, or switch to another model in the composer.`
+  );
+}
