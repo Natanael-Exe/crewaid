@@ -27,6 +27,7 @@
     "@better-auth/stripe": "1.7.26",
     "@better-auth/utils": "0.5.1",
     "@composio/core": "0.22.0",
+    "@crewaid/acp-core": "workspace:*",
     "@crewaid/sandbox-cloudflare": "workspace:*",
     "@crewaid/sandbox-core": "workspace:*",
     "@crewaid/sandbox-digitalocean": "workspace:*",

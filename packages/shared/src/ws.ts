@@ -9,6 +9,7 @@ import {
 } from './enums.js';
 import { CuidSchema, EpochMsSchema, JsonSchema } from './primitives.js';
 import { AttachmentSchema, MessageWithAttachmentsSchema } from './models.js';
+import { ConnectorStatusPayloadSchema } from './connectors.js';
 
 /**
  * The WebSocket contract.
@@ -328,6 +329,7 @@ export const ServerEventSchemas = {
   'approval.requested': ApprovalRequestedPayloadSchema,
   'approval.resolved': ApprovalResolvedPayloadSchema,
   'mcp.status': McpStatusPayloadSchema,
+  'connector.status': ConnectorStatusPayloadSchema,
   'task.changed': TaskChangedPayloadSchema,
   'project.changed': ProjectChangedPayloadSchema,
   'goal.changed': GoalChangedPayloadSchema,
@@ -467,6 +469,13 @@ export const ServerFrameSchema = z.discriminatedUnion('type', [
     botId: CuidSchema.optional(),
     ts: EpochMsSchema,
     payload: McpStatusPayloadSchema,
+  }),
+  z.object({
+    id: z.uuid(),
+    type: z.literal('connector.status'),
+    botId: CuidSchema.optional(),
+    ts: EpochMsSchema,
+    payload: ConnectorStatusPayloadSchema,
   }),
   z.object({
     id: z.uuid(),

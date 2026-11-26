@@ -24,13 +24,26 @@ export interface LocalTaskHashInput {
 /**
  * Normalizes a connector-relative folder path so `""`, `"."`, `"./"`, and
  * `"apps/web/"` all hash identically across OSes and callers.
+ *
+ * Refuses absolute paths, Windows drive letters, null bytes, and parent-directory
+ * escapes (`..`) so neither the server nor the local CLI accepts paths outside
+ * the paired workspace root.
  */
 export function normalizeRelativeCwd(raw: string | undefined): string {
   if (raw === undefined) return '.';
+  if (raw.includes('\0')) {
+    throw new Error('relativeCwd must not contain null bytes.');
+  }
   const trimmed = raw.trim().replaceAll('\\', '/');
   if (trimmed === '' || trimmed === '.' || trimmed === './') return '.';
+  if (trimmed.startsWith('/') || /^[A-Za-z]:/.test(trimmed)) {
+    throw new Error('relativeCwd must be relative to the paired workspace root.');
+  }
   const normalized = path.posix.normalize(trimmed).replace(/\/+$/, '');
   if (normalized === '' || normalized === '.') return '.';
+  if (normalized === '..' || normalized.startsWith('../')) {
+    throw new Error('relativeCwd must stay inside the paired workspace root.');
+  }
   return normalized.startsWith('./') ? normalized.slice(2) : normalized;
 }
 

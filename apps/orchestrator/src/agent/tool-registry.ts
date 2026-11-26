@@ -107,6 +107,11 @@ export type ToolBehavior = {
   readonly failure: ToolFailurePolicy;
   readonly effect: ToolEffect;
   readonly authority: boolean;
+  /**
+   * When true, every call requires explicit operator approval — even in `AUTO`
+   * and `FULL` approval modes — and prior dispatched approvals are never reused.
+   */
+  readonly alwaysAsk?: boolean;
 };
 
 export const CONTAINED_BUILTIN: ToolBehavior = {
@@ -132,6 +137,13 @@ export const AUTHORITY_BUILTIN: ToolBehavior = {
   failure: { kind: 'isolate' },
   effect: 'draft',
   authority: true,
+};
+export const LOCAL_CONNECTOR_BUILTIN: ToolBehavior = {
+  origin: { kind: 'builtin' },
+  failure: { kind: 'isolate' },
+  effect: 'unknown',
+  authority: true,
+  alwaysAsk: true,
 };
 export const SEAT_BUILTIN: ToolBehavior = {
   origin: { kind: 'builtin' },

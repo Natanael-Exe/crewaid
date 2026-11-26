@@ -2,9 +2,10 @@ import { type INestApplicationContext } from '@nestjs/common';
 import type { StructuredLogger } from '../logging/structured-logger.js';
 import { WsAdapter } from '@nestjs/platform-ws';
 import type { IncomingMessage } from 'node:http';
-import { SCREEN_STREAM_PATH } from '@crewaid/shared';
+import { CONNECTOR_WS_PATH, SCREEN_STREAM_PATH } from '@crewaid/shared';
 import { rememberHandshake, verifyWsHandshake } from './ws-adapter.js';
 import { WS_MAX_INBOUND_FRAME_BYTES } from './ws-limits.js';
+import { ConnectorWsHost } from '../connectors/connector-ws.host.js';
 import { ScreenStreamHost } from '../screen/screen-stream.host.js';
 
 type CrewaidWsData = string | Buffer | ArrayBuffer | Buffer[];
@@ -58,6 +59,7 @@ export class CrewaidWsAdapter extends WsAdapter {
   /** Where the screen stream host is found, when there is an app to ask. */
   private readonly appContext: INestApplicationContext | undefined;
   private screenStreamMounted = false;
+  private connectorStreamMounted = false;
 
   constructor(appOrHttpServer?: INestApplicationContext | object, logger?: StructuredLogger) {
     super(appOrHttpServer, {
@@ -102,6 +104,7 @@ export class CrewaidWsAdapter extends WsAdapter {
     options?: Parameters<WsAdapter['create']>[1],
   ): ReturnType<WsAdapter['create']> {
     this.mountScreenStream(port);
+    this.mountConnectorStream(port);
     return super.create(port, {
       ...options,
       maxPayload: WS_MAX_INBOUND_FRAME_BYTES,
@@ -155,6 +158,24 @@ export class CrewaidWsAdapter extends WsAdapter {
     }
     this.screenStreamMounted = true;
     this.addWsServerToRegistry(host.server, port, SCREEN_STREAM_PATH);
+  }
+
+  /**
+   * Put the local connector route (`/ws/connectors`) on the same HTTP server,
+   * authenticated by `ConnectorWsHost`'s own `Authorization: Bearer crw_conn_…`
+   * pre-upgrade check rather than the desktop session cookie/token check.
+   */
+  private mountConnectorStream(port: Parameters<WsAdapter['create']>[0]): void {
+    if (this.connectorStreamMounted || this.appContext === undefined) return;
+    let host: ConnectorWsHost;
+    try {
+      host = this.appContext.get(ConnectorWsHost, { strict: false });
+    } catch {
+      // An app without the connectors module (a focused test) has no connector route.
+      return;
+    }
+    this.connectorStreamMounted = true;
+    this.addWsServerToRegistry(host.server, port, CONNECTOR_WS_PATH);
   }
 }
 

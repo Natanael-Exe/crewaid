@@ -31,6 +31,10 @@ describe('payload-hash', () => {
     expect(h1).toBe(h2);
     expect(h2).toBe(h3);
     expect(normalizeRelativeCwd('./apps/web/')).toBe('apps/web');
+    expect(() => normalizeRelativeCwd('../outside')).toThrow();
+    expect(() => normalizeRelativeCwd('apps/../../outside')).toThrow();
+    expect(() => normalizeRelativeCwd('/etc/passwd')).toThrow();
+    expect(() => normalizeRelativeCwd('C:\\Windows')).toThrow();
   });
 
   it('changes hash whenever bot, connector, folder, harness, prompt, or verifyCommand changes', () => {

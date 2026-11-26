@@ -23,6 +23,7 @@ export * from './seat-control.js';
 export * from './tool-policy.js';
 export * from './native-tools.js';
 export * from './work.js';
+export * from './connectors.js';
 
 export * from './github-git.js';
 

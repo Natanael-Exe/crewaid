@@ -1708,5 +1708,11 @@ export const API_ROUTES = {
     update: 'PATCH /calls/:callId',
     allowance: 'GET /calls/allowance',
   },
+  connectors: {
+    list: 'GET /connectors',
+    create: 'POST /connectors',
+    rotate: 'POST /connectors/:id/rotate',
+    remove: 'DELETE /connectors/:id',
+  },
   health: 'GET /health',
 } as const;

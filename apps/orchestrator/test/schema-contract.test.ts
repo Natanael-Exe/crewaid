@@ -837,6 +837,24 @@ const EXPECTED_FIELDS: Record<string, readonly string[]> = {
     'snapshot',
     'createdAt',
   ],
+  LocalConnector: [
+    'id',
+    'userId',
+    'name',
+    'tokenHash',
+    'tokenPrefix',
+    'status',
+    'reportMode',
+    'workspaceName',
+    'hostName',
+    'harnesses',
+    'defaultHarness',
+    'connectedInstanceId',
+    'lastSeenAt',
+    'revokedAt',
+    'createdAt',
+    'updatedAt',
+  ],
   CodingRun: [
     'id',
     'userId',
@@ -844,6 +862,10 @@ const EXPECTED_FIELDS: Record<string, readonly string[]> = {
     'parentRunId',
     'runnerKind',
     'runnerId',
+    'connectorId',
+    'acpSessionId',
+    'payloadHash',
+    'reportMode',
     'modelId',
     'status',
     'cwd',
@@ -941,6 +963,7 @@ const EXPECTED_ENUMS: Record<string, readonly string[]> = {
   DeliverableReviewState: ['READY', 'REVIEWED', 'ARCHIVED'],
   WorkflowChainStatus: ['ACTIVE', 'WRAPPING_UP', 'STOPPED', 'CLOSED'],
   BoardRevisionKind: ['INIT_SNAPSHOT', 'ADD', 'UPDATE', 'DELETE', 'RESTORE', 'EXTERNAL_EDIT'],
+  LocalConnectorStatus: ['ONLINE', 'OFFLINE', 'REVOKED'],
 };
 
 /** Known model names, used to tell a relation field from a scalar one. */

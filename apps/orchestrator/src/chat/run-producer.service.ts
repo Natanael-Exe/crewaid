@@ -6,6 +6,7 @@ import { ModelResolutionService } from '../models/model-resolution.service.js';
 import { AttachmentsService } from '../attachments/attachments.service.js';
 import { MemoryService } from '../memory/memory.service.js';
 import { ToolRegistry } from '../agent/tool-registry.js';
+import { TurnConnectors } from '../agent/turn-connectors.js';
 import { TurnPlugins, type UnavailableServer } from '../agent/turn-plugins.js';
 import { AgentBrowserService } from '../agent/agent-browser.service.js';
 import { AgentSessionService } from '../agent/agent-session.service.js';
@@ -71,6 +72,7 @@ export class RunProducerService {
     @Inject(AI_TELEMETRY) private readonly telemetry: AiTelemetrySink,
     @Optional() @Inject(SeatControlService) private readonly seatControl?: SeatControlService,
     @Optional() @Inject(MachineProcessService) private readonly processes?: MachineProcessService,
+    @Optional() @Inject(TurnConnectors) private readonly connectors?: TurnConnectors,
   ) {
     this.leases = new RunLeaseService(prisma);
   }
@@ -101,6 +103,7 @@ export class RunProducerService {
         prisma: this.prisma,
         tools: this.tools,
         plugins: this.plugins,
+        connectors: this.connectors,
         computers: this.computers,
         browsers: this.browsers,
         sessions: this.sessions,

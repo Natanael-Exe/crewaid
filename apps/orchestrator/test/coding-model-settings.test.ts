@@ -220,7 +220,7 @@ describe('assembleTurn codingModelId cascade', () => {
       } as unknown as ToolRegistry,
       plugins: {
         toolsForBot: vi.fn().mockResolvedValue({
-          tools: {},
+          tools: [],
           byName: new Map(),
           refusals: [],
           catalog: [],

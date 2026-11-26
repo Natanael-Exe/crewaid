@@ -28,7 +28,7 @@ function formatDuration(ms: number): string {
   return rem === 0 ? `${String(mins)}m` : `${String(mins)}m ${String(rem)}s`;
 }
 
-function progressPayload(
+export function codingProgressPayload(
   toolCallId: string,
   event: CodingProgressEvent,
 ): Record<string, Json> {
@@ -59,6 +59,33 @@ function progressPayload(
         ...(event.target === undefined ? {} : { target: event.target }),
         ...(event.file === undefined ? {} : { file: event.file }),
         filesChangedCount: event.filesChangedCount,
+      };
+    case 'waiting_local_permission':
+      return {
+        toolCallId,
+        kind: event.kind,
+        sessionId: event.sessionId,
+        runnerId: event.runnerId,
+        connectorName: event.connectorName,
+        permissionToolCallId: event.toolCallId,
+        title: event.title,
+        toolKind: event.toolKind,
+        step: 0,
+        maxSteps: 0,
+        filesChangedCount: 0,
+      };
+    case 'resumed':
+      return {
+        toolCallId,
+        kind: event.kind,
+        sessionId: event.sessionId,
+        runnerId: event.runnerId,
+        connectorName: event.connectorName,
+        permissionToolCallId: event.toolCallId,
+        outcome: event.outcome,
+        step: 0,
+        maxSteps: 0,
+        filesChangedCount: 0,
       };
     case 'finished':
       return {
@@ -232,7 +259,10 @@ export function codeTaskTool(deps: CodeTaskToolDeps): RegisteredTool {
                 session: context.session,
                 ...(options.abortSignal === undefined ? {} : { abortSignal: options.abortSignal }),
                 onProgress: (event) => {
-                  options.emit?.(CODING_PROGRESS_EVENT, progressPayload(options.toolCallId, event));
+                  options.emit?.(
+                    CODING_PROGRESS_EVENT,
+                    codingProgressPayload(options.toolCallId, event),
+                  );
                 },
               },
             );

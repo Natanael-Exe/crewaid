@@ -197,8 +197,10 @@ model User {
   boardEntries   BoardEntry[]
   boardRevisions BoardRevision[]
 
-  // D-241: delegated coding runs (built-in sub-loop and future ACP runners).
-  codingRuns CodingRun[]
+  // D-241: delegated coding runs (built-in sub-loop and ACP runners) and
+  // opt-in local harness connectors.
+  codingRuns      CodingRun[]
+  localConnectors LocalConnector[]
 }
 
 /// D-233: a person's own Telegram bot, linked to the Telegram account that confirmed it.
@@ -2038,33 +2040,75 @@ model BoardRevision {
   @@index([userId, scopeKey, createdAt])
 }
 
-/// D-241: durable record of one delegated `code_task` coding run (built-in or ACP).
-/// Carries its own recorded `modelId` billing key so `/usage` prices separate coding
-/// models accurately alongside `AgentTurn` rows.
-model CodingRun {
-  id                  String    @id @default(cuid())
+/// D-241 Step 5: connection status of an opt-in standalone local connector.
+enum LocalConnectorStatus {
+  ONLINE
+  OFFLINE
+  REVOKED
+}
+
+/// D-241 Step 5: an opt-in standalone local harness connector (`crewaid-connect`).
+/// Authenticates over outbound WSS with a revocable bearer token stored only as
+/// a SHA-256 digest (`tokenHash`). `connectedInstanceId` fences single-instance
+/// socket routing across orchestrator restarts/replicas.
+model LocalConnector {
+  id                  String               @id @default(cuid())
   userId              String
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                String
+  tokenHash           String               @unique
+  tokenPrefix         String
+  status              LocalConnectorStatus @default(OFFLINE)
+  reportMode          String               @default("summary")
+  workspaceName       String?
+  hostName            String?
+  harnesses           Json                 @default("[]")
+  defaultHarness      String?
+  connectedInstanceId String?
+  lastSeenAt          DateTime?
+  revokedAt           DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  codingRuns CodingRun[]
+
+  @@index([userId, status])
+}
+
+/// D-241: durable record of one delegated `code_task` / `local_code_task` run
+/// (built-in sub-loop or ACP runner). Carries its own recorded `modelId`
+/// billing key so `/usage` prices separate coding models accurately alongside
+/// `AgentTurn` rows.
+model CodingRun {
+  id                  String          @id @default(cuid())
+  userId              String
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   botId               String
-  bot                 Bot       @relation(fields: [botId], references: [id], onDelete: Cascade)
+  bot                 Bot             @relation(fields: [botId], references: [id], onDelete: Cascade)
   parentRunId         String?
-  runnerKind          String    @default("builtin")
-  runnerId            String    @default("builtin")
+  runnerKind          String          @default("builtin")
+  runnerId            String          @default("builtin")
+  connectorId         String?
+  connector           LocalConnector? @relation(fields: [connectorId], references: [id], onDelete: SetNull)
+  acpSessionId        String?
+  payloadHash         String?
+  reportMode          String?
   modelId             String?
-  status              String    @default("running")
+  status              String          @default("running")
   cwd                 String
-  steps               Int       @default(0)
-  workingMs           Int       @default(0)
-  inputTokens         Int       @default(0)
-  outputTokens        Int       @default(0)
-  cachedInputTokens   Int       @default(0)
-  cacheCreationTokens Int       @default(0)
-  filesChanged        Json      @default("[]")
+  steps               Int             @default(0)
+  workingMs           Int             @default(0)
+  inputTokens         Int             @default(0)
+  outputTokens        Int             @default(0)
+  cachedInputTokens   Int             @default(0)
+  cacheCreationTokens Int             @default(0)
+  filesChanged        Json            @default("[]")
   errorCode           String?
-  startedAt           DateTime  @default(now())
+  startedAt           DateTime        @default(now())
   endedAt             DateTime?
 
   @@index([userId, startedAt])
   @@index([botId, startedAt])
   @@index([parentRunId])
+  @@index([connectorId])
 }

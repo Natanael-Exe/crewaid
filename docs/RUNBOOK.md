@@ -12,6 +12,7 @@ PRD §8 names six incidents:
 4. [A conversation between bots is stuck, or won't stop](#4-a-conversation-between-bots-is-stuck-or-wont-stop)
 5. [A reply stopped halfway after a restart](#5-a-reply-stopped-halfway-after-a-restart)
 6. [A bot says a plugin "needs to be reconnected"](#6-a-bot-says-a-plugin-needs-to-be-reconnected)
+7. [Local coding connector ("crewaid-connect") won't run tasks](#7-local-coding-connector-crewaid-connect-wont-run-tasks)
 
 ---
 
@@ -244,3 +245,31 @@ expire after seven days. Those plugins will need reconnecting weekly until the
 app is published in Google Cloud Console.
 
 **Fixed when** the plugin shows connected and the bot uses it again.
+
+---
+
+## 7. Local coding connector (`crewaid-connect`) won't run tasks
+
+**What you see.** `local_code_task` refuses with `CONNECTOR_ON_OTHER_INSTANCE`,
+`CONNECTOR_OFFLINE`, or `CONNECTOR_BUSY`, or `crewaid-connect` closes with
+`CLI_OUTDATED` (WebSocket close `4003`).
+
+**Single-orchestrator requirement.** Each local connector holds an in-memory
+outbound WebSocket on `/ws/connectors` to one orchestrator process, and live
+task dispatch is routed in-process (the `LocalConnector.connectedInstanceId`
+column records which orchestrator owns the socket). Local connectors require a
+**single orchestrator process** — if you run multiple orchestrator replicas
+behind a load balancer, dispatches that land on a different replica refuse
+explicitly with `CONNECTOR_ON_OTHER_INSTANCE` rather than timing out.
+
+| Code / symptom | Means | Do this |
+|---|---|---|
+| `CONNECTOR_ON_OTHER_INSTANCE` | The laptop socket is attached to a different orchestrator replica than the one handling the bot's turn | Run a single orchestrator replica when using local connectors, or wait until Redis cross-replica routing is enabled |
+| `CONNECTOR_OFFLINE` | `crewaid-connect` is not running or lost connectivity for more than the 60s mid-task grace window | Start `crewaid-connect` in the target repo again; check network reachability to `/ws/connectors` |
+| `CONNECTOR_BUSY` | Another `local_code_task` is already running on that connector (strictly one task per connector at a time) | Wait for the active task to finish or cancel it before starting another |
+| `CLI_OUTDATED` (close `4003`) | The laptop CLI's `protocolVersion` is older than the orchestrator's `MIN_CONNECTOR_PROTOCOL_VERSION` | Update `@crewaid/connector-cli` on the laptop and reconnect |
+| Close `4001` | Token was rotated or the connector was revoked in **Settings → Local harnesses** | Re-authenticate the CLI with the new token, or remove the stale local config |
+| Close `4002` | A second `crewaid-connect` instance connected with the same connector token and superseded this socket | Keep only one CLI process running per paired connector |
+
+**Fixed when** the connector shows **Online** in **Settings → Local harnesses**
+and `list_local_connectors` lists it as `ONLINE`.

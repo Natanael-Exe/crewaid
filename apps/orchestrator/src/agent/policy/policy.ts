@@ -16,6 +16,11 @@ import {
 export type PolicyBehavior = {
   readonly effect: ToolEffect | 'seat';
   readonly authority: boolean;
+  /**
+   * Always asks the operator in ASK, AUTO, and FULL modes, and never reuses
+   * already-dispatched approval memory across distinct calls.
+   */
+  readonly alwaysAsk?: boolean;
 };
 
 export type PolicySnapshot = {
@@ -31,6 +36,12 @@ export type PolicyMemory = {
   readonly binding: ApprovalBinding;
   readonly mode: ApprovalMode;
   readonly authority: boolean;
+  /**
+   * Whether the operator-approved proposal has already been claimed for dispatch.
+   * Present for durable proposal-store rows; `alwaysAsk` tools accept only an
+   * explicit `dispatched === false` (the live pre-dispatch fence for that call).
+   */
+  readonly dispatched?: boolean;
 };
 
 export type PolicyAssessment = {
@@ -106,27 +117,32 @@ export function assessPolicy(input: {
 
   let decision: AutoReviewDecision;
   let source: PolicyAssessment['source'];
-  switch (snapshot.mode) {
-    case 'FULL':
-      decision = 'allow';
-      source = 'mode';
-      break;
-    case 'ASK':
-      decision = effect === 'read' ? 'allow' : 'ask';
-      source = 'mode';
-      break;
-    case 'AUTO':
-      if (behavior.authority) {
-        decision = 'ask';
-        source = 'default';
-      } else if (matched !== undefined) {
-        decision = matched.decision;
-        source = 'rule';
-      } else {
-        decision = effect === 'read' || effect === 'draft' ? 'allow' : 'ask';
-        source = 'default';
-      }
-      break;
+  if (behavior.alwaysAsk === true) {
+    decision = 'ask';
+    source = 'default';
+  } else {
+    switch (snapshot.mode) {
+      case 'FULL':
+        decision = 'allow';
+        source = 'mode';
+        break;
+      case 'ASK':
+        decision = effect === 'read' ? 'allow' : 'ask';
+        source = 'mode';
+        break;
+      case 'AUTO':
+        if (behavior.authority) {
+          decision = 'ask';
+          source = 'default';
+        } else if (matched !== undefined) {
+          decision = matched.decision;
+          source = 'rule';
+        } else {
+          decision = effect === 'read' || effect === 'draft' ? 'allow' : 'ask';
+          source = 'default';
+        }
+        break;
+    }
   }
   if (
     decision === 'ask' &&
@@ -143,6 +159,13 @@ function covers(
   mode: ApprovalMode,
   behavior: PolicyBehavior,
 ): boolean {
+  if (behavior.alwaysAsk === true) {
+    // Only an explicit, still-undispatched operator approval (checked by
+    // runtime.ts's pre-dispatch fence) covers an `alwaysAsk` tool. Once
+    // dispatched — or in generic memory without `dispatched: false` — the next
+    // call must ask the operator again even with identical arguments.
+    return record.dispatched === false && sameBinding(record.binding, binding);
+  }
   if (record.binding.scope === 'identity-turn') {
     return (
       mode === 'AUTO' &&

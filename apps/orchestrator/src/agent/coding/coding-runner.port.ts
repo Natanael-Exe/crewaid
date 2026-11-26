@@ -9,7 +9,7 @@ import type { ToolSandboxSession } from '@crewaid/sandbox-core';
  * share one contract, one `code_task` tool, and one progress/reporting surface.
  */
 
-export type CodingRunnerKind = 'builtin';
+export type CodingRunnerKind = 'builtin' | 'acp_local' | 'acp_sandbox';
 
 export type CodingTaskStatus =
   | 'completed'
@@ -17,6 +17,7 @@ export type CodingTaskStatus =
   | 'limit_reached'
   | 'stalled'
   | 'cancelled'
+  | 'interrupted'
   | 'failed';
 
 export type CodingTestStatus = 'passed' | 'failed' | 'not_run';
@@ -81,6 +82,23 @@ export type CodingProgressEvent =
       readonly target?: string;
       readonly file?: string;
       readonly filesChangedCount: number;
+    }
+  | {
+      readonly kind: 'waiting_local_permission';
+      readonly sessionId: string;
+      readonly runnerId: string;
+      readonly connectorName: string;
+      readonly toolCallId: string;
+      readonly title: string;
+      readonly toolKind: string;
+    }
+  | {
+      readonly kind: 'resumed';
+      readonly sessionId: string;
+      readonly runnerId: string;
+      readonly connectorName: string;
+      readonly toolCallId: string;
+      readonly outcome: 'selected' | 'cancelled';
     }
   | {
       readonly kind: 'finished';

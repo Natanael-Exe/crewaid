@@ -193,6 +193,9 @@ importers:
       '@composio/core':
         specifier: 0.22.0
         version: 0.22.0(ws@8.21.3)(zod@4.6.6)
+      '@crewaid/acp-core':
+        specifier: workspace:*
+        version: link:../../packages/acp-core
       '@crewaid/sandbox-cloudflare':
         specifier: workspace:*
         version: link:../../packages/sandbox-cloudflare

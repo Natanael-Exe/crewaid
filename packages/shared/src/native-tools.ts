@@ -415,6 +415,43 @@ export const NativeToolInputs = {
       .optional()
       .describe('Optional command to verify changes before reporting back, e.g. "pnpm test"'),
   }),
+  list_local_connectors: z.object({}),
+  local_code_task: z.object({
+    connectorId: z
+      .string()
+      .min(1)
+      .max(64)
+      .describe('ID of the user’s online local connector (from list_local_connectors)'),
+    goal: z
+      .string()
+      .min(1)
+      .max(8_000)
+      .describe(
+        'Verbatim coding task objective and acceptance criteria sent to the local harness after human approval',
+      ),
+    relativeCwd: z
+      .string()
+      .min(1)
+      .max(512)
+      .optional()
+      .describe('Optional subfolder inside the connector’s shared directory (defaults to ".")'),
+    harness: z
+      .enum(['claude-code', 'codex', 'opencode', 'antigravity', 'custom'])
+      .optional()
+      .describe('Optional harness override from the connector’s available harnesses'),
+    context: z
+      .string()
+      .min(1)
+      .max(4_000)
+      .optional()
+      .describe('Optional extra context such as key files, conventions, or prior findings'),
+    verifyCommand: z
+      .string()
+      .min(1)
+      .max(512)
+      .optional()
+      .describe('Optional command for the local harness to verify changes, e.g. "pnpm test"'),
+  }),
   browser_navigate: z.object({
     url: z.string().describe('An absolute http(s) URL, e.g. https://example.com/pricing'),
   }),

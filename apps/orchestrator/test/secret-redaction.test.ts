@@ -100,6 +100,7 @@ describe('V1-16 — a provider key never reaches the log', () => {
       `github_pat_${tail}`,
       `xoxb-${tail}`, // Slack
       `AIza${tail}xxxxxxxx`, // Google
+      `crw_conn_${tail}`, // Crewaid local connector token
     ];
     const { logger, lines } = capture();
     for (const secret of others) logger.log(`upstream refused ${secret} today`);

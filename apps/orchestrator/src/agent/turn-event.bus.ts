@@ -7,6 +7,7 @@ import {
   ServerFrameSchema,
   type BotStatus,
   type ApprovalBinding,
+  type ConnectorStatusPayload,
   type McpStatus,
   type RunSettledOutcome,
   type ServerEventType,
@@ -374,6 +375,14 @@ export class TurnEventBus {
    */
   private emitServerScoped(userId: string, payload: unknown): void {
     this.dispatch('mcp.status', { payload }, { userId });
+  }
+
+  /**
+   * Account-scoped local connector status update (`connector.status`).
+   * Lets Settings update live as `crewaid-connect` connects, runs a task, or drops.
+   */
+  emitConnectorStatus(userId: string, payload: ConnectorStatusPayload): void {
+    this.dispatch('connector.status', { payload }, { userId });
   }
 
   /** The parse-then-deliver half, shared by every door above. */
