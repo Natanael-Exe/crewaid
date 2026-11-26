@@ -131,7 +131,7 @@ export function DeliverablePane({
           <p className="mt-2 text-footnote text-foreground">{item.summary}</p>
         )}
         {item.sourcePath === null ? null : (
-          <p className="mt-1 break-all font-mono text-micro text-muted">
+          <p data-deliverable-source className="mt-1 break-all font-mono text-micro text-muted">
             {formatPreviewInternalPaths(item.sourcePath, t('tools.path'))}
           </p>
         )}

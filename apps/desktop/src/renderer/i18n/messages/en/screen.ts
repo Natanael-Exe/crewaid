@@ -36,7 +36,6 @@ export const screen = {
   'screen.screenCardState.wakingTheComputer': 'Waking the computer…',
   'screen.screenCardState.thisComputerIsAsleep': 'This computer is asleep.',
   'screen.screenCardState.sleeping': 'Sleeping',
-  'screen.screenCardState.wake': 'Wake',
   'screen.screenCardState.disconnected': 'Disconnected',
   'screen.screenCardState.openComputer': 'Open computer',
   'screen.screenCardState.tryAgain': 'Try again',

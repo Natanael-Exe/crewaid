@@ -194,11 +194,14 @@ export function ScreenCard({
 
   // Keep the right rail compact when the computer is simply asleep (`STOPPED`),
   // distinguishing idle sleep clearly from an unexpected display disconnect and
-  // freeing rail height for the active handoff and pending decisions.
+  // freeing rail height for the active handoff and pending decisions. It is
+  // still the stopped state, so it carries the same `data-screen-state` and
+  // offers the same single action as the full card — only smaller.
   if (!expanded && view.kind === 'stopped' && botId !== null) {
     return (
       <div
         data-screen-surface="rail"
+        data-screen-state="stopped"
         data-computer-compact="sleeping"
         className="flex items-center justify-between gap-2 rounded-card border border-border bg-surface px-3 py-2.5 text-surface-foreground"
       >
@@ -213,15 +216,17 @@ export function ScreenCard({
             </div>
           </div>
         </div>
-        <Button
-          size="sm"
-          variant="secondary"
-          data-screen-action="open"
-          onPress={() => onWake(botId)}
-          className="h-7 shrink-0 rounded-full px-2.5 text-caption font-medium"
-        >
-          {t('screen.screenCardState.wake')}
-        </Button>
+        {action === null ? null : (
+          <Button
+            size="sm"
+            variant="secondary"
+            data-screen-action={action.kind}
+            onPress={() => onWake(botId)}
+            className="h-7 shrink-0 rounded-full px-2.5 text-caption font-medium"
+          >
+            {action.label}
+          </Button>
+        )}
       </div>
     );
   }

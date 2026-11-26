@@ -250,8 +250,10 @@ describe('Phase 3 — Handoff card, composer draft preservation, snapshots & rig
     );
 
     expect(html).toContain('data-computer-compact="sleeping"');
+    expect(html).toContain('data-screen-state="stopped"');
     expect(html).toContain('Sleeping');
-    expect(html).toContain('Wake');
+    // The same single action the full card offers when asleep.
+    expect(html).toContain('Open computer');
   });
 
   it('renders publisher, review state, masked source path, and superseded banner with Open latest in DeliverablePane', () => {
@@ -303,6 +305,7 @@ describe('Phase 3 — Handoff card, composer draft preservation, snapshots & rig
     expect(html).toContain('data-open-latest-deliverable');
     expect(html).toContain('Open latest');
     expect(html).not.toContain('/home/bot/groups/cmww0x');
+    expect(html).toMatch(/data-deliverable-source[^>]*>launch-packet\.md</);
   });
 
   it('populates approvalBots separately from unread counts in sidebarSections', () => {
