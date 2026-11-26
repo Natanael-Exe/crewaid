@@ -20,6 +20,7 @@
   // had this, which is why only the newer package tripped it.
   "references": [
     { "path": "../../packages/shared/tsconfig.build.json" },
+    { "path": "../../packages/acp-core/tsconfig.build.json" },
     { "path": "../../packages/sandbox-core/tsconfig.build.json" },
     { "path": "../../packages/sandbox-cloudflare/tsconfig.build.json" },
     { "path": "../../packages/sandbox-digitalocean/tsconfig.build.json" },
