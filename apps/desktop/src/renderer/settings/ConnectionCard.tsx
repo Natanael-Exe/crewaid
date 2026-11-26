@@ -526,11 +526,11 @@ export function ConnectionCard({
                     : t('settings.connection.models')}
                 </span>
                 <Button
-                  variant="ghost"
+                  variant={editing === 'new' ? 'ghost' : 'primary'}
                   size="sm"
                   isDisabled={busy}
                   onPress={() => setEditing((open) => (open === 'new' ? null : 'new'))}
-                  className="ms-auto h-8 shrink-0 rounded-[10px] px-2.5 text-caption font-medium"
+                  className="ms-auto h-8 shrink-0 rounded-[10px] px-3 text-caption font-medium"
                 >
                   <IconPlus className="me-1 size-4" stroke={1.8} aria-hidden />
                   {t('settings.connection.addModel')}
