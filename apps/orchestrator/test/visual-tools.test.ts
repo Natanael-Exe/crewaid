@@ -64,11 +64,11 @@ describe('present_visual tool & data loader', () => {
     // Every model call that offers present_visual carries this schema, so the
     // budget keeps its growth a deliberate decision rather than drift. It sits
     // just above the current size: `handoff` (~1.85 KB) moved it from 4,800 to
-    // 6,700, and `checks` (~0.42 KB) moved it to 7,200. Raise it only alongside
-    // a new block or field.
+    // 6,700, `checks` (~0.42 KB) moved it to 7,200, and `diff` (~0.22 KB) moved
+    // it to 7,450. Raise it only alongside a new block or field.
     const schema = toolInputJsonSchema(NativeToolInputs.present_visual);
     const serialized = JSON.stringify(schema);
-    expect(serialized.length).toBeLessThanOrEqual(7_200);
+    expect(serialized.length).toBeLessThanOrEqual(7_450);
   });
 
   it('acknowledges inline visuals without waking the sandbox', async () => {
