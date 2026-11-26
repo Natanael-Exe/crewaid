@@ -464,7 +464,7 @@ incorrect tokens MUST be rejected during the HTTP Upgrade with **HTTP 401**. No
 WebSocket connection is established and therefore no WebSocket close code is
 on the wire for this authentication failure.
 
-`GrogWsAdapter.create()` supplies `ws`'s `verifyClient(info, done)` hook. Nest's
+`CrewaidWsAdapter.create()` supplies `ws`'s `verifyClient(info, done)` hook. Nest's
 stock adapter forwards the WebSocket server options to `ws` but only exposes its
 message-parser option in the constructor type, so the custom adapter adds the
 hook at the `create()` boundary. The gateway retains a defense-in-depth token
@@ -875,20 +875,20 @@ M2-AR-01. The parts that are decisions rather than detail:
 rather than a bind mount because R5 and §5.1 forbid host paths and D-031 permits storage only where
 the provider owns it. Keyed on the bot rather than the session because the workspace must survive
 any change of session — they are the same string today, which is exactly why the distinction needs
-writing down. Ownership is a label on the volume (`grog.botId`), checked before every mount;
+writing down. Ownership is a label on the volume (`crewaid.botId`), checked before every mount;
 attaching one bot's workspace to another bot's desktop is the worst failure available here, because
 it is silent and it leaks between bots.
 
 **A volume at `/home/bot` is not sufficient on its own, and the reason is measurable.** Docker
 populates a named volume from the image only while the volume is empty; after that the image's
-version of those files is frozen. Measured on `grog/sandbox:dev`: deleting `/home/bot/.config/plank`
+version of those files is frozen. Measured on `crewaid/sandbox:dev`: deleting `/home/bot/.config/plank`
 from the volume and re-running the same image left it deleted. Since the image seeds the dock's
 launchers there, and §5's acceptance criteria include the dock showing Chrome, Thunar and a
 terminal, a plain workspace volume would freeze every bot's desktop configuration at whatever its
 first boot wrote — "supported image replacement" would preserve files while never improving the
 desktop.
 
-So the image keeps a pristine copy **outside** the mount point at `/opt/grog/skel`, and the
+So the image keeps a pristine copy **outside** the mount point at `/opt/crewaid/skel`, and the
 entrypoint copies it over `$HOME` before the session bus and X start. **The skel's contents are the
 manifest of what the image owns** — there is no second list to drift out of step. Everything else
 is bot-owned and is created if absent but never overwritten; a skel entry for `.chrome` would reset
@@ -897,7 +897,7 @@ deleted, added a new one, and left the operator's files untouched. The accepted 
 to image-owned paths do not survive a reboot, which is the correct meaning of "image-owned".
 
 **Four lifecycle situations, distinguished by two observations** — does a container carry
-`grog.sessionId`, does a volume carry `grog.botId` — never by the database alone. In M2,
+`crewaid.sessionId`, does a volume carry `crewaid.botId` — never by the database alone. In M2,
 **container absent with a volume present is never first creation.** That is the precise failure
 D-031 exists to prevent: a lost container silently producing an empty desktop, so the product
 appears to have deleted the bot's work. D-041 extends the evidence and replaces this M2-only rule
@@ -939,7 +939,7 @@ change, or Turbo's strict env mode strips it and any test gated on it becomes a 
 The bridge's `POST /skill/run` route accepts exactly `{ "script": string, "params": object }`,
 with a 256 KiB request limit. M2 validates that contract but executes no model-generated code: a
 valid request returns `503` with `code: "SKILL_RUNTIME_UNAVAILABLE"` until M3-PK-01 ships the
-`@grog/skill-runtime` executor into the sandbox. Invalid requests already receive their permanent
+`@crewaid/skill-runtime` executor into the sandbox. Invalid requests already receive their permanent
 `400`/`413`/`415` responses in M2.
 
 This is a boundary, not a placeholder endpoint. The executor package explicitly belongs to
@@ -970,7 +970,7 @@ The M2 rule “container absent + volume present is never first creation” cann
 model unchanged: a newly created bot intentionally has that shape. First runtime creation is
 therefore allowed only when **independent durable evidence agrees** that the workspace was
 provisioned but never started: the `Sandbox` row is the original `STOPPED` row with no session,
-container or `lastStartedAt`, and the workspace has no `.grog-runtime-created-at` marker. The
+container or `lastStartedAt`, and the workspace has no `.crewaid-runtime-created-at` marker. The
 provider writes that marker before publishing a successful first start. Any disagreement is
 recovery, never an empty first boot. Volume identity remains provider-observed and
 label-validated; the database alone is not evidence that bytes are present or owned by the bot.
@@ -1992,7 +1992,7 @@ answer is not a local accident of our architecture.
 **First finding: a JavaScript dialog is an unhandled path, and it is the expensive one.** `alert`,
 `confirm` and `prompt` block the renderer, so every later command on that page eats the full
 `TIMEOUT_MS = 10_000` and the model retries against a page waiting for a human who is not there;
-under D-052's accounting one modal can spend the turn. grog has zero hits for
+under D-052's accounting one modal can spend the turn. Crewaid has zero hits for
 `Page.javascriptDialogOpening` or `handleJavaScriptDialog` across `apps/`, `packages/` and the PRD.
 ego-lite has `acceptDialog(promptText?)` / `dismissDialog()`, reports the dialog on the action's
 receipt, and writes down that no page-authored dialog may move ownership. Proposed as
@@ -2001,7 +2001,7 @@ receipt, and writes down that no page-authored dialog may move ownership. Propos
 **Second: exactly one match, and a refusal instead of a guess.** ego-lite's locator actions
 resolve to exactly one element and split the two ways that can fail — more than one is
 `permanent`, zero is `transient`. The asymmetry is the design: absence is worth waiting for,
-ambiguity never resolves by waiting. grog documents the opposite to the model — "Click the first
+ambiguity never resolves by waiting. Crewaid documents the opposite to the model — "Click the first
 element matching a CSS selector" (`browser-tools.ts:107`), bottoming out in `DOM.querySelector`,
 so a page with two
 matching controls clicks one and reports `clicked <selector>`, a success the model cannot tell from
@@ -2010,7 +2010,7 @@ the intended one and cannot debug. Proposed as **M5-BE-28**, the cheapest fix in
 **Third: classify a failure where it is born, not where it is caught.** Everything in ego-lite
 funnels through one error constructor which records the hard-stop classification there — its own
 comment says it does so "even when the agent's own try/catch later swallows the thrown Error" —
-and the stop set is two codes against thirteen ordinary ones. grog has strings on both sides:
+and the stop set is two codes against thirteen ordinary ones. Crewaid has strings on both sides:
 `browser-tools.ts`'s `failure()` helper and `packages/skill-runtime/src/browser.ts`, and the
 vocabulary has to land in both at once or the model learns two dialects for one page. Also
 **M5-BE-28**, whose second half — refs handed back by the read — waits on M5-BE-12's truncation
@@ -2267,7 +2267,7 @@ did nothing however many times it was clicked, before D-061 and after it. A laun
 survived would still be the wrong browser: the default `--user-data-dir`, no CDP relay,
 undrivable by its bot and invisible to recording.
 
-The image now rewrites that entry's `Exec` lines to `/opt/grog/open-seat-browser`, a
+The image now rewrites that entry's `Exec` lines to `/opt/crewaid/open-seat-browser`, a
 launcher that POSTs `{ "display": "<its DISPLAY>" }` to `POST /seats/browser`. Plank hands
 the launcher the seat's `DISPLAY` and nothing else — no bot id ever reaches a docked
 application — and the display is the only address it needs: the bridge maps it to the
@@ -2535,7 +2535,7 @@ heard of.
 
 **In the database it is not.** The board is the project's, not the orchestrator's: it lives where
 the work does, in the operator's volume, and it can be read, edited by hand, or committed
-without asking Grog for it.
+without asking Crewaid for it.
 
 **Amends D-064.** `board_read` joins the shipped default rules as `allow`, beside the other
 reads. A bot that must ask before LOOKING at the board its team shares cannot use it to decide
@@ -2752,7 +2752,7 @@ and keeps everything else D-069 decided: its 16,000-character bound, its duplica
 the model-facing wording of all three tools.
 
 **D-069's file cannot express either scope the product asked for.** `MEMORY.md` is
-per-MACHINE — `grog-workspace-<computerId>`, WORKSPACE §19. The ask was a user-global memory a
+per-MACHINE — `crewaid-workspace-<computerId>`, WORKSPACE §19. The ask was a user-global memory a
 new bot starts with, so nobody re-explains a convention to each new hire, *and* a per-bot memory
 built from that bot's own discussions and the resources it consulted. One machine-scoped file is
 neither. That is the argument that ends the debate; everything below is additional.
@@ -3152,7 +3152,7 @@ the user states out loud is promoted rather than duplicated, and `forget` can di
 
 **CC-39 was scheduled to tune scoring. The measurement said not to.** CC-37 recorded mean R@8 of
 0.60 and found the loss was at the QUERY: `websearch_to_tsquery` ANDs its terms, so "staging host"
-against a row reading "Staging lives at grog-staging.example.com" returned nothing at all. Rows that
+against a row reading "Staging lives at crewaid-staging.example.com" returned nothing at all. Rows that
 never match cannot be reordered into relevance, and a task that tuned the ranker would have moved
 neither missing case.
 
@@ -3324,7 +3324,7 @@ every future runtime depend on the SDK this seam exists to stop depending on.
 
 **Model capabilities and backend capabilities are two questions.** `ModelCapabilities`
 (`tools`, `vision`, `reasoning`) describes what the model can do. It says nothing about whether a
-given execution backend can run a Grog tool, honour an approval mode, or survive a background
+given execution backend can run a Crewaid tool, honour an approval mode, or survive a background
 workflow — a future runtime that owns its own loop may refuse all three for a model whose
 capabilities are unchanged. Collapsing them would make the first V2 runtime look capable of things
 it cannot do, at the point where a turn has already started.
@@ -3338,7 +3338,7 @@ provider redirects a BROWSER, and whatever it sets lands in that browser's cooki
 has to cross back into Electron, and the only thing allowed to cross is an authorization code:
 one-shot, five-minute, and bound to a PKCE challenge the desktop generated and never transmitted
 (RFC 8252). A stolen callback is worth nothing without the verifier, which never leaves the main
-process's memory — which is also why the custom scheme is single-label `grog` rather than a
+process's memory — which is also why the custom scheme is single-label `crewaid` rather than a
 reverse-DNS name this product has no domain to justify.
 
 **The wire format comes from `@better-auth/electron`, pinned to the orchestrator's own version.**
@@ -3358,7 +3358,7 @@ CC-07 store with every other credential, and a second copy in a second file with
 is the copy that survives a sign-out.
 
 **The orchestrator serves the sign-in page itself.** Better Auth's guide assumes a web app running
-its proxy client; Grog is self-hosted and has none. The page is one Better Auth endpoint at
+its proxy client; Crewaid is self-hosted and has none. The page is one Better Auth endpoint at
 `{basePath}/electron/sign-in` — no bundler, no framework — and mounting it INSIDE `basePath` is the
 point: `AuthGuard`'s exemption list is the one place in the codebase where a mistake fails open, and
 this way the set of unauthenticated paths does not grow at all. The page holds no secret and makes
@@ -3371,7 +3371,7 @@ works. A button the install cannot honour redirects into a 500, and the person r
 is looking at Google's console by then.
 
 **`trustedOrigins` carries the desktop scheme, and the origin check is explicitly on.** The
-exchange is a cross-origin POST from a native app announcing `Origin: grog:/`. Better Auth
+exchange is a cross-origin POST from a native app announcing `Origin: crewaid:/`. Better Auth
 validates an origin only on requests carrying a cookie — so a FIRST sign-in on a fresh install
 never reaches the check and a second one does, which is a bug that ships green. Worse, Better Auth
 disables the origin check entirely under `NODE_ENV=test`, so every case asserting a refusal passes
@@ -3701,7 +3701,7 @@ rather than of whatever is answering for it this week.
 
 **What this decision refuses.** No retention or attachment mechanics, now or later: no goodbye that
 manufactures a reason to come back, no warmth tuned for engagement, no bot that performs needing
-the user. Grog runs a team of agents; the companion end of this design space is where the ethical
+the user. Crewaid runs a team of agents; the companion end of this design space is where the ethical
 and regulatory risk concentrates, and there is nothing there this product wants. The last bullet of
 `HOUSE_CHARACTER_INSTRUCTIONS` is that refusal written where the model can read it.
 
@@ -3925,7 +3925,7 @@ config or renames a discriminant is then a compile error here instead of a silen
 
 ## D-100 · The plugin directory is a constant, install writes a row and opens nothing, and refresh is the only route that dials
 
-**2026-09-21 — M6-BE-02. Two new response schemas in `@grog/shared` (`GET /mcp/directory` and
+**2026-09-21 — M6-BE-02. Two new response schemas in `@crewaid/shared` (`GET /mcp/directory` and
 `GET /mcp/servers`, both bare arrays); no change to an existing shape and no migration.** The task
 is §4.1's two install routes — `POST /mcp/servers` with `{slug}` or with `{name, url, transport}` —
 plus `GET /mcp/directory`, `GET /mcp/servers`, `POST /mcp/servers/:id/refresh-tools` and
@@ -4051,7 +4051,7 @@ production applies `setGlobalPrefix('api/v1')` and a bare testing-module bootstr
 third exemption, compared by equality. A `startsWith` here would hand every future
 `/mcp/oauth/callback/...` route to an unauthenticated caller the day somebody added one, and an
 exemption that grows itself is the failure that guard exists to avoid. The route always answers HTTP
-200 with HTML plus an `X-Grog-Mcp-Connect: ok|failed:<code>` header, so a human sees a page and a
+200 with HTML plus an `X-Crewaid-Mcp-Connect: ok|failed:<code>` header, so a human sees a page and a
 caller gets a machine-readable verdict without parsing prose; the codes are `invalid-request`,
 `unknown-state`, `expired`, `denied`, `exchange-failed`, `storage-failed`, `tools-failed`.
 Credential storage failures use `storage-failed`, with a safe configuration message or a generic
@@ -4077,7 +4077,7 @@ four things about it are contracts.
 **The cipher is shared; the secret is not.** MCP tokens are encrypted by `credential-cipher.ts` —
 the same AES-256-GCM implementation, fresh nonce per write, base64url format tag, tamper-refusing
 decrypt — that V1-03's provider vault uses, with the key coming from `CREDENTIAL_KEY` and the
-provider vault still reading `GROG_CREDENTIAL_KEYRING`. D-083's separation is kept for the reason
+provider vault still reading `CREWAID_CREDENTIAL_KEYRING`. D-083's separation is kept for the reason
 it was made: one secret serving two purposes means rotating either one forces rotating the other,
 and the two have different lifetimes anyway — a provider key is typed in by an operator, an MCP
 token is minted by a third party's authorization server. What the two tables must NOT share is a
@@ -4786,7 +4786,7 @@ is right for both — but it left `ToolCallPart` rendering "Use plugin tool" for
 ever makes, and the transcript is where an operator goes to see what a bot has been doing. So
 `foldToolParts` shows the tool and the arguments the operator was asked to approve, recovered from the
 same payload, and the wire shape is still untouched: this is a view translation, which is what that
-module is for. The names and the payload schema moved to `@grog/shared` (`USE_PLUGIN_TOOL`,
+module is for. The names and the payload schema moved to `@crewaid/shared` (`USE_PLUGIN_TOOL`,
 `PluginBridgeCallSchema`) so both processes read one definition of what a bridge call is — a bridge
 call became a wire shape the moment it reached a §4.2 part, and `packages/shared` is where a wire shape
 lives.
@@ -5449,6 +5449,10 @@ passed can still be renamed or cleared.
 
 **Status:** accepted · **Touches:** every package name, every `--filter`, every import of a
 workspace package (amends D-095)
+
+> **Amended 2026-11-26.** The product is no longer called Grog, so this file's earlier entries now
+> use the Crewaid names. D-095 and this entry keep `grog` where they describe the rename itself.
+> `docs/reviews/` and the `tasks.json` notes are unchanged.
 
 D-095 kept `@grog/*` as a codename. The operator has now confirmed Crewaid as the name for the
 machine-facing half too, so CC-54 renames it, one slice at a time. This first slice is the
