@@ -319,14 +319,16 @@ function createPino(destination?: DestinationStream): PinoLogger {
   );
 }
 
+/**
+ * Only object literals (and null-prototype records) are spread into fields.
+ * Anything else, such as an Error, Date, Buffer, Map or class instance, goes
+ * under `extra`, because spreading it would turn its indices or internals into
+ * top-level keys.
+ */
 function isPlainRecord(value: unknown): value is LogFields {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    !Array.isArray(value) &&
-    !(value instanceof Error) &&
-    !(value instanceof Date)
-  );
+  if (typeof value !== 'object' || value === null) return false;
+  const prototype: unknown = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }
 
 function extractNestParams(optionalParams: readonly unknown[]): {
@@ -452,7 +454,11 @@ export class StructuredLogger implements LoggerService {
     message: unknown,
     optionalParams: readonly unknown[],
   ): void {
-    if (typeof message === 'string' && optionalParams.length === 1 && isPlainRecord(optionalParams[0])) {
+    if (
+      typeof message === 'string' &&
+      optionalParams.length === 1 &&
+      isPlainRecord(optionalParams[0])
+    ) {
       this.write(level, message, optionalParams[0]);
       return;
     }

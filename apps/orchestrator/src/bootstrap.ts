@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger, type NestApplicationOptions, type Type } from '@nestjs/common';
+import { Logger, type Type } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
+import { NEST_APP_OPTIONS } from './nest-app-options.js';
 import { TaskStartService } from './work/task-start.service.js';
 import { RecordingsService } from './recordings/recordings.service.js';
 import { SkillRunService } from './skills/skill-run.service.js';
@@ -33,20 +34,6 @@ import { createPrismaClient } from './prisma/prisma-client.factory.js';
  * which emits no design:paramtypes, so Nest DI fails at bootstrap (500 on
  * every route). Build with tsc, run `node dist/main.js`.
  */
-/**
- * Shared NestJS application options for both editions.
- *
- * - `rawBody`: keeps the exact request bytes received beside the parsed body
- *   so Stripe webhook signatures verify cleanly through Better Auth.
- * - `routeConflictPolicy`: fails boot on duplicate routes while warning on
- *   overlapping literal/parameter routes so valid literal-before-param routes
- *   remain permitted.
- */
-export const NEST_APP_OPTIONS: NestApplicationOptions = {
-  rawBody: true,
-  routeConflictPolicy: { duplicate: 'error', shadow: 'warn' },
-};
-
 export async function bootstrap(rootModule: Type<unknown>): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(rootModule, NEST_APP_OPTIONS);
   app.useLogger(app.get(StructuredLogger));

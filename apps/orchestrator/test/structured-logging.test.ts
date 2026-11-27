@@ -424,6 +424,39 @@ describe('Nest Logger adapter arguments (pre-existing bugfix)', () => {
     expect(serialized).not.toContain('nest12-verbose-secret');
   });
 
+  it('keeps Buffers and class instances under extra instead of spreading them into top-level keys', () => {
+    const { logger, destination } = loggerWithDestination();
+    const nestLogger: LoggerService = logger;
+    class Lookup {
+      readonly table = 'bots';
+      readonly token = 'nest12-instance-secret';
+    }
+    const nullPrototype: Record<string, unknown> = Object.assign(Object.create(null) as object, {
+      attempt: 3,
+    });
+
+    nestLogger.warn(
+      'Lookup failed',
+      Buffer.from('ab'),
+      new Lookup(),
+      nullPrototype,
+      'LookupContext',
+    );
+
+    const record = destination.records()[0]!;
+    const serialized = destination.chunks.join('');
+    expect(record).toMatchObject({
+      event: 'Lookup failed',
+      context: 'LookupContext',
+      attempt: 3,
+    });
+    expect(record['0']).toBeUndefined();
+    expect(record['table']).toBeUndefined();
+    expect(record['extra']).toHaveLength(2);
+    expect(record['extra']).toContainEqual({ table: 'bots', token: '[REDACTED]' });
+    expect(serialized).not.toContain('nest12-instance-secret');
+  });
+
   it('preserves context alongside structured fields on error without changing CC-01 error overloads', () => {
     const { logger, destination } = loggerWithDestination();
 

@@ -4,13 +4,11 @@ import { Controller, Get, Module, type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { WebSocket } from 'ws';
-import { AppModule } from '../src/app.module.js';
-import { NEST_APP_OPTIONS } from '../src/bootstrap.js';
+import { NEST_APP_OPTIONS } from '../src/nest-app-options.js';
 import { ToolRegistry } from '../src/agent/tool-registry.js';
 import { NO_PLUGIN_TOOLS, TurnPlugins } from '../src/agent/turn-plugins.js';
 import { createPrismaClient } from '../src/prisma/prisma-client.factory.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
-import { CrewaidWsAdapter } from '../src/ws/crewaid-ws.adapter.js';
 import { signIn, signOutAndDelete } from './auth-fixture.js';
 
 const DATABASE_URL = process.env['DATABASE_URL'];
@@ -115,6 +113,11 @@ describe.skipIf(DATABASE_URL === undefined || DATABASE_URL === '')(
     let createdUserId: string | undefined;
 
     beforeAll(async () => {
+      // Loaded here, not at the top: Better Auth needs DATABASE_URL at import,
+      // and a top-level import would fail the duplicate-route suite above
+      // instead of letting this one skip.
+      const { AppModule } = await import('../src/app.module.js');
+      const { CrewaidWsAdapter } = await import('../src/ws/crewaid-ws.adapter.js');
       const moduleRef = await Test.createTestingModule({
         imports: [AppModule],
       }).compile();

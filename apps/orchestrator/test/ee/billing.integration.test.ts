@@ -369,7 +369,7 @@ describe.skipIf(DATABASE_URL === undefined || DATABASE_URL === '')(
       const { Test } = await import('@nestjs/testing');
       const { CloudAppModule } = await import('../../src/ee/cloud-app.module.js');
       const { CrewaidWsAdapter } = await import('../../src/ws/crewaid-ws.adapter.js');
-      const { NEST_APP_OPTIONS } = await import('../../src/bootstrap.js');
+      const { NEST_APP_OPTIONS } = await import('../../src/nest-app-options.js');
 
       const moduleRef = await Test.createTestingModule({ imports: [CloudAppModule] })
         .overrideProvider(STRIPE_CLIENT)
