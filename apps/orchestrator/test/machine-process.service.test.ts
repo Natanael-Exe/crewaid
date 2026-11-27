@@ -36,6 +36,7 @@ function makeInfo(overrides: Partial<ManagedProcessInfo> = {}): ManagedProcessIn
 function setup(options: {
   sandboxState?: 'RUNNING' | 'STOPPED';
   fetchHandler: (url: URL, init?: RequestInit) => Promise<Response> | Response;
+  onRelease?: (botId: string) => Promise<void>;
 }) {
   const acquired: Array<{ userId: string; botId: string; owner: ComputerOwner }> = [];
   let released = 0;
@@ -70,6 +71,9 @@ function setup(options: {
         botId,
         renew: async () => true,
         release: async () => {
+          if (options.onRelease !== undefined) {
+            await options.onRelease(botId);
+          }
           released += 1;
         },
       };
@@ -225,5 +229,61 @@ describe('MachineProcessService', () => {
     });
     await expect(missing.service.readOutput({ botId: BOT, processId: 'proc-gone' })).resolves.toBeNull();
     expect(MachineProcessError).toBeDefined();
+  });
+
+  it('awaits pending lease releases during onModuleDestroy and survives a rejected release', async () => {
+    const resolvers: Array<{ resolve: () => void; reject: (err: Error) => void }> = [];
+    let callIndex = 0;
+    const { service, released } = setup({
+      fetchHandler: (url, init) => {
+        if (init?.method === 'POST' && url.pathname === '/processes') {
+          const body = JSON.parse(String(init.body)) as { runId?: string };
+          return jsonResponse({
+            ok: true,
+            process: makeInfo({ processId: `proc-${body.runId}`, runId: body.runId ?? null }),
+          });
+        }
+        return jsonResponse({
+          ok: true,
+          process: { ...makeInfo(), output: '', offset: 0, nextOffset: 0, truncated: false },
+        });
+      },
+      onRelease: () =>
+        new Promise<void>((resolve, reject) => {
+          callIndex += 1;
+          resolvers.push({ resolve, reject });
+        }),
+    });
+
+    await service.start({
+      userId: 'user-1',
+      botId: BOT,
+      runId: 'run-slow',
+      command: 'pnpm dev',
+      cwd: `/home/bot/agents/${BOT}`,
+    });
+    await service.start({
+      userId: 'user-1',
+      botId: BOT,
+      runId: 'run-failing-release',
+      command: 'pnpm dev',
+      cwd: `/home/bot/agents/${BOT}`,
+    });
+
+    let destroySettled = false;
+    const destroying = Promise.resolve(service.onModuleDestroy()).then(() => {
+      destroySettled = true;
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(callIndex).toBe(2);
+    expect(destroySettled).toBe(false);
+
+    resolvers[0]!.resolve();
+    resolvers[1]!.reject(new Error('db already closed'));
+    await destroying;
+
+    expect(destroySettled).toBe(true);
+    expect(released()).toBe(1);
   });
 });

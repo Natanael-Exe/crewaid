@@ -369,6 +369,7 @@ describe.skipIf(DATABASE_URL === undefined || DATABASE_URL === '')(
       const { Test } = await import('@nestjs/testing');
       const { CloudAppModule } = await import('../../src/ee/cloud-app.module.js');
       const { CrewaidWsAdapter } = await import('../../src/ws/crewaid-ws.adapter.js');
+      const { NEST_APP_OPTIONS } = await import('../../src/bootstrap.js');
 
       const moduleRef = await Test.createTestingModule({ imports: [CloudAppModule] })
         .overrideProvider(STRIPE_CLIENT)
@@ -378,8 +379,9 @@ describe.skipIf(DATABASE_URL === undefined || DATABASE_URL === '')(
         .overrideProvider(CALL_AGENT_FACTORY)
         .useValue(() => callAgent)
         .compile();
-      // As `main.ts` boots it: the webhook's signature is over the raw bytes.
-      app = moduleRef.createNestApplication({ rawBody: true });
+      // As `bootstrap.ts` boots it: rawBody preserves Stripe signatures and
+      // routeConflictPolicy checks CloudAppModule + BillingModule routes.
+      app = moduleRef.createNestApplication(NEST_APP_OPTIONS);
       app.useWebSocketAdapter(new CrewaidWsAdapter(app));
       app.setGlobalPrefix('api/v1', { exclude: ['health'] });
       await app.init();

@@ -1,5 +1,6 @@
 import { Writable } from 'node:stream';
 import { describe, expect, it } from 'vitest';
+import type { LoggerService } from '@nestjs/common';
 import { APICallError } from './model-resolution-fake.js';
 import {
   CORRELATION_FIELDS,
@@ -337,5 +338,105 @@ describe('CC-01 structured logging', () => {
     expect(records[0]?.requestId).toEqual(expect.any(String));
     expect(records[1]?.requestId).toBe(records[0]?.requestId);
     expect(written).not.toContain('do-not-log');
+  });
+});
+
+describe('Nest Logger adapter arguments (pre-existing bugfix)', () => {
+  it('captures trailing string context on warn without spreading it into numeric keys', () => {
+    const { logger, destination } = loggerWithDestination();
+    const nestLogger: LoggerService = logger;
+
+    nestLogger.warn('REDIS_URL is not set', 'Bootstrap');
+
+    const record = destination.records()[0]!;
+    expect(record).toMatchObject({
+      event: 'REDIS_URL is not set',
+      context: 'Bootstrap',
+    });
+    expect(record['0']).toBeUndefined();
+  });
+
+  it('accepts structured object params and trailing context on log while redacting secrets', () => {
+    const { logger, destination } = loggerWithDestination();
+    const nestLogger: LoggerService = logger;
+
+    nestLogger.log(
+      'User created',
+      { userId: 'u-1', apiKey: 'sk-nest12-secret-value' },
+      'UsersService',
+    );
+
+    const record = destination.records()[0]!;
+    const serialized = destination.chunks.join('');
+    expect(record).toMatchObject({
+      event: 'nest.log',
+      message: 'User created',
+      context: 'UsersService',
+      userId: 'u-1',
+      apiKey: '[REDACTED]',
+    });
+    expect(serialized).not.toContain('sk-nest12-secret-value');
+  });
+
+  it('handles non-string messages on warn and debug without throwing and redacts secrets', () => {
+    const { logger, destination } = loggerWithDestination('debug');
+    const nestLogger: LoggerService = logger;
+
+    nestLogger.warn({ detail: 'Bearer nest12-nonstring-secret', code: 500 }, 'RouterExplorer');
+    nestLogger.debug?.({ token: 'nest12-debug-secret' }, 'CacheContext');
+
+    const [warnRecord, debugRecord] = destination.records();
+    const serialized = destination.chunks.join('');
+    expect(warnRecord).toMatchObject({
+      event: 'nest.warn',
+      context: 'RouterExplorer',
+      message: { detail: '[REDACTED]', code: 500 },
+    });
+    expect(debugRecord).toMatchObject({
+      event: 'nest.debug',
+      context: 'CacheContext',
+      message: { token: '[REDACTED]' },
+    });
+    expect(serialized).not.toContain('nest12-nonstring-secret');
+    expect(serialized).not.toContain('nest12-debug-secret');
+  });
+
+  it('collects non-object extra params under extra and redacts sensitive fields on verbose', () => {
+    const { logger, destination } = loggerWithDestination('debug');
+    const nestLogger: LoggerService = logger;
+
+    nestLogger.verbose?.(
+      'Trace',
+      { password: 'nest12-verbose-secret', count: 2 },
+      42,
+      'TraceContext',
+    );
+
+    const record = destination.records()[0]!;
+    const serialized = destination.chunks.join('');
+    expect(record).toMatchObject({
+      event: 'Trace',
+      context: 'TraceContext',
+      count: 2,
+      password: '[REDACTED]',
+      extra: [42],
+    });
+    expect(serialized).not.toContain('nest12-verbose-secret');
+  });
+
+  it('preserves context alongside structured fields on error without changing CC-01 error overloads', () => {
+    const { logger, destination } = loggerWithDestination();
+
+    logger.error('Failed op', { authorization: 'Bearer nest12-err-secret', step: 2 }, 'OpContext');
+
+    const record = destination.records()[0]!;
+    const serialized = destination.chunks.join('');
+    expect(record).toMatchObject({
+      event: 'Failed op',
+      step: 2,
+      context: 'OpContext',
+      authorization: '[REDACTED]',
+    });
+    expect(serialized).not.toContain('nest12-err-secret');
   });
 });
