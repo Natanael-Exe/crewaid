@@ -13,7 +13,8 @@
   .date-picker__popover,
   .modal__dialog,
   .alert-dialog__dialog,
-  .tooltip {
+  .tooltip,
+  .crewaid-composer-palette {
     -webkit-backdrop-filter: var(--glass-filter);
     backdrop-filter: var(--glass-filter);
   }
@@ -21,7 +22,8 @@
   .popover,
   .dropdown__popover,
   .select__popover,
-  .autocomplete__popover {
+  .autocomplete__popover,
+  .crewaid-composer-palette {
     border: 1px solid var(--glass-border);
     box-shadow: var(--overlay-shadow);
   }
@@ -125,6 +127,7 @@
     .modal__dialog,
     .popover,
     .dropdown__popover,
+    .crewaid-composer-palette,
     .crewaid-composer-pill {
       background: Canvas;
       color: CanvasText;

@@ -128,6 +128,7 @@ export const tools = {
   'tools.approval.script': 'The script your approval stores, in full:',
   'tools.approval.localTask.connector': 'Connector',
   'tools.approval.localTask.folder': 'Folder',
+  'tools.approval.localTask.rootFolder': 'Workspace root',
   'tools.approval.localTask.harness': 'Harness',
   'tools.approval.localTask.defaultHarness': 'Connector default',
   'tools.approval.localTask.verify': 'Verify command',

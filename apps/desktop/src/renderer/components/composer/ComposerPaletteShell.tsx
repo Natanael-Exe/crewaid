@@ -38,7 +38,10 @@ export function ComposerPaletteShell({
     <Surface
       variant="default"
       {...(dataAttr === 'bot' ? { 'data-bot-palette': '' } : { 'data-tool-palette': '' })}
-      className={`absolute bottom-full start-0 z-40 mb-2 overflow-hidden rounded-card border border-border shadow-overlay ${widthClass}`}
+      // The overlay material, as on every popover: the transcript scrolls
+      // under this list, and the plain card surface let its text read
+      // through the rows.
+      className={`crewaid-composer-palette absolute bottom-full start-0 z-40 mb-2 overflow-hidden rounded-card bg-overlay shadow-overlay ${widthClass}`}
     >
       <div
         id={id}
@@ -51,7 +54,7 @@ export function ComposerPaletteShell({
         {showBottomFade ? (
           <div
             aria-hidden
-            className="pointer-events-none sticky bottom-0 h-3 bg-gradient-to-t from-surface"
+            className="pointer-events-none sticky bottom-0 h-3 bg-gradient-to-t from-overlay"
           />
         ) : null}
       </div>

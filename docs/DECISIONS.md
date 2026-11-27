@@ -10160,3 +10160,38 @@ in six steps:
   the parallel AI SDK runtime in favor of TanStack AI.
 - **Storing/injecting external CLI OAuth tokens from Crewaid Settings.** Violates Anthropic's terms
   and weakens the boundary separating orchestrator secrets from container-local user sessions.
+
+## D-242 — Built-in Desktop Local Connector Manager (narrow R1 / D-241 Step 5 amendment) (2026-11-26)
+
+**Status:** accepted by the product owner · **Amends:** D-241 Step 5 (narrows R1 host-process boundary for local connectors only)
+
+**Why.** Requiring every user of the Electron desktop app to copy a connector token, open a
+terminal, replace `/path/to/repo`, install Node.js 22+, paste a hidden token, and keep a shell
+running creates unacceptable friction for non-technical users on the very computer already running
+Crewaid. Meanwhile, `apps/desktop/electron-builder.yml` deliberately sets `runAsNode: false` and
+`onlyLoadAppFromAsar: true`, so spawning `ELECTRON_RUN_AS_NODE=1` is neither safe nor supported in
+packaged builds.
+
+**Decision.** Add a narrow, `guardedIpc`-fenced local connector manager in the Electron main
+process while keeping Electron strictly free of AI orchestration (zero model calls, zero agent loop,
+zero database, zero Docker):
+
+- **Process isolation via `utilityProcess.fork()`.** `packages/connector-cli` compiles a second
+  self-contained CommonJS worker bundle (`desktop-worker.cjs`, excluded from the npm tarball) copied
+  into `apps/desktop/dist/localConnectorWorker.cjs` inside `app.asar`. Electron main forks it with
+  `utilityProcess.fork()`, which works with `runAsNode: false` and `onlyLoadAppFromAsar: true` and
+  requires no separate Node.js installation on the user's machine.
+- **Zero-copy pairing & encrypted storage.** Users click "Connect a local folder", pick a folder
+  via native `dialog.showOpenDialog`, choose report mode (`summary` default vs `full`), and click
+  Connect. The renderer creates the connector via `POST /connectors` and hands the one-time token to
+  main over `guardedIpc`. Main persists paired folder metadata and tokens encrypted exclusively via
+  `safeStorage` (`local-connectors.encrypted`, `0600`, atomic rename) and never returns raw tokens
+  back to the renderer.
+- **Login-shell `PATH` detection.** On macOS and Linux, Electron main resolves the user's login-shell
+  `PATH` once (with common tool-dir fallbacks) so packaged apps launched from Finder/Dock detect
+  installed `claude-agent-acp`, `codex-acp`, `opencode`, and `agy` binaries reliably.
+- **In-app local confirmation & ACP permission dialogs.** Local task confirmations (on by default)
+  and ACP `session/request_permission` requests route from the utility worker over MessagePort/IPC
+  into an in-app modal (plus a native OS notification if unfocused) and fail closed on cancel/close.
+- **CLI preserved as a secondary flow.** The standalone `npx crewaid-connect` flow remains
+  available under "Connect another machine (CLI)" for headless Linux boxes and remote machines.

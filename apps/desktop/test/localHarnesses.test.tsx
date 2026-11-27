@@ -8,6 +8,7 @@ import {
   parseCodingProgress,
 } from '../src/renderer/chat/codingProgress';
 import { ApprovalPrompt } from '../src/renderer/components/tools/ApprovalPrompt';
+import { LocalConnectorPromptBody } from '../src/renderer/components/LocalConnectorPromptModal';
 import { ToolCallPart } from '../src/renderer/components/tools/ToolCallPart';
 import { liveWorkPhase } from '../src/renderer/components/WorkingIndicator';
 import {
@@ -108,14 +109,149 @@ describe('LocalHarnessesView (Settings → Local harnesses)', () => {
     // User note: Settings copy explicitly notes summary mode reports command titles such as pnpm test
     expect(html).toContain('pnpm test');
 
-    // Launch command MUST NOT include the token
+    // Launch command MUST NOT include the token (and defaults to current directory)
     const launch = buildConnectorLaunchCommand('https://crewaid.example.test/');
-    expect(launch).toBe('npx crewaid-connect /path/to/repo --url https://crewaid.example.test');
+    expect(launch).toBe('npx crewaid-connect --url https://crewaid.example.test');
     expect(launch).not.toContain('crw_conn_');
     expect(html).toContain(launch);
     // Secret is masked by default (raw secret never dumped in plain text before reveal)
     expect(html).toContain('data-connector-secret-box');
     expect(html).not.toContain(SAMPLE_SECRET);
+  });
+
+  it('renders detected local harnesses, managed desktop folder controls, and CLI fallback option', () => {
+    const html = renderToStaticMarkup(
+      <I18nProvider>
+        <LocalHarnessesView
+          connectors={[sampleConnector({ id: 'clconn000000000000000001', status: 'OFFLINE' })]}
+          managed={[
+            {
+              connectorId: 'clconn000000000000000001',
+              name: 'MacBook Pro',
+              directory: '/Users/dev/my-app',
+              serverUrl: 'https://crewaid.example.test',
+              reportMode: 'summary',
+              confirmInApp: true,
+              autoStart: false,
+              state: 'paused',
+              harnesses: ['claude-code'],
+            },
+          ]}
+          detectedHarnesses={[
+            {
+              id: 'claude-code',
+              label: 'Claude Code',
+              command: 'claude-agent-acp',
+              available: true,
+              resolvedPath: '/opt/homebrew/bin/claude-agent-acp',
+              installCommand: 'npm install -g @agentclientprotocol/claude-agent-acp',
+              installHint: 'npm install -g @agentclientprotocol/claude-agent-acp',
+            },
+            {
+              id: 'codex',
+              label: 'Codex',
+              command: 'codex-acp',
+              available: false,
+              resolvedPath: null,
+              installCommand: 'npm install -g @agentclientprotocol/codex-acp',
+              installHint: 'npm install -g @agentclientprotocol/codex-acp',
+            },
+            {
+              id: 'antigravity',
+              label: 'Antigravity',
+              command: 'agy',
+              available: false,
+              resolvedPath: null,
+              installCommand: 'curl -fsSL https://antigravity.google/cli/install.sh | bash',
+              installHint: 'curl -fsSL https://antigravity.google/cli/install.sh | bash',
+            },
+          ]}
+          desktopSupported
+          serverUrl="https://crewaid.example.test"
+          problem={null}
+          issued={null}
+          busyId={null}
+          creating={false}
+          onToggleManaged={vi.fn()}
+          onCreate={async () => true}
+          onRotate={vi.fn()}
+          onRemove={vi.fn()}
+          onDismissIssued={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+
+    expect(html).toContain('Available on this computer');
+    expect(html).toContain('Claude Code');
+    expect(html).toContain('Ready');
+    expect(html).toContain('Not installed');
+    expect(html).toContain('Copy install');
+    expect(html).toContain('curl -fsSL https://antigravity.google/cli/install.sh | bash');
+    expect(html).toContain('This computer');
+    expect(html).toContain('/Users/dev/my-app');
+    expect(html).toContain('Paused');
+    expect(html).toContain('Connect another machine (CLI)');
+  });
+});
+
+describe('LocalConnectorPromptBody (in-app confirmation and ACP permission modal)', () => {
+  it('renders full verbatim prompt for local task confirmation', () => {
+    const marker = 'EXACT_TAIL_PROMPT_VERIFICATION_777';
+    const html = renderToStaticMarkup(
+      <I18nProvider>
+        <LocalConnectorPromptBody
+          prompt={{
+            kind: 'confirm_task',
+            requestId: 'req-1',
+            connectorId: 'clconn000000000000000001',
+            connectorName: 'my-app',
+            botName: 'Atlas',
+            workspaceName: 'my-app',
+            relativeCwd: 'packages/api',
+            harness: 'claude-code',
+            reportMode: 'summary',
+            prompt: `Refactor auth middleware\n${marker}`,
+            verifyCommand: 'pnpm test',
+          }}
+          onRespond={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(html).toContain('data-local-connector-prompt="confirm_task"');
+    expect(html).toContain('Atlas');
+    expect(html).toContain('my-app/packages/api');
+    expect(html).toContain('pnpm test');
+    expect(html).toContain(marker);
+    expect(html).toContain('Run locally');
+    expect(html).toContain('Decline');
+  });
+
+  it('renders local ACP permission options and affected file locations', () => {
+    const html = renderToStaticMarkup(
+      <I18nProvider>
+        <LocalConnectorPromptBody
+          prompt={{
+            kind: 'request_permission',
+            requestId: 'req-2',
+            connectorId: 'clconn000000000000000001',
+            connectorName: 'my-app',
+            title: 'Run pnpm test',
+            toolKind: 'execute',
+            locations: ['package.json'],
+            options: [
+              { optionId: 'allow_1', name: 'Allow once', kind: 'allow_once' },
+              { optionId: 'reject_1', name: 'Reject', kind: 'reject_once' },
+            ],
+          }}
+          onRespond={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(html).toContain('data-local-connector-prompt="request_permission"');
+    expect(html).toContain('Run pnpm test');
+    expect(html).toContain('package.json');
+    expect(html).toContain('Allow once');
+    expect(html).toContain('Deny');
   });
 });
 

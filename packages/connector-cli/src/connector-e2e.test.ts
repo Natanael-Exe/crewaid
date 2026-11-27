@@ -496,7 +496,7 @@ describe('ConnectorClient end-to-end (loopback WS + real ACP subprocess)', () =>
     expect(connections).toBe(1);
   });
 
-  it('executes the standalone esbuild dist/bin.mjs bundle directly', () => {
+  it('executes the standalone esbuild dist/bin.mjs bundle directly and formats missing-dir errors cleanly', () => {
     if (!existsSync(BUNDLE_PATH)) {
       execFileSync(process.execPath, [path.join(PKG_DIR, 'scripts', 'build.mjs')], {
         cwd: PKG_DIR,
@@ -506,12 +506,30 @@ describe('ConnectorClient end-to-end (loopback WS + real ACP subprocess)', () =>
     const helpOut = execFileSync(process.execPath, [BUNDLE_PATH, '--help'], {
       encoding: 'utf8',
     });
-    expect(helpOut).toContain('crewaid-connect <dir> --url <server-url>');
+    expect(helpOut).toContain('crewaid-connect [dir] --url <server-url>');
 
     const harnessesOut = execFileSync(process.execPath, [BUNDLE_PATH, 'harnesses'], {
       encoding: 'utf8',
     });
     expect(harnessesOut).toContain('claude-code');
     expect(harnessesOut).toContain('codex');
+
+    let caughtStderr = '';
+    try {
+      execFileSync(process.execPath, [BUNDLE_PATH, '/nonexistent/crewaid-missing-dir', '--url', 'http://localhost:3000'], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch (error: unknown) {
+      const rawStderr = (error as { stderr?: unknown }).stderr;
+      caughtStderr =
+        typeof rawStderr === 'string'
+          ? rawStderr
+          : Buffer.isBuffer(rawStderr)
+            ? rawStderr.toString('utf8')
+            : '';
+    }
+    expect(caughtStderr).toContain('Error: Workspace directory does not exist');
+    expect(caughtStderr).not.toContain('at resolveWorkspaceRoot');
   });
 });

@@ -20,6 +20,7 @@ import { SANDBOX_PROVIDER } from '../src/sandbox/sandbox.provider.js';
 import { AI_TELEMETRY, type AiTelemetryEvent } from '../src/telemetry/ai-telemetry.js';
 import { signIn, signOutAndDelete, type SignedInUser } from './auth-fixture.js';
 import { ScriptedAdapter } from './mod-02-tanstack-harness.js';
+import { MessagesService } from '../src/messages/messages.service.js';
 import { ChatSendService } from '../src/chat/chat-send.service.js';
 import { TurnEventBus } from '../src/agent/turn-event.bus.js';
 import { RunLeaseService, RUN_HEARTBEAT_MS } from '../src/agent/persistence/run-lease.js';
@@ -651,6 +652,9 @@ describe.skipIf(!DATABASE_URL)('MOD-AI-16 chat send route (real app, real db)', 
       expect(run.status).toBe('completed');
     });
     expect(recoveredEffect.mock.calls.length).toBe(before + 1);
+    expect(
+      (await prisma.agentTurn.findUniqueOrThrow({ where: { id: payload.runId } })).status,
+    ).toBe('completed');
     const consumed = await prisma.runInterrupt.findUniqueOrThrow({ where: { id: proposal.id } });
     expect(consumed).toMatchObject({ status: 'resolved', nativeStatus: 'resolved' });
     await app.get(ChatSendService).recoverAbandonedRuns();
@@ -855,5 +859,98 @@ describe.skipIf(!DATABASE_URL)('MOD-AI-16 chat send route (real app, real db)', 
       select: { content: true },
     });
     expect(notices.some(({ content }) => content.includes('carrying on for'))).toBe(false);
+  });
+
+  it('cancelling a parked approval clears both private and native interrupt facets', async () => {
+    const f = await thread();
+    const payload = body(f.threadId, { id: `u-${randomUUID()}`, content: 'gated please' });
+    await (await send(f.bot.id, payload)).text();
+    const proposal = await prisma.runInterrupt.findFirstOrThrow({
+      where: { runId: payload.runId },
+    });
+    expect(proposal).toMatchObject({ status: 'pending', nativeStatus: 'pending' });
+
+    app.get(ChatSendService).cancel(owner.userId, f.bot.id);
+    await vi.waitFor(async () => {
+      const updated = await prisma.runInterrupt.findUniqueOrThrow({ where: { id: proposal.id } });
+      expect(updated).toMatchObject({ status: 'cancelled', nativeStatus: 'cancelled' });
+      expect(updated.nativeResolvedAt).not.toBeNull();
+    });
+
+    const next = body(f.threadId, { id: `u-${randomUUID()}`, content: 'hello after cancel' });
+    expect((await send(f.bot.id, next)).status).toBe(200);
+    await vi.waitFor(async () => {
+      expect((await prisma.agentTurn.findUniqueOrThrow({ where: { id: next.runId } })).status).toBe(
+        'completed',
+      );
+    });
+  });
+
+  it('recoverAbandonedRuns reconciles orphaned split-brain native interrupts', async () => {
+    const f = await thread();
+    const payload = body(f.threadId, { id: `u-${randomUUID()}`, content: 'gated please' });
+    await (await send(f.bot.id, payload)).text();
+    const proposal = await prisma.runInterrupt.findFirstOrThrow({
+      where: { runId: payload.runId },
+    });
+    const admitted = await admitOwnedToolResumeBatch(
+      prisma,
+      {
+        userId: owner.userId,
+        botId: f.bot.id,
+        threadId: f.threadId,
+        parentRunId: payload.runId,
+      },
+      [
+        {
+          interruptId: proposal.nativeInterruptId!,
+          status: 'resolved',
+          payload: { approved: true },
+        },
+      ],
+    );
+    // Simulate a legacy continuation that failed without committing nativeStatus.
+    await prisma.agentTurn.update({
+      where: { id: admitted.lease.runId },
+      data: {
+        status: 'failed',
+        endedAt: new Date(),
+        activeKey: null,
+        workerId: null,
+        leaseExpiresAt: null,
+      },
+    });
+    expect(
+      await prisma.runInterrupt.findUniqueOrThrow({ where: { id: proposal.id } }),
+    ).toMatchObject({ status: 'resolved', nativeStatus: 'pending' });
+
+    await app.get(ChatSendService).recoverAbandonedRuns();
+    const repaired = await prisma.runInterrupt.findUniqueOrThrow({ where: { id: proposal.id } });
+    expect(repaired).toMatchObject({ status: 'resolved', nativeStatus: 'resolved' });
+    expect(repaired.nativeResolvedAt).not.toBeNull();
+    // The parent stranded this way closes too, so the bot is no longer
+    // "working".
+    expect(
+      await prisma.agentTurn.findUniqueOrThrow({ where: { id: payload.runId } }),
+    ).toMatchObject({ status: 'failed', endedAt: expect.any(Date) });
+
+    const next = body(f.threadId, { id: `u-${randomUUID()}`, content: 'hello after repair' });
+    expect((await send(f.bot.id, next)).status).toBe(200);
+    await vi.waitFor(async () => {
+      expect((await prisma.agentTurn.findUniqueOrThrow({ where: { id: next.runId } })).status).toBe(
+        'completed',
+      );
+    });
+    // Deleting a message was refused while the parent stayed `interrupted`.
+    const leftover = await prisma.message.findFirstOrThrow({
+      where: { conversationId: f.threadId },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    });
+    await expect(
+      app
+        .get(MessagesService)
+        .deleteMessages(owner.userId, f.bot.id, { messageId: leftover.id, forget: false }),
+    ).resolves.toBeDefined();
   });
 });

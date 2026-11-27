@@ -2,12 +2,21 @@ import type { Edition } from '@crewaid/shared';
 import type {
   AuthStatus,
   CrewaidBridge,
+  LocalConnectorPromptEvent,
+  LocalConnectorPromptResponse,
+  LocalHarnessDetectionResult,
+  ManagedConnectorActionResult,
+  ManagedConnectorsListResult,
+  ManagedConnectorView,
   OpenExternalResult,
+  PairLocalConnectorInput,
+  PickFolderResult,
   SignInResult,
   TokenBag,
   TokenStoreReadResult,
   TokenStoreWriteResult,
   UpdateInstallResult,
+  UpdateLocalConnectorInput,
   UpdateState,
 } from '../preload';
 import type { TokenCredentials } from './connection/wsClient';
@@ -263,6 +272,135 @@ export const menuBridge = {
     if (!hasBridge()) return () => undefined;
     try {
       return window.crewaid.menu.onNewBot(listener);
+    } catch {
+      return () => undefined;
+    }
+  },
+};
+
+/**
+ * Built-in local connector supervisor bridge (D-242).
+ * Fail-closed when rendered outside Electron (such as static markup tests).
+ */
+export const localConnectorBridge = {
+  isSupported: (): boolean =>
+    hasBridge() && typeof window.crewaid.localConnector !== 'undefined',
+  detectHarnesses: async (refresh = false): Promise<LocalHarnessDetectionResult> => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+    try {
+      return await window.crewaid.localConnector.detectHarnesses(refresh);
+    } catch {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+  },
+  pickFolder: async (): Promise<PickFolderResult> => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+    try {
+      return await window.crewaid.localConnector.pickFolder();
+    } catch {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+  },
+  list: async (): Promise<ManagedConnectorsListResult> => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+    try {
+      return await window.crewaid.localConnector.list();
+    } catch {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+  },
+  pair: async (input: PairLocalConnectorInput): Promise<ManagedConnectorActionResult> => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+    try {
+      return await window.crewaid.localConnector.pair(input);
+    } catch {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+  },
+  start: async (connectorId: string): Promise<ManagedConnectorActionResult> => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+    try {
+      return await window.crewaid.localConnector.start(connectorId);
+    } catch {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+  },
+  pause: async (connectorId: string): Promise<ManagedConnectorActionResult> => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+    try {
+      return await window.crewaid.localConnector.pause(connectorId);
+    } catch {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+  },
+  update: async (input: UpdateLocalConnectorInput): Promise<ManagedConnectorActionResult> => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+    try {
+      return await window.crewaid.localConnector.update(input);
+    } catch {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+  },
+  unpair: async (connectorId: string): Promise<ManagedConnectorActionResult> => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+    try {
+      return await window.crewaid.localConnector.unpair(connectorId);
+    } catch {
+      return { status: 'error', code: 'IPC_ERROR' };
+    }
+  },
+  currentPrompt: async (): Promise<LocalConnectorPromptEvent | null> => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return null;
+    }
+    try {
+      return await window.crewaid.localConnector.currentPrompt();
+    } catch {
+      return null;
+    }
+  },
+  respondPrompt: async (response: LocalConnectorPromptResponse): Promise<boolean> => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return false;
+    }
+    try {
+      return await window.crewaid.localConnector.respondPrompt(response);
+    } catch {
+      return false;
+    }
+  },
+  onStateChanged: (listener: (connectors: readonly ManagedConnectorView[]) => void): (() => void) => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return () => undefined;
+    }
+    try {
+      return window.crewaid.localConnector.onStateChanged(listener);
+    } catch {
+      return () => undefined;
+    }
+  },
+  onPrompt: (listener: (prompt: LocalConnectorPromptEvent | null) => void): (() => void) => {
+    if (!hasBridge() || typeof window.crewaid.localConnector === 'undefined') {
+      return () => undefined;
+    }
+    try {
+      return window.crewaid.localConnector.onPrompt(listener);
     } catch {
       return () => undefined;
     }

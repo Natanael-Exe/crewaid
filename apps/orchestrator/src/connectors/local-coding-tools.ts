@@ -230,7 +230,8 @@ export function localConnectorTools(deps: LocalConnectorToolsDeps): readonly Reg
     proposal: async (args: Json) => {
       const prepared = await prepareLocalDispatch(args);
       const account =
-        prepared.connector.workspaceName === null
+        prepared.connector.workspaceName === null ||
+        prepared.connector.workspaceName === prepared.connector.name
           ? prepared.connector.name
           : `${prepared.connector.name} (${prepared.connector.workspaceName})`;
       return {

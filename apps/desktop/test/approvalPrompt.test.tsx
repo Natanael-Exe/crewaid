@@ -271,6 +271,59 @@ describe('ApprovalPrompt', () => {
     expect(html).toContain('screenshot');
     expect(html).toContain('aria-label="Approve screenshot"');
   });
+
+  it('displays Workspace root for "." and the relative path for subdirectories in local_code_task', () => {
+    const rootHtml = render(
+      <ApprovalPrompt
+        approval={{
+          ...shell,
+          toolName: 'local_code_task',
+          args: { connectorId: 'c1', goal: 'List files', harness: 'claude-code' },
+          binding: {
+            ...shell.binding,
+            effect: 'commit',
+            commit: {
+              account: 'crewaid-public',
+              destinations: ['c1:.'],
+              contentRevision: 'a'.repeat(64),
+            },
+          },
+        }}
+        botName="Warden"
+        onRespond={() => undefined}
+      />,
+    );
+    expect(rootHtml).toContain('crewaid-public');
+    expect(rootHtml).toContain('Workspace root');
+
+    const subHtml = render(
+      <ApprovalPrompt
+        approval={{
+          ...shell,
+          toolName: 'local_code_task',
+          args: {
+            connectorId: 'c1',
+            goal: 'Run tests',
+            relativeCwd: 'apps/orchestrator',
+            harness: 'claude-code',
+          },
+          binding: {
+            ...shell.binding,
+            effect: 'commit',
+            commit: {
+              account: 'crewaid-public',
+              destinations: ['c1:apps/orchestrator'],
+              contentRevision: 'b'.repeat(64),
+            },
+          },
+        }}
+        botName="Warden"
+        onRespond={() => undefined}
+      />,
+    );
+    expect(subHtml).toContain('apps/orchestrator');
+    expect(subHtml).not.toContain('Workspace root');
+  });
 });
 
 /**

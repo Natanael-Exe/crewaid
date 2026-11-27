@@ -26,12 +26,46 @@ import type { AppInfoResult } from './edition';
 import type { UpdateInstallResult, UpdateState, UpdateStateResult } from './updater';
 import type { AuthStatus, SignInResult } from './signIn';
 import type { TokenBag, TokenStoreReadResult, TokenStoreWriteResult } from './tokenStore';
+import {
+  LOCAL_CONNECTOR_PROMPT_CHANNEL,
+  LOCAL_CONNECTOR_STATE_CHANNEL,
+  type BuiltinLocalHarnessId,
+  type LocalConnectorPromptEvent,
+  type LocalConnectorPromptResponse,
+  type LocalHarnessDetectionResult,
+  type LocalHarnessProbeItem,
+  type LocalPermissionOptionView,
+  type ManagedConnectorActionErrorCode,
+  type ManagedConnectorActionResult,
+  type ManagedConnectorRuntimeState,
+  type ManagedConnectorsListResult,
+  type ManagedConnectorView,
+  type PairLocalConnectorInput,
+  type PickFolderResult,
+  type UpdateLocalConnectorInput,
+} from './localConnectorTypes.js';
 
 export type { TokenBag, TokenStoreReadResult, TokenStoreWriteResult } from './tokenStore';
 export type { AuthStatus, SignInResult, SignInUser } from './signIn';
 export type { OpenExternalResult } from './openExternal';
 export type { AppInfoResult } from './edition';
 export type { InstallResult, UpdateInstallResult, UpdateState, UpdateStateResult } from './updater';
+export type {
+  BuiltinLocalHarnessId,
+  LocalConnectorPromptEvent,
+  LocalConnectorPromptResponse,
+  LocalHarnessDetectionResult,
+  LocalHarnessProbeItem,
+  LocalPermissionOptionView,
+  ManagedConnectorActionErrorCode,
+  ManagedConnectorActionResult,
+  ManagedConnectorRuntimeState,
+  ManagedConnectorsListResult,
+  ManagedConnectorView,
+  PairLocalConnectorInput,
+  PickFolderResult,
+  UpdateLocalConnectorInput,
+};
 
 const AUTH_CHANGED_CHANNEL = 'crewaid:auth:changed';
 const UPDATE_CHANGED_CHANNEL = 'crewaid:update:changed';
@@ -146,6 +180,44 @@ const api = {
       ipcRenderer.on(AUTH_CHANGED_CHANNEL, handler);
       return () => {
         ipcRenderer.off(AUTH_CHANGED_CHANNEL, handler);
+      };
+    },
+  },
+  localConnector: {
+    detectHarnesses: (refresh = false): Promise<LocalHarnessDetectionResult> =>
+      ipcRenderer.invoke('crewaid:local-connector:detect-harnesses', refresh),
+    pickFolder: (): Promise<PickFolderResult> =>
+      ipcRenderer.invoke('crewaid:local-connector:pick-folder'),
+    list: (): Promise<ManagedConnectorsListResult> =>
+      ipcRenderer.invoke('crewaid:local-connector:list'),
+    pair: (input: PairLocalConnectorInput): Promise<ManagedConnectorActionResult> =>
+      ipcRenderer.invoke('crewaid:local-connector:pair', input),
+    start: (connectorId: string): Promise<ManagedConnectorActionResult> =>
+      ipcRenderer.invoke('crewaid:local-connector:start', connectorId),
+    pause: (connectorId: string): Promise<ManagedConnectorActionResult> =>
+      ipcRenderer.invoke('crewaid:local-connector:pause', connectorId),
+    update: (input: UpdateLocalConnectorInput): Promise<ManagedConnectorActionResult> =>
+      ipcRenderer.invoke('crewaid:local-connector:update', input),
+    unpair: (connectorId: string): Promise<ManagedConnectorActionResult> =>
+      ipcRenderer.invoke('crewaid:local-connector:unpair', connectorId),
+    currentPrompt: (): Promise<LocalConnectorPromptEvent | null> =>
+      ipcRenderer.invoke('crewaid:local-connector:current-prompt'),
+    respondPrompt: (response: LocalConnectorPromptResponse): Promise<boolean> =>
+      ipcRenderer.invoke('crewaid:local-connector:respond-prompt', response),
+    onStateChanged: (listener: (connectors: readonly ManagedConnectorView[]) => void): (() => void) => {
+      const handler = (_event: unknown, connectors: readonly ManagedConnectorView[]): void =>
+        listener(connectors);
+      ipcRenderer.on(LOCAL_CONNECTOR_STATE_CHANNEL, handler);
+      return () => {
+        ipcRenderer.off(LOCAL_CONNECTOR_STATE_CHANNEL, handler);
+      };
+    },
+    onPrompt: (listener: (prompt: LocalConnectorPromptEvent | null) => void): (() => void) => {
+      const handler = (_event: unknown, prompt: LocalConnectorPromptEvent | null): void =>
+        listener(prompt);
+      ipcRenderer.on(LOCAL_CONNECTOR_PROMPT_CHANNEL, handler);
+      return () => {
+        ipcRenderer.off(LOCAL_CONNECTOR_PROMPT_CHANNEL, handler);
       };
     },
   },

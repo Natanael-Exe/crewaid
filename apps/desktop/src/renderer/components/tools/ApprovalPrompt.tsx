@@ -245,7 +245,17 @@ export function ApprovalPrompt({
               <dt className="text-muted">{t('tools.approval.localTask.connector')}</dt>
               <dd className="break-words font-medium text-foreground">{localTask.connector}</dd>
               <dt className="text-muted">{t('tools.approval.localTask.folder')}</dt>
-              <dd className="break-all font-mono text-foreground">{localTask.folder}</dd>
+              <dd
+                className={
+                  localTask.folder === '.'
+                    ? 'text-foreground'
+                    : 'break-all font-mono text-foreground'
+                }
+              >
+                {localTask.folder === '.'
+                  ? t('tools.approval.localTask.rootFolder')
+                  : localTask.folder}
+              </dd>
               <dt className="text-muted">{t('tools.approval.localTask.harness')}</dt>
               <dd className="text-foreground">
                 {localTask.harness ?? t('tools.approval.localTask.defaultHarness')}

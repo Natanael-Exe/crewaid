@@ -26,6 +26,7 @@ import {
 } from '../agent/execution/chat-request.js';
 import type { ExecutionResume } from '../agent/execution/execution-backend.port.js';
 import { admitOwnedToolResumeBatch } from '../agent/persistence/owned-resume-admission.js';
+import { settleUnansweredToolResultsTx } from '../agent/persistence/owned-tanstack-persistence.js';
 import {
   RunLeaseService,
   RunOwnershipError,
@@ -403,21 +404,42 @@ export class ChatSendService implements OnModuleInit, OnModuleDestroy {
         botId,
         status: { in: ['interrupted', 'aborted'] },
         bot: { userId },
+        continuations: { none: { status: 'running' } },
       },
-      select: { id: true },
+      select: { id: true, conversationId: true, status: true },
     });
     if (settled.length === 0) return;
     const ids = settled.map((run) => run.id);
+    const now = new Date();
     await this.prisma.$transaction(async (tx) => {
       await tx.runInterrupt.updateMany({
         where: { runId: { in: ids }, userId, status: 'pending' },
-        data: { status: 'cancelled', resolvedAt: new Date() },
+        data: { status: 'cancelled', resolvedAt: now },
       });
+      await tx.runInterrupt.updateMany({
+        where: {
+          runId: { in: ids },
+          userId,
+          nativeInterruptId: { not: null },
+          nativeStatus: 'pending',
+        },
+        data: { nativeStatus: 'cancelled', nativeResolvedAt: now },
+      });
+      for (const run of settled) {
+        if (run.status !== 'interrupted') continue;
+        await settleUnansweredToolResultsTx(
+          tx,
+          { userId, botId, threadId: run.conversationId },
+          [run.id],
+          run.id,
+          'aborted',
+        );
+      }
       await tx.agentTurn.updateMany({
         where: { id: { in: ids }, botId, status: 'interrupted', bot: { userId } },
         data: {
           status: 'aborted',
-          endedAt: new Date(),
+          endedAt: now,
           activeKey: null,
           workerId: null,
           leaseExpiresAt: null,

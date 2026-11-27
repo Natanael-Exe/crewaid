@@ -57,8 +57,11 @@ export type ParsedCliCommand =
 export const HELP_TEXT = `crewaid-connect — Connect a local repository and ACP coding harness to Crewaid
 
 Usage:
-  crewaid-connect <dir> --url <server-url> [options]
+  crewaid-connect [dir] --url <server-url> [options]
   crewaid-connect harnesses
+
+Arguments:
+  dir                         Repository directory to share (default: current directory ".")
 
 Options:
   --url <url>                 Crewaid server URL (required)
@@ -189,16 +192,13 @@ export function parseCliArgs(argv: readonly string[]): ParsedCliCommand {
     }
   }
 
-  if (dir === undefined) {
-    throw new Error('Missing target directory. Usage: crewaid-connect <dir> --url <server-url>');
-  }
   if (url === undefined) {
     throw new Error('Missing --url <server-url>.');
   }
 
   return {
     kind: 'connect',
-    dir,
+    dir: dir ?? '.',
     url: normalizeServerUrl(url),
     save,
     tokenStdin,
@@ -212,12 +212,22 @@ export function parseCliArgs(argv: readonly string[]): ParsedCliCommand {
   };
 }
 
-const HARNESS_INSTALL_HINTS: Readonly<Record<BuiltinAcpHarnessId, string>> = {
-  'claude-code': 'npm install -g @agentclientprotocol/claude-agent-acp (requires Node >= 22)',
-  codex: 'Install codex-acp on PATH (requires Node >= 22)',
-  opencode: 'Install OpenCode (provides `opencode acp`)',
-  antigravity: 'Install Google Antigravity CLI (provides `agy acp`)',
-};
+function harnessInstallHint(id: BuiltinAcpHarnessId, platform: NodeJS.Platform = process.platform): string {
+  switch (id) {
+    case 'claude-code':
+      return 'npm install -g @agentclientprotocol/claude-agent-acp (requires Node >= 22)';
+    case 'codex':
+      return 'npm install -g @agentclientprotocol/codex-acp (requires Node >= 22)';
+    case 'opencode':
+      return platform === 'win32'
+        ? 'npm install -g opencode-ai'
+        : 'curl -fsSL https://opencode.ai/install | bash';
+    case 'antigravity':
+      return platform === 'win32'
+        ? 'irm https://antigravity.google/cli/install.ps1 | iex'
+        : 'curl -fsSL https://antigravity.google/cli/install.sh | bash';
+  }
+}
 
 function formatHarnessesTable(): string {
   const detected = new Map(detectInstalledHarnesses().map((entry) => [entry.id, entry]));
@@ -228,7 +238,7 @@ function formatHarnessesTable(): string {
     const status = hit !== undefined ? `installed (${hit.resolvedPath})` : 'not found';
     lines.push(`  - ${id.padEnd(12)} ${preset.label.padEnd(14)} ${status}`);
     if (hit === undefined) {
-      lines.push(`    Install: ${HARNESS_INSTALL_HINTS[id]}`);
+      lines.push(`    Install: ${harnessInstallHint(id)}`);
     }
   }
   lines.push('', 'Custom harnesses are also supported via --cmd "<binary> [args...]".');
@@ -259,7 +269,13 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     return 0;
   }
 
-  const workspace = resolveWorkspaceRoot(command.dir);
+  let workspace;
+  try {
+    workspace = resolveWorkspaceRoot(command.dir);
+  } catch (error: unknown) {
+    process.stderr.write(`Error: ${error instanceof Error ? error.message : String(error)}\n`);
+    return 1;
+  }
   const detected = detectInstalledHarnesses();
   const availableBuiltins = detected.map((h) => h.id);
   const allDetected: LocalConnectorHarnessId[] = [

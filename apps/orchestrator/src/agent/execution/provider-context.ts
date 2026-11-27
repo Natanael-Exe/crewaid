@@ -3,7 +3,11 @@ import type { AttachmentsService, ModelAttachment } from '../../attachments/atta
 import type { BuiltTextAdapter } from '../../models/tanstack/text-adapter.js';
 import { agentInstructionBlocks, agentInstructions } from '../agent-instructions.js';
 import { interBotToUserContent, triggerToUserContent } from '../trigger-content.js';
-import { projectToolHistory } from './tool-history-projection.js';
+import {
+  placeToolImages,
+  projectToolHistory,
+  toolImagePlacement,
+} from './tool-history-projection.js';
 import type { ExecutionRequest } from './execution-backend.port.js';
 import type { PrivacyVault } from './privacy-vault.js';
 
@@ -135,12 +139,14 @@ export function fromFirstUserTurn(messages: readonly ModelMessage[]): ModelMessa
  */
 export function providerContext(
   request: ExecutionRequest,
-  vision: boolean,
+  model: { readonly kind: BuiltTextAdapter['kind']; readonly vision: boolean },
   loadAttachments: ClaimedAttachmentLoader,
   loadSenders?: TeammateNameLoader,
   readNotices?: () => readonly string[],
   vault?: PrivacyVault,
 ): ChatMiddleware {
+  const { vision } = model;
+  const placement = toolImagePlacement(model.kind, vision);
   const attachments = new Map<string, readonly ModelAttachment[]>();
   const senders = new Map<string, string | undefined>();
   return {
@@ -161,7 +167,10 @@ export function providerContext(
         for (const id of missing) senders.set(id, named?.get(id));
       }
       const projected = await projectToolHistory(config.messages, request.tools);
-      const rawProviderMessages: ModelMessage[] = fromFirstUserTurn(projected).map((message) =>
+      const rawProviderMessages: ModelMessage[] = placeToolImages(
+        fromFirstUserTurn(projected),
+        placement,
+      ).map((message) =>
         message.role === 'user' && typeof message.content === 'string'
           ? {
               ...message,
@@ -182,12 +191,10 @@ export function providerContext(
             ? providerMessages
             : [
                 ...providerMessages,
-                ...notices.map(
-                  (content): ModelMessage => ({
-                    role: 'user',
-                    content: vault === undefined ? content : vault.redactText(content),
-                  }),
-                ),
+                ...notices.map((content): ModelMessage => ({
+                  role: 'user',
+                  content: vault === undefined ? content : vault.redactText(content),
+                })),
               ],
       };
     },

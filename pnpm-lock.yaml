@@ -151,6 +151,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: 6.1.1
         version: 6.1.1(vite@8.2.4(@types/node@26.4.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+      crewaid-connect:
+        specifier: workspace:*
+        version: link:../../packages/connector-cli
       cross-env:
         specifier: 10.1.0
         version: 10.1.0
