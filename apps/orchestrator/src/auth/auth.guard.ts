@@ -66,6 +66,20 @@ function hasBearer(header: string | string[] | undefined): boolean {
 @Injectable()
 export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // NestJS 12 invokes global APP_GUARDs on WebSocket @SubscribeMessage
+    // handlers (SocketModule now passes applicationConfig to GuardsContextCreator).
+    // WebSocket sessions are authenticated at HTTP Upgrade (CrewaidWsAdapter,
+    // D-024) and re-checked per control frame in WsGateway via WsPrincipals.
+    // Match 'ws' explicitly rather than `!== 'http'` so any future non-HTTP
+    // transport fails closed instead of bypassing auth.
+    const contextType = context.getType();
+    if (contextType === 'ws') {
+      return true;
+    }
+    if (contextType !== 'http') {
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+
     const request = context.switchToHttp().getRequest<{
       method?: string;
       path?: string;

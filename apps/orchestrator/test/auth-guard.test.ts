@@ -47,6 +47,7 @@ describe('AuthGuard exemptions (§4.4, no database)', () => {
 
   function contextFor(request: FakeRequest): ExecutionContext {
     return {
+      getType: () => 'http',
       switchToHttp: () => ({ getRequest: () => request }),
     } as unknown as ExecutionContext;
   }
@@ -201,5 +202,25 @@ describe('AuthGuard exemptions (§4.4, no database)', () => {
     // that the request was NOT waved through.
     await expect(guard.canActivate(contextFor(request))).rejects.toThrow('Unauthorized');
     expect(request.principal).toBeUndefined();
+  });
+
+  it('passes through WebSocket contexts (authenticated at Upgrade and per-frame by WsGateway)', async () => {
+    const guard = await newGuard();
+    const wsContext = {
+      getType: () => 'ws',
+      switchToHttp: () => ({ getRequest: () => ({}) }),
+    } as unknown as ExecutionContext;
+
+    await expect(guard.canActivate(wsContext)).resolves.toBe(true);
+  });
+
+  it('fails closed on non-HTTP, non-WS execution contexts', async () => {
+    const guard = await newGuard();
+    const rpcContext = {
+      getType: () => 'rpc',
+      switchToHttp: () => ({ getRequest: () => ({}) }),
+    } as unknown as ExecutionContext;
+
+    await expect(guard.canActivate(rpcContext)).rejects.toThrow('Unauthorized');
   });
 });
