@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger, type Type } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
+import { NEST_APP_OPTIONS } from './nest-app-options.js';
 import { TaskStartService } from './work/task-start.service.js';
 import { RecordingsService } from './recordings/recordings.service.js';
 import { SkillRunService } from './skills/skill-run.service.js';
@@ -34,10 +35,7 @@ import { createPrismaClient } from './prisma/prisma-client.factory.js';
  * every route). Build with tsc, run `node dist/main.js`.
  */
 export async function bootstrap(rootModule: Type<unknown>): Promise<void> {
-  // `rawBody`: the request bytes as received, beside the parsed body. Stripe
-  // signs the exact bytes it sends, and the Better Auth middleware hands them
-  // on so a webhook verifies.
-  const app = await NestFactory.create<NestExpressApplication>(rootModule, { rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(rootModule, NEST_APP_OPTIONS);
   app.useLogger(app.get(StructuredLogger));
   app.setGlobalPrefix('api/v1', { exclude: ['health'] });
   app.useWebSocketAdapter(new CrewaidWsAdapter(app, app.get(StructuredLogger)));

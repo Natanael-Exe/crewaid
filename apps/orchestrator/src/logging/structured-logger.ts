@@ -319,6 +319,47 @@ function createPino(destination?: DestinationStream): PinoLogger {
   );
 }
 
+/**
+ * Only object literals (and null-prototype records) are spread into fields.
+ * Anything else, such as an Error, Date, Buffer, Map or class instance, goes
+ * under `extra`, because spreading it would turn its indices or internals into
+ * top-level keys.
+ */
+function isPlainRecord(value: unknown): value is LogFields {
+  if (typeof value !== 'object' || value === null) return false;
+  const prototype: unknown = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function extractNestParams(optionalParams: readonly unknown[]): {
+  fields: LogFields;
+  context?: string;
+} {
+  if (optionalParams.length === 0) {
+    return { fields: {} };
+  }
+  const rest = [...optionalParams];
+  let context: string | undefined;
+  const last = rest[rest.length - 1];
+  if (typeof last === 'string') {
+    context = sanitizeText(last);
+    rest.pop();
+  }
+  const fields: LogFields = {};
+  const extra: unknown[] = [];
+  for (const item of rest) {
+    if (isPlainRecord(item)) {
+      Object.assign(fields, item);
+    } else if (item !== undefined) {
+      extra.push(item);
+    }
+  }
+  if (extra.length > 0) {
+    fields['extra'] = extra;
+  }
+  return context === undefined ? { fields } : { fields, context };
+}
+
 /** Pino-backed Nest logger with a fixed, auditable correlation envelope. */
 @Injectable()
 export class StructuredLogger implements LoggerService {
@@ -349,37 +390,53 @@ export class StructuredLogger implements LoggerService {
     this.write('info', event, fields);
   }
 
-  debug(event: string, fields: LogFields = {}): void {
-    this.write('debug', event, fields);
+  debug(event: string, fields?: LogFields): void;
+  debug(message: unknown, context: string): void;
+  debug(message: unknown, fields: LogFields, context: string): void;
+  debug(message: unknown, ...optionalParams: unknown[]): void {
+    this.writeNestLevel('debug', 'nest.debug', message, optionalParams);
   }
 
-  warn(event: string, fields: LogFields = {}): void {
-    this.write('warn', event, fields);
+  warn(event: string, fields?: LogFields): void;
+  warn(message: unknown, context: string): void;
+  warn(message: unknown, fields: LogFields, context: string): void;
+  warn(message: unknown, ...optionalParams: unknown[]): void {
+    this.writeNestLevel('warn', 'nest.warn', message, optionalParams);
   }
 
   error(message: unknown, stackOrFields?: string | LogFields, context?: string): void {
     if (typeof stackOrFields === 'object' && stackOrFields !== null) {
-      this.write('error', typeof message === 'string' ? message : 'nest.error', stackOrFields);
+      this.write('error', typeof message === 'string' ? message : 'nest.error', {
+        ...stackOrFields,
+        ...(typeof context === 'string' && { context: sanitizeText(context) }),
+      });
       return;
     }
     this.errorNest(message, stackOrFields, context);
   }
 
-  fatal(event: string, fields: LogFields = {}): void {
-    this.write('fatal', event, fields);
+  fatal(event: string, fields?: LogFields): void;
+  fatal(message: unknown, context: string): void;
+  fatal(message: unknown, fields: LogFields, context: string): void;
+  fatal(message: unknown, ...optionalParams: unknown[]): void {
+    this.writeNestLevel('fatal', 'nest.fatal', message, optionalParams);
   }
 
-  log(message: unknown, context?: string): void {
+  log(message: unknown, ...optionalParams: unknown[]): void {
+    const { fields, context } = extractNestParams(optionalParams);
     this.write('info', 'nest.log', {
+      ...fields,
       message: typeof message === 'string' ? sanitizeText(message) : message,
-      ...(context !== undefined && { context: sanitizeText(context) }),
+      ...(context !== undefined && { context }),
     });
   }
 
-  verbose(message: unknown, context?: string): void {
-    this.debug(typeof message === 'string' ? sanitizeText(message) : 'nest.verbose', {
+  verbose(message: unknown, ...optionalParams: unknown[]): void {
+    const { fields, context } = extractNestParams(optionalParams);
+    this.write('debug', typeof message === 'string' ? sanitizeText(message) : 'nest.verbose', {
+      ...fields,
       ...(typeof message !== 'string' && { message }),
-      ...(context !== undefined && { context: sanitizeText(context) }),
+      ...(context !== undefined && { context }),
     });
   }
 
@@ -388,6 +445,35 @@ export class StructuredLogger implements LoggerService {
       message: typeof message === 'string' ? sanitizeText(message) : message,
       ...(stack !== undefined && { stack: sanitizeText(stack) }),
       ...(context !== undefined && { context: sanitizeText(context) }),
+    });
+  }
+
+  private writeNestLevel(
+    level: LogLevel,
+    fallbackEvent: string,
+    message: unknown,
+    optionalParams: readonly unknown[],
+  ): void {
+    if (
+      typeof message === 'string' &&
+      optionalParams.length === 1 &&
+      isPlainRecord(optionalParams[0])
+    ) {
+      this.write(level, message, optionalParams[0]);
+      return;
+    }
+    const { fields, context } = extractNestParams(optionalParams);
+    if (typeof message === 'string') {
+      this.write(level, message, {
+        ...fields,
+        ...(context !== undefined && { context }),
+      });
+      return;
+    }
+    this.write(level, fallbackEvent, {
+      ...fields,
+      message,
+      ...(context !== undefined && { context }),
     });
   }
 

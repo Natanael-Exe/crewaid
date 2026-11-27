@@ -282,12 +282,14 @@ export class MachineProcessService implements MachineProcessPort, OnModuleDestro
     return stopped;
   }
 
-  onModuleDestroy(): void {
+  async onModuleDestroy(): Promise<void> {
+    const releases: Promise<void>[] = [];
     for (const [key, watcher] of [...this.watchers.entries()]) {
       this.watchers.delete(key);
       watcher.controller.abort();
-      void watcher.lease.release();
+      releases.push(watcher.lease.release());
     }
+    await Promise.allSettled(releases);
   }
 
   private registerWatcher(

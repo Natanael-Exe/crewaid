@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@crewaid/sandbox-core": "workspace:*",
-    "ws": "8.21.3"
+    "ws": "8.23.0"
   },
   "devDependencies": {
     "@types/ws": "8.18.1",

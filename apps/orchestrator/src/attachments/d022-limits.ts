@@ -38,6 +38,28 @@ export const D022_MULTER_LIMITS = {
 } as const;
 
 /**
+ * Shared Multer limit error-code sets, consumed by both `multerErrorToHttp`
+ * (direct upload controllers) and `MulterErrorFilter` (Nest's transformed
+ * `BadRequestException` with preserved `cause`) so the two cannot drift.
+ *
+ * `INVALID_FIELD_NAME` is intentionally omitted: a malformed field name such as
+ * `__proto__[x]` is a client bad request (400), not an oversized payload (413).
+ */
+export const D022_FILE_LIMIT_CODES: ReadonlySet<string> = new Set([
+  'LIMIT_FILE_COUNT',
+  'LIMIT_UNEXPECTED_FILE',
+]);
+
+export const D022_FIELD_LIMIT_CODES: ReadonlySet<string> = new Set([
+  'LIMIT_PART_COUNT',
+  'LIMIT_FIELD_COUNT',
+  'LIMIT_FIELD_KEY',
+  'LIMIT_FIELD_VALUE',
+  'LIMIT_FIELD_NESTING',
+  'LIMIT_FIELD_ARRAY_INDEX',
+]);
+
+/**
  * Map Multer error codes onto the ratified HTTP semantics: anything the
  * limits layer rejects is a payload problem → 413. Unknown codes fall
  * through as a bad request.
@@ -45,23 +67,14 @@ export const D022_MULTER_LIMITS = {
 export function multerErrorToHttp(error: unknown): Error {
   const code =
     typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : '';
-  if (
-    code === 'LIMIT_FILE_SIZE' ||
-    code === 'LIMIT_FILE_COUNT' ||
-    code === 'LIMIT_UNEXPECTED_FILE'
-  ) {
+  if (code === 'LIMIT_FILE_SIZE' || D022_FILE_LIMIT_CODES.has(code)) {
     return new PayloadTooLargeException(
       code === 'LIMIT_FILE_SIZE'
         ? `Attachment exceeds ${D022_FILE_SIZE_BYTES} bytes`
         : `Upload exceeds ${D022_MAX_FILES} files per request`,
     );
   }
-  if (
-    code === 'LIMIT_FIELD_COUNT' ||
-    code === 'LIMIT_FIELD_VALUE' ||
-    code === 'LIMIT_FIELD_KEY' ||
-    code === 'LIMIT_PART_COUNT'
-  ) {
+  if (D022_FIELD_LIMIT_CODES.has(code)) {
     return new PayloadTooLargeException('Upload carries more form fields than a file needs');
   }
   return new BadRequestException('Malformed multipart payload');
