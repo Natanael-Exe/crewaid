@@ -21,7 +21,7 @@
   "dependencies": {
     "@crewaid/screen-stream": "workspace:*",
     "@crewaid/shared": "workspace:*",
-    "ws": "8.21.3"
+    "ws": "8.23.0"
   },
   "devDependencies": {
     "@types/ws": "8.18.1",

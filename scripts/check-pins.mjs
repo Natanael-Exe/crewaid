@@ -57,14 +57,16 @@ const LOAD_BEARING = {
   // from it: a surprise Nest major changes DI, guard, and interceptor
   // semantics under M1-BE-01's AuthGuard. Empirical proof on record: a
   // manifest with rxjs@7.8.3 (wrong version) fails this script with the
-  // exact load-bearing message below. Moved together to 11.2.6 for the
-  // multer 2.4.0 it brings: 2.2.0 had three reachable multipart DoS advisories
-  // (GHSA-wc9g-mqfw-jrwm, GHSA-qfvm-cv95-jqjf and the array-index one).
-  '@nestjs/common': '11.2.6',
-  '@nestjs/core': '11.2.6',
-  '@nestjs/platform-express': '11.2.6',
-  '@nestjs/platform-ws': '11.2.6',
-  '@nestjs/websockets': '11.2.6',
+  // exact load-bearing message below. Moved together to 12.6.3 (ESM-native
+  // packages, Express 5.3.0, Multer 2.5.0 directly pinned). `@nestjs/testing`
+  // is pinned alongside the runtime packages so test and production Nest
+  // majors cannot drift apart.
+  '@nestjs/common': '12.6.3',
+  '@nestjs/core': '12.6.3',
+  '@nestjs/platform-express': '12.6.3',
+  '@nestjs/platform-ws': '12.6.3',
+  '@nestjs/websockets': '12.6.3',
+  '@nestjs/testing': '12.6.3',
   // reflect-metadata + rxjs: the boot-critical pair. Undeclared on PR #6
   // three times while tests stayed green — vitest's @Inject-token pattern
   // bypasses the design:paramtypes metadata that real bootstrap needs, so
