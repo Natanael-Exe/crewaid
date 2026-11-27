@@ -1,6 +1,11 @@
 import { ArgumentsHost, BadRequestException, Catch, HttpStatus } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
-import { D022_MAX_FILES, D022_FILE_SIZE_BYTES } from './d022-limits.js';
+import {
+  D022_FIELD_LIMIT_CODES,
+  D022_FILE_LIMIT_CODES,
+  D022_FILE_SIZE_BYTES,
+  D022_MAX_FILES,
+} from './d022-limits.js';
 
 /**
  * Multer limit violations must answer 413, never the library-default
@@ -8,16 +13,16 @@ import { D022_MAX_FILES, D022_FILE_SIZE_BYTES } from './d022-limits.js';
  *
  * Nest's platform-express maps Multer errors to HttpExceptions BEFORE any
  * user filter runs (multer.utils.transformException): LIMIT_FILE_SIZE becomes
- * PayloadTooLargeException (already 413), but LIMIT_FILE_COUNT and
- * LIMIT_UNEXPECTED_FILE become BadRequestException (400). When Multer attaches
- * a field name, the message gains a ` - <field>` suffix, so match on prefix.
- * This filter re-maps those to 413 per the D-022 ruling: an over-limit upload
- * is a payload problem, whatever the limit that caught it.
+ * PayloadTooLargeException (already 413), while file-count and text-field limit
+ * codes become BadRequestException (400). This filter re-maps those to 413 per
+ * the D-022 ruling: an over-limit upload is a payload problem, whatever the
+ * limit that caught it.
  *
- * Matching on the message is forced — the code is gone by the time a filter
- * sees the exception — and the messages are NOT stable: multer 2.4 renamed
- * "Unexpected field" to "Unexpected file field", which silently turned a
- * sixth file back into a 400. `d022-multer-limits.test.ts` is what notices.
+ * NestJS 12 preserves the original MulterError as `exception.cause`, so
+ * matching on the shared code sets from `d022-limits.ts` (gated on
+ * `cause.name === 'MulterError'`) is primary and immune to upstream message
+ * rewording (e.g. multer 2.4's "Unexpected field" -> "Unexpected file field").
+ * Prefix matching stays as a fallback when no cause is attached.
  */
 const D022_REMAP_400_PREFIXES = [
   'Too many files', // Multer LIMIT_FILE_COUNT
@@ -37,13 +42,29 @@ function matches(prefixes: readonly string[], message: string): boolean {
   return prefixes.some((prefix) => message === prefix || message.startsWith(`${prefix} -`));
 }
 
+function multerCauseCode(exception: BadRequestException): string | undefined {
+  const cause: unknown = exception.cause;
+  if (typeof cause !== 'object' || cause === null) return undefined;
+  const name: unknown = Reflect.get(cause, 'name');
+  const code: unknown = Reflect.get(cause, 'code');
+  return name === 'MulterError' && typeof code === 'string' ? code : undefined;
+}
+
 @Catch(BadRequestException)
 export class MulterErrorFilter extends BaseExceptionFilter {
   override catch(exception: unknown, host: ArgumentsHost): void {
-    if (exception instanceof BadRequestException) {
-      const message = matches(D022_REMAP_400_PREFIXES, exception.message)
+    if (host.getType() === 'http' && exception instanceof BadRequestException) {
+      const code = multerCauseCode(exception);
+      const isFileLimit =
+        (code !== undefined && D022_FILE_LIMIT_CODES.has(code)) ||
+        matches(D022_REMAP_400_PREFIXES, exception.message);
+      const isFieldLimit =
+        !isFileLimit &&
+        ((code !== undefined && D022_FIELD_LIMIT_CODES.has(code)) ||
+          matches(FIELD_REMAP_400_PREFIXES, exception.message));
+      const message = isFileLimit
         ? `Upload exceeds ${D022_MAX_FILES} files per request (limit ${D022_FILE_SIZE_BYTES} bytes per file)`
-        : matches(FIELD_REMAP_400_PREFIXES, exception.message)
+        : isFieldLimit
           ? 'Upload carries more form fields than a file needs'
           : null;
       if (message !== null) {
