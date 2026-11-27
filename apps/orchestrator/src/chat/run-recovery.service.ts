@@ -7,6 +7,7 @@ import { CodingRunStoreService } from '../agent/coding/coding-run-store.service.
 import { TURN_BOT_SELECT } from '../agent/turn-assembly.js';
 import {
   cancelPendingToolResults,
+  closeAnsweredParentRun,
   openOwnedTanStackPersistence,
   readAdmittedResume,
   recoverExpiredRuns,
@@ -162,8 +163,51 @@ export class RunRecoveryService implements OnModuleDestroy {
   }
 
   /** Rebuild owned input; the producer fences checkpoints and effect replay. */
+  /**
+   * Closes parents left `interrupted` after their continuation closed, from
+   * before a continuation's close moved its parent on. Each kept its bot
+   * "working" for good: deletes were refused and there was nothing to Stop.
+   */
+  private async closeAnsweredParents(): Promise<void> {
+    const parked = await this.prisma.$queryRaw<
+      Array<{
+        readonly userId: string;
+        readonly botId: string;
+        readonly threadId: string;
+        readonly runId: string;
+        readonly continuationStatus: 'completed' | 'interrupted' | 'failed' | 'aborted';
+      }>
+    >`
+      SELECT p.id AS "runId", p."botId", p."conversationId" AS "threadId",
+        b."userId", c.status::text AS "continuationStatus"
+      FROM "AgentTurn" p
+      JOIN "Bot" b ON b.id = p."botId"
+      JOIN LATERAL (
+        SELECT status FROM "AgentTurn" latest
+        WHERE latest."resumesRunId" = p.id
+        ORDER BY latest.sequence DESC LIMIT 1
+      ) c ON true
+      WHERE p.status = 'interrupted' AND c.status <> 'running'
+      LIMIT 100`;
+    let closed = 0;
+    for (const item of parked) {
+      const done = await this.prisma.$transaction((tx) =>
+        closeAnsweredParentRun(
+          tx,
+          { userId: item.userId, botId: item.botId, threadId: item.threadId },
+          item.runId,
+          item.continuationStatus,
+        ),
+      );
+      if (done) closed += 1;
+    }
+    if (closed > 0) this.logger.info('turn.recovery.answered-parents-closed', { count: closed });
+  }
+
   private async sweepAbandonedRuns(hooks: RecoveryHooks): Promise<void> {
     await this.reconcileOrphanedNativeInterrupts();
+    // After the reconcile, which may settle the last pending interrupt.
+    await this.closeAnsweredParents();
     const result = await recoverExpiredRuns({
       leases: this.leases,
       resume: async (lease) => {

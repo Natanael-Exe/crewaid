@@ -236,6 +236,11 @@ describe.skipIf(!DATABASE_URL)('MOD-AI-06 owned approval resume end to end (real
     );
     expect(failed.status).toBe('failed');
     expect(action).toHaveBeenCalledOnce();
+    // The answered parent closes with its continuation; left `interrupted`, it
+    // kept the bot "working" for good (deletes refused, nothing to Stop).
+    expect(
+      await prisma.agentTurn.findUniqueOrThrow({ where: { id: t.first.runId } }),
+    ).toMatchObject({ status: 'failed', endedAt: expect.any(Date) });
     expect(
       await prisma.runInterrupt.findUniqueOrThrow({ where: { id: proposal.id } }),
     ).toMatchObject({ status: 'resolved', nativeStatus: 'resolved' });

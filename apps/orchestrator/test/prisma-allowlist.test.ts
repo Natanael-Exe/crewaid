@@ -207,6 +207,15 @@ const SCOPED_ALLOWLIST: ScopedAllowlistEntry[] = [
   },
   {
     file: 'apps/orchestrator/src/agent/persistence/owned-tanstack-persistence.ts',
+    scope: 'closeAnsweredParentRun',
+    receiver: 'tx',
+    model: 'agentTurn',
+    operation: 'updateMany',
+    policy: 'scoped',
+    ownershipToken: 'scope.userId',
+  },
+  {
+    file: 'apps/orchestrator/src/agent/persistence/owned-tanstack-persistence.ts',
     scope: 'settleRemainingParentInterrupts',
     receiver: 'tx',
     model: 'runInterrupt',
@@ -1716,6 +1725,15 @@ const SCOPED_ALLOWLIST: ScopedAllowlistEntry[] = [
     occurrence: 2,
     policy: 'scoped',
     ownershipToken: 'lease.userId',
+  },
+  {
+    file: 'apps/orchestrator/src/chat/run-recovery.service.ts',
+    scope: 'RunRecoveryService.closeAnsweredParents',
+    receiver: 'prisma',
+    model: '$client',
+    operation: '$transaction',
+    policy: 'scoped',
+    ownershipToken: 'item.userId',
   },
   {
     file: 'apps/orchestrator/src/chat/run-recovery.service.ts',
@@ -6376,6 +6394,16 @@ const EXEMPT_ALLOWLIST: ExemptAllowlistEntry[] = [
     policy: 'exempt',
     reason:
       'D-177: internal server lifecycle discovery reads at most 100 expired TANSTACK leases with their owning bot principal. It writes nothing and grants no authority; the recovery coordinator must scoped-claim and admit every candidate before execution.',
+  },
+  {
+    file: 'apps/orchestrator/src/chat/run-recovery.service.ts',
+    scope: 'RunRecoveryService.closeAnsweredParents',
+    receiver: 'prisma',
+    model: '$client',
+    operation: '$queryRaw',
+    policy: 'exempt',
+    reason:
+      'Internal server lifecycle discovery reads at most 100 parked parent runs whose latest continuation has closed, with their owning principal; it writes nothing and grants no authority, and each discovered run is closed inside a principal-scoped transaction that re-checks it is still parked with no pending approval.',
   },
   {
     file: 'apps/orchestrator/src/chat/run-recovery.service.ts',

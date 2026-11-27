@@ -98,6 +98,7 @@ export async function openOwnedTanStackPersistence(
           boundary,
           interrupts,
         });
+        await boundary.transaction((tx) => closeAnsweredParentRun(tx, lease, parentRunId, next));
       }
       return result;
     });
@@ -598,6 +599,42 @@ async function settleUnansweredToolResults(
  * runs inside the caller's transaction, without requiring a live run lease, so
  * a later user message cannot re-enter `beforeTools` for a cancelled or failed call.
  */
+/** The status a parked parent takes once its continuation closes. */
+export function parentStatusAfter(next: ClosingRunStatus): 'completed' | 'failed' | 'aborted' {
+  // A continuation that parks on a new approval has taken the conversation
+  // over: the parent's own part (the answered approvals) is done.
+  return next === 'interrupted' ? 'completed' : next;
+}
+
+/**
+ * Closes a parent run parked on approvals once its continuation closes.
+ *
+ * Admission answers the parent's approvals but leaves it `interrupted`, and
+ * nothing moved it on afterwards. Every live-run check counts `interrupted`
+ * as working, so a bot stayed "busy" after any approval: deleting a message
+ * was refused and there was no run left to Stop. A parent with an approval
+ * still pending stays parked, since only an answer may move it.
+ */
+export async function closeAnsweredParentRun(
+  tx: Prisma.TransactionClient,
+  scope: { readonly userId: string; readonly botId: string; readonly threadId: string },
+  parentRunId: string,
+  next: ClosingRunStatus,
+): Promise<boolean> {
+  const closed = await tx.agentTurn.updateMany({
+    where: {
+      id: parentRunId,
+      botId: scope.botId,
+      conversationId: scope.threadId,
+      status: 'interrupted',
+      bot: { userId: scope.userId },
+      interrupts: { none: { OR: [{ status: 'pending' }, { nativeStatus: 'pending' }] } },
+    },
+    data: { status: parentStatusAfter(next), endedAt: new Date() },
+  });
+  return closed.count === 1;
+}
+
 export async function settleUnansweredToolResultsTx(
   tx: Prisma.TransactionClient,
   scope: { readonly userId: string; readonly botId: string; readonly threadId: string },
